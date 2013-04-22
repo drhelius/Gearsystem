@@ -6,9 +6,11 @@ Gearsystem
 
 Gearsystem is a Sega Master System / Game Gear emulator written in C++.
 
-The emulator is focused on readability of source code.
+The main focus of this emulator is readability of source code.
 
-Don't forget to send me your comments or questions at: http://twitter.com/drhelius
+A lot of effort has gone into this in order to follow OOP and keep it as simple and efficient as possible.
+
+Don't forget sending me your comments or questions at: http://twitter.com/drhelius
 
 
 ----------
@@ -27,7 +29,6 @@ Downloads
 
 Features
 --------
-- 
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Compressed rom support (ZIP deflate).
 - Multi platform. Compiles and runs on Windows, Linux, Mac OS X, Raspberry Pi and iOS.
