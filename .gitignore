@@ -1,13 +1,78 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
+# Netbeans files
+/dist/
+/build/
+/nbproject/private/
+private.xml
+Makefile-variables.mk
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
+platforms/macosx/Gearsystem/nbproject/private/configurations.xml
+/platforms/linux/Gearsystem/dist/
+/platforms/linux/Gearsystem/build/
+/platforms/linux/Gearsystem/nbproject/private/
+/platforms/raspberry/Gearsystem/nbproject/private/
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
+# Mac files
+*.DS_Store
+
+# Visual Studio files
+ipch/
+[Oo]bj
+[Bb]in
+*.[Cc]ache
+*.obj
+*.exe
+*.exp
+*.pdb
+*.dll
+*.user
+*.aps
+*.pch
+*.sdf
+*.opensdf
+*.vspscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.bak
+*.ilk
+*.log
+*.zip
+[Dd]ebug*/
+*.lib
+*.sbr
+Thumbs.db
+[Rr]elease*/
+[Tt]est[Rr]esults/
+_UpgradeReport_Files/
+_ReSharper.*/
+
+# Gearsystem Memory Dump
+
+output.txt
+
+
+# Qt Ignores
+moc_*.cpp
+qt-Debug.mk
+qt-Release.mk
+ui_*.h
+
+*.txt
+/platforms/macosx/Gearsystem/build/
+/platforms/macosx/Gearsystem/dist/
+
+platforms/macosx/Gearsystem/gearsystem.ini
+platforms/windows/Gearsystem/gearsystem.ini
+platforms/linux/Gearsystem/gearsystem.ini
+platforms/raspberrypi/Gearsystem/gearsystem.ini
+
+*.xcuserstate
+
+platforms/ios/Gearsystem.xcodeproj/xcuserdata/*
+
+*.xcexplist
+
+*.xcsettings
