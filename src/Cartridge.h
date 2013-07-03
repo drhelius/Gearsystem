@@ -51,7 +51,7 @@ public:
     bool LoadFromBuffer(const u8* buffer, int size);
 
 private:
-    unsigned int Pow2Ceil(unsigned int n);
+    unsigned int Pow2Ceil(u16 n);
     bool GatherMetadata();
     bool LoadFromZipFile(const u8* buffer, int size);
 

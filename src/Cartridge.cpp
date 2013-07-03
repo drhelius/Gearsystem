@@ -259,7 +259,7 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
         return false;
 }
 
-unsigned int Cartridge::Pow2Ceil(unsigned int n)
+unsigned int Cartridge::Pow2Ceil(u16 n)
 {
     --n;
     n |= n >> 1;
