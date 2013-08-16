@@ -74,6 +74,7 @@ void Processor::OPCode0x07()
 
 void Processor::OPCode0x08()
 {
+    // TODO: different opcode
     // LD (nn),SP
     u8 l = m_pMemory->Read(PC.GetValue());
     PC.Increment();
@@ -129,6 +130,7 @@ void Processor::OPCode0x0F()
 
 void Processor::OPCode0x10()
 {
+    // TODO: different opcode
     // STOP
     PC.Increment();
 
@@ -268,6 +270,7 @@ void Processor::OPCode0x21()
 
 void Processor::OPCode0x22()
 {
+    // TODO: different opcode
     // LD (HLI),A
     OPCodes_LD(HL.GetValue(), AF.GetHigh());
     HL.Increment();
@@ -355,6 +358,7 @@ void Processor::OPCode0x29()
 
 void Processor::OPCode0x2A()
 {
+    // TODO: different opcode
     // LD A,(HLI)
     OPCodes_LD(AF.GetHighRegister(), HL.GetValue());
     HL.Increment();
@@ -419,6 +423,7 @@ void Processor::OPCode0x31()
 
 void Processor::OPCode0x32()
 {
+    // TODO: different opcode
     // LD (HLD), A
     OPCodes_LD(HL.GetValue(), AF.GetHigh());
     HL.Decrement();
@@ -479,6 +484,7 @@ void Processor::OPCode0x39()
 
 void Processor::OPCode0x3A()
 {
+    // TODO: different opcode
     // LD A,(HLD)
     OPCodes_LD(AF.GetHighRegister(), HL.GetValue());
     HL.Decrement();
@@ -1516,6 +1522,7 @@ void Processor::OPCode0xD2()
 
 void Processor::OPCode0xD3()
 {
+    // TODO: different opcode
     InvalidOPCode();
 }
 
@@ -1572,6 +1579,7 @@ void Processor::OPCode0xD8()
 
 void Processor::OPCode0xD9()
 {
+    // TODO: different opcode
     // RETI
     StackPop(&PC);
     m_bIME = true;
@@ -1598,6 +1606,7 @@ void Processor::OPCode0xDA()
 
 void Processor::OPCode0xDB()
 {
+    // TODO: different opcode
     InvalidOPCode();
 }
 
@@ -1624,6 +1633,7 @@ void Processor::OPCode0xDC()
 
 void Processor::OPCode0xDD()
 {
+    // TODO: different opcode
     InvalidOPCode();
 }
 
@@ -1643,6 +1653,7 @@ void Processor::OPCode0xDF()
 
 void Processor::OPCode0xE0()
 {
+    // TODO: different opcode
     // LD (0xFF00+n),A
     OPCodes_LD(static_cast<u16> (0xFF00 + m_pMemory->Read(PC.GetValue())), AF.GetHigh());
     PC.Increment();
@@ -1656,17 +1667,20 @@ void Processor::OPCode0xE1()
 
 void Processor::OPCode0xE2()
 {
+    // TODO: different opcode
     // LD (0xFF00+C),A
     OPCodes_LD(static_cast<u16> (0xFF00 + BC.GetLow()), AF.GetHigh());
 }
 
 void Processor::OPCode0xE3()
 {
+    // TODO: different opcode
     InvalidOPCode();
 }
 
 void Processor::OPCode0xE4()
 {
+    // TODO: different opcode
     InvalidOPCode();
 }
 
@@ -1692,6 +1706,7 @@ void Processor::OPCode0xE7()
 
 void Processor::OPCode0xE8()
 {
+    // TODO: different opcode
     // ADD SP,n
     OPCodes_ADD_SP(static_cast<u8> (m_pMemory->Read(PC.GetValue())));
     PC.Increment();
@@ -1705,6 +1720,7 @@ void Processor::OPCode0xE9()
 
 void Processor::OPCode0xEA()
 {
+    // TODO: different opcode
     // LD (nn),A
     SixteenBitRegister tmp;
     tmp.SetLow(m_pMemory->Read(PC.GetValue()));
@@ -1716,16 +1732,19 @@ void Processor::OPCode0xEA()
 
 void Processor::OPCode0xEB()
 {
+    // TODO: different opcode
     InvalidOPCode();
 }
 
 void Processor::OPCode0xEC()
 {
+    // TODO: different opcode
     InvalidOPCode();
 }
 
 void Processor::OPCode0xED()
 {
+    // TODO: different opcode
     InvalidOPCode();
 }
 
@@ -1745,6 +1764,7 @@ void Processor::OPCode0xEF()
 
 void Processor::OPCode0xF0()
 {
+    // TODO: different opcode
     // LD A,(0xFF00+n)
     OPCodes_LD(AF.GetHighRegister(),
             static_cast<u16> (0xFF00 + m_pMemory->Read(PC.GetValue())));
@@ -1760,6 +1780,7 @@ void Processor::OPCode0xF1()
 
 void Processor::OPCode0xF2()
 {
+    // TODO: different opcode
     // LD A,(C)     
     OPCodes_LD(AF.GetHighRegister(), static_cast<u16> (0xFF00 + BC.GetLow()));
 }
@@ -1773,6 +1794,7 @@ void Processor::OPCode0xF3()
 
 void Processor::OPCode0xF4()
 {
+    // TODO: different opcode
     InvalidOPCode();
 }
 
@@ -1798,6 +1820,7 @@ void Processor::OPCode0xF7()
 
 void Processor::OPCode0xF8()
 {
+    // TODO: different opcode
     // LD HL,SP+n
     s8 n = m_pMemory->Read(PC.GetValue());
     u16 result = SP.GetValue() + n;
@@ -1818,6 +1841,7 @@ void Processor::OPCode0xF9()
 
 void Processor::OPCode0xFA()
 {
+    // TODO: different opcode
     // LD A,(nn)
     SixteenBitRegister tmp;
     tmp.SetLow(m_pMemory->Read(PC.GetValue()));
@@ -1836,11 +1860,13 @@ void Processor::OPCode0xFB()
 
 void Processor::OPCode0xFC()
 {
+    // TODO: different opcode
     InvalidOPCode();
 }
 
 void Processor::OPCode0xFD()
 {
+    // TODO: different opcode
     InvalidOPCode();
 }
 
