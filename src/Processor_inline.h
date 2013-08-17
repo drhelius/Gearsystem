@@ -274,24 +274,21 @@ inline void Processor::OPCodes_ADD_SP(s8 number)
     SP.SetValue(static_cast<u16> (result));
 }
 
-inline void Processor::OPCodes_SWAP_Register(EightBitRegister* reg)
+inline void Processor::OPCodes_SLL(EightBitRegister* reg)
 {
-    u8 low_half = reg->GetValue() & 0x0F;
-    u8 high_half = (reg->GetValue() >> 4) & 0x0F;
-    reg->SetValue((low_half << 4) + high_half);
-    ClearAllFlags();
-    ToggleZeroFlagFromResult(reg->GetValue());
+    (reg->GetValue() & 0x80) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
+    u8 result = (reg->GetValue() << 1) | 0x01;
+    reg->SetValue(result);
+    ToggleZeroFlagFromResult(result);
 }
 
-inline void Processor::OPCodes_SWAP_HL()
+inline void Processor::OPCodes_SLL_HL()
 {
-    u8 number = m_pMemory->Read(HL.GetValue());
-    u8 low_half = number & 0x0F;
-    u8 high_half = (number >> 4) & 0x0F;
-    number = (low_half << 4) + high_half;
-    m_pMemory->Write(HL.GetValue(), number);
-    ClearAllFlags();
-    ToggleZeroFlagFromResult(number);
+    u8 result = m_pMemory->Read(HL.GetValue());
+    (result & 0x80) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
+    result = (result << 1) | 0x01;
+    m_pMemory->Write(HL.GetValue(), result);
+    ToggleZeroFlagFromResult(result);
 }
 
 inline void Processor::OPCodes_SLA(EightBitRegister* reg)

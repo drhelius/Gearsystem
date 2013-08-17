@@ -112,8 +112,8 @@ private:
     void OPCodes_SBC(u8 number);
     void OPCodes_ADD_HL(u16 number);
     void OPCodes_ADD_SP(s8 number);
-    void OPCodes_SWAP_Register(EightBitRegister* reg);
-    void OPCodes_SWAP_HL();
+    void OPCodes_SLL(EightBitRegister* reg);
+    void OPCodes_SLL_HL();
     void OPCodes_SLA(EightBitRegister* reg);
     void OPCodes_SLA_HL();
     void OPCodes_SRA(EightBitRegister* reg);

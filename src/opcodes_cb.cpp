@@ -309,58 +309,50 @@ void Processor::OPCodeCB0x2F()
 
 void Processor::OPCodeCB0x30()
 {
-    // TODO: different opcode
-    // SWAP B
-    OPCodes_SWAP_Register(BC.GetHighRegister());
+    // SLL B
+    OPCodes_SLL(BC.GetHighRegister());
 }
 
 void Processor::OPCodeCB0x31()
 {
-    // TODO: different opcode
-    // SWAP C
-    OPCodes_SWAP_Register(BC.GetLowRegister());
+    // SLL C
+    OPCodes_SLL(BC.GetLowRegister());
 }
 
 void Processor::OPCodeCB0x32()
 {
-    // TODO: different opcode
-    // SWAP D
-    OPCodes_SWAP_Register(DE.GetHighRegister());
+    // SLL D
+    OPCodes_SLL(DE.GetHighRegister());
 }
 
 void Processor::OPCodeCB0x33()
 {
-    // TODO: different opcode
-    // SWAP E
-    OPCodes_SWAP_Register(DE.GetLowRegister());
+    // SLL E
+    OPCodes_SLL(DE.GetLowRegister());
 }
 
 void Processor::OPCodeCB0x34()
 {
-    // TODO: different opcode
-    // SWAP H
-    OPCodes_SWAP_Register(HL.GetHighRegister());
+    // SLL H
+    OPCodes_SLL(HL.GetHighRegister());
 }
 
 void Processor::OPCodeCB0x35()
 {
-    // TODO: different opcode
-    // SWAP L
-    OPCodes_SWAP_Register(HL.GetLowRegister());
+    // SLL L
+    OPCodes_SLL(HL.GetLowRegister());
 }
 
 void Processor::OPCodeCB0x36()
 {
-    // TODO: different opcode
-    // SWAP (HL)
-    OPCodes_SWAP_HL();
+    // SLL (HL)
+    OPCodes_SLL_HL();
 }
 
 void Processor::OPCodeCB0x37()
 {
-    // TODO: different opcode
-    // SWAP A
-    OPCodes_SWAP_Register(AF.GetHighRegister());
+    // SLL A
+    OPCodes_SLL(AF.GetHighRegister());
 }
 
 void Processor::OPCodeCB0x38()
