@@ -21,6 +21,7 @@
 #define	PROCESSOR_INLINE_H
 
 #include "definitions.h"
+#include "SixteenBitRegister.h"
 
 inline void Processor::ClearAllFlags()
 {
@@ -108,6 +109,13 @@ inline void Processor::OPCodes_CALL_nn()
     StackPush(&PC);
     PC.SetHigh(h);
     PC.SetLow(l);
+}
+
+inline void Processor::OPCodes_EX(SixteenBitRegister* reg1, SixteenBitRegister* reg2)
+{
+    u16 tmp = reg1->GetValue();
+    reg1->SetValue(reg2->GetValue());
+    reg2->SetValue(tmp);
 }
 
 inline void Processor::OPCodes_OR(u8 number)

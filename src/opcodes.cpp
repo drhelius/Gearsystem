@@ -74,9 +74,8 @@ void Processor::OPCode0x07()
 
 void Processor::OPCode0x08()
 {
-    // TODO: different opcode
     // EX AF,AF’
-    InvalidOPCode();
+    OPCodes_EX(&AF, &AF2);
 }
 
 void Processor::OPCode0x09()
@@ -1526,9 +1525,10 @@ void Processor::OPCode0xD8()
 
 void Processor::OPCode0xD9()
 {
-    // TODO: different opcode
     // EXX
-    InvalidOPCode();
+    OPCodes_EX(&BC, &BC2);
+    OPCodes_EX(&DE, &DE2);
+    OPCodes_EX(&HL, &HL2);
 }
 
 void Processor::OPCode0xDA()
@@ -1615,9 +1615,13 @@ void Processor::OPCode0xE2()
 
 void Processor::OPCode0xE3()
 {
-    // TODO: different opcode
     // EX (SP),HL
-    InvalidOPCode();
+    u8 l = HL.GetLow();
+    u8 h = HL.GetHigh();
+    HL.SetLow(m_pMemory->Read(SP.GetValue()));
+    HL.SetHigh(m_pMemory->Read(SP.GetValue() + 1));
+    m_pMemory->Write(SP.GetValue(), l);
+    m_pMemory->Write(SP.GetValue() + 1, h);
 }
 
 void Processor::OPCode0xE4()
@@ -1677,9 +1681,8 @@ void Processor::OPCode0xEA()
 
 void Processor::OPCode0xEB()
 {
-    // TODO: different opcode
     // EX DE,HL
-    InvalidOPCode();
+    OPCodes_EX(&DE, &HL);
 }
 
 void Processor::OPCode0xEC()
