@@ -1595,9 +1595,12 @@ void Processor::OPCode0xDF()
 
 void Processor::OPCode0xE0()
 {
-    // TODO: different opcode
     // RET PO
-    InvalidOPCode();
+    if (!IsSetFlag(FLAG_PARITY))
+    {
+        StackPop(&PC);
+        m_bBranchTaken = true;
+    }
 }
 
 void Processor::OPCode0xE1()
@@ -1661,9 +1664,12 @@ void Processor::OPCode0xE7()
 
 void Processor::OPCode0xE8()
 {
-    // TODO: different opcode
     // RET PE
-    InvalidOPCode();
+    if (IsSetFlag(FLAG_PARITY))
+    {
+        StackPop(&PC);
+        m_bBranchTaken = true;
+    }
 }
 
 void Processor::OPCode0xE9()
@@ -1723,9 +1729,12 @@ void Processor::OPCode0xEF()
 
 void Processor::OPCode0xF0()
 {
-    // TODO: different opcode
     // RET P
-    InvalidOPCode();
+    if (!IsSetFlag(FLAG_SIGN))
+    {
+        StackPop(&PC);
+        m_bBranchTaken = true;
+    }
 }
 
 void Processor::OPCode0xF1()
@@ -1786,9 +1795,12 @@ void Processor::OPCode0xF7()
 
 void Processor::OPCode0xF8()
 {
-    // TODO: different opcode
     // RET M
-    InvalidOPCode();
+    if (IsSetFlag(FLAG_SIGN))
+    {
+        StackPop(&PC);
+        m_bBranchTaken = true;
+    }
 }
 
 void Processor::OPCode0xF9()
