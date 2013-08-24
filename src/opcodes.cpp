@@ -75,14 +75,8 @@ void Processor::OPCode0x07()
 void Processor::OPCode0x08()
 {
     // TODO: different opcode
-    // LD (nn),SP
-    u8 l = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    u8 h = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    u16 address = ((h << 8) + l);
-    m_pMemory->Write(address, SP.GetLow());
-    m_pMemory->Write(address + 1, SP.GetHigh());
+    // EX AF,AF’
+    InvalidOPCode();
 }
 
 void Processor::OPCode0x09()
@@ -131,23 +125,8 @@ void Processor::OPCode0x0F()
 void Processor::OPCode0x10()
 {
     // TODO: different opcode
-    // STOP
-    PC.Increment();
-
-    if (m_bCGB)
-    {
-        u8 current_key1 = m_pMemory->Retrieve(0xFF4D);
-
-        if (IsSetBit(current_key1, 0))
-        {
-            m_bCGBSpeed = !m_bCGBSpeed;
-
-            if (m_bCGBSpeed)
-                m_pMemory->Load(0xFF4D, 0x80);
-            else
-                m_pMemory->Load(0xFF4D, 0x00);
-        }
-    }
+    // DJNZ (PC+e)
+    InvalidOPCode();
 }
 
 void Processor::OPCode0x11()
@@ -271,9 +250,8 @@ void Processor::OPCode0x21()
 void Processor::OPCode0x22()
 {
     // TODO: different opcode
-    // LD (HLI),A
-    OPCodes_LD(HL.GetValue(), AF.GetHigh());
-    HL.Increment();
+    // LD (nn),HL
+    InvalidOPCode();
 }
 
 void Processor::OPCode0x23()
@@ -306,7 +284,7 @@ void Processor::OPCode0x27()
     // DAA
     int a = AF.GetHigh();
 
-    if (!IsSetFlag(FLAG_SUB))
+    if (!IsSetFlag(FLAG_NEGATIVE))
     {
         if (IsSetFlag(FLAG_HALF) || ((a & 0xF) > 9))
             a += 0x06;
@@ -359,9 +337,8 @@ void Processor::OPCode0x29()
 void Processor::OPCode0x2A()
 {
     // TODO: different opcode
-    // LD A,(HLI)
-    OPCodes_LD(AF.GetHighRegister(), HL.GetValue());
-    HL.Increment();
+    // LD HL,(nn)
+    InvalidOPCode();
 }
 
 void Processor::OPCode0x2B()
@@ -395,7 +372,7 @@ void Processor::OPCode0x2F()
     // CPL
     AF.SetHigh(~AF.GetHigh());
     ToggleFlag(FLAG_HALF);
-    ToggleFlag(FLAG_SUB);
+    ToggleFlag(FLAG_NEGATIVE);
 }
 
 void Processor::OPCode0x30()
@@ -424,9 +401,8 @@ void Processor::OPCode0x31()
 void Processor::OPCode0x32()
 {
     // TODO: different opcode
-    // LD (HLD), A
-    OPCodes_LD(HL.GetValue(), AF.GetHigh());
-    HL.Decrement();
+    // LD (nn),A
+    InvalidOPCode();
 }
 
 void Processor::OPCode0x33()
@@ -459,7 +435,7 @@ void Processor::OPCode0x37()
     // SCF
     ToggleFlag(FLAG_CARRY);
     UntoggleFlag(FLAG_HALF);
-    UntoggleFlag(FLAG_SUB);
+    UntoggleFlag(FLAG_NEGATIVE);
 }
 
 void Processor::OPCode0x38()
@@ -484,10 +460,13 @@ void Processor::OPCode0x39()
 
 void Processor::OPCode0x3A()
 {
-    // TODO: different opcode
-    // LD A,(HLD)
-    OPCodes_LD(AF.GetHighRegister(), HL.GetValue());
-    HL.Decrement();
+    // LD A,(nn)
+    u8 low = PC.GetValue();
+    PC.Increment();
+    u8 high = PC.GetValue();
+    PC.Increment();
+    u16 address = (high << 8) + low;
+    OPCodes_LD(AF.GetHighRegister(), address);
 }
 
 void Processor::OPCode0x3B()
@@ -506,7 +485,6 @@ void Processor::OPCode0x3D()
 {
     // DEC A
     OPCodes_DEC(AF.GetHighRegister());
-
 }
 
 void Processor::OPCode0x3E()
@@ -521,7 +499,7 @@ void Processor::OPCode0x3F()
     // CCF
     FlipFlag(FLAG_CARRY);
     UntoggleFlag(FLAG_HALF);
-    UntoggleFlag(FLAG_SUB);
+    UntoggleFlag(FLAG_NEGATIVE);
 }
 
 void Processor::OPCode0x40()
@@ -860,15 +838,7 @@ void Processor::OPCode0x76()
     }
     else
     {
-        u8 if_reg = m_pMemory->Retrieve(0xFF0F);
-        u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
-
         m_bHalt = true;
-
-        if (!m_bCGB && !m_bIME && (if_reg & ie_reg & 0x1F))
-        {
-            m_bSkipPCBug = true;
-        }
     }
 }
 
@@ -1362,13 +1332,7 @@ void Processor::OPCode0xC4()
     // CALL NZ,nn
     if (!IsSetFlag(FLAG_ZERO))
     {
-        u8 l = m_pMemory->Read(PC.GetValue());
-        PC.Increment();
-        u8 h = m_pMemory->Read(PC.GetValue());
-        PC.Increment();
-        StackPush(&PC);
-        PC.SetHigh(h);
-        PC.SetLow(l);
+        OPCodes_CALL_nn();
         m_bBranchTaken = true;
     }
     else
@@ -1443,13 +1407,7 @@ void Processor::OPCode0xCC()
     // CALL Z,nn
     if (IsSetFlag(FLAG_ZERO))
     {
-        u8 l = m_pMemory->Read(PC.GetValue());
-        PC.Increment();
-        u8 h = m_pMemory->Read(PC.GetValue());
-        PC.Increment();
-        StackPush(&PC);
-        PC.SetHigh(h);
-        PC.SetLow(l);
+        OPCodes_CALL_nn();
         m_bBranchTaken = true;
     }
     else
@@ -1462,13 +1420,7 @@ void Processor::OPCode0xCC()
 void Processor::OPCode0xCD()
 {
     // CALL nn
-    u8 l = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    u8 h = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    StackPush(&PC);
-    PC.SetHigh(h);
-    PC.SetLow(l);
+    OPCodes_CALL_nn();
 }
 
 void Processor::OPCode0xCE()
@@ -1523,6 +1475,7 @@ void Processor::OPCode0xD2()
 void Processor::OPCode0xD3()
 {
     // TODO: different opcode
+    // OUT (n),A
     InvalidOPCode();
 }
 
@@ -1531,13 +1484,7 @@ void Processor::OPCode0xD4()
     // CALL NC,nn
     if (!IsSetFlag(FLAG_CARRY))
     {
-        u8 l = m_pMemory->Read(PC.GetValue());
-        PC.Increment();
-        u8 h = m_pMemory->Read(PC.GetValue());
-        PC.Increment();
-        StackPush(&PC);
-        PC.SetHigh(h);
-        PC.SetLow(l);
+        OPCodes_CALL_nn();
         m_bBranchTaken = true;
     }
     else
@@ -1580,9 +1527,8 @@ void Processor::OPCode0xD8()
 void Processor::OPCode0xD9()
 {
     // TODO: different opcode
-    // RETI
-    StackPop(&PC);
-    m_bIME = true;
+    // EXX
+    InvalidOPCode();
 }
 
 void Processor::OPCode0xDA()
@@ -1607,6 +1553,7 @@ void Processor::OPCode0xDA()
 void Processor::OPCode0xDB()
 {
     // TODO: different opcode
+    // IN A,(n)
     InvalidOPCode();
 }
 
@@ -1615,13 +1562,7 @@ void Processor::OPCode0xDC()
     // CALL C,nn
     if (IsSetFlag(FLAG_CARRY))
     {
-        u8 l = m_pMemory->Read(PC.GetValue());
-        PC.Increment();
-        u8 h = m_pMemory->Read(PC.GetValue());
-        PC.Increment();
-        StackPush(&PC);
-        PC.SetHigh(h);
-        PC.SetLow(l);
+        OPCodes_CALL_nn();
         m_bBranchTaken = true;
     }
     else
@@ -1634,6 +1575,7 @@ void Processor::OPCode0xDC()
 void Processor::OPCode0xDD()
 {
     // TODO: different opcode
+    // DD prefixed instruction
     InvalidOPCode();
 }
 
@@ -1654,9 +1596,8 @@ void Processor::OPCode0xDF()
 void Processor::OPCode0xE0()
 {
     // TODO: different opcode
-    // LD (0xFF00+n),A
-    OPCodes_LD(static_cast<u16> (0xFF00 + m_pMemory->Read(PC.GetValue())), AF.GetHigh());
-    PC.Increment();
+    // RET PO
+    InvalidOPCode();
 }
 
 void Processor::OPCode0xE1()
@@ -1668,20 +1609,30 @@ void Processor::OPCode0xE1()
 void Processor::OPCode0xE2()
 {
     // TODO: different opcode
-    // LD (0xFF00+C),A
-    OPCodes_LD(static_cast<u16> (0xFF00 + BC.GetLow()), AF.GetHigh());
+    // JP PO,nn
+    InvalidOPCode();
 }
 
 void Processor::OPCode0xE3()
 {
     // TODO: different opcode
+    // EX (SP),HL
     InvalidOPCode();
 }
 
 void Processor::OPCode0xE4()
 {
-    // TODO: different opcode
-    InvalidOPCode();
+    // CALL PO,nn
+    if (!IsSetFlag(FLAG_PARITY))
+    {
+        OPCodes_CALL_nn();
+        m_bBranchTaken = true;
+    }
+    else
+    {
+        PC.Increment();
+        PC.Increment();
+    }
 }
 
 void Processor::OPCode0xE5()
@@ -1707,9 +1658,8 @@ void Processor::OPCode0xE7()
 void Processor::OPCode0xE8()
 {
     // TODO: different opcode
-    // ADD SP,n
-    OPCodes_ADD_SP(static_cast<u8> (m_pMemory->Read(PC.GetValue())));
-    PC.Increment();
+    // RET PE
+    InvalidOPCode();
 }
 
 void Processor::OPCode0xE9()
@@ -1721,30 +1671,36 @@ void Processor::OPCode0xE9()
 void Processor::OPCode0xEA()
 {
     // TODO: different opcode
-    // LD (nn),A
-    SixteenBitRegister tmp;
-    tmp.SetLow(m_pMemory->Read(PC.GetValue()));
-    PC.Increment();
-    tmp.SetHigh(m_pMemory->Read(PC.GetValue()));
-    PC.Increment();
-    OPCodes_LD(tmp.GetValue(), AF.GetHigh());
+    // JP PE,nn
+    InvalidOPCode();
 }
 
 void Processor::OPCode0xEB()
 {
     // TODO: different opcode
+    // EX DE,HL
     InvalidOPCode();
 }
 
 void Processor::OPCode0xEC()
 {
-    // TODO: different opcode
-    InvalidOPCode();
+    // CALL PE,nn
+    if (IsSetFlag(FLAG_PARITY))
+    {
+        OPCodes_CALL_nn();
+        m_bBranchTaken = true;
+    }
+    else
+    {
+        PC.Increment();
+        PC.Increment();
+    }
 }
 
 void Processor::OPCode0xED()
 {
     // TODO: different opcode
+    // ED prefixed instruction
     InvalidOPCode();
 }
 
@@ -1765,10 +1721,8 @@ void Processor::OPCode0xEF()
 void Processor::OPCode0xF0()
 {
     // TODO: different opcode
-    // LD A,(0xFF00+n)
-    OPCodes_LD(AF.GetHighRegister(),
-            static_cast<u16> (0xFF00 + m_pMemory->Read(PC.GetValue())));
-    PC.Increment();
+    // RET P
+    InvalidOPCode();
 }
 
 void Processor::OPCode0xF1()
@@ -1781,8 +1735,8 @@ void Processor::OPCode0xF1()
 void Processor::OPCode0xF2()
 {
     // TODO: different opcode
-    // LD A,(C)     
-    OPCodes_LD(AF.GetHighRegister(), static_cast<u16> (0xFF00 + BC.GetLow()));
+    // JP P,nn
+    InvalidOPCode();
 }
 
 void Processor::OPCode0xF3()
@@ -1794,8 +1748,17 @@ void Processor::OPCode0xF3()
 
 void Processor::OPCode0xF4()
 {
-    // TODO: different opcode
-    InvalidOPCode();
+    // CALL P,nn
+    if (!IsSetFlag(FLAG_SIGN))
+    {
+        OPCodes_CALL_nn();
+        m_bBranchTaken = true;
+    }
+    else
+    {
+        PC.Increment();
+        PC.Increment();
+    }
 }
 
 void Processor::OPCode0xF5()
@@ -1821,16 +1784,8 @@ void Processor::OPCode0xF7()
 void Processor::OPCode0xF8()
 {
     // TODO: different opcode
-    // LD HL,SP+n
-    s8 n = m_pMemory->Read(PC.GetValue());
-    u16 result = SP.GetValue() + n;
-    ClearAllFlags();
-    if (((SP.GetValue() ^ n ^ result) & 0x100) == 0x100)
-        ToggleFlag(FLAG_CARRY);
-    if (((SP.GetValue() ^ n ^ result) & 0x10) == 0x10)
-        ToggleFlag(FLAG_HALF);
-    HL.SetValue(result);
-    PC.Increment();
+    // RET M
+    InvalidOPCode();
 }
 
 void Processor::OPCode0xF9()
@@ -1842,31 +1797,36 @@ void Processor::OPCode0xF9()
 void Processor::OPCode0xFA()
 {
     // TODO: different opcode
-    // LD A,(nn)
-    SixteenBitRegister tmp;
-    tmp.SetLow(m_pMemory->Read(PC.GetValue()));
-    PC.Increment();
-    tmp.SetHigh(m_pMemory->Read(PC.GetValue()));
-    PC.Increment();
-    OPCodes_LD(AF.GetHighRegister(), tmp.GetValue());
+    // JP M,nn
+    InvalidOPCode();
 }
 
 void Processor::OPCode0xFB()
 {
     // EI
-    int ei_cycles = kOPCodeMachineCycles[0xFB] * (m_bCGBSpeed ? 2 : 4);
+    int ei_cycles = kOPCodeMachineCycles[0xFB] * 4;
     m_iIMECycles = ei_cycles + 1;
 }
 
 void Processor::OPCode0xFC()
 {
-    // TODO: different opcode
-    InvalidOPCode();
+    // CALL M,nn
+    if (IsSetFlag(FLAG_SIGN))
+    {
+        OPCodes_CALL_nn();
+        m_bBranchTaken = true;
+    }
+    else
+    {
+        PC.Increment();
+        PC.Increment();
+    }
 }
 
 void Processor::OPCode0xFD()
 {
     // TODO: different opcode
+    // FD prefixed instruction
     InvalidOPCode();
 }
 

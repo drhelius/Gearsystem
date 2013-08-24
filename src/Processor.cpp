@@ -28,16 +28,9 @@ Processor::Processor(Memory* pMemory)
     InitOPCodeFunctors();
     m_bIME = false;
     m_bHalt = false;
-    m_bCGBSpeed = false;
     m_bBranchTaken = false;
-    m_bSkipPCBug = false;
     m_iCurrentClockCycles = 0;
-    m_iDIVCycles = 0;
-    m_iTIMACycles = 0;
     m_iIMECycles = 0;
-    m_iSerialBit = 0;
-    m_iSerialCycles = 0;
-    m_bCGB = false;
     m_iUnhaltCycles = 0;
     for (int i = 0; i < 5; i++)
         m_InterruptDelayCycles[i] = 0;
@@ -56,25 +49,22 @@ void Processor::Reset()
 {
     m_bIME = false;
     m_bHalt = false;
-    m_bCGBSpeed = false;
     m_bBranchTaken = false;
-    m_bSkipPCBug = false;
     m_iCurrentClockCycles = 0;
-    m_iDIVCycles = 0;
-    m_iTIMACycles = 0;
     m_iIMECycles = 0;
-    m_iSerialBit = 0;
-    m_iSerialCycles = 0;
     m_iUnhaltCycles = 0;
-    PC.SetValue(0x100);
-    SP.SetValue(0xFFFE);
-    if (m_bCGB)
-        AF.SetValue(0x11B0);
-    else
-        AF.SetValue(0x01B0);
-    BC.SetValue(0x0013);
-    DE.SetValue(0x00D8);
-    HL.SetValue(0x014D);
+    PC.SetValue(0x0000);
+    SP.SetValue(0xDFF0);
+    IX.SetValue(0x0000);
+    IY.SetValue(0x0000);
+    AF.SetValue(0x0000);
+    BC.SetValue(0x0000);
+    DE.SetValue(0x0000);
+    HL.SetValue(0x0000);
+    AF2.SetValue(0x0000);
+    BC2.SetValue(0x0000);
+    DE2.SetValue(0x0000);
+    HL2.SetValue(0x0000);
     for (int i = 0; i < 5; i++)
         m_InterruptDelayCycles[i] = 0;
 }
@@ -85,7 +75,7 @@ u8 Processor::Tick()
 
     if (m_bHalt)
     {
-        m_iCurrentClockCycles += (m_bCGBSpeed ? 2 : 4);
+        m_iCurrentClockCycles += 4;
 
         if (m_iUnhaltCycles > 0)
         {
@@ -100,7 +90,7 @@ u8 Processor::Tick()
 
         if (m_bHalt && (InterruptPending() != None_Interrupt) && (m_iUnhaltCycles == 0))
         {
-            m_iUnhaltCycles = (m_bCGBSpeed ? 6 : 12);
+            m_iUnhaltCycles = 12;
         }
     }
 
@@ -111,8 +101,6 @@ u8 Processor::Tick()
     }
 
     UpdateDelayedInterrupts();
-    UpdateTimers();
-    UpdateSerial();
 
     if (m_iIMECycles > 0)
     {
@@ -135,7 +123,7 @@ void Processor::RequestInterrupt(Interrupts interrupt)
     switch (interrupt)
     {
         case VBlank_Interrupt:
-            m_InterruptDelayCycles[0] = (m_bCGBSpeed ? 0 : 4);
+            m_InterruptDelayCycles[0] = 4;
             break;
         case LCDSTAT_Interrupt:
             m_InterruptDelayCycles[1] = 0;
@@ -154,26 +142,9 @@ void Processor::RequestInterrupt(Interrupts interrupt)
     }
 }
 
-void Processor::ResetTIMACycles()
-{
-    m_iTIMACycles = 0;
-    m_pMemory->Load(0xFF05, m_pMemory->Retrieve(0xFF06));
-}
-
-void Processor::ResetDIVCycles()
-{
-    m_iDIVCycles = 0;
-    m_pMemory->Load(0xFF04, 0x00);
-}
-
 bool Processor::Halted() const
 {
     return m_bHalt;
-}
-
-bool Processor::CGBSpeed() const
-{
-    return m_bCGBSpeed;
 }
 
 void Processor::AddCycles(unsigned int cycles)
@@ -185,12 +156,6 @@ u8 Processor::FetchOPCode()
 {
     u8 opcode = m_pMemory->Read(PC.GetValue());
     PC.Increment();
-
-    if (m_bSkipPCBug)
-    {
-        m_bSkipPCBug = false;
-        PC.Decrement();
-    }
     return opcode;
 }
 
@@ -208,7 +173,7 @@ void Processor::ExecuteOPCode(u8 opcode)
 
         (this->*m_OPCodesCB[opcode])();
 
-        m_iCurrentClockCycles += kOPCodeCBMachineCycles[opcode] * (m_bCGBSpeed ? 2 : 4);
+        m_iCurrentClockCycles += kOPCodeCBMachineCycles[opcode] * 4;
     }
     else
     {
@@ -223,10 +188,10 @@ void Processor::ExecuteOPCode(u8 opcode)
         if (m_bBranchTaken)
         {
             m_bBranchTaken = false;
-            m_iCurrentClockCycles += kOPCodeConditionalsMachineCycles[opcode] * (m_bCGBSpeed ? 2 : 4);
+            m_iCurrentClockCycles += kOPCodeConditionalsMachineCycles[opcode] * 4;
         }
         else
-            m_iCurrentClockCycles += kOPCodeMachineCycles[opcode] * (m_bCGBSpeed ? 2 : 4);
+            m_iCurrentClockCycles += kOPCodeMachineCycles[opcode] * 4;
     }
 }
 
@@ -281,7 +246,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0040);
-                m_iCurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
+                m_iCurrentClockCycles += 20;
                 break;
             case LCDSTAT_Interrupt:
                 m_InterruptDelayCycles[1] = 0;
@@ -289,7 +254,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0048);
-                m_iCurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
+                m_iCurrentClockCycles += 20;
                 break;
             case Timer_Interrupt:
                 m_InterruptDelayCycles[2] = 0;
@@ -297,7 +262,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0050);
-                m_iCurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
+                m_iCurrentClockCycles += 20;
                 break;
             case Serial_Interrupt:
                 m_InterruptDelayCycles[3] = 0;
@@ -305,7 +270,7 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0058);
-                m_iCurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
+                m_iCurrentClockCycles += 20;
                 break;
             case Joypad_Interrupt:
                 m_InterruptDelayCycles[4] = 0;
@@ -313,106 +278,10 @@ void Processor::ServeInterrupt(Interrupts interrupt)
                 m_bIME = false;
                 StackPush(&PC);
                 PC.SetValue(0x0060);
-                m_iCurrentClockCycles += (m_bCGBSpeed ? 10 : 20);
+                m_iCurrentClockCycles += 20;
                 break;
             case None_Interrupt:
                 break;
-        }
-    }
-}
-
-void Processor::UpdateTimers()
-{
-    m_iDIVCycles += m_iCurrentClockCycles;
-
-    unsigned int div_cycles = (m_bCGBSpeed ? 128 : 256);
-
-    while (m_iDIVCycles >= div_cycles)
-    {
-        m_iDIVCycles -= div_cycles;
-        u8 div = m_pMemory->Retrieve(0xFF04);
-        div++;
-        m_pMemory->Load(0xFF04, div);
-    }
-
-    u8 tac = m_pMemory->Retrieve(0xFF07);
-
-    // if tima is running
-    if (tac & 0x04)
-    {
-        m_iTIMACycles += m_iCurrentClockCycles;
-
-        unsigned int freq = 0;
-
-        switch (tac & 0x03)
-        {
-            case 0:
-                freq = (m_bCGBSpeed ? 512 : 1024);
-                break;
-            case 1:
-                freq = (m_bCGBSpeed ? 8 : 16);
-                break;
-            case 2:
-                freq = (m_bCGBSpeed ? 32 : 64);
-                break;
-            case 3:
-                freq = (m_bCGBSpeed ? 128 : 256);
-                break;
-        }
-
-        while (m_iTIMACycles >= freq)
-        {
-            m_iTIMACycles -= freq;
-            u8 tima = m_pMemory->Retrieve(0xFF05);
-
-            if (tima == 0xFF)
-            {
-                tima = m_pMemory->Retrieve(0xFF06);
-                RequestInterrupt(Timer_Interrupt);
-            }
-            else
-                tima++;
-
-            m_pMemory->Load(0xFF05, tima);
-        }
-    }
-}
-
-void Processor::UpdateSerial()
-{
-    u8 sc = m_pMemory->Retrieve(0xFF02);
-
-    if (IsSetBit(sc, 7) && IsSetBit(sc, 0))
-    {
-        m_iSerialCycles += m_iCurrentClockCycles;
-
-        if (m_iSerialBit < 0)
-        {
-            m_iSerialBit = 0;
-            m_iSerialCycles = 0;
-            return;
-        }
-
-        int serial_cycles = (m_bCGBSpeed ? 256 : 512);
-
-        if (m_iSerialCycles >= serial_cycles)
-        {
-            if (m_iSerialBit > 7)
-            {
-                m_pMemory->Load(0xFF02, sc & 0x7F);
-                RequestInterrupt(Serial_Interrupt);
-                m_iSerialBit = -1;
-
-                return;
-            }
-
-            u8 sb = m_pMemory->Retrieve(0xFF01);
-            sb <<= 1;
-            sb |= 0x01;
-            m_pMemory->Load(0xFF01, sb);
-
-            m_iSerialCycles -= serial_cycles;
-            m_iSerialBit++;
         }
     }
 }
@@ -426,6 +295,14 @@ void Processor::UpdateDelayedInterrupts()
             m_InterruptDelayCycles[i] -= m_iCurrentClockCycles;
         }
     }
+}
+
+void Processor::InvalidOPCode()
+{
+    u16 opcode_address = PC.GetValue() - 1;
+    u8 opcode = m_pMemory->Read(opcode_address);
+    
+    Log("--> ** INVALID OP Code %X at 0x%X (%s)", opcode, opcode_address, kOPCodeNames[opcode]);
 }
 
 void Processor::InitOPCodeFunctors()
@@ -974,5 +851,137 @@ void Processor::InitOPCodeFunctors()
     m_OPCodesCB[0xFD] = &Processor::OPCodeCB0xFD;
     m_OPCodesCB[0xFE] = &Processor::OPCodeCB0xFE;
     m_OPCodesCB[0xFF] = &Processor::OPCodeCB0xFF;
+    
+    m_OPCodesED[0x40] = &Processor::OPCodeED0x40;
+    m_OPCodesED[0x41] = &Processor::OPCodeED0x41;
+    m_OPCodesED[0x42] = &Processor::OPCodeED0x42;
+    m_OPCodesED[0x43] = &Processor::OPCodeED0x43;
+    m_OPCodesED[0x44] = &Processor::OPCodeED0x44;
+    m_OPCodesED[0x45] = &Processor::OPCodeED0x45;
+    m_OPCodesED[0x46] = &Processor::OPCodeED0x46;
+    m_OPCodesED[0x47] = &Processor::OPCodeED0x47;
+    m_OPCodesED[0x48] = &Processor::OPCodeED0x48;
+    m_OPCodesED[0x49] = &Processor::OPCodeED0x49;
+    m_OPCodesED[0x4A] = &Processor::OPCodeED0x4A;
+    m_OPCodesED[0x4B] = &Processor::OPCodeED0x4B;
+    m_OPCodesED[0x4C] = &Processor::OPCodeED0x4C;
+    m_OPCodesED[0x4D] = &Processor::OPCodeED0x4D;
+    m_OPCodesED[0x4E] = &Processor::OPCodeED0x4E;
+    m_OPCodesED[0x4F] = &Processor::OPCodeED0x4F;
+
+    m_OPCodesED[0x50] = &Processor::OPCodeED0x50;
+    m_OPCodesED[0x51] = &Processor::OPCodeED0x51;
+    m_OPCodesED[0x52] = &Processor::OPCodeED0x52;
+    m_OPCodesED[0x53] = &Processor::OPCodeED0x53;
+    m_OPCodesED[0x54] = &Processor::OPCodeED0x54;
+    m_OPCodesED[0x55] = &Processor::OPCodeED0x55;
+    m_OPCodesED[0x56] = &Processor::OPCodeED0x56;
+    m_OPCodesED[0x57] = &Processor::OPCodeED0x57;
+    m_OPCodesED[0x58] = &Processor::OPCodeED0x58;
+    m_OPCodesED[0x59] = &Processor::OPCodeED0x59;
+    m_OPCodesED[0x5A] = &Processor::OPCodeED0x5A;
+    m_OPCodesED[0x5B] = &Processor::OPCodeED0x5B;
+    m_OPCodesED[0x5C] = &Processor::OPCodeED0x5C;
+    m_OPCodesED[0x5D] = &Processor::OPCodeED0x5D;
+    m_OPCodesED[0x5E] = &Processor::OPCodeED0x5E;
+    m_OPCodesED[0x5F] = &Processor::OPCodeED0x5F;
+
+    m_OPCodesED[0x60] = &Processor::OPCodeED0x60;
+    m_OPCodesED[0x61] = &Processor::OPCodeED0x61;
+    m_OPCodesED[0x62] = &Processor::OPCodeED0x62;
+    m_OPCodesED[0x63] = &Processor::OPCodeED0x63;
+    m_OPCodesED[0x64] = &Processor::OPCodeED0x64;
+    m_OPCodesED[0x65] = &Processor::OPCodeED0x65;
+    m_OPCodesED[0x66] = &Processor::OPCodeED0x66;
+    m_OPCodesED[0x67] = &Processor::OPCodeED0x67;
+    m_OPCodesED[0x68] = &Processor::OPCodeED0x68;
+    m_OPCodesED[0x69] = &Processor::OPCodeED0x69;
+    m_OPCodesED[0x6A] = &Processor::OPCodeED0x6A;
+    m_OPCodesED[0x6B] = &Processor::OPCodeED0x6B;
+    m_OPCodesED[0x6C] = &Processor::OPCodeED0x6C;
+    m_OPCodesED[0x6D] = &Processor::OPCodeED0x6D;
+    m_OPCodesED[0x6E] = &Processor::OPCodeED0x6E;
+    m_OPCodesED[0x6F] = &Processor::OPCodeED0x6F;
+
+    m_OPCodesED[0x70] = &Processor::OPCodeED0x70;
+    m_OPCodesED[0x71] = &Processor::OPCodeED0x71;
+    m_OPCodesED[0x72] = &Processor::OPCodeED0x72;
+    m_OPCodesED[0x73] = &Processor::OPCodeED0x73;
+    m_OPCodesED[0x74] = &Processor::OPCodeED0x74;
+    m_OPCodesED[0x75] = &Processor::OPCodeED0x75;
+    m_OPCodesED[0x76] = &Processor::OPCodeED0x76;
+    m_OPCodesED[0x77] = &Processor::OPCodeED0x77;
+    m_OPCodesED[0x78] = &Processor::OPCodeED0x78;
+    m_OPCodesED[0x79] = &Processor::OPCodeED0x79;
+    m_OPCodesED[0x7A] = &Processor::OPCodeED0x7A;
+    m_OPCodesED[0x7B] = &Processor::OPCodeED0x7B;
+    m_OPCodesED[0x7C] = &Processor::OPCodeED0x7C;
+    m_OPCodesED[0x7D] = &Processor::OPCodeED0x7D;
+    m_OPCodesED[0x7E] = &Processor::OPCodeED0x7E;
+    m_OPCodesED[0x7F] = &Processor::OPCodeED0x7F;
+
+    m_OPCodesED[0x80] = &Processor::OPCodeED0x80;
+    m_OPCodesED[0x81] = &Processor::OPCodeED0x81;
+    m_OPCodesED[0x82] = &Processor::OPCodeED0x82;
+    m_OPCodesED[0x83] = &Processor::OPCodeED0x83;
+    m_OPCodesED[0x84] = &Processor::OPCodeED0x84;
+    m_OPCodesED[0x85] = &Processor::OPCodeED0x85;
+    m_OPCodesED[0x86] = &Processor::OPCodeED0x86;
+    m_OPCodesED[0x87] = &Processor::OPCodeED0x87;
+    m_OPCodesED[0x88] = &Processor::OPCodeED0x88;
+    m_OPCodesED[0x89] = &Processor::OPCodeED0x89;
+    m_OPCodesED[0x8A] = &Processor::OPCodeED0x8A;
+    m_OPCodesED[0x8B] = &Processor::OPCodeED0x8B;
+    m_OPCodesED[0x8C] = &Processor::OPCodeED0x8C;
+    m_OPCodesED[0x8D] = &Processor::OPCodeED0x8D;
+    m_OPCodesED[0x8E] = &Processor::OPCodeED0x8E;
+    m_OPCodesED[0x8F] = &Processor::OPCodeED0x8F;
+
+    m_OPCodesED[0x90] = &Processor::OPCodeED0x90;
+    m_OPCodesED[0x91] = &Processor::OPCodeED0x91;
+    m_OPCodesED[0x92] = &Processor::OPCodeED0x92;
+    m_OPCodesED[0x93] = &Processor::OPCodeED0x93;
+    m_OPCodesED[0x94] = &Processor::OPCodeED0x94;
+    m_OPCodesED[0x95] = &Processor::OPCodeED0x95;
+    m_OPCodesED[0x96] = &Processor::OPCodeED0x96;
+    m_OPCodesED[0x97] = &Processor::OPCodeED0x97;
+    m_OPCodesED[0x98] = &Processor::OPCodeED0x98;
+    m_OPCodesED[0x99] = &Processor::OPCodeED0x99;
+    m_OPCodesED[0x9A] = &Processor::OPCodeED0x9A;
+    m_OPCodesED[0x9B] = &Processor::OPCodeED0x9B;
+    m_OPCodesED[0x9C] = &Processor::OPCodeED0x9C;
+    m_OPCodesED[0x9D] = &Processor::OPCodeED0x9D;
+    m_OPCodesED[0x9E] = &Processor::OPCodeED0x9E;
+    m_OPCodesED[0x9F] = &Processor::OPCodeED0x9F;
+
+    m_OPCodesED[0xA0] = &Processor::OPCodeED0xA0;
+    m_OPCodesED[0xA1] = &Processor::OPCodeED0xA1;
+    m_OPCodesED[0xA2] = &Processor::OPCodeED0xA2;
+    m_OPCodesED[0xA3] = &Processor::OPCodeED0xA3;
+    m_OPCodesED[0xA4] = &Processor::OPCodeED0xA4;
+    m_OPCodesED[0xA5] = &Processor::OPCodeED0xA5;
+    m_OPCodesED[0xA6] = &Processor::OPCodeED0xA6;
+    m_OPCodesED[0xA7] = &Processor::OPCodeED0xA7;
+    m_OPCodesED[0xA8] = &Processor::OPCodeED0xA8;
+    m_OPCodesED[0xA9] = &Processor::OPCodeED0xA9;
+    m_OPCodesED[0xAA] = &Processor::OPCodeED0xAA;
+    m_OPCodesED[0xAB] = &Processor::OPCodeED0xAB;
+    m_OPCodesED[0xAC] = &Processor::OPCodeED0xAC;
+    m_OPCodesED[0xAD] = &Processor::OPCodeED0xAD;
+    m_OPCodesED[0xAE] = &Processor::OPCodeED0xAE;
+    m_OPCodesED[0xAF] = &Processor::OPCodeED0xAF;
+
+    m_OPCodesED[0xB0] = &Processor::OPCodeED0xB0;
+    m_OPCodesED[0xB1] = &Processor::OPCodeED0xB1;
+    m_OPCodesED[0xB2] = &Processor::OPCodeED0xB2;
+    m_OPCodesED[0xB3] = &Processor::OPCodeED0xB3;
+    m_OPCodesED[0xB4] = &Processor::OPCodeED0xB4;
+    m_OPCodesED[0xB5] = &Processor::OPCodeED0xB5;
+    m_OPCodesED[0xB6] = &Processor::OPCodeED0xB6;
+    m_OPCodesED[0xB7] = &Processor::OPCodeED0xB7;
+    m_OPCodesED[0xB8] = &Processor::OPCodeED0xB8;
+    m_OPCodesED[0xB9] = &Processor::OPCodeED0xB9;
+    m_OPCodesED[0xBA] = &Processor::OPCodeED0xBA;
+    m_OPCodesED[0xBB] = &Processor::OPCodeED0xBB;
 }
 

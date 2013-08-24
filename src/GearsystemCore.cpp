@@ -36,7 +36,7 @@ GearsystemCore::GearsystemCore()
 
 GearsystemCore::~GearsystemCore()
 {
-#ifdef DEBUG_SYSTEM
+#ifdef DEBUG_GEARSYSTEM
     if (m_pCartridge->IsLoadedROM())
     {
         Log("Saving Memory Dump...");
@@ -94,7 +94,7 @@ void GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer)
 
 bool GearsystemCore::LoadROM(const char* szFilePath)
 {
-#ifdef DEBUG_SYSTEM
+#ifdef DEBUG_GEARSYSTEM
     if (m_pCartridge->IsLoadedROM())
     {
         Log("Saving Memory Dump...");

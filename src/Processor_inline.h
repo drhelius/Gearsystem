@@ -31,6 +31,16 @@ inline void Processor::ToggleZeroFlagFromResult(u8 result)
 {
     if (result == 0)
         ToggleFlag(FLAG_ZERO);
+    else
+        UntoggleFlag(FLAG_ZERO);
+}
+
+inline void Processor::ToggleSignFlagFromResult(u8 result)
+{
+    if ((result & 0x80) != 0)
+        ToggleFlag(FLAG_SIGN);
+    else
+        UntoggleFlag(FLAG_SIGN);
 }
 
 inline void Processor::SetFlag(u8 flag)
@@ -74,11 +84,6 @@ inline void Processor::StackPop(SixteenBitRegister* reg)
     SP.Increment();
 }
 
-inline void Processor::InvalidOPCode()
-{
-    Log("--> ** INVALID OP Code");
-}
-
 inline void Processor::OPCodes_LD(EightBitRegister* reg1, u8 reg2)
 {
     reg1->SetValue(reg2);
@@ -92,6 +97,17 @@ inline void Processor::OPCodes_LD(EightBitRegister* reg, u16 address)
 inline void Processor::OPCodes_LD(u16 address, u8 reg)
 {
     m_pMemory->Write(address, reg);
+}
+
+inline void Processor::OPCodes_CALL_nn()
+{
+    u8 l = m_pMemory->Read(PC.GetValue());
+    PC.Increment();
+    u8 h = m_pMemory->Read(PC.GetValue());
+    PC.Increment();
+    StackPush(&PC);
+    PC.SetHigh(h);
+    PC.SetLow(l);
 }
 
 inline void Processor::OPCodes_OR(u8 number)
@@ -120,7 +136,7 @@ inline void Processor::OPCodes_AND(u8 number)
 
 inline void Processor::OPCodes_CP(u8 number)
 {
-    SetFlag(FLAG_SUB);
+    SetFlag(FLAG_NEGATIVE);
     if (AF.GetHigh() < number)
     {
         ToggleFlag(FLAG_CARRY);
@@ -164,7 +180,7 @@ inline void Processor::OPCodes_DEC(EightBitRegister* reg)
     u8 result = reg->GetValue() - 1;
     reg->SetValue(result);
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
-    ToggleFlag(FLAG_SUB);
+    ToggleFlag(FLAG_NEGATIVE);
     ToggleZeroFlagFromResult(result);
     if ((result & 0x0F) == 0x0F)
     {
@@ -177,7 +193,7 @@ inline void Processor::OPCodes_DEC_HL()
     u8 result = m_pMemory->Read(HL.GetValue()) - 1;
     m_pMemory->Write(HL.GetValue(), result);
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
-    ToggleFlag(FLAG_SUB);
+    ToggleFlag(FLAG_NEGATIVE);
     ToggleZeroFlagFromResult(result);
     if ((result & 0x0F) == 0x0F)
     {
@@ -224,7 +240,7 @@ inline void Processor::OPCodes_SUB(u8 number)
     int result = AF.GetHigh() - number;
     int carrybits = AF.GetHigh() ^ number ^ result;
     AF.SetHigh(static_cast<u8> (result));
-    SetFlag(FLAG_SUB);
+    SetFlag(FLAG_NEGATIVE);
     ToggleZeroFlagFromResult(static_cast<u8> (result));
     if ((carrybits & 0x100) != 0)
     {
@@ -240,7 +256,7 @@ inline void Processor::OPCodes_SBC(u8 number)
 {
     int carry = IsSetFlag(FLAG_CARRY) ? 1 : 0;
     int result = AF.GetHigh() - number - carry;
-    SetFlag(FLAG_SUB);
+    SetFlag(FLAG_NEGATIVE);
     ToggleZeroFlagFromResult(static_cast<u8> (result));
     if (result < 0)
         ToggleFlag(FLAG_CARRY);
@@ -492,7 +508,7 @@ inline void Processor::OPCodes_BIT(EightBitRegister* reg, int bit)
     else
         UntoggleFlag(FLAG_ZERO);
     ToggleFlag(FLAG_HALF);
-    UntoggleFlag(FLAG_SUB);
+    UntoggleFlag(FLAG_NEGATIVE);
 }
 
 inline void Processor::OPCodes_BIT_HL(int bit)
@@ -503,7 +519,7 @@ inline void Processor::OPCodes_BIT_HL(int bit)
     else
         UntoggleFlag(FLAG_ZERO);
     ToggleFlag(FLAG_HALF);
-    UntoggleFlag(FLAG_SUB);
+    UntoggleFlag(FLAG_NEGATIVE);
 }
 
 inline void Processor::OPCodes_SET(EightBitRegister* reg, int bit)

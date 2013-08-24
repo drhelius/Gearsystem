@@ -17,7 +17,7 @@
  * 
  */
 
- #ifndef MEMORY_INLINE_H
+#ifndef MEMORY_INLINE_H
 #define	MEMORY_INLINE_H
 
 inline u8 Memory::Read(u16 address)

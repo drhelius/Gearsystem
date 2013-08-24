@@ -38,9 +38,6 @@
 #define BLARGG_USE_NAMESPACE 1
 #endif
 
-#define SAVE_FILE_SIGNATURE "GearsysSaveFile"
-#define SAVE_FILE_VERSION 5
-
 #define SafeDelete(pointer) if(pointer != NULL) {delete pointer; pointer = NULL;}
 #define SafeDeleteArray(pointer) if(pointer != NULL) {delete [] pointer; pointer = NULL;}
 
@@ -56,10 +53,16 @@ typedef int32_t s32;
 typedef uint64_t u64;
 typedef int64_t s64;
 
-#define FLAG_ZERO 0x80
-#define FLAG_SUB 0x40
-#define FLAG_HALF 0x20
-#define FLAG_CARRY 0x10
+// http://icarus.ticalc.org/articles/z80_faq.html
+
+#define FLAG_CARRY 0x01
+#define FLAG_NEGATIVE 0x02
+#define FLAG_PARITY 0x04
+#define FLAG_X 0x08
+#define FLAG_HALF 0x10
+#define FLAG_Y 0x20
+#define FLAG_ZERO 0x40
+#define FLAG_SIGN 0x80
 #define FLAG_NONE 0
 
 #define GS_WIDTH 160

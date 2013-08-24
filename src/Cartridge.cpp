@@ -25,12 +25,10 @@
 Cartridge::Cartridge()
 {
     InitPointer(m_pTheROM);
-    m_iTotalSize = 0;
     m_iROMSize = 0;
     m_Type = CartridgeNotSupported;
     m_bValidROM = false;
     m_bLoaded = false;
-    m_bBattery = false;
     m_szFilePath[0] = 0;
     m_szFileName[0] = 0;
     m_iROMBankCount = 0;
@@ -49,11 +47,9 @@ void Cartridge::Init()
 void Cartridge::Reset()
 {
     SafeDeleteArray(m_pTheROM);
-    m_iTotalSize = 0;
     m_Type = CartridgeNotSupported;
     m_bValidROM = false;
     m_bLoaded = false;
-    m_bBattery = false;
     m_szFilePath[0] = 0;
     m_szFileName[0] = 0;
     m_iROMBankCount = 0;
@@ -94,16 +90,6 @@ const char* Cartridge::GetFileName() const
     return m_szFileName;
 }
 
-int Cartridge::GetTotalSize() const
-{
-    return m_iTotalSize;
-}
-
-bool Cartridge::HasBattery() const
-{
-    return m_bBattery;
-}
-
 u8* Cartridge::GetTheROM() const
 {
     return m_pTheROM;
@@ -140,7 +126,7 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
         transform(fn.begin(), fn.end(), fn.begin(), (int(*)(int)) tolower);
         string extension = fn.substr(fn.find_last_of(".") + 1);
 
-        if ((extension == "gb") || (extension == "dmg") || (extension == "gbc") || (extension == "cgb") || (extension == "sgb"))
+        if ((extension == "sms") || (extension == "gg"))
         {
             void *p;
             size_t uncomp_size;
@@ -250,9 +236,9 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
 {
     if (IsValidPointer(buffer))
     {
-        m_iTotalSize = size;
-        m_pTheROM = new u8[m_iTotalSize];
-        memcpy(m_pTheROM, buffer, m_iTotalSize);
+        m_iROMSize = size;
+        m_pTheROM = new u8[m_iROMSize];
+        memcpy(m_pTheROM, buffer, m_iROMSize);
         return GatherMetadata();
     }
     else
@@ -270,18 +256,56 @@ unsigned int Cartridge::Pow2Ceil(u16 n)
     return n;
 }
 
+bool Cartridge::TestValidROM(u16 location)
+{
+    char tmrsega[9] = {0};
+    tmrsega[8] = 0;
+
+    for (int i = 0; i < 8; i++)
+    {
+        tmrsega[i] = m_pTheROM[location + i];
+    }
+    
+    return (strcmp(tmrsega, "TMR SEGA") == 0);
+}
+
 bool Cartridge::GatherMetadata()
 {
+    u16 headerLocation = 0x7FF0;
+    m_bValidROM = false;
     
-	Log("Cartridge Size %d", m_iTotalSize);
-    Log("ROM Size %X", m_iROMSize);
-    Log("ROM Bank Count %d", m_iROMBankCount);
+    if (!TestValidROM(headerLocation))
+    {
+        headerLocation = 0x1FF0;
+        if (!TestValidROM(headerLocation))
+        {
+            headerLocation = 0x3FF0;
+            if (!TestValidROM(headerLocation))
+            {
+                return m_bValidROM;
+            }
+        }
+    }
 
+    m_bValidROM = true;
+    m_Type = Cartridge::CartridgeNoMapper;
+
+    Log("ROM Size: %d KB", m_iROMSize / 1024);
+    Log("ROM Bank Count: %d", m_iROMBankCount);
+    
+    if (m_bValidROM)
+    {
+        Log("ROM is Valid. Header found at: %X", headerLocation);
+    }
+    else
+    {
+        Log("ROM is NOT Valid. No header found");
+    }
 
     switch (m_Type)
     {
         case Cartridge::CartridgeNoMapper:
-            Log("No Mapper found");
+            Log("SEGA mapper found");
             break;
         case Cartridge::CartridgeCodemastersMapper:
             Log("Codemasters mapper found");
@@ -291,18 +315,6 @@ bool Cartridge::GatherMetadata()
             break;
         default:
             break;
-    }
-
-    if (m_bBattery)
-    {
-        Log("Battery powered RAM found");
-    }
-
-    int checksum = 0;
-
-    for (int j = 0x134; j < 0x14E; j++)
-    {
-        checksum += m_pTheROM[j];
     }
 
     return (m_Type != CartridgeNotSupported);

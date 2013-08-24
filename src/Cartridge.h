@@ -44,8 +44,6 @@ public:
     int GetROMBankCount() const;
     const char* GetFilePath() const;
     const char* GetFileName() const;
-    int GetTotalSize() const;
-    bool HasBattery() const;
     u8* GetTheROM() const;
     bool LoadFromFile(const char* path);
     bool LoadFromBuffer(const u8* buffer, int size);
@@ -54,15 +52,14 @@ private:
     unsigned int Pow2Ceil(u16 n);
     bool GatherMetadata();
     bool LoadFromZipFile(const u8* buffer, int size);
+    bool TestValidROM(u16 location);
 
 private:
     u8* m_pTheROM;
-    int m_iTotalSize;
     int m_iROMSize;
     CartridgeTypes m_Type;
     bool m_bValidROM;
     bool m_bLoaded;
-    bool m_bBattery;
     char m_szFilePath[512];
     char m_szFileName[512];
     int m_iROMBankCount;
