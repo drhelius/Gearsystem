@@ -111,6 +111,14 @@ inline void Processor::OPCodes_CALL_nn()
     PC.SetLow(l);
 }
 
+inline void Processor::OPCodes_JP_nn()
+{
+    u8 l = m_pMemory->Read(PC.GetValue());
+    u8 h = m_pMemory->Read(PC.GetValue() + 1);
+    PC.SetHigh(h);
+    PC.SetLow(l);
+}
+
 inline void Processor::OPCodes_EX(SixteenBitRegister* reg1, SixteenBitRegister* reg2)
 {
     u16 tmp = reg1->GetValue();
