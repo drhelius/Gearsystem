@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configurationDescriptor version="89">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
-    <logicalFolder name="f1" displayName="Audio" projectFiles="true" kind="ROOT">
+    <logicalFolder name="f1" displayName="Audio" projectFiles="true">
     </logicalFolder>
-    <logicalFolder name="f2" displayName="Core" projectFiles="true" kind="ROOT">
+    <logicalFolder name="f2" displayName="Core" projectFiles="true">
       <itemPath>../../../src/Cartridge.cpp</itemPath>
       <itemPath>../../../src/Cartridge.h</itemPath>
       <itemPath>../../../src/EightBitRegister.h</itemPath>
@@ -26,6 +26,7 @@
       <itemPath>../../../src/opcode_timing.h</itemPath>
       <itemPath>../../../src/opcodes.cpp</itemPath>
       <itemPath>../../../src/opcodes_cb.cpp</itemPath>
+      <itemPath>../../../src/opcodes_ed.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -135,6 +136,8 @@
       <item path="../../../src/opcodes.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/opcodes_cb.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/opcodes_ed.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../qt-shared/About.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -254,6 +257,8 @@
       <item path="../../../src/opcodes.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/opcodes_cb.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/opcodes_ed.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../qt-shared/About.cpp" ex="false" tool="1" flavor2="0">
       </item>
