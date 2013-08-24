@@ -96,6 +96,7 @@ private:
     void OPCodes_LD(u16 address, u8 reg);
     void OPCodes_CALL_nn();
     void OPCodes_JP_nn();
+    void OPCodes_JR_n();
     void OPCodes_EX(SixteenBitRegister* reg1, SixteenBitRegister* reg2);
     void OPCodes_OR(u8 number);
     void OPCodes_XOR(u8 number);

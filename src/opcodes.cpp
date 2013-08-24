@@ -123,9 +123,18 @@ void Processor::OPCode0x0F()
 
 void Processor::OPCode0x10()
 {
-    // TODO: different opcode
     // DJNZ (PC+e)
-    InvalidOPCode();
+    BC.GetHighRegister()->Decrement();
+
+    if (BC.GetHigh() != 0)
+    {
+        OPCodes_JR_n();
+        m_bBranchTaken = true;
+    }
+    else
+    {
+        PC.Increment();
+    }
 }
 
 void Processor::OPCode0x11()
@@ -177,7 +186,7 @@ void Processor::OPCode0x17()
 void Processor::OPCode0x18()
 {
     // JR n
-    PC.SetValue(PC.GetValue() + 1 + (static_cast<s8> (m_pMemory->Read(PC.GetValue()))));
+    OPCodes_JR_n();
 }
 
 void Processor::OPCode0x19()
@@ -228,7 +237,7 @@ void Processor::OPCode0x20()
     // JR NZ,n
     if (!IsSetFlag(FLAG_ZERO))
     {
-        PC.SetValue(PC.GetValue() + 1 + (static_cast<s8> (m_pMemory->Read(PC.GetValue()))));
+        OPCodes_JR_n();
         m_bBranchTaken = true;
     }
     else
@@ -318,7 +327,7 @@ void Processor::OPCode0x28()
     // JR Z,n
     if (IsSetFlag(FLAG_ZERO))
     {
-        PC.SetValue(PC.GetValue() + 1 + (static_cast<s8> (m_pMemory->Read(PC.GetValue()))));
+        OPCodes_JR_n();
         m_bBranchTaken = true;
     }
     else
@@ -379,7 +388,7 @@ void Processor::OPCode0x30()
     // JR NC,n
     if (!IsSetFlag(FLAG_CARRY))
     {
-        PC.SetValue(PC.GetValue() + 1 + (static_cast<s8> (m_pMemory->Read(PC.GetValue()))));
+        OPCodes_JR_n();
         m_bBranchTaken = true;
     }
     else
@@ -442,7 +451,7 @@ void Processor::OPCode0x38()
     // JR C,n
     if (IsSetFlag(FLAG_CARRY))
     {
-        PC.SetValue(PC.GetValue() + 1 + (static_cast<s8> (m_pMemory->Read(PC.GetValue()))));
+        OPCodes_JR_n();
         m_bBranchTaken = true;
     }
     else
