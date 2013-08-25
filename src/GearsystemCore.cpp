@@ -23,6 +23,8 @@
 #include "Video.h"
 #include "Input.h"
 #include "Cartridge.h"
+#include "MemoryRule.h"
+#include "SegaMemoryRule.h"
 
 GearsystemCore::GearsystemCore()
 {
@@ -31,6 +33,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pVideo);
     InitPointer(m_pInput);
     InitPointer(m_pCartridge);
+    InitPointer(m_pSegaMemoryRule);
     m_bPaused = true;
 }
 
@@ -54,6 +57,7 @@ GearsystemCore::~GearsystemCore()
     }
 #endif
 
+    SafeDelete(m_pSegaMemoryRule);
     SafeDelete(m_pCartridge);
     SafeDelete(m_pInput);
     SafeDelete(m_pVideo);
@@ -116,7 +120,7 @@ bool GearsystemCore::LoadROM(const char* szFilePath)
     if (loaded)
     {
         Reset();
-        m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
+        m_pMemory->LoadSlotsFromROM(m_pCartridge->GetTheROM());
         bool romTypeOK = AddMemoryRules();
 
         if (!romTypeOK)
@@ -165,7 +169,7 @@ void GearsystemCore::ResetROM()
     if (m_pCartridge->IsLoadedROM())
     {
         Reset();
-        m_pMemory->LoadBank0and1FromROM(m_pCartridge->GetTheROM());
+        m_pMemory->LoadSlotsFromROM(m_pCartridge->GetTheROM());
         AddMemoryRules();
     }
 }
@@ -321,12 +325,28 @@ void GearsystemCore::LoadRam(const char* szPath)
 
 void GearsystemCore::InitMemoryRules()
 {
-
+    m_pSegaMemoryRule = new SegaMemoryRule(m_pMemory, m_pCartridge);
 }
 
 bool GearsystemCore::AddMemoryRules()
 {
-    return true;
+    Cartridge::CartridgeTypes type = m_pCartridge->GetType();
+
+    bool notSupported = false;
+
+    switch (type)
+    {
+        case Cartridge::CartridgeSegaMapper:
+            m_pMemory->SetCurrentRule(m_pSegaMemoryRule);
+            break;
+        case Cartridge::CartridgeNotSupported:
+            notSupported = true;
+            break;
+        default:
+            notSupported = true;
+    }
+
+    return !notSupported;
 }
 
 void GearsystemCore::Reset()
@@ -335,6 +355,8 @@ void GearsystemCore::Reset()
     m_pProcessor->Reset();
     m_pVideo->Reset();
     m_pInput->Reset();
+    
+    m_pSegaMemoryRule->Reset();
 
     m_bPaused = false;
 }

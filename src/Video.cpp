@@ -24,7 +24,6 @@
 Video::Video(Memory* pMemory, Processor* pProcessor)
 {
     m_pMemory = pMemory;
-    m_pMemory->SetVideo(this);
     m_pProcessor = pProcessor;
     InitPointer(m_pFrameBuffer);
     InitPointer(m_pColorFrameBuffer);

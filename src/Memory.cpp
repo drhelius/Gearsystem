@@ -21,49 +21,40 @@
 #include <iomanip>
 #include <fstream>
 #include "Memory.h"
-#include "Processor.h"
-#include "Video.h"
 
 Memory::Memory()
 {
-    InitPointer(m_pProcessor);
-    InitPointer(m_pVideo);
     InitPointer(m_pMap);
+    InitPointer(m_pCurrentMemoryRule);
     InitPointer(m_pDisassembledMap);
 }
 
 Memory::~Memory()
 {
-    InitPointer(m_pProcessor);
-    InitPointer(m_pVideo);
     SafeDeleteArray(m_pMap);
+    InitPointer(m_pCurrentMemoryRule);
     SafeDeleteArray(m_pDisassembledMap);
-}
-
-void Memory::SetProcessor(Processor* pProcessor)
-{
-    m_pProcessor = pProcessor;
-}
-
-void Memory::SetVideo(Video* pVideo)
-{
-    m_pVideo = pVideo;
 }
 
 void Memory::Init()
 {
-    m_pMap = new u8[65536];
-    m_pDisassembledMap = new stDisassemble[65536];
+    m_pMap = new u8[0x10000];
+    m_pDisassembledMap = new stDisassemble[0x10000];
     Reset();
 }
 
 void Memory::Reset()
 {
-    for (int i = 0; i < 65536; i++)
+    for (int i = 0; i < 0x10000; i++)
     {
         m_pMap[i] = 0x00;
         m_pDisassembledMap[i].szDisString[0] = 0;
     }
+}
+
+void Memory::SetCurrentRule(MemoryRule* pRule)
+{
+    m_pCurrentMemoryRule = pRule;
 }
 
 void Memory::Disassemble(u16 address, const char* szDisassembled)
@@ -76,10 +67,10 @@ bool Memory::IsDisassembled(u16 address)
     return m_pDisassembledMap[address].szDisString[0] != 0;
 }
 
-void Memory::LoadBank0and1FromROM(u8* pTheROM)
+void Memory::LoadSlotsFromROM(u8* pTheROM)
 {
-    // loads the first 32KB only (bank 0 and 1)
-    for (int i = 0; i < 0x8000; i++)
+    // loads the first 48KB only (bank 0, 1 and 2)
+    for (int i = 0; i < 0xC000; i++)
     {
         m_pMap[i] = pTheROM[i];
     }
@@ -93,7 +84,7 @@ void Memory::MemoryDump(const char* szFilePath)
 
     if (myfile.is_open())
     {
-        for (int i = 0; i < 65536; i++)
+        for (int i = 0; i < 0x10000; i++)
         {
             if (IsDisassembled(i))
             {

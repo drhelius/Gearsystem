@@ -17,28 +17,15 @@
  * 
  */
 
-#ifndef MEMORY_INLINE_H
-#define	MEMORY_INLINE_H
+#include "MemoryRule.h"
 
-inline u8 Memory::Read(u16 address)
+MemoryRule::MemoryRule(Memory* pMemory, Cartridge* pCartridge)
 {
-    return m_pCurrentMemoryRule->PerformRead(address);
+    m_pMemory = pMemory;
+    m_pCartridge = pCartridge;
 }
 
-inline void Memory::Write(u16 address, u8 value)
+MemoryRule::~MemoryRule()
 {
-    m_pCurrentMemoryRule->PerformWrite(address, value);
+
 }
-
-inline u8 Memory::Retrieve(u16 address)
-{
-    return m_pMap[address];
-}
-
-inline void Memory::Load(u16 address, u8 value)
-{
-    m_pMap[address] = value;
-}
-
-#endif	/* MEMORY_INLINE_H */
-

@@ -27,7 +27,7 @@ class Processor;
 class Video;
 class Input;
 class Cartridge;
-class CommonMemoryRule;
+class SegaMemoryRule;
 class MemoryRule;
 
 class GearsystemCore
@@ -63,7 +63,7 @@ private:
     Video* m_pVideo;
     Input* m_pInput;
     Cartridge* m_pCartridge;
-    CommonMemoryRule* m_pCommonMemoryRule;
+    SegaMemoryRule* m_pSegaMemoryRule;
     bool m_bPaused;
 };
 

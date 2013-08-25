@@ -288,7 +288,7 @@ bool Cartridge::GatherMetadata()
     }
 
     m_bValidROM = true;
-    m_Type = Cartridge::CartridgeNoMapper;
+    m_Type = Cartridge::CartridgeSegaMapper;
 
     Log("ROM Size: %d KB", m_iROMSize / 1024);
     Log("ROM Bank Count: %d", m_iROMBankCount);
@@ -304,7 +304,7 @@ bool Cartridge::GatherMetadata()
 
     switch (m_Type)
     {
-        case Cartridge::CartridgeNoMapper:
+        case Cartridge::CartridgeSegaMapper:
             Log("SEGA mapper found");
             break;
         case Cartridge::CartridgeCodemastersMapper:

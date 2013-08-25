@@ -17,45 +17,28 @@
  * 
  */
 
-#ifndef MEMORY_H
-#define	MEMORY_H
+#ifndef MEMORYRULE_H
+#define	MEMORYRULE_H
 
 #include "definitions.h"
-#include "MemoryRule.h"
-#include "SegaMemoryRule.h"
 #include <vector>
 
-class Memory
+class Memory;
+class Cartridge;
+
+class MemoryRule
 {
 public:
-    Memory();
-    ~Memory();
-    void Init();
-    void Reset();
-    void SetCurrentRule(MemoryRule* pRule);
-    u8 Read(u16 address);
-    void Write(u16 address, u8 value);
-    u8 Retrieve(u16 address);
-    void Load(u16 address, u8 value);
-    void Disassemble(u16 address, const char* szDisassembled);
-    bool IsDisassembled(u16 address);
-    void LoadSlotsFromROM(u8* pTheROM);
-    void MemoryDump(const char* szFilePath);
+    MemoryRule(Memory* pMemory, Cartridge* pCartridge);
+    virtual ~MemoryRule();
+    virtual u8 PerformRead(u16 address) = 0;
+    virtual void PerformWrite(u16 address, u8 value) = 0;
+    virtual void Reset() = 0;
 
-private:
-
-    struct stDisassemble
-    {
-        char szDisString[32];
-    };
-
-private:
-    u8* m_pMap;
-    MemoryRule* m_pCurrentMemoryRule;
-    stDisassemble* m_pDisassembledMap;
+protected:
+    Memory* m_pMemory;
+    Cartridge* m_pCartridge;
 };
 
-#include "Memory_inline.h"
-
-#endif	/* MEMORY_H */
+#endif	/* MEMORYRULE_H */
 

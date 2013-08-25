@@ -24,7 +24,6 @@
 Processor::Processor(Memory* pMemory)
 {
     m_pMemory = pMemory;
-    m_pMemory->SetProcessor(this);
     InitOPCodeFunctors();
     m_bIME = false;
     m_bHalt = false;

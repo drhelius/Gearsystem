@@ -27,7 +27,7 @@ class Cartridge
 public:
     enum CartridgeTypes
     {
-        CartridgeNoMapper,
+        CartridgeSegaMapper,
 		CartridgeCodemastersMapper,
         CartridgeNotSupported
     };
