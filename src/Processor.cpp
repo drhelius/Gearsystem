@@ -302,7 +302,7 @@ void Processor::InvalidOPCode()
     u16 opcode_address = PC.GetValue() - 1;
     u8 opcode = m_pMemory->Read(opcode_address);
     
-    Log("--> ** INVALID OP Code %X at 0x%X (%s)", opcode, opcode_address, kOPCodeNames[opcode]);
+    Log("--> ** INVALID OP Code (%X) at $%.4X -- %s", opcode, opcode_address, kOPCodeNames[opcode]);
 }
 
 void Processor::InitOPCodeFunctors()
