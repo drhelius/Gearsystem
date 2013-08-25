@@ -259,7 +259,9 @@ void Processor::OPCode0x22()
 {
     // LD (nn),HL
     u8 l = m_pMemory->Read(PC.GetValue());
-    u8 h = m_pMemory->Read(PC.GetValue() + 1);
+    PC.Increment();
+    u8 h = m_pMemory->Read(PC.GetValue());
+    PC.Increment();
     u16 address = (h << 8) + l;
     m_pMemory->Write(address, HL.GetLow());
     m_pMemory->Write(address + 1, HL.GetHigh());
@@ -349,7 +351,9 @@ void Processor::OPCode0x2A()
 {
     // LD HL,(nn)
     u8 l = m_pMemory->Read(PC.GetValue());
-    u8 h = m_pMemory->Read(PC.GetValue() + 1);
+    PC.Increment();
+    u8 h = m_pMemory->Read(PC.GetValue());
+    PC.Increment();
     u16 address = (h << 8) + l;
     HL.SetLow(m_pMemory->Read(address));
     HL.SetHigh(m_pMemory->Read(address + 1));
@@ -416,7 +420,9 @@ void Processor::OPCode0x32()
 {
     // LD (nn),A
     u8 l = m_pMemory->Read(PC.GetValue());
-    u8 h = m_pMemory->Read(PC.GetValue() + 1);
+    PC.Increment();
+    u8 h = m_pMemory->Read(PC.GetValue());
+    PC.Increment();
     m_pMemory->Write((h << 8) + l, AF.GetHigh());
 }
 
@@ -476,12 +482,11 @@ void Processor::OPCode0x39()
 void Processor::OPCode0x3A()
 {
     // LD A,(nn)
-    u8 low = PC.GetValue();
+    u8 l = m_pMemory->Read(PC.GetValue());
     PC.Increment();
-    u8 high = PC.GetValue();
+    u8 h = m_pMemory->Read(PC.GetValue());
     PC.Increment();
-    u16 address = (high << 8) + low;
-    OPCodes_LD(AF.GetHighRegister(), address);
+    OPCodes_LD(AF.GetHighRegister(), (h << 8) + l);
 }
 
 void Processor::OPCode0x3B()
