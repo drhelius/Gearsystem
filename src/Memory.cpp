@@ -18,6 +18,7 @@
  */
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include "Memory.h"
 #include "Processor.h"
@@ -96,11 +97,11 @@ void Memory::MemoryDump(const char* szFilePath)
         {
             if (IsDisassembled(i))
             {
-                myfile << "0x" << hex << i << "\t " << m_pDisassembledMap[i].szDisString << "\n";
+                myfile << "$" << uppercase << hex << setw(4) << setfill('0') << i << "\t " << nouppercase << m_pDisassembledMap[i].szDisString << endl;
             }
             else
             {
-                myfile << "0x" << hex << i << "\t [0x" << hex << (int) m_pMap[i] << "]\n";
+                myfile << "$" << uppercase << hex << setw(4) << setfill('0') << i << "\t [" << hex << setw(2) << setfill('0') << (int) m_pMap[i] << "]" << endl;
             }
         }
 
