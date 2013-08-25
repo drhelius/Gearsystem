@@ -272,7 +272,7 @@ bool Cartridge::TestValidROM(u16 location)
 bool Cartridge::GatherMetadata()
 {
     u16 headerLocation = 0x7FF0;
-    m_bValidROM = false;
+    m_bValidROM = true;
     
     if (!TestValidROM(headerLocation))
     {
@@ -282,13 +282,14 @@ bool Cartridge::GatherMetadata()
             headerLocation = 0x3FF0;
             if (!TestValidROM(headerLocation))
             {
-                return m_bValidROM;
+                m_bValidROM = false;
             }
         }
     }
 
-    m_bValidROM = true;
     m_Type = Cartridge::CartridgeSegaMapper;
+    
+    m_iROMBankCount = std::max(Pow2Ceil(m_iROMSize / 0x4000), 1u);
 
     Log("ROM Size: %d KB", m_iROMSize / 1024);
     Log("ROM Bank Count: %d", m_iROMBankCount);

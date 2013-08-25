@@ -120,7 +120,7 @@ bool GearsystemCore::LoadROM(const char* szFilePath)
     if (loaded)
     {
         Reset();
-        m_pMemory->LoadSlotsFromROM(m_pCartridge->GetTheROM());
+        m_pMemory->LoadSlotsFromROM(m_pCartridge->GetTheROM(), m_pCartridge->GetROMSize());
         bool romTypeOK = AddMemoryRules();
 
         if (!romTypeOK)
@@ -169,7 +169,7 @@ void GearsystemCore::ResetROM()
     if (m_pCartridge->IsLoadedROM())
     {
         Reset();
-        m_pMemory->LoadSlotsFromROM(m_pCartridge->GetTheROM());
+        m_pMemory->LoadSlotsFromROM(m_pCartridge->GetTheROM(), m_pCartridge->GetROMSize());
         AddMemoryRules();
     }
 }

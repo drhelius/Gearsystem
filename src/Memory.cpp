@@ -67,13 +67,15 @@ bool Memory::IsDisassembled(u16 address)
     return m_pDisassembledMap[address].szDisString[0] != 0;
 }
 
-void Memory::LoadSlotsFromROM(u8* pTheROM)
+void Memory::LoadSlotsFromROM(u8* pTheROM, int size)
 {
     // loads the first 48KB only (bank 0, 1 and 2)
-    for (int i = 0; i < 0xC000; i++)
+    int i;
+    for (i = 0; ((i < 0xC000) && (i < size)); i++)
     {
         m_pMap[i] = pTheROM[i];
     }
+    Log("%d bytes copied from cartridge", i);
 }
 
 void Memory::MemoryDump(const char* szFilePath)
