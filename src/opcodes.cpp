@@ -257,9 +257,12 @@ void Processor::OPCode0x21()
 
 void Processor::OPCode0x22()
 {
-    // TODO: different opcode
     // LD (nn),HL
-    InvalidOPCode();
+    u8 l = m_pMemory->Read(PC.GetValue());
+    u8 h = m_pMemory->Read(PC.GetValue() + 1);
+    u16 address = (h << 8) + l;
+    m_pMemory->Write(address, HL.GetLow());
+    m_pMemory->Write(address + 1, HL.GetHigh());
 }
 
 void Processor::OPCode0x23()
@@ -344,9 +347,12 @@ void Processor::OPCode0x29()
 
 void Processor::OPCode0x2A()
 {
-    // TODO: different opcode
     // LD HL,(nn)
-    InvalidOPCode();
+    u8 l = m_pMemory->Read(PC.GetValue());
+    u8 h = m_pMemory->Read(PC.GetValue() + 1);
+    u16 address = (h << 8) + l;
+    HL.SetLow(m_pMemory->Read(address));
+    HL.SetHigh(m_pMemory->Read(address + 1));
 }
 
 void Processor::OPCode0x2B()
@@ -408,9 +414,10 @@ void Processor::OPCode0x31()
 
 void Processor::OPCode0x32()
 {
-    // TODO: different opcode
     // LD (nn),A
-    InvalidOPCode();
+    u8 l = m_pMemory->Read(PC.GetValue());
+    u8 h = m_pMemory->Read(PC.GetValue() + 1);
+    m_pMemory->Write((h << 8) + l, AF.GetHigh());
 }
 
 void Processor::OPCode0x33()
