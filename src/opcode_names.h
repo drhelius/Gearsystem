@@ -236,7 +236,7 @@ static const char* kOPCodeNames[256] = {
     "RET Z",
     "RET",
     "JP Z,nn",
-    "cb opcode",
+    "CB PREFIX",
     "CALL Z,nn",
     "CALL nn",
     "ADC A,n",
@@ -255,7 +255,7 @@ static const char* kOPCodeNames[256] = {
     "JP C,nn",
     "IN A,(n)",
     "CALL C,nn",
-    "dd opcode",
+    "DD PREFIX",
     "SBC A,n",
     "RST 18H",
 
@@ -272,7 +272,7 @@ static const char* kOPCodeNames[256] = {
     "JP PE,nn",
     "EX DE,HL",
     "CALL PE,nn",
-    "ed opcode",
+    "ED PREFIX",
     "XOR n",
     "RST 28H",
 
@@ -289,7 +289,7 @@ static const char* kOPCodeNames[256] = {
     "JP M,nn",
     "EI",
     "CALL M,nn",
-    "fd opcode",
+    "FD PREFIX",
     "CP n",
     "RST 38H"
 };
