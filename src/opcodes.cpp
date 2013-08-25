@@ -486,7 +486,8 @@ void Processor::OPCode0x3A()
     PC.Increment();
     u8 h = m_pMemory->Read(PC.GetValue());
     PC.Increment();
-    OPCodes_LD(AF.GetHighRegister(), (h << 8) + l);
+    u16 address = (h << 8) + l;
+    OPCodes_LD(AF.GetHighRegister(), address);
 }
 
 void Processor::OPCode0x3B()
