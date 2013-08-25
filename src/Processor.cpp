@@ -879,7 +879,7 @@ void Processor::InitOPCodeFunctors()
     m_OPCodesCB[0xFE] = &Processor::OPCodeCB0xFE;
     m_OPCodesCB[0xFF] = &Processor::OPCodeCB0xFF;
 
-    for (u8 i = 0x00; i < 0x40; i++)
+    for (int i = 0x00; i < 0x40; i++)
     {
         m_OPCodesED[i] = &Processor::InvalidOPCode;
     }
@@ -951,7 +951,7 @@ void Processor::InitOPCodeFunctors()
     m_OPCodesED[0x7D] = &Processor::OPCodeED0x7D;
     m_OPCodesED[0x7E] = &Processor::OPCodeED0x7E;
 
-    for (u8 i = 0x7F; i < 0xA0; i++)
+    for (int i = 0x7F; i < 0xA0; i++)
     {
         m_OPCodesED[i] = &Processor::InvalidOPCode;
     }
@@ -986,7 +986,7 @@ void Processor::InitOPCodeFunctors()
     m_OPCodesED[0xBA] = &Processor::OPCodeED0xBA;
     m_OPCodesED[0xBB] = &Processor::OPCodeED0xBB;
 
-    for (u8 i = 0xBC; i <= 0xFF; i++)
+    for (int i = 0xBC; i <= 0xFF; i++)
     {
         m_OPCodesED[i] = &Processor::InvalidOPCode;
     }
