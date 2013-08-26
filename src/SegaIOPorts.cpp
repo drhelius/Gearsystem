@@ -17,27 +17,22 @@
  * 
  */
 
-#ifndef MEMORYRULE_H
-#define	MEMORYRULE_H
+#include "SegaIOPorts.h"
 
-#include "definitions.h"
-
-class Memory;
-class Cartridge;
-
-class MemoryRule
+SegaIOPorts::SegaIOPorts()
 {
-public:
-    MemoryRule(Memory* pMemory, Cartridge* pCartridge);
-    virtual ~MemoryRule();
-    virtual u8 PerformRead(u16 address) = 0;
-    virtual void PerformWrite(u16 address, u8 value) = 0;
-    virtual void Reset() = 0;
+}
 
-protected:
-    Memory* m_pMemory;
-    Cartridge* m_pCartridge;
-};
+SegaIOPorts::~SegaIOPorts()
+{
+}
 
-#endif	/* MEMORYRULE_H */
+u8 SegaIOPorts::Input(u8 port)
+{
+    return 0x00;
+}
 
+void SegaIOPorts::Output(u8 port, u8 value)
+{
+    
+}

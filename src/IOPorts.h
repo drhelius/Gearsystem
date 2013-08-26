@@ -17,27 +17,19 @@
  * 
  */
 
-#ifndef MEMORYRULE_H
-#define	MEMORYRULE_H
+#ifndef IOPORTS_H
+#define	IOPORTS_H
 
 #include "definitions.h"
 
-class Memory;
-class Cartridge;
-
-class MemoryRule
+class IOPorts
 {
 public:
-    MemoryRule(Memory* pMemory, Cartridge* pCartridge);
-    virtual ~MemoryRule();
-    virtual u8 PerformRead(u16 address) = 0;
-    virtual void PerformWrite(u16 address, u8 value) = 0;
-    virtual void Reset() = 0;
-
-protected:
-    Memory* m_pMemory;
-    Cartridge* m_pCartridge;
+    IOPorts() { };
+    virtual ~IOPorts() { };
+    virtual u8 Input(u8 port) = 0;
+    virtual void Output(u8 address, u8 value) = 0;
 };
 
-#endif	/* MEMORYRULE_H */
+#endif	/* IOPORTS_H */
 

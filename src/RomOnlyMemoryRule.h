@@ -17,27 +17,20 @@
  * 
  */
 
-#ifndef MEMORYRULE_H
-#define	MEMORYRULE_H
+#ifndef ROMONLYMORYRULE_H
+#define	ROMONLYMORYRULE_H
 
-#include "definitions.h"
+#include "MemoryRule.h"
 
-class Memory;
-class Cartridge;
-
-class MemoryRule
+class RomOnlyMemoryRule : public MemoryRule
 {
 public:
-    MemoryRule(Memory* pMemory, Cartridge* pCartridge);
-    virtual ~MemoryRule();
-    virtual u8 PerformRead(u16 address) = 0;
-    virtual void PerformWrite(u16 address, u8 value) = 0;
-    virtual void Reset() = 0;
-
-protected:
-    Memory* m_pMemory;
-    Cartridge* m_pCartridge;
+    RomOnlyMemoryRule(Memory* pMemory, Cartridge* pCartridge);
+    virtual ~RomOnlyMemoryRule();
+    virtual u8 PerformRead(u16 address);
+    virtual void PerformWrite(u16 address, u8 value);
+    virtual void Reset();
 };
 
-#endif	/* MEMORYRULE_H */
+#endif	/* ROMONLYMORYRULE_H */
 

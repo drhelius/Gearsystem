@@ -21,8 +21,7 @@
 #include "Memory.h"
 #include "Cartridge.h"
 
-SegaMemoryRule::SegaMemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(
-pMemory, pCartridge)
+SegaMemoryRule::SegaMemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
     Reset();
 }
