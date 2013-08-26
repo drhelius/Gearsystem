@@ -28,7 +28,7 @@ public:
     IOPorts() { };
     virtual ~IOPorts() { };
     virtual u8 Input(u8 port) = 0;
-    virtual void Output(u8 address, u8 value) = 0;
+    virtual void Output(u8 port, u8 value) = 0;
 };
 
 #endif	/* IOPORTS_H */
