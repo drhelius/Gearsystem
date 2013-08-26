@@ -99,16 +99,19 @@ void SegaMemoryRule::PerformWrite(u16 address, u8 value)
             }
             case 0xFFFD:
             {
+                Log("--> ** Selecting bank %d for slot 0", value);
                 m_iMapperSlot[0] = value & (m_pCartridge->GetROMBankCount() - 1);
                 break;
             }
             case 0xFFFE:
             {
+                Log("--> ** Selecting bank %d for slot 1", value);
                 m_iMapperSlot[1] = value & (m_pCartridge->GetROMBankCount() - 1);
                 break;
             }
             case 0xFFFF:
             {
+                Log("--> ** Selecting bank %d for slot 2", value);
                 m_iMapperSlot[2] = value & (m_pCartridge->GetROMBankCount() - 1);
                 break;
             }
