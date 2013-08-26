@@ -20,6 +20,7 @@
 #include "Processor.h"
 #include "opcode_timing.h"
 #include "opcode_names.h"
+#include "IOPorts.h"
 
 Processor::Processor(Memory* pMemory)
 {
@@ -33,6 +34,7 @@ Processor::Processor(Memory* pMemory)
     m_iUnhaltCycles = 0;
     for (int i = 0; i < 5; i++)
         m_InterruptDelayCycles[i] = 0;
+    InitPointer(m_pIOPorts);
 }
 
 Processor::~Processor()
@@ -66,6 +68,11 @@ void Processor::Reset()
     HL2.SetValue(0x0000);
     for (int i = 0; i < 5; i++)
         m_InterruptDelayCycles[i] = 0;
+}
+
+void Processor::SetIOPOrts(IOPorts* pIOPorts)
+{
+    m_pIOPorts = pIOPorts;
 }
 
 u8 Processor::Tick()

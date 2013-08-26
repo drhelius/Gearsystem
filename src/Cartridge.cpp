@@ -286,13 +286,6 @@ bool Cartridge::GatherMetadata()
             }
         }
     }
-
-    m_Type = Cartridge::CartridgeSegaMapper;
-    
-    m_iROMBankCount = std::max(Pow2Ceil(m_iROMSize / 0x4000), 1u);
-
-    Log("ROM Size: %d KB", m_iROMSize / 1024);
-    Log("ROM Bank Count: %d", m_iROMBankCount);
     
     if (m_bValidROM)
     {
@@ -303,8 +296,26 @@ bool Cartridge::GatherMetadata()
         Log("ROM is NOT Valid. No header found");
     }
 
+    m_iROMBankCount = std::max(Pow2Ceil(m_iROMSize / 0x4000), 1u);
+
+    Log("ROM Size: %d KB", m_iROMSize / 1024);
+    Log("ROM Bank Count: %d", m_iROMBankCount);
+    
+    if (m_iROMSize <= 0xC000)
+    {
+        // size <= 48KB
+        m_Type = Cartridge::CartridgeRomOnlyMapper;
+    }
+    else
+    {
+        m_Type = Cartridge::CartridgeSegaMapper;
+    }
+    
     switch (m_Type)
     {
+        case Cartridge::CartridgeRomOnlyMapper:
+            Log("NO mapper found");
+            break;
         case Cartridge::CartridgeSegaMapper:
             Log("SEGA mapper found");
             break;
@@ -315,6 +326,7 @@ bool Cartridge::GatherMetadata()
             Log("Cartridge not supported!!");
             break;
         default:
+            Log("ERROR with cartridge type!!");
             break;
     }
 

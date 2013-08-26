@@ -25,6 +25,8 @@
 #include "Cartridge.h"
 #include "MemoryRule.h"
 #include "SegaMemoryRule.h"
+#include "RomOnlyMemoryRule.h"
+#include "SegaIOPorts.h"
 
 GearsystemCore::GearsystemCore()
 {
@@ -34,6 +36,8 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pInput);
     InitPointer(m_pCartridge);
     InitPointer(m_pSegaMemoryRule);
+    InitPointer(m_pRomOnlyMemoryRule);
+    InitPointer(m_pSegaIOPorts);
     m_bPaused = true;
 }
 
@@ -57,6 +61,8 @@ GearsystemCore::~GearsystemCore()
     }
 #endif
 
+    SafeDelete(m_pSegaIOPorts);
+    SafeDelete(m_pRomOnlyMemoryRule);
     SafeDelete(m_pSegaMemoryRule);
     SafeDelete(m_pCartridge);
     SafeDelete(m_pInput);
@@ -72,6 +78,8 @@ void GearsystemCore::Init()
     m_pVideo = new Video(m_pMemory, m_pProcessor);
     m_pInput = new Input(m_pMemory, m_pProcessor);
     m_pCartridge = new Cartridge();
+    m_pSegaIOPorts = new SegaIOPorts();
+    m_pProcessor->SetIOPOrts(m_pSegaIOPorts);
 
     m_pMemory->Init();
     m_pProcessor->Init();
@@ -326,6 +334,7 @@ void GearsystemCore::LoadRam(const char* szPath)
 void GearsystemCore::InitMemoryRules()
 {
     m_pSegaMemoryRule = new SegaMemoryRule(m_pMemory, m_pCartridge);
+    m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pMemory, m_pCartridge);
 }
 
 bool GearsystemCore::AddMemoryRules()
@@ -336,6 +345,9 @@ bool GearsystemCore::AddMemoryRules()
 
     switch (type)
     {
+        case Cartridge::CartridgeRomOnlyMapper:
+            m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
+            break;
         case Cartridge::CartridgeSegaMapper:
             m_pMemory->SetCurrentRule(m_pSegaMemoryRule);
             break;
@@ -355,9 +367,8 @@ void GearsystemCore::Reset()
     m_pProcessor->Reset();
     m_pVideo->Reset();
     m_pInput->Reset();
-    
     m_pSegaMemoryRule->Reset();
-
+    m_pRomOnlyMemoryRule->Reset();
     m_bPaused = false;
 }
 

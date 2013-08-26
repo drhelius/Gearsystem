@@ -28,7 +28,9 @@ class Video;
 class Input;
 class Cartridge;
 class SegaMemoryRule;
+class RomOnlyMemoryRule;
 class MemoryRule;
+class SegaIOPorts;
 
 class GearsystemCore
 {
@@ -64,6 +66,8 @@ private:
     Input* m_pInput;
     Cartridge* m_pCartridge;
     SegaMemoryRule* m_pSegaMemoryRule;
+    RomOnlyMemoryRule* m_pRomOnlyMemoryRule;
+    SegaIOPorts* m_pSegaIOPorts;
     bool m_bPaused;
 };
 

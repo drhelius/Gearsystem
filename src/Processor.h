@@ -24,6 +24,8 @@
 #include "SixteenBitRegister.h"
 #include "Memory.h"
 
+class IOPorts;
+
 class Processor
 {
 public:
@@ -47,6 +49,7 @@ public:
     bool Halted() const;
     void AddCycles(unsigned int cycles);
     bool InterruptIsAboutToRaise();
+    void SetIOPOrts(IOPorts* pIOPorts);
 
 private:
     typedef void (Processor::*OPCptr) (void);
@@ -73,6 +76,7 @@ private:
     int m_iIMECycles;
     int m_iUnhaltCycles;
     int m_InterruptDelayCycles[5];
+    IOPorts* m_pIOPorts;
 
 private:
     u8 FetchOPCode();
