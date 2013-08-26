@@ -9,14 +9,23 @@
       <itemPath>../../../src/EightBitRegister.h</itemPath>
       <itemPath>../../../src/GearsystemCore.cpp</itemPath>
       <itemPath>../../../src/GearsystemCore.h</itemPath>
+      <itemPath>../../../src/IOPorts.h</itemPath>
       <itemPath>../../../src/Input.cpp</itemPath>
       <itemPath>../../../src/Input.h</itemPath>
       <itemPath>../../../src/Memory.cpp</itemPath>
       <itemPath>../../../src/Memory.h</itemPath>
+      <itemPath>../../../src/MemoryRule.cpp</itemPath>
+      <itemPath>../../../src/MemoryRule.h</itemPath>
       <itemPath>../../../src/Memory_inline.h</itemPath>
       <itemPath>../../../src/Processor.cpp</itemPath>
       <itemPath>../../../src/Processor.h</itemPath>
       <itemPath>../../../src/Processor_inline.h</itemPath>
+      <itemPath>../../../src/RomOnlyMemoryRule.cpp</itemPath>
+      <itemPath>../../../src/RomOnlyMemoryRule.h</itemPath>
+      <itemPath>../../../src/SegaIOPorts.cpp</itemPath>
+      <itemPath>../../../src/SegaIOPorts.h</itemPath>
+      <itemPath>../../../src/SegaMemoryRule.cpp</itemPath>
+      <itemPath>../../../src/SegaMemoryRule.h</itemPath>
       <itemPath>../../../src/SixteenBitRegister.h</itemPath>
       <itemPath>../../../src/Video.cpp</itemPath>
       <itemPath>../../../src/Video.h</itemPath>
@@ -103,6 +112,8 @@
       </item>
       <item path="../../../src/GearsystemCore.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../src/IOPorts.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../src/Input.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/Input.h" ex="false" tool="3" flavor2="0">
@@ -111,6 +122,10 @@
       </item>
       <item path="../../../src/Memory.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../src/MemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/MemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../src/Memory_inline.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/Processor.cpp" ex="false" tool="1" flavor2="0">
@@ -118,6 +133,18 @@
       <item path="../../../src/Processor.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/Processor_inline.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/RomOnlyMemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/RomOnlyMemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/SegaIOPorts.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/SegaIOPorts.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/SegaMemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/SegaMemoryRule.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/SixteenBitRegister.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -224,6 +251,8 @@
       </item>
       <item path="../../../src/GearsystemCore.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../src/IOPorts.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../src/Input.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/Input.h" ex="false" tool="3" flavor2="0">
@@ -232,6 +261,10 @@
       </item>
       <item path="../../../src/Memory.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../src/MemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/MemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../src/Memory_inline.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/Processor.cpp" ex="false" tool="1" flavor2="0">
@@ -239,6 +272,18 @@
       <item path="../../../src/Processor.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/Processor_inline.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/RomOnlyMemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/RomOnlyMemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/SegaIOPorts.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/SegaIOPorts.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/SegaMemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/SegaMemoryRule.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/SixteenBitRegister.h" ex="false" tool="3" flavor2="0">
       </item>
