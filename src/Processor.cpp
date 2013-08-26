@@ -325,9 +325,26 @@ void Processor::UpdateDelayedInterrupts()
 void Processor::InvalidOPCode()
 {
     u16 opcode_address = PC.GetValue() - 1;
+    u16 prefix_address = PC.GetValue() - 2;
     u8 opcode = m_pMemory->Read(opcode_address);
 
-    Log("--> ** INVALID OP Code (%X) at $%.4X -- %s", opcode, opcode_address, kOPCodeNames[opcode]);
+    switch (prefix_address)
+    {
+        case 0xCB:
+        {
+            Log("--> ** INVALID CB OP Code (%X) at $%.4X -- %s", opcode, opcode_address, kOPCodeCBNames[opcode]);
+            break;
+        }
+        case 0xED:
+        {
+            Log("--> ** INVALID ED OP Code (%X) at $%.4X -- %s", opcode, opcode_address, kOPCodeEDNames[opcode]);
+            break;
+        }
+        default:
+        {
+            Log("--> ** INVALID OP Code (%X) at $%.4X -- %s", opcode, opcode_address, kOPCodeNames[opcode]);
+        }
+    }
 }
 
 void Processor::UndocumentedOPCode()
