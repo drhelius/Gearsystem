@@ -102,6 +102,10 @@ private:
     void OPCodes_CALL_nn();
     void OPCodes_JP_nn();
     void OPCodes_JR_n();
+    void OPCOdes_IN_n(EightBitRegister* reg);
+    void OPCOdes_IN_C(EightBitRegister* reg);
+    void OPCOdes_OUT_n(EightBitRegister* reg);
+    void OPCOdes_OUT_C(EightBitRegister* reg);
     void OPCodes_EX(SixteenBitRegister* reg1, SixteenBitRegister* reg2);
     void OPCodes_OR(u8 number);
     void OPCodes_XOR(u8 number);

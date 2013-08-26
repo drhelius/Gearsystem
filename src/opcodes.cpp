@@ -1479,9 +1479,8 @@ void Processor::OPCode0xD2()
 
 void Processor::OPCode0xD3()
 {
-    // TODO: different opcode
     // OUT (n),A
-    InvalidOPCode();
+    OPCOdes_OUT_n(AF.GetHighRegister());
 }
 
 void Processor::OPCode0xD4()
@@ -1554,9 +1553,8 @@ void Processor::OPCode0xDA()
 
 void Processor::OPCode0xDB()
 {
-    // TODO: different opcode
     // IN A,(n)
-    InvalidOPCode();
+    OPCOdes_IN_n(AF.GetHighRegister());
 }
 
 void Processor::OPCode0xDC()

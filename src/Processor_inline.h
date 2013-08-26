@@ -22,6 +22,8 @@
 
 #include "definitions.h"
 #include "SixteenBitRegister.h"
+#include "Processor.h"
+#include "IOPorts.h"
 
 inline void Processor::ClearAllFlags()
 {
@@ -123,6 +125,30 @@ inline void Processor::OPCodes_JR_n()
 {
     u16 pc = PC.GetValue();
     PC.SetValue(pc + 1 + (static_cast<s8> (m_pMemory->Read(pc))));
+}
+
+inline void Processor::OPCOdes_IN_n(EightBitRegister* reg)
+{
+    u8 port = m_pMemory->Read(PC.GetValue());
+    PC.Increment();
+    reg->SetValue(m_pIOPorts->Input(port));
+}
+
+inline void Processor::OPCOdes_IN_C(EightBitRegister* reg)
+{
+    reg->SetValue(m_pIOPorts->Input(BC.GetLow()));
+}
+
+inline void Processor::OPCOdes_OUT_n(EightBitRegister* reg)
+{
+    u8 port = m_pMemory->Read(PC.GetValue());
+    PC.Increment();
+    m_pIOPorts->Output(port, reg->GetValue());
+}
+
+inline void Processor::OPCOdes_OUT_C(EightBitRegister* reg)
+{
+    m_pIOPorts->Output(BC.GetLow(), reg->GetValue());
 }
 
 inline void Processor::OPCodes_EX(SixteenBitRegister* reg1, SixteenBitRegister* reg2)
