@@ -76,6 +76,7 @@ private:
     int m_iIMECycles;
     int m_iUnhaltCycles;
     int m_InterruptDelayCycles[5];
+    int m_iInterruptMode;
     IOPorts* m_pIOPorts;
 
 private:
@@ -94,6 +95,7 @@ private:
     bool IsSetFlag(u8 flag);
     void StackPush(SixteenBitRegister* reg);
     void StackPop(SixteenBitRegister* reg);
+    void SetInterruptMode(int mode);
     void InvalidOPCode();
     void UndocumentedOPCode();
     void OPCodes_LD(EightBitRegister* reg1, u8 reg2);

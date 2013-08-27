@@ -87,6 +87,11 @@ inline void Processor::StackPop(SixteenBitRegister* reg)
     SP.Increment();
 }
 
+inline void Processor::SetInterruptMode(int mode)
+{
+    Log("--> ** Attempting to set interrupt mode %d", mode);
+}
+
 inline void Processor::OPCodes_LD(EightBitRegister* reg1, u8 reg2)
 {
     reg1->SetValue(reg2);

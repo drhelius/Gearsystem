@@ -32,6 +32,7 @@ Processor::Processor(Memory* pMemory)
     m_iCurrentClockCycles = 0;
     m_iIMECycles = 0;
     m_iUnhaltCycles = 0;
+    m_iInterruptMode = 0;
     for (int i = 0; i < 5; i++)
         m_InterruptDelayCycles[i] = 0;
     InitPointer(m_pIOPorts);
@@ -54,6 +55,7 @@ void Processor::Reset()
     m_iCurrentClockCycles = 0;
     m_iIMECycles = 0;
     m_iUnhaltCycles = 0;
+    m_iInterruptMode = 1;
     PC.SetValue(0x0000);
     SP.SetValue(0xDFF0);
     IX.SetValue(0x0000);

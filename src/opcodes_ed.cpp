@@ -22,13 +22,13 @@
 void Processor::OPCodeED0x40()
 {
     // IN B,(C)
-    InvalidOPCode();
+    OPCOdes_IN_C(BC.GetHighRegister());
 }
 
 void Processor::OPCodeED0x41()
 {
     // OUT (C),B
-    InvalidOPCode();
+    OPCOdes_OUT_C(BC.GetHighRegister());
 }
 
 void Processor::OPCodeED0x42()
@@ -58,7 +58,7 @@ void Processor::OPCodeED0x45()
 void Processor::OPCodeED0x46()
 {
     // IM 0
-    InvalidOPCode();
+    SetInterruptMode(0);
 }
 
 void Processor::OPCodeED0x47()
@@ -70,13 +70,13 @@ void Processor::OPCodeED0x47()
 void Processor::OPCodeED0x48()
 {
     // IN C,(C)
-    InvalidOPCode();
+    OPCOdes_IN_C(BC.GetLowRegister());
 }
 
 void Processor::OPCodeED0x49()
 {
     // OUT (C),C
-    InvalidOPCode();
+    OPCOdes_OUT_C(BC.GetLowRegister());
 }
 
 void Processor::OPCodeED0x4A()
@@ -120,13 +120,13 @@ void Processor::OPCodeED0x4F()
 void Processor::OPCodeED0x50()
 {
     // IN D,(C)
-    InvalidOPCode();
+    OPCOdes_IN_C(DE.GetHighRegister());
 }
 
 void Processor::OPCodeED0x51()
 {
     // OUT (C),D
-    InvalidOPCode();
+    OPCOdes_OUT_C(DE.GetHighRegister());
 }
 
 void Processor::OPCodeED0x52()
@@ -158,7 +158,7 @@ void Processor::OPCodeED0x55()
 void Processor::OPCodeED0x56()
 {
     // IM 1
-    InvalidOPCode();
+    SetInterruptMode(1);
 }
 
 void Processor::OPCodeED0x57()
@@ -170,13 +170,13 @@ void Processor::OPCodeED0x57()
 void Processor::OPCodeED0x58()
 {
     // IN E,(C)
-    InvalidOPCode();
+    OPCOdes_IN_C(DE.GetLowRegister());
 }
 
 void Processor::OPCodeED0x59()
 {
     // OUT (C),E
-    InvalidOPCode();
+    OPCOdes_OUT_C(DE.GetLowRegister());
 }
 
 void Processor::OPCodeED0x5A()
@@ -208,7 +208,7 @@ void Processor::OPCodeED0x5D()
 void Processor::OPCodeED0x5E()
 {
     // IM 2
-    InvalidOPCode();
+    SetInterruptMode(2);
 }
 
 void Processor::OPCodeED0x5F()
@@ -220,13 +220,13 @@ void Processor::OPCodeED0x5F()
 void Processor::OPCodeED0x60()
 {
     // IN H,(C)
-    InvalidOPCode();
+    OPCOdes_IN_C(HL.GetHighRegister());
 }
 
 void Processor::OPCodeED0x61()
 {
     // OUT (C),H
-    InvalidOPCode();
+    OPCOdes_OUT_C(HL.GetHighRegister());
 }
 
 void Processor::OPCodeED0x62()
@@ -271,13 +271,13 @@ void Processor::OPCodeED0x67()
 void Processor::OPCodeED0x68()
 {
     // IN L,(C)
-    InvalidOPCode();
+    OPCOdes_IN_C(BC.GetLowRegister());
 }
 
 void Processor::OPCodeED0x69()
 {
     // OUT (C),L
-    InvalidOPCode();
+    OPCOdes_OUT_C(BC.GetLowRegister());
 }
 
 void Processor::OPCodeED0x6A()
@@ -323,12 +323,14 @@ void Processor::OPCodeED0x70()
 {
     // IN F,(C)*
     UndocumentedOPCode();
+    OPCOdes_IN_C(AF.GetLowRegister());
 }
 
 void Processor::OPCodeED0x71()
 {
     // OUT (C),0*
     UndocumentedOPCode();
+    m_pIOPorts->Output(BC.GetLow(), 0);
 }
 
 void Processor::OPCodeED0x72()
@@ -367,13 +369,13 @@ void Processor::OPCodeED0x76()
 void Processor::OPCodeED0x78()
 {
     // IN A,(C)
-    InvalidOPCode();
+    OPCOdes_IN_C(AF.GetHighRegister());
 }
 
 void Processor::OPCodeED0x79()
 {
     // OUT (C),A
-    InvalidOPCode();
+    OPCOdes_OUT_C(AF.GetHighRegister());
 }
 
 void Processor::OPCodeED0x7A()
