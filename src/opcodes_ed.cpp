@@ -54,8 +54,8 @@ void Processor::OPCodeED0x44()
 void Processor::OPCodeED0x45()
 {
     // RETN
-    // todo: unfinished 
     StackPop(&PC);
+    m_bIFF1 = m_bIFF2;
 }
 
 void Processor::OPCodeED0x46()
@@ -106,7 +106,8 @@ void Processor::OPCodeED0x4D()
     // RETI
     // todo: unfinished
     StackPop(&PC);
-    m_bIME = true;
+    m_bIFF1 = true;
+    m_bIFF2 = true;
 }
 
 void Processor::OPCodeED0x4E()

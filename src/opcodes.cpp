@@ -854,7 +854,8 @@ void Processor::OPCode0x76()
     {
         // If EI is pending interrupts are triggered before Halt
         m_iIMECycles = 0;
-        m_bIME = true;
+        m_bIFF1 = true;
+        m_bIFF2 = true;
         PC.Decrement();
     }
     else
@@ -1778,7 +1779,8 @@ void Processor::OPCode0xF2()
 void Processor::OPCode0xF3()
 {
     // DI
-    m_bIME = false;
+    m_bIFF1 = false;
+    m_bIFF2 = false;
     m_iIMECycles = 0;
 }
 

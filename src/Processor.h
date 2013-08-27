@@ -69,7 +69,10 @@ private:
     SixteenBitRegister IY;
     SixteenBitRegister SP;
     SixteenBitRegister PC;
-    bool m_bIME;
+    EightBitRegister I;
+    EightBitRegister R;
+    bool m_bIFF1;
+    bool m_bIFF2;
     bool m_bHalt;
     bool m_bBranchTaken;
     unsigned int m_iCurrentClockCycles;

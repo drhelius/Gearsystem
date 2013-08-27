@@ -26,7 +26,8 @@ Processor::Processor(Memory* pMemory)
 {
     m_pMemory = pMemory;
     InitOPCodeFunctors();
-    m_bIME = false;
+    m_bIFF1 = false;
+    m_bIFF2 = false;
     m_bHalt = false;
     m_bBranchTaken = false;
     m_iCurrentClockCycles = 0;
@@ -49,7 +50,8 @@ void Processor::Init()
 
 void Processor::Reset()
 {
-    m_bIME = false;
+    m_bIFF1 = false;
+    m_bIFF2 = false;
     m_bHalt = false;
     m_bBranchTaken = false;
     m_iCurrentClockCycles = 0;
@@ -68,6 +70,8 @@ void Processor::Reset()
     BC2.SetValue(0x0000);
     DE2.SetValue(0x0000);
     HL2.SetValue(0x0000);
+    I.SetValue(0x00);
+    R.SetValue(0x00);
     for (int i = 0; i < 5; i++)
         m_InterruptDelayCycles[i] = 0;
 }
@@ -117,7 +121,8 @@ u8 Processor::Tick()
         if (m_iIMECycles <= 0)
         {
             m_iIMECycles = 0;
-            m_bIME = true;
+            m_bIFF1 = true;
+            m_bIFF2 = true;
         }
     }
 
@@ -262,7 +267,7 @@ Processor::Interrupts Processor::InterruptPending()
 
 void Processor::ServeInterrupt(Interrupts interrupt)
 {
-    if (m_bIME)
+    if (m_bIFF1)
     {
         u8 if_reg = m_pMemory->Retrieve(0xFF0F);
         switch (interrupt)
@@ -270,7 +275,8 @@ void Processor::ServeInterrupt(Interrupts interrupt)
             case VBlank_Interrupt:
                 m_InterruptDelayCycles[0] = 0;
                 m_pMemory->Load(0xFF0F, if_reg & 0xFE);
-                m_bIME = false;
+                m_bIFF1 = false;
+                m_bIFF2 = false;
                 StackPush(&PC);
                 PC.SetValue(0x0040);
                 m_iCurrentClockCycles += 20;
@@ -278,7 +284,8 @@ void Processor::ServeInterrupt(Interrupts interrupt)
             case LCDSTAT_Interrupt:
                 m_InterruptDelayCycles[1] = 0;
                 m_pMemory->Load(0xFF0F, if_reg & 0xFD);
-                m_bIME = false;
+                m_bIFF1 = false;
+                m_bIFF2 = false;
                 StackPush(&PC);
                 PC.SetValue(0x0048);
                 m_iCurrentClockCycles += 20;
@@ -286,7 +293,8 @@ void Processor::ServeInterrupt(Interrupts interrupt)
             case Timer_Interrupt:
                 m_InterruptDelayCycles[2] = 0;
                 m_pMemory->Load(0xFF0F, if_reg & 0xFB);
-                m_bIME = false;
+                m_bIFF1 = false;
+                m_bIFF2 = false;
                 StackPush(&PC);
                 PC.SetValue(0x0050);
                 m_iCurrentClockCycles += 20;
@@ -294,7 +302,8 @@ void Processor::ServeInterrupt(Interrupts interrupt)
             case Serial_Interrupt:
                 m_InterruptDelayCycles[3] = 0;
                 m_pMemory->Load(0xFF0F, if_reg & 0xF7);
-                m_bIME = false;
+                m_bIFF1 = false;
+                m_bIFF2 = false;
                 StackPush(&PC);
                 PC.SetValue(0x0058);
                 m_iCurrentClockCycles += 20;
@@ -302,7 +311,8 @@ void Processor::ServeInterrupt(Interrupts interrupt)
             case Joypad_Interrupt:
                 m_InterruptDelayCycles[4] = 0;
                 m_pMemory->Load(0xFF0F, if_reg & 0xEF);
-                m_bIME = false;
+                m_bIFF1 = false;
+                m_bIFF2 = false;
                 StackPush(&PC);
                 PC.SetValue(0x0060);
                 m_iCurrentClockCycles += 20;
