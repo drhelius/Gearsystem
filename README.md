@@ -4,37 +4,31 @@ Gearsystem
 
 ----------
 
-Gearsystem is a Sega Master System / Game Gear emulator written in C++.
+Gearsystem is a Sega Master System / Game Gear emulator written in C++ that runs on iOS, Raspberry Pi, Mac, Windows and Linux.
 
-The main focus of this emulator is readability of source code.
+The main focus of this emulator is readability of source code with a high compatibility.
 
-A lot of effort has gone into this in order to follow OOP and keep it as simple and efficient as possible.
+Follow me on Twitter for updates: http://twitter.com/drhelius
 
-Don't forget sending me your comments or questions at: http://twitter.com/drhelius
-
-
-----------
-
-Donations
---------
-Gearsystem is free but it's a lot of work, donations are really appreciated, thanks! :)
+If you want new features ask for them but don't forget donating, thanks :)
 
 [![PayPal - The safer, easier way to pay online!](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=28YUTJVAH7JH8 "PayPal - The safer, easier way to pay online!")
 
+----------
+
 Downloads
 --------
-- Windows: 
-- Linux: 
-- iOS (for jailbroken devices use the jailbreak branch): 
+- Gearsystem 0.1 for Jailbroken iOS: Not yet.
+- Gearsystem 0.1 for Non-Jailbroken iOS: Not yet. 
+- Gearsystem 0.1 for Windows: Not yet.
+- Gearsystem 0.1 for Linux: Not yet.
 
 Features
 --------
+- Mapper support: SEGA, Codemasters, and ROM + RAM cartridges.
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Compressed rom support (ZIP deflate).
-- Multi platform. Compiles and runs on Windows, Linux, Mac OS X, Raspberry Pi and iOS.
-- Uses OpenGL for rendering on all platforms.
-- Uses Qt framework for Mac, Windows and Linux. Uses Cocoa Touch for iPad, iPhone and iPod touch.
-- Visual Studio 2010 project provided for Windows. Netbeans 7.3 project provided for Linux and Mac OS X. Xcode project for iOS.
+- Multi platform. Runs on Windows, Linux, Mac OS X, Raspberry Pi and iOS.
 
 Todo List
 -----------
@@ -49,6 +43,15 @@ For all desktop platforms you will need SDL and Qt Framework SDKs installed and 
 
 There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt-applications.html).
 
+### iOS
+- Install Xcode for Mac OS X. You need iOS SDK 5.1 or later.  
+- Open the Gearsystem Xcode project and build.
+- Run it on real hardware using your iOS developer certificate. For jailbroken devices use the jailbreak branch.
+
+### Raspberry Pi - Raspbian
+- Install SDL development dependencies (<code>sudo apt-get install libsdl1.2-dev</code>).
+- Use <code>make</code> to build the project.
+ 
 ### Windows
 - You need Visual Studio 2010 (Express Edition will do but you won't be able to install the Qt Add-in).
 - Install the [Qt SDK for Windows](http://qt-project.org/downloads).
@@ -57,8 +60,17 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 - In order to use OpenGL extensions I used [GLEW](http://glew.sourceforge.net/). This is because of a [bug](http://stackoverflow.com/questions/11845230/glgenbuffers-crashes-in-release-build) in QGLFunctions. Make sure the GLEW headers and libs are configured within VC++.
 - Open the Gearsystem Visual Studio project and build.
 
+### Mac OS X
+- You need Netbeans 7.3 or later.
+- Install Xcode for the compiler to be available on the command line.
+- Install the [Qt SDK for Mac OS](http://qt-project.org/downloads).
+- Add <code>qmake</code> to the PATH (You can find qmake in the bin directory where you have Qt SDK installed).
+- Install and configure [SDL](http://www.libsdl.org/download-1.2.php) for development.
+- Open the Gearsystem Netbeans project and build. The project will use <code>clang</code>.
+- Alternatively you can use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
+
 ### Linux
-- You need at least Netbeans 7.2 for C++.
+- You need Netbeans 7.3 or later.
 - Install Qt development dependencies (Ubuntu: <code>sudo apt-get install qt4-dev-tools</code>).
 - Install OpenGL development dependencies (Ubuntu: <code>sudo apt-get install freeglut3-dev</code>).
 - Install SDL development dependencies (Ubuntu: <code>sudo apt-get install libsdl1.2-dev</code>).
@@ -66,24 +78,6 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 - Open the Gearsystem Netbeans project and build.
 - Alternatively you can use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
 - In Ubuntu 12.04 I had to <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the sound to work properly.
-
-### Mac OS X
-- You need at least Netbeans 7.2 for C++.
-- Install Xcode for the compiler to be available on the command line.
-- Install the [Qt SDK for Mac OS](http://qt-project.org/downloads).
-- Add <code>qmake</code> to the PATH (You can find qmake in the bin directory where you have Qt SDK installed).
-- Install and configure [SDL](http://www.libsdl.org/download-1.2.php) for development.
-- Open the Gearsystem Netbeans project and build. This project is configured for using <code>clang</code>.
-- Alternatively you can use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
-
-### iOS
-- Install Xcode for Mac OS X. iOS SDK 5.1 or later is needed. 
-- Open the Gearsystem Xcode project and build.
-- In order to run it on real hardware you will need an iOS developer certificate.
-
-### Raspberry Pi - Raspbian
-- Install SDL development dependencies (<code>sudo apt-get install libsdl1.2-dev</code>).
-- Use <code>make</code> to build the project.
 
 License
 -------
