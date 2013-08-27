@@ -40,7 +40,7 @@ void Processor::OPCodeED0x42()
 void Processor::OPCodeED0x43()
 {
     // LD (nn),BC
-    InvalidOPCode();
+    OPCodes_LD_nn_dd(&BC);
 }
 
 void Processor::OPCodeED0x44()
@@ -52,7 +52,8 @@ void Processor::OPCodeED0x44()
 void Processor::OPCodeED0x45()
 {
     // RETN
-    InvalidOPCode();
+    // todo: unfinished 
+    StackPop(&PC);
 }
 
 void Processor::OPCodeED0x46()
@@ -88,7 +89,7 @@ void Processor::OPCodeED0x4A()
 void Processor::OPCodeED0x4B()
 {
     // LD BC,(nn)
-    InvalidOPCode();
+    OPCodes_LD_dd_nn(&BC);
 }
 
 void Processor::OPCodeED0x4C()
@@ -101,7 +102,9 @@ void Processor::OPCodeED0x4C()
 void Processor::OPCodeED0x4D()
 {
     // RETI
-    InvalidOPCode();
+    // todo: unfinished
+    StackPop(&PC);
+    m_bIME = true;
 }
 
 void Processor::OPCodeED0x4E()
@@ -138,7 +141,7 @@ void Processor::OPCodeED0x52()
 void Processor::OPCodeED0x53()
 {
     // LD (nn),DE
-    InvalidOPCode();
+    OPCodes_LD_nn_dd(&DE);
 }
 
 void Processor::OPCodeED0x54()
@@ -188,7 +191,7 @@ void Processor::OPCodeED0x5A()
 void Processor::OPCodeED0x5B()
 {
     // LD DE,(nn)
-    InvalidOPCode();
+    OPCodes_LD_dd_nn(&DE);
 }
 
 void Processor::OPCodeED0x5C()
@@ -238,7 +241,7 @@ void Processor::OPCodeED0x62()
 void Processor::OPCodeED0x63()
 {
     // LD (nn),HL
-    InvalidOPCode();
+    OPCodes_LD_nn_dd(&HL);
 }
 
 void Processor::OPCodeED0x64()
@@ -289,7 +292,7 @@ void Processor::OPCodeED0x6A()
 void Processor::OPCodeED0x6B()
 {
     // LD HL,(nn)
-    InvalidOPCode();
+    OPCodes_LD_dd_nn(&HL);
 }
 
 void Processor::OPCodeED0x6C()
@@ -342,7 +345,7 @@ void Processor::OPCodeED0x72()
 void Processor::OPCodeED0x73()
 {
     // LD (nn),SP
-    InvalidOPCode();
+    OPCodes_LD_nn_dd(&SP);
 }
 
 void Processor::OPCodeED0x74()
@@ -387,7 +390,7 @@ void Processor::OPCodeED0x7A()
 void Processor::OPCodeED0x7B()
 {
     // LD SP,(nn)
-    InvalidOPCode();
+    OPCodes_LD_dd_nn(&SP);
 }
 
 void Processor::OPCodeED0x7C()

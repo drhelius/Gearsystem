@@ -107,6 +107,28 @@ inline void Processor::OPCodes_LD(u16 address, u8 reg)
     m_pMemory->Write(address, reg);
 }
 
+inline void Processor::OPCodes_LD_dd_nn(SixteenBitRegister* reg)
+{
+    u8 l = m_pMemory->Read(PC.GetValue());
+    PC.Increment();
+    u8 h = m_pMemory->Read(PC.GetValue());
+    PC.Increment();
+    u16 address = (h << 8) + l;
+    reg->SetLow(m_pMemory->Read(address));
+    reg->SetHigh(m_pMemory->Read(address + 1));
+}
+
+inline void Processor::OPCodes_LD_nn_dd(SixteenBitRegister* reg)
+{
+    u8 l = m_pMemory->Read(PC.GetValue());
+    PC.Increment();
+    u8 h = m_pMemory->Read(PC.GetValue());
+    PC.Increment();
+    u16 address = (h << 8) + l;
+    m_pMemory->Write(address, reg->GetLow());
+    m_pMemory->Write(address + 1, reg->GetHigh());
+}
+
 inline void Processor::OPCodes_CALL_nn()
 {
     u8 l = m_pMemory->Read(PC.GetValue());

@@ -101,6 +101,8 @@ private:
     void OPCodes_LD(EightBitRegister* reg1, u8 reg2);
     void OPCodes_LD(EightBitRegister* reg, u16 address);
     void OPCodes_LD(u16 address, u8 reg);
+    void OPCodes_LD_dd_nn(SixteenBitRegister* reg);
+    void OPCodes_LD_nn_dd(SixteenBitRegister* reg);
     void OPCodes_CALL_nn();
     void OPCodes_JP_nn();
     void OPCodes_JR_n();
