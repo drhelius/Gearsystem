@@ -46,7 +46,9 @@ void Processor::OPCodeED0x43()
 void Processor::OPCodeED0x44()
 {
     // NEG
-    InvalidOPCode();
+    u8 value = AF.GetHigh();
+    AF.SetHigh(0x00);
+    OPCodes_SUB(value);
 }
 
 void Processor::OPCodeED0x45()
