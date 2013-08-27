@@ -25,7 +25,6 @@
 Processor::Processor(Memory* pMemory)
 {
     m_pMemory = pMemory;
-    InitOPCodeFunctors();
     m_bIFF1 = false;
     m_bIFF2 = false;
     m_bHalt = false;
@@ -37,6 +36,7 @@ Processor::Processor(Memory* pMemory)
     for (int i = 0; i < 5; i++)
         m_InterruptDelayCycles[i] = 0;
     InitPointer(m_pIOPorts);
+    InitOPCodeFunctors();
 }
 
 Processor::~Processor()
@@ -336,6 +336,7 @@ void Processor::UpdateDelayedInterrupts()
 
 void Processor::InvalidOPCode()
 {
+#ifdef DEBUG_GEARSYSTEM
     u16 opcode_address = PC.GetValue() - 1;
     u16 prefix_address = PC.GetValue() - 2;
     u8 opcode = m_pMemory->Read(opcode_address);
@@ -358,14 +359,17 @@ void Processor::InvalidOPCode()
             Log("--> ** INVALID OP Code (%X) at $%.4X -- %s", opcode, opcode_address, kOPCodeNames[opcode]);
         }
     }
+#endif
 }
 
 void Processor::UndocumentedOPCode()
 {
+#ifdef DEBUG_GEARSYSTEM
     u16 opcode_address = PC.GetValue() - 1;
     u8 opcode = m_pMemory->Read(opcode_address);
 
     Log("--> ** UNDOCUMENTED OP Code (%X) at $%.4X -- %s", opcode, opcode_address, kOPCodeNames[opcode]);
+#endif
 }
 
 void Processor::InitOPCodeFunctors()
