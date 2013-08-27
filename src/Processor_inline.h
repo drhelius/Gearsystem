@@ -365,6 +365,36 @@ inline void Processor::OPCodes_ADD_SP(s8 number)
     SP.SetValue(static_cast<u16> (result));
 }
 
+inline void Processor::OPCodes_ADC_HL(u16 number)
+{
+    // todo: check flags
+    int carry = IsSetFlag(FLAG_CARRY) ? 1 : 0;
+    int result = HL.GetValue() + number + carry;
+    ClearAllFlags();
+    if (result == 0)
+        ToggleFlag(FLAG_ZERO);
+    if (result & 0x10000)
+        ToggleFlag(FLAG_CARRY);
+    if ((HL.GetValue() ^ (number + carry) ^ (result & 0xFFFF)) & 0x1000)
+        ToggleFlag(FLAG_HALF);
+    HL.SetValue(static_cast<u16> (result));
+}
+
+inline void Processor::OPCodes_SBC_HL(u16 number)
+{
+    // todo: check flags
+    int carry = IsSetFlag(FLAG_CARRY) ? 1 : 0;
+    int result = HL.GetValue() - number - carry;
+    SetFlag(FLAG_NEGATIVE);
+    if (result < 0)
+        ToggleFlag(FLAG_CARRY);
+    else if (result == 0)
+        ToggleFlag(FLAG_ZERO);
+    if (((HL.GetValue() & 0xFFF) - (number & 0xFFF) - carry) < 0)
+        ToggleFlag(FLAG_HALF);
+    HL.SetValue(static_cast<u16> (result));
+}
+
 inline void Processor::OPCodes_SLL(EightBitRegister* reg)
 {
     (reg->GetValue() & 0x80) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();

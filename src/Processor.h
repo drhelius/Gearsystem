@@ -125,6 +125,8 @@ private:
     void OPCodes_SBC(u8 number);
     void OPCodes_ADD_HL(u16 number);
     void OPCodes_ADD_SP(s8 number);
+    void OPCodes_ADC_HL(u16 number);
+    void OPCodes_SBC_HL(u16 number);
     void OPCodes_SLL(EightBitRegister* reg);
     void OPCodes_SLL_HL();
     void OPCodes_SLA(EightBitRegister* reg);

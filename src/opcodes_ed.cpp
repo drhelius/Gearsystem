@@ -34,7 +34,7 @@ void Processor::OPCodeED0x41()
 void Processor::OPCodeED0x42()
 {
     // SBC HL,BC
-    InvalidOPCode();
+    OPCodes_SBC_HL(BC.GetValue());
 }
 
 void Processor::OPCodeED0x43()
@@ -85,7 +85,7 @@ void Processor::OPCodeED0x49()
 void Processor::OPCodeED0x4A()
 {
     // ADC HL,BC
-    InvalidOPCode();
+    OPCodes_ADC_HL(BC.GetValue());
 }
 
 void Processor::OPCodeED0x4B()
@@ -137,7 +137,7 @@ void Processor::OPCodeED0x51()
 void Processor::OPCodeED0x52()
 {
     // SBC HL,DE
-    InvalidOPCode();
+    OPCodes_SBC_HL(DE.GetValue());
 }
 
 void Processor::OPCodeED0x53()
@@ -187,7 +187,7 @@ void Processor::OPCodeED0x59()
 void Processor::OPCodeED0x5A()
 {
     // ADC HL,DE
-    InvalidOPCode();
+    OPCodes_ADC_HL(DE.GetValue());
 }
 
 void Processor::OPCodeED0x5B()
@@ -237,7 +237,7 @@ void Processor::OPCodeED0x61()
 void Processor::OPCodeED0x62()
 {
     // SBC HL,HL
-    InvalidOPCode();
+    OPCodes_SBC_HL(HL.GetValue());
 }
 
 void Processor::OPCodeED0x63()
@@ -270,7 +270,13 @@ void Processor::OPCodeED0x66()
 void Processor::OPCodeED0x67()
 {
     // RRD
-    InvalidOPCode();
+    u8 value = m_pMemory->Read(HL.GetValue());
+    u8 a = AF.GetHigh();
+    u8 result = (a & 0xF0) | (value & 0x0F);
+    AF.SetHigh(result);
+    m_pMemory->Write(HL.GetValue(), ((a << 4) & 0xF0) | ((value >> 4) & 0x0F));
+    IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
+    ToggleZeroFlagFromResult(result);
 }
 
 void Processor::OPCodeED0x68()
@@ -288,7 +294,7 @@ void Processor::OPCodeED0x69()
 void Processor::OPCodeED0x6A()
 {
     // ADC HL,HL
-    InvalidOPCode();
+    OPCodes_ADC_HL(HL.GetValue());
 }
 
 void Processor::OPCodeED0x6B()
@@ -321,7 +327,13 @@ void Processor::OPCodeED0x6E()
 void Processor::OPCodeED0x6F()
 {
     // RLD
-    InvalidOPCode();
+    u8 value = m_pMemory->Read(HL.GetValue());
+    u8 a = AF.GetHigh();
+    u8 result = (a & 0xF0) | ((value >> 4) & 0x0F);
+    AF.SetHigh(result);
+    m_pMemory->Write(HL.GetValue(), ((value << 4) & 0xF0) | (a & 0x0F));
+    IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
+    ToggleZeroFlagFromResult(result);
 }
 
 void Processor::OPCodeED0x70()
@@ -341,7 +353,7 @@ void Processor::OPCodeED0x71()
 void Processor::OPCodeED0x72()
 {
     // SBC HL,SP
-    InvalidOPCode();
+    OPCodes_SBC_HL(SP.GetValue());
 }
 
 void Processor::OPCodeED0x73()
@@ -386,7 +398,7 @@ void Processor::OPCodeED0x79()
 void Processor::OPCodeED0x7A()
 {
     // ADC HL,SP
-    InvalidOPCode();
+    OPCodes_ADC_HL(SP.GetValue());
 }
 
 void Processor::OPCodeED0x7B()
