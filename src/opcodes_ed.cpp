@@ -506,7 +506,7 @@ void Processor::OPCodeED0xB1()
 {
     // CPIR
     OPCodes_CPI();
-    if ((BC.GetValue() != 0) && IsSetFlag(FLAG_ZERO))
+    if ((BC.GetValue() != 0) && !IsSetFlag(FLAG_ZERO))
     {
         PC.Decrement();
         PC.Decrement();
@@ -550,7 +550,7 @@ void Processor::OPCodeED0xB9()
 {
     // CPDR
     OPCodes_CPD();
-    if ((BC.GetValue() != 0) && IsSetFlag(FLAG_ZERO))
+    if ((BC.GetValue() != 0) && !IsSetFlag(FLAG_ZERO))
     {
         PC.Decrement();
         PC.Decrement();
