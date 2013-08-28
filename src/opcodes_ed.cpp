@@ -22,13 +22,13 @@
 void Processor::OPCodeED0x40()
 {
     // IN B,(C)
-    OPCOdes_IN_C(BC.GetHighRegister());
+    OPCodes_IN_C(BC.GetHighRegister());
 }
 
 void Processor::OPCodeED0x41()
 {
     // OUT (C),B
-    OPCOdes_OUT_C(BC.GetHighRegister());
+    OPCodes_OUT_C(BC.GetHighRegister());
 }
 
 void Processor::OPCodeED0x42()
@@ -67,19 +67,19 @@ void Processor::OPCodeED0x46()
 void Processor::OPCodeED0x47()
 {
     // LD I,A
-    InvalidOPCode();
+    OPCodes_LD(&I, AF.GetHigh());
 }
 
 void Processor::OPCodeED0x48()
 {
     // IN C,(C)
-    OPCOdes_IN_C(BC.GetLowRegister());
+    OPCodes_IN_C(BC.GetLowRegister());
 }
 
 void Processor::OPCodeED0x49()
 {
     // OUT (C),C
-    OPCOdes_OUT_C(BC.GetLowRegister());
+    OPCodes_OUT_C(BC.GetLowRegister());
 }
 
 void Processor::OPCodeED0x4A()
@@ -120,19 +120,19 @@ void Processor::OPCodeED0x4E()
 void Processor::OPCodeED0x4F()
 {
     // LD R,A
-    InvalidOPCode();
+    OPCodes_LD(&R, AF.GetHigh());
 }
 
 void Processor::OPCodeED0x50()
 {
     // IN D,(C)
-    OPCOdes_IN_C(DE.GetHighRegister());
+    OPCodes_IN_C(DE.GetHighRegister());
 }
 
 void Processor::OPCodeED0x51()
 {
     // OUT (C),D
-    OPCOdes_OUT_C(DE.GetHighRegister());
+    OPCodes_OUT_C(DE.GetHighRegister());
 }
 
 void Processor::OPCodeED0x52()
@@ -170,19 +170,26 @@ void Processor::OPCodeED0x56()
 void Processor::OPCodeED0x57()
 {
     // LD A,I
-    InvalidOPCode();
+    OPCodes_LD(AF.GetHighRegister(), I.GetValue());
+    UntoggleFlag(FLAG_HALF);
+    UntoggleFlag(FLAG_NEGATIVE);
+    ToggleZeroFlagFromResult(I.GetValue());
+    if (m_bIFF2)
+        ToggleFlag(FLAG_PARITY);
+    else
+        UntoggleFlag(FLAG_PARITY);
 }
 
 void Processor::OPCodeED0x58()
 {
     // IN E,(C)
-    OPCOdes_IN_C(DE.GetLowRegister());
+    OPCodes_IN_C(DE.GetLowRegister());
 }
 
 void Processor::OPCodeED0x59()
 {
     // OUT (C),E
-    OPCOdes_OUT_C(DE.GetLowRegister());
+    OPCodes_OUT_C(DE.GetLowRegister());
 }
 
 void Processor::OPCodeED0x5A()
@@ -220,19 +227,26 @@ void Processor::OPCodeED0x5E()
 void Processor::OPCodeED0x5F()
 {
     // LD A,R
-    InvalidOPCode();
+    OPCodes_LD(AF.GetHighRegister(), R.GetValue());
+    UntoggleFlag(FLAG_HALF);
+    UntoggleFlag(FLAG_NEGATIVE);
+    ToggleZeroFlagFromResult(R.GetValue());
+    if (m_bIFF2)
+        ToggleFlag(FLAG_PARITY);
+    else
+        UntoggleFlag(FLAG_PARITY);
 }
 
 void Processor::OPCodeED0x60()
 {
     // IN H,(C)
-    OPCOdes_IN_C(HL.GetHighRegister());
+    OPCodes_IN_C(HL.GetHighRegister());
 }
 
 void Processor::OPCodeED0x61()
 {
     // OUT (C),H
-    OPCOdes_OUT_C(HL.GetHighRegister());
+    OPCodes_OUT_C(HL.GetHighRegister());
 }
 
 void Processor::OPCodeED0x62()
@@ -283,13 +297,13 @@ void Processor::OPCodeED0x67()
 void Processor::OPCodeED0x68()
 {
     // IN L,(C)
-    OPCOdes_IN_C(BC.GetLowRegister());
+    OPCodes_IN_C(BC.GetLowRegister());
 }
 
 void Processor::OPCodeED0x69()
 {
     // OUT (C),L
-    OPCOdes_OUT_C(BC.GetLowRegister());
+    OPCodes_OUT_C(BC.GetLowRegister());
 }
 
 void Processor::OPCodeED0x6A()
@@ -341,7 +355,7 @@ void Processor::OPCodeED0x70()
 {
     // IN F,(C)*
     UndocumentedOPCode();
-    OPCOdes_IN_C(AF.GetLowRegister());
+    OPCodes_IN_C(AF.GetLowRegister());
 }
 
 void Processor::OPCodeED0x71()
@@ -387,13 +401,13 @@ void Processor::OPCodeED0x76()
 void Processor::OPCodeED0x78()
 {
     // IN A,(C)
-    OPCOdes_IN_C(AF.GetHighRegister());
+    OPCodes_IN_C(AF.GetHighRegister());
 }
 
 void Processor::OPCodeED0x79()
 {
     // OUT (C),A
-    OPCOdes_OUT_C(AF.GetHighRegister());
+    OPCodes_OUT_C(AF.GetHighRegister());
 }
 
 void Processor::OPCodeED0x7A()
@@ -432,95 +446,135 @@ void Processor::OPCodeED0x7E()
 void Processor::OPCodeED0xA0()
 {
     // LDI
-    InvalidOPCode();
+    OPCodes_LDI();
 }
 
 void Processor::OPCodeED0xA1()
 {
     // CPI
-    InvalidOPCode();
+    OPCodes_CPI();
 }
 
 void Processor::OPCodeED0xA2()
 {
     // INI
-    InvalidOPCode();
+    OPCodes_INI();
 }
 
 void Processor::OPCodeED0xA3()
 {
     // OUTI
-    InvalidOPCode();
+    OPCodes_OUTI();
 }
 
 void Processor::OPCodeED0xA8()
 {
     // LDD
-    InvalidOPCode();
+    OPCodes_LDD();
 }
 
 void Processor::OPCodeED0xA9()
 {
     // CPD
-    InvalidOPCode();
+    OPCodes_CPD();
 }
 
 void Processor::OPCodeED0xAA()
 {
     // IND
-    InvalidOPCode();
+    OPCodes_IND();
 }
 
 void Processor::OPCodeED0xAB()
 {
     // OUTD
-    InvalidOPCode();
+    OPCodes_OUTD();
 }
 
 void Processor::OPCodeED0xB0()
 {
     // LDIR
-    InvalidOPCode();
+    OPCodes_LDI();
+    if (BC.GetValue() != 0)
+    {
+        PC.Decrement();
+        PC.Decrement();
+    }
 }
 
 void Processor::OPCodeED0xB1()
 {
     // CPIR
-    InvalidOPCode();
+    OPCodes_CPI();
+    if ((BC.GetValue() != 0) && IsSetFlag(FLAG_ZERO))
+    {
+        PC.Decrement();
+        PC.Decrement();
+    }
 }
 
 void Processor::OPCodeED0xB2()
 {
     // INIR
-    InvalidOPCode();
+    OPCodes_INI();
+    if (BC.GetHigh() != 0)
+    {
+        PC.Decrement();
+        PC.Decrement();
+    }
 }
 
 void Processor::OPCodeED0xB3()
 {
     // OTIR
-    InvalidOPCode();
+    OPCodes_OUTI();
+    if (BC.GetHigh() != 0)
+    {
+        PC.Decrement();
+        PC.Decrement();
+    }
 }
 
 void Processor::OPCodeED0xB8()
 {
     // LDDR
-    InvalidOPCode();
+    OPCodes_LDD();
+    if (BC.GetValue() != 0)
+    {
+        PC.Decrement();
+        PC.Decrement();
+    }
 }
 
 void Processor::OPCodeED0xB9()
 {
     // CPDR
-    InvalidOPCode();
+    OPCodes_CPD();
+    if ((BC.GetValue() != 0) && IsSetFlag(FLAG_ZERO))
+    {
+        PC.Decrement();
+        PC.Decrement();
+    }
 }
 
 void Processor::OPCodeED0xBA()
 {
     // INDR
-    InvalidOPCode();
+    OPCodes_IND();
+    if (BC.GetHigh() != 0)
+    {
+        PC.Decrement();
+        PC.Decrement();
+    }
 }
 
 void Processor::OPCodeED0xBB()
 {
     // OTDR
-    InvalidOPCode();
+    OPCodes_OUTD();
+    if (BC.GetHigh() != 0)
+    {
+        PC.Decrement();
+        PC.Decrement();
+    }
 }

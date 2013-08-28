@@ -1481,7 +1481,7 @@ void Processor::OPCode0xD2()
 void Processor::OPCode0xD3()
 {
     // OUT (n),A
-    OPCOdes_OUT_n(AF.GetHighRegister());
+    OPCodes_OUT_n(AF.GetHighRegister());
 }
 
 void Processor::OPCode0xD4()
@@ -1555,7 +1555,7 @@ void Processor::OPCode0xDA()
 void Processor::OPCode0xDB()
 {
     // IN A,(n)
-    OPCOdes_IN_n(AF.GetHighRegister());
+    OPCodes_IN_n(AF.GetHighRegister());
 }
 
 void Processor::OPCode0xDC()

@@ -92,9 +92,9 @@ inline void Processor::SetInterruptMode(int mode)
     Log("--> ** Attempting to set interrupt mode %d", mode);
 }
 
-inline void Processor::OPCodes_LD(EightBitRegister* reg1, u8 reg2)
+inline void Processor::OPCodes_LD(EightBitRegister* reg1, u8 value)
 {
-    reg1->SetValue(reg2);
+    reg1->SetValue(value);
 }
 
 inline void Processor::OPCodes_LD(EightBitRegister* reg, u16 address)
@@ -129,6 +129,34 @@ inline void Processor::OPCodes_LD_nn_dd(SixteenBitRegister* reg)
     m_pMemory->Write(address + 1, reg->GetHigh());
 }
 
+inline void Processor::OPCodes_LDI()
+{
+    m_pMemory->Write(DE.GetValue(), m_pMemory->Read(HL.GetValue()));
+    DE.Increment();
+    HL.Increment();
+    BC.Decrement();
+    UntoggleFlag(FLAG_NEGATIVE);
+    UntoggleFlag(FLAG_HALF);
+    if (BC.GetValue() != 0)
+        ToggleFlag(FLAG_PARITY);
+    else
+        UntoggleFlag(FLAG_PARITY);
+}
+
+inline void Processor::OPCodes_LDD()
+{
+    m_pMemory->Write(DE.GetValue(), m_pMemory->Read(HL.GetValue()));
+    DE.Decrement();
+    HL.Decrement();
+    BC.Decrement();
+    UntoggleFlag(FLAG_NEGATIVE);
+    UntoggleFlag(FLAG_HALF);
+    if (BC.GetValue() != 0)
+        ToggleFlag(FLAG_PARITY);
+    else
+        UntoggleFlag(FLAG_PARITY);
+}
+
 inline void Processor::OPCodes_CALL_nn()
 {
     u8 l = m_pMemory->Read(PC.GetValue());
@@ -154,28 +182,68 @@ inline void Processor::OPCodes_JR_n()
     PC.SetValue(pc + 1 + (static_cast<s8> (m_pMemory->Read(pc))));
 }
 
-inline void Processor::OPCOdes_IN_n(EightBitRegister* reg)
+inline void Processor::OPCodes_IN_n(EightBitRegister* reg)
 {
     u8 port = m_pMemory->Read(PC.GetValue());
     PC.Increment();
     reg->SetValue(m_pIOPorts->Input(port));
 }
 
-inline void Processor::OPCOdes_IN_C(EightBitRegister* reg)
+inline void Processor::OPCodes_IN_C(EightBitRegister* reg)
 {
     reg->SetValue(m_pIOPorts->Input(BC.GetLow()));
 }
 
-inline void Processor::OPCOdes_OUT_n(EightBitRegister* reg)
+inline void Processor::OPCodes_INI()
+{
+    // todo: check flags
+    m_pMemory->Write(HL.GetValue(), m_pIOPorts->Input(BC.GetLow()));
+    BC.GetHighRegister()->Decrement();
+    HL.Increment();
+    ToggleFlag(FLAG_NEGATIVE);
+    ToggleZeroFlagFromResult(BC.GetHigh());
+}
+
+inline void Processor::OPCodes_IND()
+{
+    // todo: check flags
+    m_pMemory->Write(HL.GetValue(), m_pIOPorts->Input(BC.GetLow()));
+    BC.GetHighRegister()->Decrement();
+    HL.Decrement();
+    ToggleFlag(FLAG_NEGATIVE);
+    ToggleZeroFlagFromResult(BC.GetHigh());
+}
+
+inline void Processor::OPCodes_OUT_n(EightBitRegister* reg)
 {
     u8 port = m_pMemory->Read(PC.GetValue());
     PC.Increment();
     m_pIOPorts->Output(port, reg->GetValue());
 }
 
-inline void Processor::OPCOdes_OUT_C(EightBitRegister* reg)
+inline void Processor::OPCodes_OUT_C(EightBitRegister* reg)
 {
     m_pIOPorts->Output(BC.GetLow(), reg->GetValue());
+}
+
+inline void Processor::OPCodes_OUTI()
+{
+    // todo: check flags
+    m_pIOPorts->Output(BC.GetLow(), m_pMemory->Read(HL.GetValue()));
+    BC.GetHighRegister()->Decrement();
+    HL.Increment();
+    ToggleFlag(FLAG_NEGATIVE);
+    ToggleZeroFlagFromResult(BC.GetHigh());
+}
+
+inline void Processor::OPCodes_OUTD()
+{
+    // todo: check flags
+    m_pIOPorts->Output(BC.GetLow(), m_pMemory->Read(HL.GetValue()));
+    BC.GetHighRegister()->Decrement();
+    HL.Decrement();
+    ToggleFlag(FLAG_NEGATIVE);
+    ToggleZeroFlagFromResult(BC.GetHigh());
 }
 
 inline void Processor::OPCodes_EX(SixteenBitRegister* reg1, SixteenBitRegister* reg2)
@@ -224,6 +292,46 @@ inline void Processor::OPCodes_CP(u8 number)
     {
         ToggleFlag(FLAG_HALF);
     }
+}
+
+inline void Processor::OPCodes_CPI()
+{
+    u8 number = m_pMemory->Read(HL.GetValue());
+    ToggleFlag(FLAG_NEGATIVE);
+    if (AF.GetHigh() == number)
+        ToggleFlag(FLAG_ZERO);
+    else
+        UntoggleFlag(FLAG_ZERO);
+    if (((AF.GetHigh() - number) & 0xF) > (AF.GetHigh() & 0xF))
+        ToggleFlag(FLAG_HALF);
+    else
+        UntoggleFlag(FLAG_HALF);
+    HL.Increment();
+    BC.Decrement();
+    if (BC.GetValue() != 0)
+        ToggleFlag(FLAG_PARITY);
+    else
+        UntoggleFlag(FLAG_PARITY);
+}
+
+inline void Processor::OPCodes_CPD()
+{
+    u8 number = m_pMemory->Read(HL.GetValue());
+    ToggleFlag(FLAG_NEGATIVE);
+    if (AF.GetHigh() == number)
+        ToggleFlag(FLAG_ZERO);
+    else
+        UntoggleFlag(FLAG_ZERO);
+    if (((AF.GetHigh() - number) & 0xF) > (AF.GetHigh() & 0xF))
+        ToggleFlag(FLAG_HALF);
+    else
+        UntoggleFlag(FLAG_HALF);
+    HL.Decrement();
+    BC.Decrement();
+    if (BC.GetValue() != 0)
+        ToggleFlag(FLAG_PARITY);
+    else
+        UntoggleFlag(FLAG_PARITY);
 }
 
 inline void Processor::OPCodes_INC(EightBitRegister* reg)
@@ -609,7 +717,6 @@ inline void Processor::OPCodes_BIT(EightBitRegister* reg, int bit)
 {
     if (((reg->GetValue() >> bit) & 0x01) == 0)
         ToggleFlag(FLAG_ZERO);
-
     else
         UntoggleFlag(FLAG_ZERO);
     ToggleFlag(FLAG_HALF);
@@ -620,7 +727,6 @@ inline void Processor::OPCodes_BIT_HL(int bit)
 {
     if (((m_pMemory->Read(HL.GetValue()) >> bit) & 0x01) == 0)
         ToggleFlag(FLAG_ZERO);
-
     else
         UntoggleFlag(FLAG_ZERO);
     ToggleFlag(FLAG_HALF);
