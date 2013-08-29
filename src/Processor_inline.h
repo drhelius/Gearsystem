@@ -25,6 +25,13 @@
 #include "Processor.h"
 #include "IOPorts.h"
 
+inline u8 Processor::FetchOPCode()
+{
+    u8 opcode = m_pMemory->Read(PC.GetValue());
+    PC.Increment();
+    return opcode;
+}
+
 inline void Processor::ClearAllFlags()
 {
     SetFlag(FLAG_NONE);
@@ -90,6 +97,32 @@ inline void Processor::StackPop(SixteenBitRegister* reg)
 inline void Processor::SetInterruptMode(int mode)
 {
     Log("--> ** Attempting to set interrupt mode %d", mode);
+}
+
+inline SixteenBitRegister* Processor::GetPrefixedRegister()
+{
+    if (m_CurrentPrefix == 0xDD)
+        return &IX;
+    else if (m_CurrentPrefix == 0xFD)
+        return &IY;
+    else 
+        return &HL;
+}
+
+inline u16 Processor::GetPrefixedDisplacementValue()
+{
+    u16 address = HL.GetValue();
+    if (m_CurrentPrefix == 0xDD)
+    {
+        address = IX.GetValue() + static_cast<s8> (m_pMemory->Read(PC.GetValue()));
+        PC.Increment();
+    }
+    else if (m_CurrentPrefix == 0xFD)
+    {
+        address = IY.GetValue() + static_cast<s8> (m_pMemory->Read(PC.GetValue()));
+        PC.Increment();
+    }
+    return address;
 }
 
 inline void Processor::OPCodes_LD(EightBitRegister* reg1, u8 value)
@@ -348,14 +381,13 @@ inline void Processor::OPCodes_INC(EightBitRegister* reg)
 
 inline void Processor::OPCodes_INC_HL()
 {
-    u8 result = m_pMemory->Read(HL.GetValue()) + 1;
-    m_pMemory->Write(HL.GetValue(), result);
+    u16 address = GetPrefixedDisplacementValue();
+    u8 result = m_pMemory->Read(address) + 1;
+    m_pMemory->Write(address, result);
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     ToggleZeroFlagFromResult(result);
     if ((result & 0x0F) == 0x00)
-    {
         ToggleFlag(FLAG_HALF);
-    }
 }
 
 inline void Processor::OPCodes_DEC(EightBitRegister* reg)
@@ -373,15 +405,14 @@ inline void Processor::OPCodes_DEC(EightBitRegister* reg)
 
 inline void Processor::OPCodes_DEC_HL()
 {
-    u8 result = m_pMemory->Read(HL.GetValue()) - 1;
-    m_pMemory->Write(HL.GetValue(), result);
+    u16 address = GetPrefixedDisplacementValue();
+    u8 result = m_pMemory->Read(address) - 1;
+    m_pMemory->Write(address, result);
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     ToggleFlag(FLAG_NEGATIVE);
     ToggleZeroFlagFromResult(result);
     if ((result & 0x0F) == 0x0F)
-    {
         ToggleFlag(FLAG_HALF);
-    }
 }
 
 inline void Processor::OPCodes_ADD(u8 number)
@@ -443,7 +474,6 @@ inline void Processor::OPCodes_SBC(u8 number)
     ToggleZeroFlagFromResult(static_cast<u8> (result));
     if (result < 0)
         ToggleFlag(FLAG_CARRY);
-
     if (((AF.GetHigh() & 0x0F) - (number & 0x0F) - carry) < 0)
         ToggleFlag(FLAG_HALF);
     AF.SetHigh(static_cast<u8> (result));
@@ -451,14 +481,14 @@ inline void Processor::OPCodes_SBC(u8 number)
 
 inline void Processor::OPCodes_ADD_HL(u16 number)
 {
-    int result = HL.GetValue() + number;
+    SixteenBitRegister* reg = GetPrefixedRegister();
+    int result = reg->GetValue() + number;
     IsSetFlag(FLAG_ZERO) ? SetFlag(FLAG_ZERO) : ClearAllFlags();
     if (result & 0x10000)
         ToggleFlag(FLAG_CARRY);
-
-    if ((HL.GetValue() ^ number ^ (result & 0xFFFF)) & 0x1000)
+    if ((reg->GetValue() ^ number ^ (result & 0xFFFF)) & 0x1000)
         ToggleFlag(FLAG_HALF);
-    HL.SetValue(static_cast<u16> (result));
+    reg->SetValue(static_cast<u16> (result));
 }
 
 inline void Processor::OPCodes_ADD_SP(s8 number)
@@ -467,7 +497,6 @@ inline void Processor::OPCodes_ADD_SP(s8 number)
     ClearAllFlags();
     if (((SP.GetValue() ^ number ^ (result & 0xFFFF)) & 0x100) == 0x100)
         ToggleFlag(FLAG_CARRY);
-
     if (((SP.GetValue() ^ number ^ (result & 0xFFFF)) & 0x10) == 0x10)
         ToggleFlag(FLAG_HALF);
     SP.SetValue(static_cast<u16> (result));

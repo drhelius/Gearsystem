@@ -81,6 +81,7 @@ private:
     int m_InterruptDelayCycles[5];
     int m_iInterruptMode;
     IOPorts* m_pIOPorts;
+    u8 m_CurrentPrefix;
 
 private:
     u8 FetchOPCode();
@@ -101,6 +102,8 @@ private:
     void SetInterruptMode(int mode);
     void InvalidOPCode();
     void UndocumentedOPCode();
+    SixteenBitRegister* GetPrefixedRegister();
+    u16 GetPrefixedDisplacementValue();
     void OPCodes_LD(EightBitRegister* reg1, u8 value);
     void OPCodes_LD(EightBitRegister* reg, u16 address);
     void OPCodes_LD(u16 address, u8 reg);

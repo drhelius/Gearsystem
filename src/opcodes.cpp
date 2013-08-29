@@ -249,46 +249,41 @@ void Processor::OPCode0x20()
 void Processor::OPCode0x21()
 {
     // LD HL,nn
-    OPCodes_LD(HL.GetLowRegister(), PC.GetValue());
+    SixteenBitRegister* reg = GetPrefixedRegister();
+    OPCodes_LD(reg->GetLowRegister(), PC.GetValue());
     PC.Increment();
-    OPCodes_LD(HL.GetHighRegister(), PC.GetValue());
+    OPCodes_LD(reg->GetHighRegister(), PC.GetValue());
     PC.Increment();
 }
 
 void Processor::OPCode0x22()
 {
     // LD (nn),HL
-    u8 l = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    u8 h = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    u16 address = (h << 8) + l;
-    m_pMemory->Write(address, HL.GetLow());
-    m_pMemory->Write(address + 1, HL.GetHigh());
+    OPCodes_LD_nn_dd(GetPrefixedRegister());
 }
 
 void Processor::OPCode0x23()
 {
     // INC HL
-    HL.Increment();
+    GetPrefixedRegister()->Increment();
 }
 
 void Processor::OPCode0x24()
 {
     // INC H
-    OPCodes_INC(HL.GetHighRegister());
+    OPCodes_INC(GetPrefixedRegister()->GetHighRegister());
 }
 
 void Processor::OPCode0x25()
 {
     // DEC H
-    OPCodes_DEC(HL.GetHighRegister());
+    OPCodes_DEC(GetPrefixedRegister()->GetHighRegister());
 }
 
 void Processor::OPCode0x26()
 {
     // LD H,n
-    OPCodes_LD(HL.GetHighRegister(), PC.GetValue());
+    OPCodes_LD(GetPrefixedRegister()->GetHighRegister(), PC.GetValue());
     PC.Increment();
 }
 
@@ -344,43 +339,38 @@ void Processor::OPCode0x28()
 void Processor::OPCode0x29()
 {
     // ADD HL,HL
-    OPCodes_ADD_HL(HL.GetValue());
+    SixteenBitRegister* reg = GetPrefixedRegister();
+    OPCodes_ADD_HL(reg->GetValue());
 }
 
 void Processor::OPCode0x2A()
 {
     // LD HL,(nn)
-    u8 l = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    u8 h = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    u16 address = (h << 8) + l;
-    HL.SetLow(m_pMemory->Read(address));
-    HL.SetHigh(m_pMemory->Read(address + 1));
+    OPCodes_LD_dd_nn(GetPrefixedRegister());
 }
 
 void Processor::OPCode0x2B()
 {
     // DEC HL
-    HL.Decrement();
+    GetPrefixedRegister()->Decrement();
 }
 
 void Processor::OPCode0x2C()
 {
     // INC L
-    OPCodes_INC(HL.GetLowRegister());
+    OPCodes_INC(GetPrefixedRegister()->GetLowRegister());
 }
 
 void Processor::OPCode0x2D()
 {
     // DEC L
-    OPCodes_DEC(HL.GetLowRegister());
+    OPCodes_DEC(GetPrefixedRegister()->GetLowRegister());
 }
 
 void Processor::OPCode0x2E()
 {
     // LD L,n
-    OPCodes_LD(HL.GetLowRegister(), PC.GetValue());
+    OPCodes_LD(GetPrefixedRegister()->GetLowRegister(), PC.GetValue());
     PC.Increment();
 
 }
@@ -446,8 +436,25 @@ void Processor::OPCode0x35()
 
 void Processor::OPCode0x36()
 {
-    // LD (HL),n    
-    m_pMemory->Write(HL.GetValue(), m_pMemory->Read(PC.GetValue()));
+    // LD (HL),n  
+    if (m_CurrentPrefix == 0xDD)
+    {
+        u8 d = m_pMemory->Read(PC.GetValue());
+        u8 n = m_pMemory->Read(PC.GetValue() + 1);
+        u16 address = IX.GetValue() + static_cast<s8> (d);
+        m_pMemory->Write(address, n);
+        PC.Increment();
+    }
+    else if (m_CurrentPrefix == 0xFD)
+    {
+        u8 d = m_pMemory->Read(PC.GetValue());
+        u8 n = m_pMemory->Read(PC.GetValue() + 1);
+        u16 address = IY.GetValue() + static_cast<s8> (d);
+        m_pMemory->Write(address, n);
+        PC.Increment();
+    }
+    else
+        m_pMemory->Write(HL.GetValue(), m_pMemory->Read(PC.GetValue()));
     PC.Increment();
 }
 
@@ -550,19 +557,19 @@ void Processor::OPCode0x43()
 void Processor::OPCode0x44()
 {
     // LD B,H
-    OPCodes_LD(BC.GetHighRegister(), HL.GetHigh());
+    OPCodes_LD(BC.GetHighRegister(), GetPrefixedRegister()->GetHigh());
 }
 
 void Processor::OPCode0x45()
 {
     // LD B,L
-    OPCodes_LD(BC.GetHighRegister(), HL.GetLow());
+    OPCodes_LD(BC.GetHighRegister(), GetPrefixedRegister()->GetLow());
 }
 
 void Processor::OPCode0x46()
 {
     // LD B,(HL)
-    OPCodes_LD(BC.GetHighRegister(), HL.GetValue());
+    OPCodes_LD(BC.GetHighRegister(), GetPrefixedDisplacementValue());
 }
 
 void Processor::OPCode0x47()
@@ -598,19 +605,19 @@ void Processor::OPCode0x4B()
 void Processor::OPCode0x4C()
 {
     // LD C,H
-    OPCodes_LD(BC.GetLowRegister(), HL.GetHigh());
+    OPCodes_LD(BC.GetLowRegister(), GetPrefixedRegister()->GetHigh());
 }
 
 void Processor::OPCode0x4D()
 {
     // LD C,L
-    OPCodes_LD(BC.GetLowRegister(), HL.GetLow());
+    OPCodes_LD(BC.GetLowRegister(), GetPrefixedRegister()->GetLow());
 }
 
 void Processor::OPCode0x4E()
 {
     // LD C,(HL)
-    OPCodes_LD(BC.GetLowRegister(), HL.GetValue());
+    OPCodes_LD(BC.GetLowRegister(), GetPrefixedDisplacementValue());
 }
 
 void Processor::OPCode0x4F()
@@ -646,19 +653,19 @@ void Processor::OPCode0x53()
 void Processor::OPCode0x54()
 {
     // LD D,H
-    OPCodes_LD(DE.GetHighRegister(), HL.GetHigh());
+    OPCodes_LD(DE.GetHighRegister(), GetPrefixedRegister()->GetHigh());
 }
 
 void Processor::OPCode0x55()
 {
     // LD D,L
-    OPCodes_LD(DE.GetHighRegister(), HL.GetLow());
+    OPCodes_LD(DE.GetHighRegister(), GetPrefixedRegister()->GetLow());
 }
 
 void Processor::OPCode0x56()
 {
     // LD D,(HL)
-    OPCodes_LD(DE.GetHighRegister(), HL.GetValue());
+    OPCodes_LD(DE.GetHighRegister(), GetPrefixedDisplacementValue());
 }
 
 void Processor::OPCode0x57()
@@ -694,19 +701,19 @@ void Processor::OPCode0x5B()
 void Processor::OPCode0x5C()
 {
     // LD E,H
-    OPCodes_LD(DE.GetLowRegister(), HL.GetHigh());
+    OPCodes_LD(DE.GetLowRegister(), GetPrefixedRegister()->GetHigh());
 }
 
 void Processor::OPCode0x5D()
 {
     // LD E,L
-    OPCodes_LD(DE.GetLowRegister(), HL.GetLow());
+    OPCodes_LD(DE.GetLowRegister(), GetPrefixedRegister()->GetLow());
 }
 
 void Processor::OPCode0x5E()
 {
     // LD E,(HL)
-    OPCodes_LD(DE.GetLowRegister(), HL.GetValue());
+    OPCodes_LD(DE.GetLowRegister(), GetPrefixedDisplacementValue());
 }
 
 void Processor::OPCode0x5F()
@@ -718,133 +725,133 @@ void Processor::OPCode0x5F()
 void Processor::OPCode0x60()
 {
     // LD H,B
-    OPCodes_LD(HL.GetHighRegister(), BC.GetHigh());
+    OPCodes_LD(GetPrefixedRegister()->GetHighRegister(), BC.GetHigh());
 }
 
 void Processor::OPCode0x61()
 {
     // LD H,C
-    OPCodes_LD(HL.GetHighRegister(), BC.GetLow());
+    OPCodes_LD(GetPrefixedRegister()->GetHighRegister(), BC.GetLow());
 }
 
 void Processor::OPCode0x62()
 {
     // LD H,D
-    OPCodes_LD(HL.GetHighRegister(), DE.GetHigh());
+    OPCodes_LD(GetPrefixedRegister()->GetHighRegister(), DE.GetHigh());
 }
 
 void Processor::OPCode0x63()
 {
     // LD H,E
-    OPCodes_LD(HL.GetHighRegister(), DE.GetLow());
+    OPCodes_LD(GetPrefixedRegister()->GetHighRegister(), DE.GetLow());
 }
 
 void Processor::OPCode0x64()
 {
     // LD H,H
-    OPCodes_LD(HL.GetHighRegister(), HL.GetHigh());
+    OPCodes_LD(GetPrefixedRegister()->GetHighRegister(), GetPrefixedRegister()->GetHigh());
 }
 
 void Processor::OPCode0x65()
 {
     // LD H,L
-    OPCodes_LD(HL.GetHighRegister(), HL.GetLow());
+    OPCodes_LD(GetPrefixedRegister()->GetHighRegister(), GetPrefixedRegister()->GetLow());
 }
 
 void Processor::OPCode0x66()
 {
     // LD H,(HL)
-    OPCodes_LD(HL.GetHighRegister(), HL.GetValue());
+    OPCodes_LD(HL.GetHighRegister(), GetPrefixedDisplacementValue());
 }
 
 void Processor::OPCode0x67()
 {
     // LD H,A
-    OPCodes_LD(HL.GetHighRegister(), AF.GetHigh());
+    OPCodes_LD(GetPrefixedRegister()->GetHighRegister(), AF.GetHigh());
 }
 
 void Processor::OPCode0x68()
 {
     // LD L,B
-    OPCodes_LD(HL.GetLowRegister(), BC.GetHigh());
+    OPCodes_LD(GetPrefixedRegister()->GetLowRegister(), BC.GetHigh());
 }
 
 void Processor::OPCode0x69()
 {
     // LD L,C
-    OPCodes_LD(HL.GetLowRegister(), BC.GetLow());
+    OPCodes_LD(GetPrefixedRegister()->GetLowRegister(), BC.GetLow());
 }
 
 void Processor::OPCode0x6A()
 {
     // LD L,D
-    OPCodes_LD(HL.GetLowRegister(), DE.GetHigh());
+    OPCodes_LD(GetPrefixedRegister()->GetLowRegister(), DE.GetHigh());
 }
 
 void Processor::OPCode0x6B()
 {
     // LD L,E
-    OPCodes_LD(HL.GetLowRegister(), DE.GetLow());
+    OPCodes_LD(GetPrefixedRegister()->GetLowRegister(), DE.GetLow());
 }
 
 void Processor::OPCode0x6C()
 {
     // LD L,H
-    OPCodes_LD(HL.GetLowRegister(), HL.GetHigh());
+    OPCodes_LD(GetPrefixedRegister()->GetLowRegister(), GetPrefixedRegister()->GetHigh());
 }
 
 void Processor::OPCode0x6D()
 {
     // LD L,L
-    OPCodes_LD(HL.GetLowRegister(), HL.GetLow());
+    OPCodes_LD(GetPrefixedRegister()->GetLowRegister(), GetPrefixedRegister()->GetLow());
 }
 
 void Processor::OPCode0x6E()
 {
     // LD L,(HL)
-    OPCodes_LD(HL.GetLowRegister(), HL.GetValue());
+    OPCodes_LD(HL.GetLowRegister(), GetPrefixedDisplacementValue());
 }
 
 void Processor::OPCode0x6F()
 {
     // LD L,A
-    OPCodes_LD(HL.GetLowRegister(), AF.GetHigh());
+    OPCodes_LD(GetPrefixedRegister()->GetLowRegister(), AF.GetHigh());
 }
 
 void Processor::OPCode0x70()
 {
     // LD (HL),B
-    OPCodes_LD(HL.GetValue(), BC.GetHigh());
+    OPCodes_LD(GetPrefixedDisplacementValue(), BC.GetHigh());
 }
 
 void Processor::OPCode0x71()
 {
     // LD (HL),C
-    OPCodes_LD(HL.GetValue(), BC.GetLow());
+    OPCodes_LD(GetPrefixedDisplacementValue(), BC.GetLow());
 }
 
 void Processor::OPCode0x72()
 {
     // LD (HL),D
-    OPCodes_LD(HL.GetValue(), DE.GetHigh());
+    OPCodes_LD(GetPrefixedDisplacementValue(), DE.GetHigh());
 }
 
 void Processor::OPCode0x73()
 {
     // LD (HL),E
-    OPCodes_LD(HL.GetValue(), DE.GetLow());
+    OPCodes_LD(GetPrefixedDisplacementValue(), DE.GetLow());
 }
 
 void Processor::OPCode0x74()
 {
     // LD (HL),H
-    OPCodes_LD(HL.GetValue(), HL.GetHigh());
+    OPCodes_LD(GetPrefixedDisplacementValue(), HL.GetHigh());
 }
 
 void Processor::OPCode0x75()
 {
     // LD (HL),L
-    OPCodes_LD(HL.GetValue(), HL.GetLow());
+    OPCodes_LD(GetPrefixedDisplacementValue(), HL.GetLow());
 }
 
 void Processor::OPCode0x76()
@@ -867,7 +874,7 @@ void Processor::OPCode0x76()
 void Processor::OPCode0x77()
 {
     // LD (HL),A
-    OPCodes_LD(HL.GetValue(), AF.GetHigh());
+    OPCodes_LD(GetPrefixedDisplacementValue(), AF.GetHigh());
 }
 
 void Processor::OPCode0x78()
@@ -898,19 +905,19 @@ void Processor::OPCode0x7B()
 void Processor::OPCode0x7C()
 {
     // LD A,H
-    OPCodes_LD(AF.GetHighRegister(), HL.GetHigh());
+    OPCodes_LD(AF.GetHighRegister(), GetPrefixedRegister()->GetHigh());
 }
 
 void Processor::OPCode0x7D()
 {
     // LD A,L
-    OPCodes_LD(AF.GetHighRegister(), HL.GetLow());
+    OPCodes_LD(AF.GetHighRegister(), GetPrefixedRegister()->GetLow());
 }
 
 void Processor::OPCode0x7E()
 {
     // LD A,(HL)
-    OPCodes_LD(AF.GetHighRegister(), HL.GetValue());
+    OPCodes_LD(AF.GetHighRegister(), GetPrefixedDisplacementValue());
 }
 
 void Processor::OPCode0x7F()
@@ -946,19 +953,19 @@ void Processor::OPCode0x83()
 void Processor::OPCode0x84()
 {
     // ADD A,H
-    OPCodes_ADD(HL.GetHigh());
+    OPCodes_ADD(GetPrefixedRegister()->GetHigh());
 }
 
 void Processor::OPCode0x85()
 {
     // ADD A,L
-    OPCodes_ADD(HL.GetLow());
+    OPCodes_ADD(GetPrefixedRegister()->GetLow());
 }
 
 void Processor::OPCode0x86()
 {
     // ADD A,(HL)
-    OPCodes_ADD(m_pMemory->Read(HL.GetValue()));
+    OPCodes_ADD(m_pMemory->Read(GetPrefixedDisplacementValue()));
 }
 
 void Processor::OPCode0x87()
@@ -994,19 +1001,19 @@ void Processor::OPCode0x8B()
 void Processor::OPCode0x8C()
 {
     // ADC A,H
-    OPCodes_ADC(HL.GetHigh());
+    OPCodes_ADC(GetPrefixedRegister()->GetHigh());
 }
 
 void Processor::OPCode0x8D()
 {
     // ADC A,L
-    OPCodes_ADC(HL.GetLow());
+    OPCodes_ADC(GetPrefixedRegister()->GetLow());
 }
 
 void Processor::OPCode0x8E()
 {
     // ADC A,(HL)
-    OPCodes_ADC(m_pMemory->Read(HL.GetValue()));
+    OPCodes_ADC(m_pMemory->Read(GetPrefixedDisplacementValue()));
 }
 
 void Processor::OPCode0x8F()
@@ -1042,19 +1049,19 @@ void Processor::OPCode0x93()
 void Processor::OPCode0x94()
 {
     // SUB H
-    OPCodes_SUB(HL.GetHigh());
+    OPCodes_SUB(GetPrefixedRegister()->GetHigh());
 }
 
 void Processor::OPCode0x95()
 {
     // SUB L
-    OPCodes_SUB(HL.GetLow());
+    OPCodes_SUB(GetPrefixedRegister()->GetLow());
 }
 
 void Processor::OPCode0x96()
 {
     // SUB (HL)
-    OPCodes_SUB(m_pMemory->Read(HL.GetValue()));
+    OPCodes_SUB(m_pMemory->Read(GetPrefixedDisplacementValue()));
 }
 
 void Processor::OPCode0x97()
@@ -1090,19 +1097,19 @@ void Processor::OPCode0x9B()
 void Processor::OPCode0x9C()
 {
     // SBC H
-    OPCodes_SBC(HL.GetHigh());
+    OPCodes_SBC(GetPrefixedRegister()->GetHigh());
 }
 
 void Processor::OPCode0x9D()
 {
     // SBC L
-    OPCodes_SBC(HL.GetLow());
+    OPCodes_SBC(GetPrefixedRegister()->GetLow());
 }
 
 void Processor::OPCode0x9E()
 {
     // SBC (HL)
-    OPCodes_SBC(m_pMemory->Read(HL.GetValue()));
+    OPCodes_SBC(m_pMemory->Read(GetPrefixedDisplacementValue()));
 }
 
 void Processor::OPCode0x9F()
@@ -1138,19 +1145,19 @@ void Processor::OPCode0xA3()
 void Processor::OPCode0xA4()
 {
     // AND H
-    OPCodes_AND(HL.GetHigh());
+    OPCodes_AND(GetPrefixedRegister()->GetHigh());
 }
 
 void Processor::OPCode0xA5()
 {
     // AND L
-    OPCodes_AND(HL.GetLow());
+    OPCodes_AND(GetPrefixedRegister()->GetLow());
 }
 
 void Processor::OPCode0xA6()
 {
     // AND (HL)
-    OPCodes_AND(m_pMemory->Read(HL.GetValue()));
+    OPCodes_AND(m_pMemory->Read(GetPrefixedDisplacementValue()));
 }
 
 void Processor::OPCode0xA7()
@@ -1186,19 +1193,19 @@ void Processor::OPCode0xAB()
 void Processor::OPCode0xAC()
 {
     // XOR H
-    OPCodes_XOR(HL.GetHigh());
+    OPCodes_XOR(GetPrefixedRegister()->GetHigh());
 }
 
 void Processor::OPCode0xAD()
 {
     // XOR L
-    OPCodes_XOR(HL.GetLow());
+    OPCodes_XOR(GetPrefixedRegister()->GetLow());
 }
 
 void Processor::OPCode0xAE()
 {
     // XOR (HL)
-    OPCodes_XOR(m_pMemory->Read(HL.GetValue()));
+    OPCodes_XOR(m_pMemory->Read(GetPrefixedDisplacementValue()));
 }
 
 void Processor::OPCode0xAF()
@@ -1235,19 +1242,19 @@ void Processor::OPCode0xB3()
 void Processor::OPCode0xB4()
 {
     // OR H
-    OPCodes_OR(HL.GetHigh());
+    OPCodes_OR(GetPrefixedRegister()->GetHigh());
 }
 
 void Processor::OPCode0xB5()
 {
     // OR L
-    OPCodes_OR(HL.GetLow());
+    OPCodes_OR(GetPrefixedRegister()->GetLow());
 }
 
 void Processor::OPCode0xB6()
 {
     // OR (HL)
-    OPCodes_OR(m_pMemory->Read(HL.GetValue()));
+    OPCodes_OR(m_pMemory->Read(GetPrefixedDisplacementValue()));
 }
 
 void Processor::OPCode0xB7()
@@ -1283,19 +1290,19 @@ void Processor::OPCode0xBB()
 void Processor::OPCode0xBC()
 {
     // CP H
-    OPCodes_CP(HL.GetHigh());
+    OPCodes_CP(GetPrefixedRegister()->GetHigh());
 }
 
 void Processor::OPCode0xBD()
 {
     // CP L
-    OPCodes_CP(HL.GetLow());
+    OPCodes_CP(GetPrefixedRegister()->GetLow());
 }
 
 void Processor::OPCode0xBE()
 {
     // CP (HL)
-    OPCodes_CP(m_pMemory->Read(HL.GetValue()));
+    OPCodes_CP(m_pMemory->Read(GetPrefixedDisplacementValue()));
 }
 
 void Processor::OPCode0xBF()
@@ -1410,6 +1417,7 @@ void Processor::OPCode0xCA()
 void Processor::OPCode0xCB()
 {
     // CB prefixed instruction
+    InvalidOPCode();
 }
 
 void Processor::OPCode0xCC()
@@ -1575,7 +1583,6 @@ void Processor::OPCode0xDC()
 
 void Processor::OPCode0xDD()
 {
-    // TODO: different opcode
     // DD prefixed instruction
     InvalidOPCode();
 }
@@ -1607,7 +1614,7 @@ void Processor::OPCode0xE0()
 void Processor::OPCode0xE1()
 {
     // POP HL
-    StackPop(&HL);
+    StackPop(GetPrefixedRegister());
 }
 
 void Processor::OPCode0xE2()
@@ -1628,10 +1635,11 @@ void Processor::OPCode0xE2()
 void Processor::OPCode0xE3()
 {
     // EX (SP),HL
-    u8 l = HL.GetLow();
-    u8 h = HL.GetHigh();
-    HL.SetLow(m_pMemory->Read(SP.GetValue()));
-    HL.SetHigh(m_pMemory->Read(SP.GetValue() + 1));
+    SixteenBitRegister* reg = GetPrefixedRegister();
+    u8 l = reg->GetLow();
+    u8 h = reg->GetHigh();
+    reg->SetLow(m_pMemory->Read(SP.GetValue()));
+    reg->SetHigh(m_pMemory->Read(SP.GetValue() + 1));
     m_pMemory->Write(SP.GetValue(), l);
     m_pMemory->Write(SP.GetValue() + 1, h);
 }
@@ -1654,7 +1662,7 @@ void Processor::OPCode0xE4()
 void Processor::OPCode0xE5()
 {
     // PUSH HL
-    StackPush(&HL);
+    StackPush(GetPrefixedRegister());
 }
 
 void Processor::OPCode0xE6()
@@ -1684,7 +1692,7 @@ void Processor::OPCode0xE8()
 void Processor::OPCode0xE9()
 {
     // JP (HL)
-    PC.SetValue(HL.GetValue());
+    PC.SetValue(GetPrefixedRegister()->GetValue());
 }
 
 void Processor::OPCode0xEA()
@@ -1725,7 +1733,6 @@ void Processor::OPCode0xEC()
 
 void Processor::OPCode0xED()
 {
-    // TODO: different opcode
     // ED prefixed instruction
     InvalidOPCode();
 }
@@ -1832,7 +1839,7 @@ void Processor::OPCode0xF8()
 void Processor::OPCode0xF9()
 {
     // LD SP,HL
-    SP.SetValue(HL.GetValue());
+    SP.SetValue(GetPrefixedRegister()->GetValue());
 }
 
 void Processor::OPCode0xFA()
@@ -1874,7 +1881,6 @@ void Processor::OPCode0xFC()
 
 void Processor::OPCode0xFD()
 {
-    // TODO: different opcode
     // FD prefixed instruction
     InvalidOPCode();
 }

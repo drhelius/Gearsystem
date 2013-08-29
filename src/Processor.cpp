@@ -165,15 +165,27 @@ void Processor::AddCycles(unsigned int cycles)
     m_iCurrentClockCycles += cycles;
 }
 
-u8 Processor::FetchOPCode()
-{
-    u8 opcode = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    return opcode;
-}
-
 void Processor::ExecuteOPCode(u8 opcode)
 {
+    switch (opcode)
+    {
+        case 0xDD:
+        case 0xFD:
+        {
+            while ((opcode == 0xDD) | (opcode == 0xFD))
+            {
+                m_CurrentPrefix = opcode;
+                opcode = FetchOPCode();
+            }
+            break;
+        }
+        default:
+        {
+            m_CurrentPrefix = 0x00;
+            break;
+        } 
+    }
+    
     switch (opcode)
     {
         case 0xCB:
@@ -193,6 +205,7 @@ void Processor::ExecuteOPCode(u8 opcode)
         }
         case 0xED:
         {
+            m_CurrentPrefix = 0x00;
             opcode = FetchOPCode();
             u16 opcode_address = PC.GetValue() - 1;
 
@@ -223,6 +236,7 @@ void Processor::ExecuteOPCode(u8 opcode)
             }
             else
                 m_iCurrentClockCycles += kOPCodeMachineCycles[opcode] * 4;
+            break;
         }
     }
 }
