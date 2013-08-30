@@ -125,6 +125,11 @@ inline u16 Processor::GetPrefixedDisplacementValue()
     return address;
 }
 
+inline bool Processor::IsPrefixedIntruction()
+{
+    return (m_CurrentPrefix == 0xDD) || (m_CurrentPrefix == 0xFD);
+}
+
 inline void Processor::OPCodes_LD(EightBitRegister* reg1, u8 value)
 {
     reg1->SetValue(value);
@@ -534,40 +539,64 @@ inline void Processor::OPCodes_SBC_HL(u16 number)
 
 inline void Processor::OPCodes_SLL(EightBitRegister* reg)
 {
+    u16 address = 0x0000;
+    if (IsPrefixedIntruction())
+    {
+        address = GetPrefixedDisplacementValue();
+        reg->SetValue(m_pMemory->Read(address));
+    }
     (reg->GetValue() & 0x80) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     u8 result = (reg->GetValue() << 1) | 0x01;
     reg->SetValue(result);
     ToggleZeroFlagFromResult(result);
+    if (IsPrefixedIntruction())
+        m_pMemory->Write(address, reg->GetValue());
 }
 
 inline void Processor::OPCodes_SLL_HL()
 {
-    u8 result = m_pMemory->Read(HL.GetValue());
+    u16 address = GetPrefixedDisplacementValue();
+    u8 result = m_pMemory->Read(address);
     (result & 0x80) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     result = (result << 1) | 0x01;
-    m_pMemory->Write(HL.GetValue(), result);
+    m_pMemory->Write(address, result);
     ToggleZeroFlagFromResult(result);
 }
 
 inline void Processor::OPCodes_SLA(EightBitRegister* reg)
 {
+    u16 address = 0x0000;
+    if (IsPrefixedIntruction())
+    {
+        address = GetPrefixedDisplacementValue();
+        reg->SetValue(m_pMemory->Read(address));
+    }
     (reg->GetValue() & 0x80) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     u8 result = reg->GetValue() << 1;
     reg->SetValue(result);
     ToggleZeroFlagFromResult(result);
+    if (IsPrefixedIntruction())
+        m_pMemory->Write(address, reg->GetValue());
 }
 
 inline void Processor::OPCodes_SLA_HL()
 {
-    u8 result = m_pMemory->Read(HL.GetValue());
+    u16 address = GetPrefixedDisplacementValue();
+    u8 result = m_pMemory->Read(address);
     (result & 0x80) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     result <<= 1;
-    m_pMemory->Write(HL.GetValue(), result);
+    m_pMemory->Write(address, result);
     ToggleZeroFlagFromResult(result);
 }
 
 inline void Processor::OPCodes_SRA(EightBitRegister* reg)
 {
+    u16 address = 0x0000;
+    if (IsPrefixedIntruction())
+    {
+        address = GetPrefixedDisplacementValue();
+        reg->SetValue(m_pMemory->Read(address));
+    }
     u8 result = reg->GetValue();
     (result & 0x01) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     if ((result & 0x80) != 0)
@@ -581,11 +610,14 @@ inline void Processor::OPCodes_SRA(EightBitRegister* reg)
     }
     reg->SetValue(result);
     ToggleZeroFlagFromResult(result);
+    if (IsPrefixedIntruction())
+        m_pMemory->Write(address, reg->GetValue());
 }
 
 inline void Processor::OPCodes_SRA_HL()
 {
-    u8 result = m_pMemory->Read(HL.GetValue());
+    u16 address = GetPrefixedDisplacementValue();
+    u8 result = m_pMemory->Read(address);
     (result & 0x01) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     if ((result & 0x80) != 0)
     {
@@ -596,30 +628,45 @@ inline void Processor::OPCodes_SRA_HL()
     {
         result >>= 1;
     }
-    m_pMemory->Write(HL.GetValue(), result);
+    m_pMemory->Write(address, result);
     ToggleZeroFlagFromResult(result);
 }
 
 inline void Processor::OPCodes_SRL(EightBitRegister* reg)
 {
+    u16 address = 0x0000;
+    if (IsPrefixedIntruction())
+    {
+        address = GetPrefixedDisplacementValue();
+        reg->SetValue(m_pMemory->Read(address));
+    }
     u8 result = reg->GetValue();
     (result & 0x01) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     result >>= 1;
     reg->SetValue(result);
     ToggleZeroFlagFromResult(result);
+    if (IsPrefixedIntruction())
+        m_pMemory->Write(address, reg->GetValue());
 }
 
 inline void Processor::OPCodes_SRL_HL()
 {
-    u8 result = m_pMemory->Read(HL.GetValue());
+    u16 address = GetPrefixedDisplacementValue();
+    u8 result = m_pMemory->Read(address);
     (result & 0x01) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     result >>= 1;
-    m_pMemory->Write(HL.GetValue(), result);
+    m_pMemory->Write(address, result);
     ToggleZeroFlagFromResult(result);
 }
 
 inline void Processor::OPCodes_RLC(EightBitRegister* reg, bool isRegisterA)
 {
+    u16 address = 0x0000;
+    if (!isRegisterA && IsPrefixedIntruction())
+    {
+        address = GetPrefixedDisplacementValue();
+        reg->SetValue(m_pMemory->Read(address));
+    }
     u8 result = reg->GetValue();
     if ((result & 0x80) != 0)
     {
@@ -633,14 +680,16 @@ inline void Processor::OPCodes_RLC(EightBitRegister* reg, bool isRegisterA)
         result <<= 1;
     }
     reg->SetValue(result);
-
+    if (!isRegisterA && IsPrefixedIntruction())
+        m_pMemory->Write(address, reg->GetValue());
     if (!isRegisterA)
         ToggleZeroFlagFromResult(result);
 }
 
 inline void Processor::OPCodes_RLC_HL()
 {
-    u8 result = m_pMemory->Read(HL.GetValue());
+    u16 address = GetPrefixedDisplacementValue();
+    u8 result = m_pMemory->Read(address);
     if ((result & 0x80) != 0)
     {
         SetFlag(FLAG_CARRY);
@@ -652,36 +701,50 @@ inline void Processor::OPCodes_RLC_HL()
         ClearAllFlags();
         result <<= 1;
     }
-    m_pMemory->Write(HL.GetValue(), result);
+    m_pMemory->Write(address, result);
     ToggleZeroFlagFromResult(result);
 }
 
 inline void Processor::OPCodes_RL(EightBitRegister* reg, bool isRegisterA)
 {
+    u16 address = 0x0000;
+    if (!isRegisterA && IsPrefixedIntruction())
+    {
+        address = GetPrefixedDisplacementValue();
+        reg->SetValue(m_pMemory->Read(address));
+    }
     u8 carry = IsSetFlag(FLAG_CARRY) ? 1 : 0;
     u8 result = reg->GetValue();
     ((result & 0x80) != 0) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     result <<= 1;
     result |= carry;
     reg->SetValue(result);
-
+    if (!isRegisterA && IsPrefixedIntruction())
+        m_pMemory->Write(address, reg->GetValue());
     if (!isRegisterA)
         ToggleZeroFlagFromResult(result);
 }
 
 inline void Processor::OPCodes_RL_HL()
 {
+    u16 address = GetPrefixedDisplacementValue();
     u8 carry = IsSetFlag(FLAG_CARRY) ? 1 : 0;
-    u8 result = m_pMemory->Read(HL.GetValue());
+    u8 result = m_pMemory->Read(address);
     ((result & 0x80) != 0) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     result <<= 1;
     result |= carry;
-    m_pMemory->Write(HL.GetValue(), result);
+    m_pMemory->Write(address, result);
     ToggleZeroFlagFromResult(result);
 }
 
 inline void Processor::OPCodes_RRC(EightBitRegister* reg, bool isRegisterA)
 {
+    u16 address = 0x0000;
+    if (!isRegisterA && IsPrefixedIntruction())
+    {
+        address = GetPrefixedDisplacementValue();
+        reg->SetValue(m_pMemory->Read(address));
+    }
     u8 result = reg->GetValue();
     if ((result & 0x01) != 0)
     {
@@ -695,14 +758,16 @@ inline void Processor::OPCodes_RRC(EightBitRegister* reg, bool isRegisterA)
         result >>= 1;
     }
     reg->SetValue(result);
-
+    if (!isRegisterA && IsPrefixedIntruction())
+        m_pMemory->Write(address, reg->GetValue());
     if (!isRegisterA)
         ToggleZeroFlagFromResult(result);
 }
 
 inline void Processor::OPCodes_RRC_HL()
 {
-    u8 result = m_pMemory->Read(HL.GetValue());
+    u16 address = GetPrefixedDisplacementValue();
+    u8 result = m_pMemory->Read(address);
     if ((result & 0x01) != 0)
     {
         SetFlag(FLAG_CARRY);
@@ -714,37 +779,48 @@ inline void Processor::OPCodes_RRC_HL()
         ClearAllFlags();
         result >>= 1;
     }
-    m_pMemory->Write(HL.GetValue(), result);
+    m_pMemory->Write(address, result);
     ToggleZeroFlagFromResult(result);
 }
 
 inline void Processor::OPCodes_RR(EightBitRegister* reg, bool isRegisterA)
 {
+    u16 address = 0x0000;
+    if (!isRegisterA && IsPrefixedIntruction())
+    {
+        address = GetPrefixedDisplacementValue();
+        reg->SetValue(m_pMemory->Read(address));
+    }
     u8 carry = IsSetFlag(FLAG_CARRY) ? 0x80 : 0x00;
     u8 result = reg->GetValue();
     ((result & 0x01) != 0) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     result >>= 1;
     result |= carry;
     reg->SetValue(result);
-
+    if (!isRegisterA && IsPrefixedIntruction())
+        m_pMemory->Write(address, reg->GetValue());
     if (!isRegisterA)
         ToggleZeroFlagFromResult(result);
 }
 
 inline void Processor::OPCodes_RR_HL()
 {
+    u16 address = GetPrefixedDisplacementValue();
     u8 carry = IsSetFlag(FLAG_CARRY) ? 0x80 : 0x00;
-    u8 result = m_pMemory->Read(HL.GetValue());
+    u8 result = m_pMemory->Read(address);
     ((result & 0x01) != 0) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     result >>= 1;
     result |= carry;
-    m_pMemory->Write(HL.GetValue(), result);
+    m_pMemory->Write(address, result);
     ToggleZeroFlagFromResult(result);
 }
 
 inline void Processor::OPCodes_BIT(EightBitRegister* reg, int bit)
 {
-    if (((reg->GetValue() >> bit) & 0x01) == 0)
+    u8 value = reg->GetValue();
+    if (IsPrefixedIntruction())
+        value = m_pMemory->Read(GetPrefixedDisplacementValue());
+    if (((value >> bit) & 0x01) == 0)
         ToggleFlag(FLAG_ZERO);
     else
         UntoggleFlag(FLAG_ZERO);
@@ -754,7 +830,8 @@ inline void Processor::OPCodes_BIT(EightBitRegister* reg, int bit)
 
 inline void Processor::OPCodes_BIT_HL(int bit)
 {
-    if (((m_pMemory->Read(HL.GetValue()) >> bit) & 0x01) == 0)
+    u16 address = GetPrefixedDisplacementValue();
+    if (((m_pMemory->Read(address) >> bit) & 0x01) == 0)
         ToggleFlag(FLAG_ZERO);
     else
         UntoggleFlag(FLAG_ZERO);
@@ -764,26 +841,44 @@ inline void Processor::OPCodes_BIT_HL(int bit)
 
 inline void Processor::OPCodes_SET(EightBitRegister* reg, int bit)
 {
+    u16 address = 0x0000;
+    if (IsPrefixedIntruction())
+    {
+        address = GetPrefixedDisplacementValue();
+        reg->SetValue(m_pMemory->Read(address));
+    }
     reg->SetValue(reg->GetValue() | (0x1 << bit));
+    if (IsPrefixedIntruction())
+        m_pMemory->Write(address, reg->GetValue());
 }
 
 inline void Processor::OPCodes_SET_HL(int bit)
 {
-    u8 result = m_pMemory->Read(HL.GetValue());
+    u16 address = GetPrefixedDisplacementValue();
+    u8 result = m_pMemory->Read(address);
     result |= (0x1 << bit);
-    m_pMemory->Write(HL.GetValue(), result);
+    m_pMemory->Write(address, result);
 }
 
 inline void Processor::OPCodes_RES(EightBitRegister* reg, int bit)
 {
+    u16 address = 0x0000;
+    if (IsPrefixedIntruction())
+    {
+        address = GetPrefixedDisplacementValue();
+        reg->SetValue(m_pMemory->Read(address));
+    }
     reg->SetValue(reg->GetValue() & (~(0x1 << bit)));
+    if (IsPrefixedIntruction())
+        m_pMemory->Write(address, reg->GetValue());
 }
 
 inline void Processor::OPCodes_RES_HL(int bit)
 {
-    u8 result = m_pMemory->Read(HL.GetValue());
+    u16 address = GetPrefixedDisplacementValue();
+    u8 result = m_pMemory->Read(address);
     result &= ~(0x1 << bit);
-    m_pMemory->Write(HL.GetValue(), result);
+    m_pMemory->Write(address, result);
 }
 
 #endif	/* PROCESSOR_INLINE_H */

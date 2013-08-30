@@ -104,6 +104,7 @@ private:
     void UndocumentedOPCode();
     SixteenBitRegister* GetPrefixedRegister();
     u16 GetPrefixedDisplacementValue();
+    bool IsPrefixedIntruction();
     void OPCodes_LD(EightBitRegister* reg1, u8 value);
     void OPCodes_LD(EightBitRegister* reg, u16 address);
     void OPCodes_LD(u16 address, u8 reg);
