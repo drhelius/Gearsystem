@@ -20,7 +20,7 @@
 #ifndef OPCODEFDCB_NAMES_H
 #define	OPCODEFDCB_NAMES_H
 
-static const char* kOPCodeDDCBNames[256] = {
+static const char* kOPCodeFDCBNames[256] = {
     "RLC (IY+d),B (UNDOCUMENTED)",
     "RLC (IY+d),C (UNDOCUMENTED)",
     "RLC (IY+d),D (UNDOCUMENTED)",
