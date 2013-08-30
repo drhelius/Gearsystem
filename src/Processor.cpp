@@ -195,7 +195,12 @@ void Processor::ExecuteOPCode(u8 opcode)
 
             if (!m_pMemory->IsDisassembled(opcode_address))
             {
-                m_pMemory->Disassemble(opcode_address, kOPCodeCBNames[opcode]);
+                const char* opcode_name = kOPCodeCBNames[opcode];
+                if (m_CurrentPrefix == 0xDD)
+                    opcode_name = kOPCodeDDCBNames[opcode];
+                else if (m_CurrentPrefix == 0xFD)
+                    opcode_name = kOPCodeFDCBNames[opcode];
+                m_pMemory->Disassemble(opcode_address, opcode_name);
             }
 
             (this->*m_OPCodesCB[opcode])();
@@ -224,7 +229,12 @@ void Processor::ExecuteOPCode(u8 opcode)
             u16 opcode_address = PC.GetValue() - 1;
             if (!m_pMemory->IsDisassembled(opcode_address))
             {
-                m_pMemory->Disassemble(opcode_address, kOPCodeNames[opcode]);
+                const char* opcode_name = kOPCodeNames[opcode];
+                if (m_CurrentPrefix == 0xDD)
+                    opcode_name = kOPCodeDDNames[opcode];
+                else if (m_CurrentPrefix == 0xFD)
+                    opcode_name = kOPCodeFDNames[opcode];
+                m_pMemory->Disassemble(opcode_address, opcode_name);
             }
 
             (this->*m_OPCodes[opcode])();
