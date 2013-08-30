@@ -20,7 +20,7 @@
 #ifndef OPCODEDD_NAMES_H
 #define	OPCODEDD_NAMES_H
 
-static const char *kOPCodeDDNames[256] = {
+static const char* kOPCodeDDNames[256] = {
     "NOP",
     "LD BC,nn",
     "LD (BC),A",
