@@ -33,9 +33,16 @@
       <itemPath>../../../src/gearsystem.h</itemPath>
       <itemPath>../../../src/opcode_names.h</itemPath>
       <itemPath>../../../src/opcode_timing.h</itemPath>
+      <itemPath>../../../src/opcodecb_names.h</itemPath>
+      <itemPath>../../../src/opcodedd_names.h</itemPath>
+      <itemPath>../../../src/opcodeddcb_names.h</itemPath>
+      <itemPath>../../../src/opcodeed_names.h</itemPath>
+      <itemPath>../../../src/opcodefd_names.h</itemPath>
+      <itemPath>../../../src/opcodefdcb_names.h</itemPath>
       <itemPath>../../../src/opcodes.cpp</itemPath>
       <itemPath>../../../src/opcodes_cb.cpp</itemPath>
       <itemPath>../../../src/opcodes_ed.cpp</itemPath>
+      <itemPath>../../../src/opcodexx_names.h</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -160,11 +167,25 @@
       </item>
       <item path="../../../src/opcode_timing.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../src/opcodecb_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodedd_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodeddcb_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodeed_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodefd_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodefdcb_names.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../src/opcodes.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/opcodes_cb.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/opcodes_ed.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/opcodexx_names.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../qt-shared/About.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -299,11 +320,25 @@
       </item>
       <item path="../../../src/opcode_timing.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../src/opcodecb_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodedd_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodeddcb_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodeed_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodefd_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodefdcb_names.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../src/opcodes.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/opcodes_cb.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/opcodes_ed.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/opcodexx_names.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../qt-shared/About.cpp" ex="false" tool="1" flavor2="0">
       </item>
