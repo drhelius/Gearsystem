@@ -17,16 +17,9 @@
  * 
  */
 
-#ifndef OPCODE_NAMES_H
-#define	OPCODE_NAMES_H
+#ifndef OPCODEDDCB_NAMES_H
+#define	OPCODEDDCB_NAMES_H
 
-#include "opcodexx_names.h"
-#include "opcodecb_names.h"
-#include "opcodeed_names.h"
-#include "opcodedd_names.h"
-#include "opcodefd_names.h"
-#include "opcodeddcb_names.h"
-#include "opcodefdcb_names.h"
 
-#endif	/* OPCODE_NAMES_H */
+#endif	/* OPCODEDDCB_NAMES_H */
 

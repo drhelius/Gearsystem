@@ -139,6 +139,42 @@
     <ClInclude Include="..\..\..\src\SixteenBitRegister.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\IOPorts.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\MemoryRule.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\RomOnlyMemoryRule.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\SegaIOPorts.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\SegaMemoryRule.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\opcodecb_names.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\opcodefdcb_names.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\opcodedd_names.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\opcodeddcb_names.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\opcodeed_names.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\opcodefd_names.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\opcodexx_names.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\qt-shared\About.cpp">
@@ -232,6 +268,21 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Video.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\MemoryRule.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\opcodes_ed.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\RomOnlyMemoryRule.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\SegaIOPorts.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\SegaMemoryRule.cpp">
       <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>
