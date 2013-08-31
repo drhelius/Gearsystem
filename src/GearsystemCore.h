@@ -24,6 +24,7 @@
 
 class Memory;
 class Processor;
+class Audio;
 class Video;
 class Input;
 class Cartridge;
@@ -62,6 +63,7 @@ private:
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;
+    Audio* m_pAudio;
     Video* m_pVideo;
     Input* m_pInput;
     Cartridge* m_pCartridge;

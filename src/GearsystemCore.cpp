@@ -20,6 +20,7 @@
 #include "GearsystemCore.h"
 #include "Memory.h"
 #include "Processor.h"
+#include "Audio.h"
 #include "Video.h"
 #include "Input.h"
 #include "Cartridge.h"
@@ -32,6 +33,7 @@ GearsystemCore::GearsystemCore()
 {
     InitPointer(m_pMemory);
     InitPointer(m_pProcessor);
+    InitPointer(m_pAudio);
     InitPointer(m_pVideo);
     InitPointer(m_pInput);
     InitPointer(m_pCartridge);
@@ -67,6 +69,7 @@ GearsystemCore::~GearsystemCore()
     SafeDelete(m_pCartridge);
     SafeDelete(m_pInput);
     SafeDelete(m_pVideo);
+    SafeDelete(m_pAudio);
     SafeDelete(m_pProcessor);
     SafeDelete(m_pMemory);
 }
@@ -75,6 +78,7 @@ void GearsystemCore::Init()
 {
     m_pMemory = new Memory();
     m_pProcessor = new Processor(m_pMemory);
+    m_pAudio = new Audio();
     m_pVideo = new Video(m_pMemory, m_pProcessor);
     m_pInput = new Input(m_pMemory, m_pProcessor);
     m_pCartridge = new Cartridge();
@@ -83,6 +87,7 @@ void GearsystemCore::Init()
 
     m_pMemory->Init();
     m_pProcessor->Init();
+    m_pAudio->Init();
     m_pVideo->Init();
     m_pInput->Init();
     m_pCartridge->Init();
@@ -99,6 +104,7 @@ void GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer)
         {
             unsigned int clockCycles = m_pProcessor->Tick();
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer);
+            m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
         }
     }
@@ -184,12 +190,12 @@ void GearsystemCore::ResetROM()
 
 void GearsystemCore::EnableSound(bool enabled)
 {
-    //m_pAudio->Enable(enabled);
+    m_pAudio->Enable(enabled);
 }
 
 void GearsystemCore::SetSoundSampleRate(int rate)
 {
-    //m_pAudio->SetSampleRate(rate);
+    m_pAudio->SetSampleRate(rate);
 }
 
 void GearsystemCore::SaveRam()
@@ -365,6 +371,7 @@ void GearsystemCore::Reset()
 {
     m_pMemory->Reset();
     m_pProcessor->Reset();
+    m_pAudio->Reset();
     m_pVideo->Reset();
     m_pInput->Reset();
     m_pSegaMemoryRule->Reset();
