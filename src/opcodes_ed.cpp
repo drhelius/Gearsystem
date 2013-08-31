@@ -168,10 +168,13 @@ void Processor::OPCodeED0x56()
 void Processor::OPCodeED0x57()
 {
     // LD A,I
-    OPCodes_LD(AF.GetHighRegister(), I.GetValue());
+    u8 value = I.GetValue();
+    OPCodes_LD(AF.GetHighRegister(), value);
+    ToggleSignFlagFromResult(value);
+    ToggleZeroFlagFromResult(value);
+    ToggleXYFlagsFromResult(value);
     UntoggleFlag(FLAG_HALF);
     UntoggleFlag(FLAG_NEGATIVE);
-    ToggleZeroFlagFromResult(I.GetValue());
     if (m_bIFF2)
         ToggleFlag(FLAG_PARITY);
     else
@@ -225,10 +228,13 @@ void Processor::OPCodeED0x5E()
 void Processor::OPCodeED0x5F()
 {
     // LD A,R
-    OPCodes_LD(AF.GetHighRegister(), R.GetValue());
+    u8 value = R.GetValue();
+    OPCodes_LD(AF.GetHighRegister(), value);
+    ToggleSignFlagFromResult(value);
+    ToggleZeroFlagFromResult(value);
+    ToggleXYFlagsFromResult(value);
     UntoggleFlag(FLAG_HALF);
     UntoggleFlag(FLAG_NEGATIVE);
-    ToggleZeroFlagFromResult(R.GetValue());
     if (m_bIFF2)
         ToggleFlag(FLAG_PARITY);
     else
