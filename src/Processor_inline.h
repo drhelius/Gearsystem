@@ -152,6 +152,7 @@ inline void Processor::StackPop(SixteenBitRegister* reg)
 inline void Processor::SetInterruptMode(int mode)
 {
     Log("--> ** Attempting to set interrupt mode %d", mode);
+    m_iInterruptMode = mode;
 }
 
 inline SixteenBitRegister* Processor::GetPrefixedRegister()
