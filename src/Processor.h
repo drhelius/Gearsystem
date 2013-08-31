@@ -92,6 +92,8 @@ private:
     void ClearAllFlags();
     void ToggleZeroFlagFromResult(u8 result);
     void ToggleSignFlagFromResult(u8 result);
+    void ToggleXYFlagsFromResult(u8 result);
+    void ToggleParityFlagFromResult(u8 result);
     void SetFlag(u8 flag);
     void FlipFlag(u8 flag);
     void ToggleFlag(u8 flag);

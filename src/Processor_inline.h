@@ -25,6 +25,41 @@
 #include "Processor.h"
 #include "IOPorts.h"
 
+const bool kZ80ParityTable[256] = {
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true
+};
+
 inline u8 Processor::FetchOPCode()
 {
     u8 opcode = m_pMemory->Read(PC.GetValue());
@@ -51,6 +86,26 @@ inline void Processor::ToggleSignFlagFromResult(u8 result)
         ToggleFlag(FLAG_SIGN);
     else
         UntoggleFlag(FLAG_SIGN);
+}
+
+inline void Processor::ToggleXYFlagsFromResult(u8 result)
+{
+    if ((result & 0x08) != 0)
+        ToggleFlag(FLAG_X);
+    else
+        UntoggleFlag(FLAG_X);
+    if ((result & 0x20) != 0)
+        ToggleFlag(FLAG_Y);
+    else
+        UntoggleFlag(FLAG_Y);
+}
+
+inline void Processor::ToggleParityFlagFromResult(u8 result)
+{
+    if (kZ80ParityTable[result])
+        ToggleFlag(FLAG_PARITY);
+    else
+        UntoggleFlag(FLAG_PARITY);
 }
 
 inline void Processor::SetFlag(u8 flag)
