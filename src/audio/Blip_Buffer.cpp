@@ -51,8 +51,8 @@ bool Blip_Buffer::sample_rate( long sps, int msec )
 	// add 2 milliseconds to account for any roundoff error in user code.
 	size_t new_size = msec ? samples_per_sec * (msec + 2) / 1000 : 65536 - max_size_adj;
 	
-	assert(( "Blip_Buffer::sample_rate(): Buffer length exceeds limit",
-			new_size <= max_size ));
+//	assert(( "Blip_Buffer::sample_rate(): Buffer length exceeds limit",
+//			new_size <= max_size ));
 	if ( new_size > max_size )
 		new_size = max_size;
 	
@@ -78,7 +78,7 @@ bool Blip_Buffer::sample_rate( long sps, int msec )
 void Blip_Buffer::clock_rate( long cps ) {
 	clocks_per_sec = cps;
 	factor_ = floor( (double) samples_per_sec / cps * (1L << BLIP_BUFFER_ACCURACY) + 0.5 );
-	assert(( "Blip_Buffer::clock_rate(): Clock rate to sample rate ratio exceeded 65536", factor_ > 0 ));
+//	assert(( "Blip_Buffer::clock_rate(): Clock rate to sample rate ratio exceeded 65536", factor_ > 0 ));
 }
 
 Blip_Buffer::~Blip_Buffer() {
@@ -101,7 +101,7 @@ void Blip_Buffer::bass_freq( int freq )
 
 size_t Blip_Buffer::read_samples( blip_sample_t* out, size_t max_samples, bool stereo )
 {
-	assert(( "Blip_Buffer::read_samples(): Buffer sample rate not set", buffer_ ));
+//	assert(( "Blip_Buffer::read_samples(): Buffer sample rate not set", buffer_ ));
 	
 	size_t count = samples_avail();
 	if ( count > max_samples )

@@ -133,8 +133,8 @@ public:
 		typedef blip_pair_t_ pair_t;
 		
 		unsigned sample_index = (time >> BLIP_BUFFER_ACCURACY) & ~1;
-		assert(( "Blip_Synth/Blip_wave: Went past end of buffer",
-				sample_index < blip_buf->buffer_size_ ));
+//		assert(( "Blip_Synth/Blip_wave: Went past end of buffer",
+//				sample_index < blip_buf->buffer_size_ ));
 		enum { const_offset = Blip_Buffer::widest_impulse_ / 2 - width / 2 };
 		pair_t* buf = (pair_t*) &blip_buf->buffer_ [const_offset + sample_index];
 		
