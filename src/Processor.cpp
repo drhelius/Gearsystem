@@ -205,7 +205,7 @@ void Processor::ExecuteOPCode(u8 opcode)
 
             (this->*m_OPCodesCB[opcode])();
 
-            m_iCurrentClockCycles += kOPCodeCBMachineCycles[opcode] * 4;
+            m_iCurrentClockCycles += kOPCodeCBTStates[opcode];
             break;
         }
         case 0xED:
@@ -221,7 +221,7 @@ void Processor::ExecuteOPCode(u8 opcode)
 
             (this->*m_OPCodesED[opcode])();
 
-            m_iCurrentClockCycles += kOPCodeEDMachineCycles[opcode] * 4;
+            m_iCurrentClockCycles += kOPCodeEDTStates[opcode];
             break;
         }
         default:
@@ -242,10 +242,10 @@ void Processor::ExecuteOPCode(u8 opcode)
             if (m_bBranchTaken)
             {
                 m_bBranchTaken = false;
-                m_iCurrentClockCycles += kOPCodeConditionalsMachineCycles[opcode] * 4;
+                m_iCurrentClockCycles += kOPCodeTStatesBranched[opcode];
             }
             else
-                m_iCurrentClockCycles += kOPCodeMachineCycles[opcode] * 4;
+                m_iCurrentClockCycles += kOPCodeTStates[opcode];
             break;
         }
     }

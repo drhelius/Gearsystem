@@ -1856,7 +1856,7 @@ void Processor::OPCode0xFA()
 void Processor::OPCode0xFB()
 {
     // EI
-    int ei_cycles = kOPCodeMachineCycles[0xFB] * 4;
+    int ei_cycles = kOPCodeTStates[0xFB];
     m_iIMECycles = ei_cycles + 1;
 }
 
