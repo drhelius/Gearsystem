@@ -587,17 +587,6 @@ inline void Processor::OPCodes_ADD_HL(u16 number)
     ToggleXYFlagsFromResult(reg->GetHigh());
 }
 
-inline void Processor::OPCodes_ADD_SP(s8 number)
-{
-    int result = SP.GetValue() + number;
-    ClearAllFlags();
-    if (((SP.GetValue() ^ number ^ (result & 0xFFFF)) & 0x100) == 0x100)
-        ToggleFlag(FLAG_CARRY);
-    if (((SP.GetValue() ^ number ^ (result & 0xFFFF)) & 0x10) == 0x10)
-        ToggleFlag(FLAG_HALF);
-    SP.SetValue(static_cast<u16> (result));
-}
-
 inline void Processor::OPCodes_ADC_HL(u16 number)
 {
     int result = HL.GetValue() + number + (IsSetFlag(FLAG_CARRY) ? 1 : 0);
