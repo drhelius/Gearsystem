@@ -963,26 +963,59 @@ inline void Processor::OPCodes_RR_HL()
 
 inline void Processor::OPCodes_BIT(EightBitRegister* reg, int bit)
 {
+    IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     u8 value = reg->GetValue();
     if (IsPrefixedIntruction())
         value = m_pMemory->Read(GetPrefixedDisplacementValue());
     if (((value >> bit) & 0x01) == 0)
+    {
         ToggleFlag(FLAG_ZERO);
+        ToggleFlag(FLAG_PARITY);
+    }
     else
-        UntoggleFlag(FLAG_ZERO);
+    {     
+        switch (bit)
+        {
+            case 3: ToggleFlag(FLAG_X); break;
+            case 5: ToggleFlag(FLAG_Y); break;
+            case 7: ToggleFlag(FLAG_SIGN); break;
+        }          
+    }
     ToggleFlag(FLAG_HALF);
-    UntoggleFlag(FLAG_NEGATIVE);
 }
 
 inline void Processor::OPCodes_BIT_HL(int bit)
 {
+    IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     u16 address = GetPrefixedDisplacementValue();
     if (((m_pMemory->Read(address) >> bit) & 0x01) == 0)
+    {
         ToggleFlag(FLAG_ZERO);
+        ToggleFlag(FLAG_PARITY);
+    }
     else
-        UntoggleFlag(FLAG_ZERO);
+    {     
+        if (IsPrefixedIntruction())
+        {
+            u8 xy = (address >> 8) & 0xFF;
+            if ((xy & 0x08) != 0)
+                ToggleFlag(FLAG_X);
+            if ((xy & 0x20) != 0)
+                ToggleFlag(FLAG_Y);
+            if (bit == 7)
+                ToggleFlag(FLAG_SIGN);
+        }
+        else
+        {
+            switch (bit)
+            {
+                case 3: ToggleFlag(FLAG_X); break;
+                case 5: ToggleFlag(FLAG_Y); break;
+                case 7: ToggleFlag(FLAG_SIGN); break;
+            }    
+        }
+    }
     ToggleFlag(FLAG_HALF);
-    UntoggleFlag(FLAG_NEGATIVE);
 }
 
 inline void Processor::OPCodes_SET(EightBitRegister* reg, int bit)
