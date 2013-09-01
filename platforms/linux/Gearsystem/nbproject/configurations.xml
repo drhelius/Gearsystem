@@ -44,11 +44,11 @@
       <itemPath>../../../src/Processor_inline.h</itemPath>
       <itemPath>../../../src/RomOnlyMemoryRule.cpp</itemPath>
       <itemPath>../../../src/RomOnlyMemoryRule.h</itemPath>
-      <itemPath>../../../src/SegaIOPorts.cpp</itemPath>
-      <itemPath>../../../src/SegaIOPorts.h</itemPath>
       <itemPath>../../../src/SegaMemoryRule.cpp</itemPath>
       <itemPath>../../../src/SegaMemoryRule.h</itemPath>
       <itemPath>../../../src/SixteenBitRegister.h</itemPath>
+      <itemPath>../../../src/SmsIOPorts.cpp</itemPath>
+      <itemPath>../../../src/SmsIOPorts.h</itemPath>
       <itemPath>../../../src/Video.cpp</itemPath>
       <itemPath>../../../src/Video.h</itemPath>
       <itemPath>../../../src/definitions.h</itemPath>
@@ -171,15 +171,15 @@
       </item>
       <item path="../../../src/RomOnlyMemoryRule.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../src/SegaIOPorts.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../../src/SegaIOPorts.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../../src/SegaMemoryRule.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/SegaMemoryRule.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/SixteenBitRegister.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/SmsIOPorts.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/SmsIOPorts.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/Video.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -385,15 +385,15 @@
       </item>
       <item path="../../../src/RomOnlyMemoryRule.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../src/SegaIOPorts.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../../src/SegaIOPorts.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../../src/SegaMemoryRule.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/SegaMemoryRule.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/SixteenBitRegister.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/SmsIOPorts.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/SmsIOPorts.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/Video.cpp" ex="false" tool="1" flavor2="0">
       </item>
