@@ -90,7 +90,7 @@ private:
     void ServeInterrupt(Interrupts interrupt);
     void UpdateDelayedInterrupts();
     void ClearAllFlags();
-    void ToggleZeroFlagFromResult(u8 result);
+    void ToggleZeroFlagFromResult(u16 result);
     void ToggleSignFlagFromResult(u8 result);
     void ToggleXYFlagsFromResult(u8 result);
     void ToggleParityFlagFromResult(u8 result);
