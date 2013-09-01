@@ -27,7 +27,7 @@
 #include "MemoryRule.h"
 #include "SegaMemoryRule.h"
 #include "RomOnlyMemoryRule.h"
-#include "SegaIOPorts.h"
+#include "SmsIOPorts.h"
 
 GearsystemCore::GearsystemCore()
 {
@@ -39,7 +39,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pCartridge);
     InitPointer(m_pSegaMemoryRule);
     InitPointer(m_pRomOnlyMemoryRule);
-    InitPointer(m_pSegaIOPorts);
+    InitPointer(m_pSmsIOPorts);
     m_bPaused = true;
 }
 
@@ -63,7 +63,7 @@ GearsystemCore::~GearsystemCore()
     }
 #endif
 
-    SafeDelete(m_pSegaIOPorts);
+    SafeDelete(m_pSmsIOPorts);
     SafeDelete(m_pRomOnlyMemoryRule);
     SafeDelete(m_pSegaMemoryRule);
     SafeDelete(m_pCartridge);
@@ -82,8 +82,8 @@ void GearsystemCore::Init()
     m_pVideo = new Video(m_pMemory, m_pProcessor);
     m_pInput = new Input(m_pMemory, m_pProcessor);
     m_pCartridge = new Cartridge();
-    m_pSegaIOPorts = new SegaIOPorts();
-    m_pProcessor->SetIOPOrts(m_pSegaIOPorts);
+    m_pSmsIOPorts = new SmsIOPorts(m_pAudio, m_pVideo, m_pInput);
+    m_pProcessor->SetIOPOrts(m_pSmsIOPorts);
 
     m_pMemory->Init();
     m_pProcessor->Init();
@@ -105,7 +105,7 @@ void GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer)
             unsigned int clockCycles = m_pProcessor->Tick();
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer);
             m_pAudio->Tick(clockCycles);
-            m_pInput->Tick(clockCycles);
+            //m_pInput->Tick(clockCycles);
         }
     }
 }
@@ -204,59 +204,7 @@ void GearsystemCore::SaveRam()
 }
 
 void GearsystemCore::SaveRam(const char* szPath)
-{/*
-    if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pMemory->GetCurrentRule()))
-    {
-        Log("Saving RAM...");
-
-        using namespace std;
-
-        char path[512];
-
-        if (IsValidPointer(szPath))
-        {
-            strcpy(path, szPath);
-            strcat(path, "/");
-            strcat(path, m_pCartridge->GetFileName());
-        }
-        else
-        {
-            strcpy(path, m_pCartridge->GetFilePath());
-        }
-        
-        strcat(path, ".gearsystem");
-
-        Log("Save file: %s", path);
-
-        char signature[16] = SAVE_FILE_SIGNATURE;
-        u8 version = SAVE_FILE_VERSION;
-        u8 romType = m_pCartridge->GetType();
-        u8 romSize = m_pCartridge->GetROMSize();
-        u8 ramSize = m_pCartridge->GetRAMSize();
-        u8 ramBanksSize = m_pMemory->GetCurrentRule()->GetRamBanksSize();
-        u8 ramBanksStart = 39;
-        u8 saveStateSize = 0;
-        u8 saveStateStart = 0;
-
-        ofstream file(path, ios::out | ios::binary);
-
-        file.write(signature, 16);
-        file.write(reinterpret_cast<const char*> (&version), 1);
-        file.write(m_pCartridge->GetName(), 16);
-        file.write(reinterpret_cast<const char*> (&romType), 1);
-        file.write(reinterpret_cast<const char*> (&romSize), 1);
-        file.write(reinterpret_cast<const char*> (&ramSize), 1);
-        file.write(reinterpret_cast<const char*> (&ramBanksSize), 1);
-        file.write(reinterpret_cast<const char*> (&ramBanksStart), 1);
-        file.write(reinterpret_cast<const char*> (&saveStateSize), 1);
-        file.write(reinterpret_cast<const char*> (&saveStateStart), 1);
-
-        Log("Header saved");
-
-        m_pMemory->GetCurrentRule()->SaveRam(file);
-
-        Log("RAM saved");
-    }*/
+{
 }
 
 void GearsystemCore::LoadRam()
@@ -265,76 +213,7 @@ void GearsystemCore::LoadRam()
 }
 
 void GearsystemCore::LoadRam(const char* szPath)
-{/*
-    if (m_pCartridge->IsLoadedROM() && m_pCartridge->HasBattery() && IsValidPointer(m_pMemory->GetCurrentRule()))
-    {
-        Log("Loading RAM...");
-
-        using namespace std;
-
-        char path[512];
-
-        if (IsValidPointer(szPath))
-        {
-            strcpy(path, szPath);
-            strcat(path, "/");
-            strcat(path, m_pCartridge->GetFileName());
-        }
-        else
-        {
-            strcpy(path, m_pCartridge->GetFilePath());
-        }
-        
-        strcat(path, ".gearsystem");
-
-        Log("Save file: %s", path);
-
-        ifstream file(path, ios::in | ios::binary);
-
-        if (!file.fail())
-        {
-            char signature[16];
-            u8 version;
-            char romName[16];
-            u8 romType;
-            u8 romSize;
-            u8 ramSize;
-            u8 ramBanksSize;
-            u8 ramBanksStart;
-            u8 saveStateSize;
-            u8 saveStateStart;
-
-            file.read(signature, 16);
-            file.read(reinterpret_cast<char*> (&version), 1);
-            file.read(romName, 16);
-            file.read(reinterpret_cast<char*> (&romType), 1);
-            file.read(reinterpret_cast<char*> (&romSize), 1);
-            file.read(reinterpret_cast<char*> (&ramSize), 1);
-            file.read(reinterpret_cast<char*> (&ramBanksSize), 1);
-            file.read(reinterpret_cast<char*> (&ramBanksStart), 1);
-            file.read(reinterpret_cast<char*> (&saveStateSize), 1);
-            file.read(reinterpret_cast<char*> (&saveStateStart), 1);
-
-            Log("Header loaded");
-
-            if ((strcmp(signature, SAVE_FILE_SIGNATURE) == 0) && (strcmp(romName, m_pCartridge->GetName()) == 0) &&
-                    (version == SAVE_FILE_VERSION) && (romType == m_pCartridge->GetType()) &&
-                    (romSize == m_pCartridge->GetROMSize()) && (ramSize == m_pCartridge->GetRAMSize()))
-            {
-                m_pMemory->GetCurrentRule()->LoadRam(file);
-
-                Log("RAM loaded");
-            }
-            else
-            {
-                Log("Integrity check failed loading save file");
-            }
-        }
-        else
-        {
-            Log("Save file doesn't exist");
-        }
-    }*/
+{
 }
 
 void GearsystemCore::InitMemoryRules()

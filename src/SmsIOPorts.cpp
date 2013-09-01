@@ -17,19 +17,32 @@
  * 
  */
 
-#ifndef IOPORTS_H
-#define	IOPORTS_H
+#include "SmsIOPorts.h"
+#include "Audio.h"
+#include "Video.h"
+#include "Input.h"
 
-#include "definitions.h"
-
-class IOPorts
+SmsIOPorts::SmsIOPorts(Audio* pAudio, Video* pVideo, Input* pInput)
 {
-public:
-    IOPorts() { };
-    virtual ~IOPorts() { };
-    virtual u8 DoInput(u8 port) = 0;
-    virtual void DoOutput(u8 port, u8 value) = 0;
-};
+    m_pAudio = pAudio;
+    m_pVideo = pVideo;
+    m_pInput = pInput;
+}
 
-#endif	/* IOPORTS_H */
+SmsIOPorts::~SmsIOPorts()
+{
+}
 
+u8 SmsIOPorts::DoInput(u8 port)
+{
+    return 0x00;
+}
+
+void SmsIOPorts::DoOutput(u8 port, u8 value)
+{
+    if ((port >= 0x40) && (port < 0x80))
+    {
+        // Writes to any address go to the SN76489 PSG
+        m_pAudio->WriteAudioRegister(value);
+    }
+}

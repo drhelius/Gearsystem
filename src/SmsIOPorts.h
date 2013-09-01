@@ -17,19 +17,27 @@
  * 
  */
 
-#ifndef IOPORTS_H
-#define	IOPORTS_H
+#ifndef SMSIOPORTS_H
+#define	SMSIOPORTS_H
 
-#include "definitions.h"
+#include "IOPorts.h"
 
-class IOPorts
+class Audio;
+class Video;
+class Input;
+
+class SmsIOPorts : public IOPorts
 {
 public:
-    IOPorts() { };
-    virtual ~IOPorts() { };
-    virtual u8 DoInput(u8 port) = 0;
-    virtual void DoOutput(u8 port, u8 value) = 0;
+    SmsIOPorts(Audio* pAudio, Video* pVideo, Input* pInput);
+    virtual ~SmsIOPorts();
+    virtual u8 DoInput(u8 port);
+    virtual void DoOutput(u8 port, u8 value);
+private:
+    Audio* m_pAudio;
+    Video* m_pVideo;
+    Input* m_pInput;
 };
 
-#endif	/* IOPORTS_H */
+#endif	/* SMSIOPORTS_H */
 

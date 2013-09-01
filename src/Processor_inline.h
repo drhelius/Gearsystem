@@ -280,18 +280,18 @@ inline void Processor::OPCodes_IN_n(EightBitRegister* reg)
 {
     u8 port = m_pMemory->Read(PC.GetValue());
     PC.Increment();
-    reg->SetValue(m_pIOPorts->Input(port));
+    reg->SetValue(m_pIOPorts->DoInput(port));
 }
 
 inline void Processor::OPCodes_IN_C(EightBitRegister* reg)
 {
-    reg->SetValue(m_pIOPorts->Input(BC.GetLow()));
+    reg->SetValue(m_pIOPorts->DoInput(BC.GetLow()));
 }
 
 inline void Processor::OPCodes_INI()
 {
     // todo: check flags
-    m_pMemory->Write(HL.GetValue(), m_pIOPorts->Input(BC.GetLow()));
+    m_pMemory->Write(HL.GetValue(), m_pIOPorts->DoInput(BC.GetLow()));
     BC.GetHighRegister()->Decrement();
     HL.Increment();
     ToggleFlag(FLAG_NEGATIVE);
@@ -301,7 +301,7 @@ inline void Processor::OPCodes_INI()
 inline void Processor::OPCodes_IND()
 {
     // todo: check flags
-    m_pMemory->Write(HL.GetValue(), m_pIOPorts->Input(BC.GetLow()));
+    m_pMemory->Write(HL.GetValue(), m_pIOPorts->DoInput(BC.GetLow()));
     BC.GetHighRegister()->Decrement();
     HL.Decrement();
     ToggleFlag(FLAG_NEGATIVE);
@@ -312,18 +312,18 @@ inline void Processor::OPCodes_OUT_n(EightBitRegister* reg)
 {
     u8 port = m_pMemory->Read(PC.GetValue());
     PC.Increment();
-    m_pIOPorts->Output(port, reg->GetValue());
+    m_pIOPorts->DoOutput(port, reg->GetValue());
 }
 
 inline void Processor::OPCodes_OUT_C(EightBitRegister* reg)
 {
-    m_pIOPorts->Output(BC.GetLow(), reg->GetValue());
+    m_pIOPorts->DoOutput(BC.GetLow(), reg->GetValue());
 }
 
 inline void Processor::OPCodes_OUTI()
 {
     // todo: check flags
-    m_pIOPorts->Output(BC.GetLow(), m_pMemory->Read(HL.GetValue()));
+    m_pIOPorts->DoOutput(BC.GetLow(), m_pMemory->Read(HL.GetValue()));
     BC.GetHighRegister()->Decrement();
     HL.Increment();
     ToggleFlag(FLAG_NEGATIVE);
@@ -333,7 +333,7 @@ inline void Processor::OPCodes_OUTI()
 inline void Processor::OPCodes_OUTD()
 {
     // todo: check flags
-    m_pIOPorts->Output(BC.GetLow(), m_pMemory->Read(HL.GetValue()));
+    m_pIOPorts->DoOutput(BC.GetLow(), m_pMemory->Read(HL.GetValue()));
     BC.GetHighRegister()->Decrement();
     HL.Decrement();
     ToggleFlag(FLAG_NEGATIVE);

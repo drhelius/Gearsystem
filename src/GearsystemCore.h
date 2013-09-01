@@ -31,7 +31,7 @@ class Cartridge;
 class SegaMemoryRule;
 class RomOnlyMemoryRule;
 class MemoryRule;
-class SegaIOPorts;
+class SmsIOPorts;
 
 class GearsystemCore
 {
@@ -69,7 +69,7 @@ private:
     Cartridge* m_pCartridge;
     SegaMemoryRule* m_pSegaMemoryRule;
     RomOnlyMemoryRule* m_pRomOnlyMemoryRule;
-    SegaIOPorts* m_pSegaIOPorts;
+    SmsIOPorts* m_pSmsIOPorts;
     bool m_bPaused;
 };
 

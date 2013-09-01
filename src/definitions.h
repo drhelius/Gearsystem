@@ -53,8 +53,6 @@ typedef int32_t s32;
 typedef uint64_t u64;
 typedef int64_t s64;
 
-// http://icarus.ticalc.org/articles/z80_faq.html
-
 #define FLAG_CARRY 0x01
 #define FLAG_NEGATIVE 0x02
 #define FLAG_PARITY 0x04
@@ -85,6 +83,13 @@ enum GS_Keys
     Key_Left = 1,
     Key_Up = 2,
     Key_Down = 3
+};
+
+enum GS_System
+{
+    System_SMS_NTSC,
+    System_SMS_PAL,
+    System_GG
 };
 
 #ifdef DEBUG_GEARSYSTEM
