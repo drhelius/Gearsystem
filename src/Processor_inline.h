@@ -353,6 +353,9 @@ inline void Processor::OPCodes_OR(u8 number)
     AF.SetHigh(result);
     ClearAllFlags();
     ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
+    ToggleParityFlagFromResult(result);
 }
 
 inline void Processor::OPCodes_XOR(u8 number)
@@ -361,6 +364,9 @@ inline void Processor::OPCodes_XOR(u8 number)
     AF.SetHigh(result);
     ClearAllFlags();
     ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
+    ToggleParityFlagFromResult(result);
 }
 
 inline void Processor::OPCodes_AND(u8 number)
@@ -369,6 +375,9 @@ inline void Processor::OPCodes_AND(u8 number)
     AF.SetHigh(result);
     SetFlag(FLAG_HALF);
     ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
+    ToggleParityFlagFromResult(result);
 }
 
 inline void Processor::OPCodes_CP(u8 number)
