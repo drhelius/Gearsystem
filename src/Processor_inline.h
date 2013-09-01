@@ -382,19 +382,19 @@ inline void Processor::OPCodes_AND(u8 number)
 
 inline void Processor::OPCodes_CP(u8 number)
 {
+    int result = AF.GetHigh() - number;
+    int carrybits = AF.GetHigh() ^ number ^ result;
+    u8 final_result = static_cast<u8> (result);
     SetFlag(FLAG_NEGATIVE);
-    if (AF.GetHigh() < number)
-    {
+    ToggleZeroFlagFromResult(final_result);
+    ToggleSignFlagFromResult(final_result);
+    ToggleXYFlagsFromResult(number);
+    if ((carrybits & 0x100) != 0)
         ToggleFlag(FLAG_CARRY);
-    }
-    if (AF.GetHigh() == number)
-    {
-        ToggleFlag(FLAG_ZERO);
-    }
-    if (((AF.GetHigh() - number) & 0xF) > (AF.GetHigh() & 0xF))
-    {
+    if ((carrybits & 0x10) != 0)
         ToggleFlag(FLAG_HALF);
-    }
+    if ((((carrybits << 1) ^ carrybits) & 0x100) != 0)
+       ToggleFlag(FLAG_PARITY);
 }
 
 inline void Processor::OPCodes_CPI()
