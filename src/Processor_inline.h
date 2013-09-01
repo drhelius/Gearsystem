@@ -491,12 +491,13 @@ inline void Processor::OPCodes_CP(u8 number)
 inline void Processor::OPCodes_CPI()
 {
     u8 number = m_pMemory->Read(HL.GetValue());
+    int result = AF.GetHigh() - number;
+    int carrybits = AF.GetHigh() ^ number ^ result;
+    u8 final_result = static_cast<u8> (result);
     ToggleFlag(FLAG_NEGATIVE);
-    if (AF.GetHigh() == number)
-        ToggleFlag(FLAG_ZERO);
-    else
-        UntoggleFlag(FLAG_ZERO);
-    if (((AF.GetHigh() - number) & 0xF) > (AF.GetHigh() & 0xF))
+    ToggleZeroFlagFromResult(final_result);
+    ToggleSignFlagFromResult(final_result);
+    if ((carrybits & 0x10) != 0)
         ToggleFlag(FLAG_HALF);
     else
         UntoggleFlag(FLAG_HALF);
@@ -506,17 +507,27 @@ inline void Processor::OPCodes_CPI()
         ToggleFlag(FLAG_PARITY);
     else
         UntoggleFlag(FLAG_PARITY);
+    int n = AF.GetHigh() - number - (IsSetFlag(FLAG_HALF) ? 1 : 0);
+    if ((n & 0x08) != 0)
+        ToggleFlag(FLAG_X);
+    else
+        UntoggleFlag(FLAG_X);
+    if ((n & 0x02) != 0)
+        ToggleFlag(FLAG_Y);
+    else
+        UntoggleFlag(FLAG_Y);
 }
 
 inline void Processor::OPCodes_CPD()
 {
     u8 number = m_pMemory->Read(HL.GetValue());
+    int result = AF.GetHigh() - number;
+    int carrybits = AF.GetHigh() ^ number ^ result;
+    u8 final_result = static_cast<u8> (result);
     ToggleFlag(FLAG_NEGATIVE);
-    if (AF.GetHigh() == number)
-        ToggleFlag(FLAG_ZERO);
-    else
-        UntoggleFlag(FLAG_ZERO);
-    if (((AF.GetHigh() - number) & 0xF) > (AF.GetHigh() & 0xF))
+    ToggleZeroFlagFromResult(final_result);
+    ToggleSignFlagFromResult(final_result);
+    if ((carrybits & 0x10) != 0)
         ToggleFlag(FLAG_HALF);
     else
         UntoggleFlag(FLAG_HALF);
@@ -526,6 +537,15 @@ inline void Processor::OPCodes_CPD()
         ToggleFlag(FLAG_PARITY);
     else
         UntoggleFlag(FLAG_PARITY);
+    int n = AF.GetHigh() - number - (IsSetFlag(FLAG_HALF) ? 1 : 0);
+    if ((n & 0x08) != 0)
+        ToggleFlag(FLAG_X);
+    else
+        UntoggleFlag(FLAG_X);
+    if ((n & 0x02) != 0)
+        ToggleFlag(FLAG_Y);
+    else
+        UntoggleFlag(FLAG_Y);
 }
 
 inline void Processor::OPCodes_INC(EightBitRegister* reg)
