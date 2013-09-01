@@ -516,30 +516,36 @@ inline void Processor::OPCodes_SUB(u8 number)
 {
     int result = AF.GetHigh() - number;
     int carrybits = AF.GetHigh() ^ number ^ result;
-    AF.SetHigh(static_cast<u8> (result));
+    u8 final_result = static_cast<u8> (result);
+    AF.SetHigh(final_result);
     SetFlag(FLAG_NEGATIVE);
-    ToggleZeroFlagFromResult(static_cast<u8> (result));
+    ToggleZeroFlagFromResult(final_result);
+    ToggleSignFlagFromResult(final_result);
+    ToggleXYFlagsFromResult(final_result);
     if ((carrybits & 0x100) != 0)
-    {
         ToggleFlag(FLAG_CARRY);
-    }
     if ((carrybits & 0x10) != 0)
-    {
         ToggleFlag(FLAG_HALF);
-    }
+    if ((((carrybits << 1) ^ carrybits) & 0x100) != 0)
+       ToggleFlag(FLAG_PARITY);
 }
 
 inline void Processor::OPCodes_SBC(u8 number)
 {
-    int carry = IsSetFlag(FLAG_CARRY) ? 1 : 0;
-    int result = AF.GetHigh() - number - carry;
+    int result = AF.GetHigh() - number - (IsSetFlag(FLAG_CARRY) ? 1 : 0);
+    int carrybits = AF.GetHigh() ^ number ^ result;
+    u8 final_result = static_cast<u8> (result);
+    AF.SetHigh(final_result);
     SetFlag(FLAG_NEGATIVE);
-    ToggleZeroFlagFromResult(static_cast<u8> (result));
-    if (result < 0)
+    ToggleZeroFlagFromResult(final_result);
+    ToggleSignFlagFromResult(final_result);
+    ToggleXYFlagsFromResult(final_result);
+    if ((carrybits & 0x100) != 0)
         ToggleFlag(FLAG_CARRY);
-    if (((AF.GetHigh() & 0x0F) - (number & 0x0F) - carry) < 0)
+    if ((carrybits & 0x10) != 0)
         ToggleFlag(FLAG_HALF);
-    AF.SetHigh(static_cast<u8> (result));
+    if ((((carrybits << 1) ^ carrybits) & 0x100) != 0)
+       ToggleFlag(FLAG_PARITY);
 }
 
 inline void Processor::OPCodes_ADD_HL(u16 number)
