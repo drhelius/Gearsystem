@@ -289,13 +289,16 @@ void Processor::OPCodeED0x66()
 void Processor::OPCodeED0x67()
 {
     // RRD
-    u8 value = m_pMemory->Read(HL.GetValue());
-    u8 a = AF.GetHigh();
-    u8 result = (a & 0xF0) | (value & 0x0F);
+    u16 address = HL.GetValue();
+    u8 value = m_pMemory->Read(address);
+    u8 result = (AF.GetHigh() & 0xF0) | (value & 0x0F);
     AF.SetHigh(result);
-    m_pMemory->Write(HL.GetValue(), ((a << 4) & 0xF0) | ((value >> 4) & 0x0F));
+    m_pMemory->Write(address, ((AF.GetHigh() << 4) & 0xF0) | ((value >> 4) & 0x0F));
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleParityFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
 }
 
 void Processor::OPCodeED0x68()
@@ -346,13 +349,16 @@ void Processor::OPCodeED0x6E()
 void Processor::OPCodeED0x6F()
 {
     // RLD
-    u8 value = m_pMemory->Read(HL.GetValue());
-    u8 a = AF.GetHigh();
-    u8 result = (a & 0xF0) | ((value >> 4) & 0x0F);
+    u16 address = HL.GetValue();
+    u8 value = m_pMemory->Read(address);
+    u8 result = (AF.GetHigh() & 0xF0) | ((value >> 4) & 0x0F);
     AF.SetHigh(result);
-    m_pMemory->Write(HL.GetValue(), ((value << 4) & 0xF0) | (a & 0x0F));
+    m_pMemory->Write(address, ((value << 4) & 0xF0) | (AF.GetHigh() & 0x0F));
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleParityFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
 }
 
 void Processor::OPCodeED0x70()

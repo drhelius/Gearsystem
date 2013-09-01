@@ -634,9 +634,12 @@ inline void Processor::OPCodes_SLL(EightBitRegister* reg)
     (reg->GetValue() & 0x80) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     u8 result = (reg->GetValue() << 1) | 0x01;
     reg->SetValue(result);
-    ToggleZeroFlagFromResult(result);
     if (IsPrefixedIntruction())
         m_pMemory->Write(address, reg->GetValue());
+    ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleParityFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
 }
 
 inline void Processor::OPCodes_SLL_HL()
@@ -647,6 +650,9 @@ inline void Processor::OPCodes_SLL_HL()
     result = (result << 1) | 0x01;
     m_pMemory->Write(address, result);
     ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleParityFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
 }
 
 inline void Processor::OPCodes_SLA(EightBitRegister* reg)
@@ -660,9 +666,12 @@ inline void Processor::OPCodes_SLA(EightBitRegister* reg)
     (reg->GetValue() & 0x80) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     u8 result = reg->GetValue() << 1;
     reg->SetValue(result);
-    ToggleZeroFlagFromResult(result);
     if (IsPrefixedIntruction())
         m_pMemory->Write(address, reg->GetValue());
+    ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleParityFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
 }
 
 inline void Processor::OPCodes_SLA_HL()
@@ -673,6 +682,9 @@ inline void Processor::OPCodes_SLA_HL()
     result <<= 1;
     m_pMemory->Write(address, result);
     ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleParityFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
 }
 
 inline void Processor::OPCodes_SRA(EightBitRegister* reg)
@@ -691,13 +703,14 @@ inline void Processor::OPCodes_SRA(EightBitRegister* reg)
         result |= 0x80;
     }
     else
-    {
         result >>= 1;
-    }
     reg->SetValue(result);
-    ToggleZeroFlagFromResult(result);
     if (IsPrefixedIntruction())
         m_pMemory->Write(address, reg->GetValue());
+    ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleParityFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
 }
 
 inline void Processor::OPCodes_SRA_HL()
@@ -711,11 +724,12 @@ inline void Processor::OPCodes_SRA_HL()
         result |= 0x80;
     }
     else
-    {
         result >>= 1;
-    }
     m_pMemory->Write(address, result);
     ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleParityFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
 }
 
 inline void Processor::OPCodes_SRL(EightBitRegister* reg)
@@ -730,9 +744,12 @@ inline void Processor::OPCodes_SRL(EightBitRegister* reg)
     (result & 0x01) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     result >>= 1;
     reg->SetValue(result);
-    ToggleZeroFlagFromResult(result);
     if (IsPrefixedIntruction())
         m_pMemory->Write(address, reg->GetValue());
+    ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleParityFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
 }
 
 inline void Processor::OPCodes_SRL_HL()
@@ -743,6 +760,9 @@ inline void Processor::OPCodes_SRL_HL()
     result >>= 1;
     m_pMemory->Write(address, result);
     ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleParityFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
 }
 
 inline void Processor::OPCodes_RLC(EightBitRegister* reg, bool isRegisterA)
@@ -756,20 +776,27 @@ inline void Processor::OPCodes_RLC(EightBitRegister* reg, bool isRegisterA)
     u8 result = reg->GetValue();
     if ((result & 0x80) != 0)
     {
-        SetFlag(FLAG_CARRY);
+        ToggleFlag(FLAG_CARRY);
         result <<= 1;
         result |= 0x1;
     }
     else
     {
-        ClearAllFlags();
+        UntoggleFlag(FLAG_CARRY);
         result <<= 1;
     }
     reg->SetValue(result);
     if (!isRegisterA && IsPrefixedIntruction())
         m_pMemory->Write(address, reg->GetValue());
+    UntoggleFlag(FLAG_HALF);
+    UntoggleFlag(FLAG_NEGATIVE);
+    ToggleXYFlagsFromResult(result);
     if (!isRegisterA)
+    {
         ToggleZeroFlagFromResult(result);
+        ToggleSignFlagFromResult(result);
+        ToggleParityFlagFromResult(result);
+    }
 }
 
 inline void Processor::OPCodes_RLC_HL()
@@ -789,6 +816,9 @@ inline void Processor::OPCodes_RLC_HL()
     }
     m_pMemory->Write(address, result);
     ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleParityFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
 }
 
 inline void Processor::OPCodes_RL(EightBitRegister* reg, bool isRegisterA)
@@ -801,14 +831,21 @@ inline void Processor::OPCodes_RL(EightBitRegister* reg, bool isRegisterA)
     }
     u8 carry = IsSetFlag(FLAG_CARRY) ? 1 : 0;
     u8 result = reg->GetValue();
-    ((result & 0x80) != 0) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
+    ((result & 0x80) != 0) ? ToggleFlag(FLAG_CARRY) : UntoggleFlag(FLAG_CARRY);
     result <<= 1;
     result |= carry;
     reg->SetValue(result);
     if (!isRegisterA && IsPrefixedIntruction())
         m_pMemory->Write(address, reg->GetValue());
+    UntoggleFlag(FLAG_HALF);
+    UntoggleFlag(FLAG_NEGATIVE);
+    ToggleXYFlagsFromResult(result);
     if (!isRegisterA)
+    {
         ToggleZeroFlagFromResult(result);
+        ToggleSignFlagFromResult(result);
+        ToggleParityFlagFromResult(result);
+    }
 }
 
 inline void Processor::OPCodes_RL_HL()
@@ -821,6 +858,9 @@ inline void Processor::OPCodes_RL_HL()
     result |= carry;
     m_pMemory->Write(address, result);
     ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleParityFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
 }
 
 inline void Processor::OPCodes_RRC(EightBitRegister* reg, bool isRegisterA)
@@ -834,20 +874,27 @@ inline void Processor::OPCodes_RRC(EightBitRegister* reg, bool isRegisterA)
     u8 result = reg->GetValue();
     if ((result & 0x01) != 0)
     {
-        SetFlag(FLAG_CARRY);
+        ToggleFlag(FLAG_CARRY);
         result >>= 1;
         result |= 0x80;
     }
     else
     {
-        ClearAllFlags();
+        UntoggleFlag(FLAG_CARRY);
         result >>= 1;
     }
     reg->SetValue(result);
     if (!isRegisterA && IsPrefixedIntruction())
         m_pMemory->Write(address, reg->GetValue());
+    UntoggleFlag(FLAG_HALF);
+    UntoggleFlag(FLAG_NEGATIVE);
+    ToggleXYFlagsFromResult(result);
     if (!isRegisterA)
+    {
         ToggleZeroFlagFromResult(result);
+        ToggleSignFlagFromResult(result);
+        ToggleParityFlagFromResult(result);
+    }
 }
 
 inline void Processor::OPCodes_RRC_HL()
@@ -867,6 +914,9 @@ inline void Processor::OPCodes_RRC_HL()
     }
     m_pMemory->Write(address, result);
     ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleParityFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
 }
 
 inline void Processor::OPCodes_RR(EightBitRegister* reg, bool isRegisterA)
@@ -879,14 +929,21 @@ inline void Processor::OPCodes_RR(EightBitRegister* reg, bool isRegisterA)
     }
     u8 carry = IsSetFlag(FLAG_CARRY) ? 0x80 : 0x00;
     u8 result = reg->GetValue();
-    ((result & 0x01) != 0) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
+    ((result & 0x01) != 0) ? ToggleFlag(FLAG_CARRY) : UntoggleFlag(FLAG_CARRY);
     result >>= 1;
     result |= carry;
     reg->SetValue(result);
     if (!isRegisterA && IsPrefixedIntruction())
         m_pMemory->Write(address, reg->GetValue());
+    UntoggleFlag(FLAG_HALF);
+    UntoggleFlag(FLAG_NEGATIVE);
+    ToggleXYFlagsFromResult(result);
     if (!isRegisterA)
+    {
         ToggleZeroFlagFromResult(result);
+        ToggleSignFlagFromResult(result);
+        ToggleParityFlagFromResult(result);
+    }
 }
 
 inline void Processor::OPCodes_RR_HL()
@@ -899,6 +956,9 @@ inline void Processor::OPCodes_RR_HL()
     result |= carry;
     m_pMemory->Write(address, result);
     ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleParityFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
 }
 
 inline void Processor::OPCodes_BIT(EightBitRegister* reg, int bit)
