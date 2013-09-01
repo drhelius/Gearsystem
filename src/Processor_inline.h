@@ -225,7 +225,8 @@ inline void Processor::OPCodes_LD_nn_dd(SixteenBitRegister* reg)
 
 inline void Processor::OPCodes_LDI()
 {
-    m_pMemory->Write(DE.GetValue(), m_pMemory->Read(HL.GetValue()));
+    u8 result = m_pMemory->Read(HL.GetValue())
+    m_pMemory->Write(DE.GetValue(), result);
     DE.Increment();
     HL.Increment();
     BC.Decrement();
@@ -235,11 +236,21 @@ inline void Processor::OPCodes_LDI()
         ToggleFlag(FLAG_PARITY);
     else
         UntoggleFlag(FLAG_PARITY);
+    u16 n = AF.GetHigh() + result;
+    if ((n & 0x08) != 0)
+        ToggleFlag(FLAG_X);
+    else
+        UntoggleFlag(FLAG_X);
+    if ((n & 0x02) != 0)
+        ToggleFlag(FLAG_Y);
+    else
+        UntoggleFlag(FLAG_Y);  
 }
 
 inline void Processor::OPCodes_LDD()
 {
-    m_pMemory->Write(DE.GetValue(), m_pMemory->Read(HL.GetValue()));
+    u8 result = m_pMemory->Read(HL.GetValue())
+    m_pMemory->Write(DE.GetValue(), result);
     DE.Decrement();
     HL.Decrement();
     BC.Decrement();
@@ -249,6 +260,15 @@ inline void Processor::OPCodes_LDD()
         ToggleFlag(FLAG_PARITY);
     else
         UntoggleFlag(FLAG_PARITY);
+    u16 n = AF.GetHigh() + result;
+    if ((n & 0x08) != 0)
+        ToggleFlag(FLAG_X);
+    else
+        UntoggleFlag(FLAG_X);
+    if ((n & 0x02) != 0)
+        ToggleFlag(FLAG_Y);
+    else
+        UntoggleFlag(FLAG_Y);
 }
 
 inline void Processor::OPCodes_CALL_nn()
