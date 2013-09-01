@@ -443,10 +443,12 @@ inline void Processor::OPCodes_INC(EightBitRegister* reg)
     reg->SetValue(result);
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
     if ((result & 0x0F) == 0x00)
-    {
         ToggleFlag(FLAG_HALF);
-    }
+    if (result == 0x80)
+        ToggleFlag(FLAG_PARITY);
 }
 
 inline void Processor::OPCodes_INC_HL()
@@ -456,8 +458,12 @@ inline void Processor::OPCodes_INC_HL()
     m_pMemory->Write(address, result);
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
     if ((result & 0x0F) == 0x00)
         ToggleFlag(FLAG_HALF);
+    if (result == 0x80)
+        ToggleFlag(FLAG_PARITY);
 }
 
 inline void Processor::OPCodes_DEC(EightBitRegister* reg)
@@ -467,10 +473,12 @@ inline void Processor::OPCodes_DEC(EightBitRegister* reg)
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     ToggleFlag(FLAG_NEGATIVE);
     ToggleZeroFlagFromResult(result);
-    if ((result & 0x0F) == 0x0F)
-    {
+    ToggleSignFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
+    if ((result & 0x0F) == 0x00)
         ToggleFlag(FLAG_HALF);
-    }
+    if (result == 0x7F)
+        ToggleFlag(FLAG_PARITY);
 }
 
 inline void Processor::OPCodes_DEC_HL()
@@ -481,8 +489,12 @@ inline void Processor::OPCodes_DEC_HL()
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     ToggleFlag(FLAG_NEGATIVE);
     ToggleZeroFlagFromResult(result);
-    if ((result & 0x0F) == 0x0F)
+    ToggleSignFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
+    if ((result & 0x0F) == 0x00)
         ToggleFlag(FLAG_HALF);
+    if (result == 0x7F)
+        ToggleFlag(FLAG_PARITY);
 }
 
 inline void Processor::OPCodes_ADD(u8 number)
