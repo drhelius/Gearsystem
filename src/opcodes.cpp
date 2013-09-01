@@ -467,6 +467,7 @@ void Processor::OPCode0x37()
     ToggleFlag(FLAG_CARRY);
     UntoggleFlag(FLAG_HALF);
     UntoggleFlag(FLAG_NEGATIVE);
+    ToggleXYFlagsFromResult(AF.GetHigh());
 }
 
 void Processor::OPCode0x38()
@@ -528,9 +529,14 @@ void Processor::OPCode0x3E()
 void Processor::OPCode0x3F()
 {
     // CCF
+    bool half = IsSetFlag(FLAG_CARRY);
     FlipFlag(FLAG_CARRY);
-    UntoggleFlag(FLAG_HALF);
+    if (half)
+        ToggleFlag(FLAG_HALF);
+    else
+        UntoggleFlag(FLAG_HALF);
     UntoggleFlag(FLAG_NEGATIVE);
+    ToggleXYFlagsFromResult(AF.GetHigh());
 }
 
 void Processor::OPCode0x40()
