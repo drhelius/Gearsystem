@@ -310,7 +310,6 @@ void Processor::OPCode0x27()
     }
 
     UntoggleFlag(FLAG_HALF);
-    UntoggleFlag(FLAG_ZERO);
 
     if ((a & 0x100) == 0x100)
         ToggleFlag(FLAG_CARRY);
@@ -318,6 +317,9 @@ void Processor::OPCode0x27()
     a &= 0xFF;
 
     ToggleZeroFlagFromResult(a);
+    ToggleSignFlagFromResult(a);
+    ToggleXYFlagsFromResult(a);
+    ToggleParityFlagFromResult(a);
 
     AF.SetHigh(a);
 }
@@ -381,6 +383,7 @@ void Processor::OPCode0x2F()
     AF.SetHigh(~AF.GetHigh());
     ToggleFlag(FLAG_HALF);
     ToggleFlag(FLAG_NEGATIVE);
+    ToggleXYFlagsFromResult(AF.GetHigh());
 }
 
 void Processor::OPCode0x30()
