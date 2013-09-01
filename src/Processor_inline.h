@@ -225,7 +225,7 @@ inline void Processor::OPCodes_LD_nn_dd(SixteenBitRegister* reg)
 
 inline void Processor::OPCodes_LDI()
 {
-    u8 result = m_pMemory->Read(HL.GetValue())
+    u8 result = m_pMemory->Read(HL.GetValue());
     m_pMemory->Write(DE.GetValue(), result);
     DE.Increment();
     HL.Increment();
@@ -249,7 +249,7 @@ inline void Processor::OPCodes_LDI()
 
 inline void Processor::OPCodes_LDD()
 {
-    u8 result = m_pMemory->Read(HL.GetValue())
+    u8 result = m_pMemory->Read(HL.GetValue());
     m_pMemory->Write(DE.GetValue(), result);
     DE.Decrement();
     HL.Decrement();
