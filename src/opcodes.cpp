@@ -125,16 +125,13 @@ void Processor::OPCode0x10()
 {
     // DJNZ (PC+e)
     BC.GetHighRegister()->Decrement();
-
     if (BC.GetHigh() != 0)
     {
         OPCodes_JR_n();
         m_bBranchTaken = true;
     }
     else
-    {
         PC.Increment();
-    }
 }
 
 void Processor::OPCode0x11()
@@ -241,9 +238,7 @@ void Processor::OPCode0x20()
         m_bBranchTaken = true;
     }
     else
-    {
         PC.Increment();
-    }
 }
 
 void Processor::OPCode0x21()
@@ -333,9 +328,7 @@ void Processor::OPCode0x28()
         m_bBranchTaken = true;
     }
     else
-    {
         PC.Increment();
-    }
 }
 
 void Processor::OPCode0x29()
@@ -395,9 +388,7 @@ void Processor::OPCode0x30()
         m_bBranchTaken = true;
     }
     else
-    {
         PC.Increment();
-    }
 }
 
 void Processor::OPCode0x31()
@@ -479,9 +470,7 @@ void Processor::OPCode0x38()
         m_bBranchTaken = true;
     }
     else
-    {
         PC.Increment();
-    }
 }
 
 void Processor::OPCode0x39()
@@ -875,9 +864,7 @@ void Processor::OPCode0x76()
         PC.Decrement();
     }
     else
-    {
         m_bHalt = true;
-    }
 }
 
 void Processor::OPCode0x77()

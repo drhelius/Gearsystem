@@ -574,7 +574,9 @@ inline void Processor::OPCodes_ADD_HL(u16 number)
     SixteenBitRegister* reg = GetPrefixedRegister();
     int result = reg->GetValue() + number;
     int carrybits = reg->GetValue() ^ number ^ result;
+    reg->SetValue(static_cast<u16> (result));
     UntoggleFlag(FLAG_NEGATIVE);
+    ToggleXYFlagsFromResult(reg->GetHigh());
     if ((carrybits & 0x10000) != 0)
         ToggleFlag(FLAG_CARRY);
     else
@@ -582,9 +584,7 @@ inline void Processor::OPCodes_ADD_HL(u16 number)
     if ((carrybits & 0x1000) != 0)
         ToggleFlag(FLAG_HALF);
     else
-        UntoggleFlag(FLAG_HALF);
-    reg->SetValue(static_cast<u16> (result));
-    ToggleXYFlagsFromResult(reg->GetHigh());
+        UntoggleFlag(FLAG_HALF);   
 }
 
 inline void Processor::OPCodes_ADC_HL(u16 number)
@@ -592,17 +592,17 @@ inline void Processor::OPCodes_ADC_HL(u16 number)
     int result = HL.GetValue() + number + (IsSetFlag(FLAG_CARRY) ? 1 : 0);
     int carrybits = HL.GetValue() ^ number ^ result;
     u16 final_result = static_cast<u16> (result);
+    HL.SetValue(final_result);
     ClearAllFlags();
+    ToggleXYFlagsFromResult(HL.GetHigh());
+    ToggleSignFlagFromResult(HL.GetHigh());
+    ToggleZeroFlagFromResult(final_result);
     if ((carrybits & 0x10000) != 0)
         ToggleFlag(FLAG_CARRY);
     if ((carrybits & 0x1000) != 0)
         ToggleFlag(FLAG_HALF);
 	if ((((carrybits << 1) ^ carrybits) & 0x10000) != 0)
         ToggleFlag(FLAG_PARITY);
-    HL.SetValue(final_result);
-    ToggleXYFlagsFromResult(HL.GetHigh());
-    ToggleSignFlagFromResult(HL.GetHigh());
-    ToggleZeroFlagFromResult(final_result);
 }
 
 inline void Processor::OPCodes_SBC_HL(u16 number)
@@ -610,17 +610,17 @@ inline void Processor::OPCodes_SBC_HL(u16 number)
     int result = HL.GetValue() - number - (IsSetFlag(FLAG_CARRY) ? 1 : 0);
     int carrybits = HL.GetValue() ^ number ^ result;
     u16 final_result = static_cast<u16> (result);
+    HL.SetValue(final_result);
     SetFlag(FLAG_NEGATIVE);
+    ToggleXYFlagsFromResult(HL.GetHigh());
+    ToggleSignFlagFromResult(HL.GetHigh());
+    ToggleZeroFlagFromResult(final_result);
     if ((carrybits & 0x10000) != 0)
         ToggleFlag(FLAG_CARRY);
     if ((carrybits & 0x1000) != 0)
         ToggleFlag(FLAG_HALF);
 	if ((((carrybits << 1) ^ carrybits) & 0x10000) != 0)
         ToggleFlag(FLAG_PARITY);
-    HL.SetValue(final_result);
-    ToggleXYFlagsFromResult(HL.GetHigh());
-    ToggleSignFlagFromResult(HL.GetHigh());
-    ToggleZeroFlagFromResult(final_result);
 }
 
 inline void Processor::OPCodes_SLL(EightBitRegister* reg)

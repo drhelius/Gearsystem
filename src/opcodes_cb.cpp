@@ -1409,7 +1409,6 @@ void Processor::OPCodeCB0xE7()
 {
     // SET 4 A
     OPCodes_SET(AF.GetHighRegister(), 4);
-
 }
 
 void Processor::OPCodeCB0xE8()
