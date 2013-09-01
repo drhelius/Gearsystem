@@ -285,27 +285,66 @@ inline void Processor::OPCodes_IN_n(EightBitRegister* reg)
 
 inline void Processor::OPCodes_IN_C(EightBitRegister* reg)
 {
-    reg->SetValue(m_pIOPorts->DoInput(BC.GetLow()));
+    u8 result = m_pIOPorts->DoInput(BC.GetLow());
+    if (IsValidPointer(reg))
+        reg->SetValue(result);
+    IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
+    ToggleZeroFlagFromResult(result);
+    ToggleSignFlagFromResult(result);
+    ToggleParityFlagFromResult(result);
+    ToggleXYFlagsFromResult(result);
 }
 
 inline void Processor::OPCodes_INI()
 {
-    // todo: check flags
-    m_pMemory->Write(HL.GetValue(), m_pIOPorts->DoInput(BC.GetLow()));
-    BC.GetHighRegister()->Decrement();
+    u8 result = m_pIOPorts->DoInput(BC.GetLow());
+    m_pMemory->Write(HL.GetValue(), result);
+    OPCodes_DEC(BC.GetHighRegister());
     HL.Increment();
-    ToggleFlag(FLAG_NEGATIVE);
-    ToggleZeroFlagFromResult(BC.GetHigh());
+    if ((result & 0x80) != 0)
+        ToggleFlag(FLAG_NEGATIVE);
+	else
+        UntoggleFlag(FLAG_NEGATIVE);
+    if ((result + ((BC.GetLow() + 1) & 0xFF)) > 0xFF)
+    {
+        ToggleFlag(FLAG_CARRY);
+        ToggleFlag(FLAG_HALF);
+    }
+    else
+    {
+        UntoggleFlag(FLAG_CARRY);
+        UntoggleFlag(FLAG_HALF);
+    }  
+    if (((result + ((BC.GetLow() + 1) & 0xFF)) & 0x07) ^ BC.GetHigh())
+        ToggleFlag(FLAG_PARITY);
+    else
+        UntoggleFlag(FLAG_PARITY);
 }
 
 inline void Processor::OPCodes_IND()
 {
-    // todo: check flags
-    m_pMemory->Write(HL.GetValue(), m_pIOPorts->DoInput(BC.GetLow()));
-    BC.GetHighRegister()->Decrement();
+    u8 result = m_pIOPorts->DoInput(BC.GetLow());
+    m_pMemory->Write(HL.GetValue(), result);
+    OPCodes_DEC(BC.GetHighRegister());
     HL.Decrement();
-    ToggleFlag(FLAG_NEGATIVE);
-    ToggleZeroFlagFromResult(BC.GetHigh());
+    if ((result & 0x80) != 0)
+        ToggleFlag(FLAG_NEGATIVE);
+	else
+        UntoggleFlag(FLAG_NEGATIVE);
+    if ((result + ((BC.GetLow() - 1) & 0xFF)) > 0xFF)
+    {
+        ToggleFlag(FLAG_CARRY);
+        ToggleFlag(FLAG_HALF);
+    }
+    else
+    {
+        UntoggleFlag(FLAG_CARRY);
+        UntoggleFlag(FLAG_HALF);
+    }  
+    if (((result + ((BC.GetLow() + 1) & 0xFF)) & 0x07) ^ BC.GetHigh())
+        ToggleFlag(FLAG_PARITY);
+    else
+        UntoggleFlag(FLAG_PARITY);
 }
 
 inline void Processor::OPCodes_OUT_n(EightBitRegister* reg)
@@ -322,22 +361,54 @@ inline void Processor::OPCodes_OUT_C(EightBitRegister* reg)
 
 inline void Processor::OPCodes_OUTI()
 {
-    // todo: check flags
-    m_pIOPorts->DoOutput(BC.GetLow(), m_pMemory->Read(HL.GetValue()));
-    BC.GetHighRegister()->Decrement();
+    u8 result = m_pMemory->Read(HL.GetValue());
+    m_pIOPorts->DoOutput(BC.GetLow(), result);
+    OPCodes_DEC(BC.GetHighRegister());
     HL.Increment();
-    ToggleFlag(FLAG_NEGATIVE);
-    ToggleZeroFlagFromResult(BC.GetHigh());
+    if ((result & 0x80) != 0)
+        ToggleFlag(FLAG_NEGATIVE);
+	else
+        UntoggleFlag(FLAG_NEGATIVE);
+    if ((HL.GetLow() + result) > 0xFF)
+	{
+        ToggleFlag(FLAG_CARRY);
+        ToggleFlag(FLAG_HALF);
+    }
+    else
+    {
+        UntoggleFlag(FLAG_CARRY);
+        UntoggleFlag(FLAG_HALF);
+    }
+    if (((HL.GetLow() + result) & 0x07) ^ BC.GetHigh())
+        ToggleFlag(FLAG_PARITY);
+    else
+        UntoggleFlag(FLAG_PARITY);
 }
 
 inline void Processor::OPCodes_OUTD()
 {
-    // todo: check flags
-    m_pIOPorts->DoOutput(BC.GetLow(), m_pMemory->Read(HL.GetValue()));
+    u8 result = m_pMemory->Read(HL.GetValue());
+    m_pIOPorts->DoOutput(BC.GetLow(), result);
     BC.GetHighRegister()->Decrement();
     HL.Decrement();
-    ToggleFlag(FLAG_NEGATIVE);
-    ToggleZeroFlagFromResult(BC.GetHigh());
+    if ((result & 0x80) != 0)
+        ToggleFlag(FLAG_NEGATIVE);
+	else
+        UntoggleFlag(FLAG_NEGATIVE);
+    if ((HL.GetLow() + result) > 0xFF)
+	{
+        ToggleFlag(FLAG_CARRY);
+        ToggleFlag(FLAG_HALF);
+    }
+    else
+    {
+        UntoggleFlag(FLAG_CARRY);
+        UntoggleFlag(FLAG_HALF);
+    }
+    if (((HL.GetLow() + result) & 0x07) ^ BC.GetHigh())
+        ToggleFlag(FLAG_PARITY);
+    else
+        UntoggleFlag(FLAG_PARITY);
 }
 
 inline void Processor::OPCodes_EX(SixteenBitRegister* reg1, SixteenBitRegister* reg2)

@@ -365,7 +365,7 @@ void Processor::OPCodeED0x70()
 {
     // IN F,(C)*
     UndocumentedOPCode();
-    OPCodes_IN_C(AF.GetLowRegister());
+    OPCodes_IN_C(NULL);
 }
 
 void Processor::OPCodeED0x71()
