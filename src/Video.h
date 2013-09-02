@@ -22,6 +22,11 @@
 
 #include "definitions.h"
 
+#define VDP_READ_VRAM_OPERATION 0x00
+#define VDP_WRITE_VRAM_OPERATION 0x01
+#define VDP_WRITE_REG_OPERATION 0x02
+#define VDP_WRITE_CRAM_OPERATION 0x03
+
 class Memory;
 class Processor;
 
@@ -33,7 +38,12 @@ public:
     void Init();
     void Reset();
     bool Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer);
-    
+    u8 GetVCounter();
+    u8 GetHCounter();
+    u8 GetDataPort();
+    u8 GetStatusFlags();
+    void WriteData(u8 data);
+    void WriteControl(u8 control);
 
 private:
     
@@ -43,6 +53,15 @@ private:
     Processor* m_pProcessor;
     u8* m_pFrameBuffer;
     GS_Color* m_pColorFrameBuffer;
+    u8* m_pVRAM;
+    u8* m_pCRAM;
+    bool m_bFirstByteInSequence;
+    u8 m_CachedByte;
+    u8 m_VDPRegister[16];
+    u8 m_Operation;
+    u16 m_Address;
+    u8 m_VCounter;
+    u8 m_HCounter;
 };
 
 #endif	/* VIDEO_H */
