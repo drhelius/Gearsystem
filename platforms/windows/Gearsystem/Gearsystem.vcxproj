@@ -24,6 +24,20 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\src\Audio.h" />
+    <ClInclude Include="..\..\..\src\audio\blargg_common.h" />
+    <ClInclude Include="..\..\..\src\audio\Blip_Buffer.h" />
+    <ClInclude Include="..\..\..\src\audio\Blip_Synth.h" />
+    <ClInclude Include="..\..\..\src\audio\boost\array.hpp" />
+    <ClInclude Include="..\..\..\src\audio\boost\config.hpp" />
+    <ClInclude Include="..\..\..\src\audio\boost\cstdint.hpp" />
+    <ClInclude Include="..\..\..\src\audio\boost\scoped_ptr.hpp" />
+    <ClInclude Include="..\..\..\src\audio\boost\static_assert.hpp" />
+    <ClInclude Include="..\..\..\src\audio\Sms_Apu.h" />
+    <ClInclude Include="..\..\..\src\audio\Sms_Oscs.h" />
+    <ClInclude Include="..\..\..\src\audio\Sound_Queue.h" />
+    <ClInclude Include="..\..\..\src\audio\Sound_Writer.hpp" />
+    <ClInclude Include="..\..\..\src\audio\Stereo_Buffer.h" />
     <ClInclude Include="..\..\..\src\Cartridge.h" />
     <ClInclude Include="..\..\..\src\definitions.h" />
     <ClInclude Include="..\..\..\src\EightBitRegister.h" />
@@ -49,6 +63,7 @@
     <ClInclude Include="..\..\..\src\SegaIOPorts.h" />
     <ClInclude Include="..\..\..\src\SegaMemoryRule.h" />
     <ClInclude Include="..\..\..\src\SixteenBitRegister.h" />
+    <ClInclude Include="..\..\..\src\SmsIOPorts.h" />
     <ClInclude Include="..\..\..\src\Video.h" />
     <ClInclude Include="..\..\qt-shared\Emulator.h" />
     <CustomBuild Include="..\..\qt-shared\VideoSettings.h">
@@ -128,6 +143,12 @@
     <ClInclude Include="GeneratedFiles\ui_VideoSettings.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\src\Audio.cpp" />
+    <ClCompile Include="..\..\..\src\audio\Blip_Buffer.cpp" />
+    <ClCompile Include="..\..\..\src\audio\Sms_Apu.cpp" />
+    <ClCompile Include="..\..\..\src\audio\Sound_Queue.cpp" />
+    <ClCompile Include="..\..\..\src\audio\Sound_Writer.cpp" />
+    <ClCompile Include="..\..\..\src\audio\Stereo_Buffer.cpp" />
     <ClCompile Include="..\..\..\src\Cartridge.cpp" />
     <ClCompile Include="..\..\..\src\GearsystemCore.cpp" />
     <ClCompile Include="..\..\..\src\Input.cpp" />
@@ -140,6 +161,7 @@
     <ClCompile Include="..\..\..\src\RomOnlyMemoryRule.cpp" />
     <ClCompile Include="..\..\..\src\SegaIOPorts.cpp" />
     <ClCompile Include="..\..\..\src\SegaMemoryRule.cpp" />
+    <ClCompile Include="..\..\..\src\SmsIOPorts.cpp" />
     <ClCompile Include="..\..\..\src\Video.cpp" />
     <ClCompile Include="..\..\qt-shared\About.cpp" />
     <ClCompile Include="..\..\qt-shared\Emulator.cpp" />

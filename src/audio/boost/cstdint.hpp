@@ -19,16 +19,8 @@ typedef signed char     int8_t;
 
 typedef short           int16_t;
 typedef unsigned short  uint16_t;
-
-#if ULONG_MAX == 0xFFFFFFFF
-	typedef long            int32_t;
-	typedef unsigned long   uint32_t;
-#elif UINT_MAX == 0xFFFFFFFF
-	typedef int             int32_t;
-	typedef unsigned int    uint32_t;
-#else
-#   error "No suitable 32-bit type available"
-#endif
+typedef int             int32_t;
+typedef unsigned int    uint32_t;
 
 #endif
 
