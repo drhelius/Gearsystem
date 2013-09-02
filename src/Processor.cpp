@@ -195,17 +195,19 @@ void Processor::ExecuteOPCode(u8 opcode)
 
             if (!m_pMemory->IsDisassembled(opcode_address))
             {
-                const char* opcode_name = kOPCodeCBNames[opcode];
                 if (m_CurrentPrefix == 0xDD)
-                    opcode_name = kOPCodeDDCBNames[opcode];
+                    m_pMemory->Disassemble(opcode_address, kOPCodeDDCBNames[opcode]);
                 else if (m_CurrentPrefix == 0xFD)
-                    opcode_name = kOPCodeFDCBNames[opcode];
-                m_pMemory->Disassemble(opcode_address, opcode_name);
+                    m_pMemory->Disassemble(opcode_address, kOPCodeFDCBNames[opcode]);
+                else
+                    m_pMemory->Disassemble(opcode_address, kOPCodeCBNames[opcode]);
             }
 
             (this->*m_OPCodesCB[opcode])();
-
-            m_iCurrentClockCycles += kOPCodeCBTStates[opcode];
+            if (IsPrefixedIntruction())
+                m_iCurrentClockCycles += kOPCodeXYCBTStates[opcode];
+            else
+                m_iCurrentClockCycles += kOPCodeCBTStates[opcode];
             break;
         }
         case 0xED:
@@ -229,23 +231,26 @@ void Processor::ExecuteOPCode(u8 opcode)
             u16 opcode_address = PC.GetValue() - 1;
             if (!m_pMemory->IsDisassembled(opcode_address))
             {
-                const char* opcode_name = kOPCodeNames[opcode];
                 if (m_CurrentPrefix == 0xDD)
-                    opcode_name = kOPCodeDDNames[opcode];
+                    m_pMemory->Disassemble(opcode_address, kOPCodeDDNames[opcode]);
                 else if (m_CurrentPrefix == 0xFD)
-                    opcode_name = kOPCodeFDNames[opcode];
-                m_pMemory->Disassemble(opcode_address, opcode_name);
+                    m_pMemory->Disassemble(opcode_address, kOPCodeFDNames[opcode]);
+                else
+                    m_pMemory->Disassemble(opcode_address, kOPCodeNames[opcode]);
             }
 
             (this->*m_OPCodes[opcode])();
+
+            if (IsPrefixedIntruction())
+                m_iCurrentClockCycles += kOPCodeXYTStates[opcode];
+            else
+                m_iCurrentClockCycles += kOPCodeTStates[opcode];
 
             if (m_bBranchTaken)
             {
                 m_bBranchTaken = false;
                 m_iCurrentClockCycles += kOPCodeTStatesBranched[opcode];
             }
-            else
-                m_iCurrentClockCycles += kOPCodeTStates[opcode];
             break;
         }
     }
