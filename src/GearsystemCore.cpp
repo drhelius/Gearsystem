@@ -104,7 +104,7 @@ void GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer)
         {
             unsigned int clockCycles = m_pProcessor->Tick();
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer);
-            m_pAudio->Tick(clockCycles);
+            //m_pAudio->Tick(clockCycles);
             //m_pInput->Tick(clockCycles);
         }
     }

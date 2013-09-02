@@ -33,7 +33,8 @@ Processor::Processor(Memory* pMemory)
     m_iIMECycles = 0;
     m_iUnhaltCycles = 0;
     m_iInterruptMode = 0;
-    m_InterruptDelayCycles = 0;
+    m_bINTRequested = false;
+    m_bNMIRequested = false;
     InitPointer(m_pIOPorts);
     InitOPCodeFunctors();
 }
@@ -71,7 +72,8 @@ void Processor::Reset()
     HL2.SetValue(0x0000);
     I.SetValue(0x00);
     R.SetValue(0x00);
-    m_InterruptDelayCycles = 0;
+    m_bINTRequested = false;
+    m_bNMIRequested = false;
 }
 
 void Processor::SetIOPOrts(IOPorts* pIOPorts)
@@ -111,11 +113,6 @@ u8 Processor::Tick()
         ExecuteOPCode(FetchOPCode());
     }
 
-    if (m_InterruptDelayCycles > 0)
-    {
-        m_InterruptDelayCycles -= m_iCurrentClockCycles;
-    }
-
     if (m_iIMECycles > 0)
     {
         m_iIMECycles -= m_iCurrentClockCycles;
@@ -131,9 +128,14 @@ u8 Processor::Tick()
     return m_iCurrentClockCycles;
 }
 
-void Processor::RequestInterrupt()
+void Processor::RequestINT()
 {
-    m_InterruptDelayCycles = 4;
+    m_bINTRequested = true;
+}
+
+void Processor::RequestNMI()
+{
+    m_bNMIRequested = true;
 }
 
 bool Processor::Halted() const
@@ -238,24 +240,24 @@ void Processor::ExecuteOPCode(u8 opcode)
     }
 }
 
-bool Processor::InterruptIsAboutToRaise()
-{
-    u8 ie_reg = m_pMemory->Retrieve(0xFFFF);
-    u8 if_reg = m_pMemory->Retrieve(0xFF0F);
-
-    return (if_reg & ie_reg & 0x1F);
-}
-
 bool Processor::InterruptPending()
 {
-    return false;// (m_InterruptDelayCycles <= 0);
+    return (m_bINTRequested || m_bNMIRequested);
 }
 
 void Processor::ServeInterrupt()
 {
-    if (m_bIFF1)
+    if (m_bNMIRequested)
     {
-        m_InterruptDelayCycles = 0;
+        m_bNMIRequested = false;
+        m_bIFF1 = false;
+        StackPush(&PC);
+        PC.SetValue(0x0066);
+        m_iCurrentClockCycles += 11;
+    }
+    else if (m_bIFF1 && m_bINTRequested)
+    {
+        m_bINTRequested = false;
         m_bIFF1 = false;
         m_bIFF2 = false;
         StackPush(&PC);

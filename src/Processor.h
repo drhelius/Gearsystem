@@ -29,26 +29,15 @@ class IOPorts;
 class Processor
 {
 public:
-    enum Interrupts
-    {
-        None_Interrupt = 0x00,
-        VBlank_Interrupt = 0x01,
-        LCDSTAT_Interrupt = 0x02,
-        Timer_Interrupt = 0x04,
-        Serial_Interrupt = 0x08,
-        Joypad_Interrupt = 0x10
-    };
-
-public:
     Processor(Memory* pMemory);
     ~Processor();
     void Init();
     void Reset();
     u8 Tick();
-    void RequestInterrupt();
+    void RequestINT();
+    void RequestNMI();
     bool Halted() const;
     void AddCycles(unsigned int cycles);
-    bool InterruptIsAboutToRaise();
     void SetIOPOrts(IOPorts* pIOPorts);
 
 private:
@@ -78,10 +67,11 @@ private:
     unsigned int m_iCurrentClockCycles;
     int m_iIMECycles;
     int m_iUnhaltCycles;
-    int m_InterruptDelayCycles;
     int m_iInterruptMode;
     IOPorts* m_pIOPorts;
     u8 m_CurrentPrefix;
+    bool m_bINTRequested;
+    bool m_bNMIRequested;
 
 private:
     u8 FetchOPCode();
