@@ -45,7 +45,7 @@ public:
     void Init();
     void Reset();
     u8 Tick();
-    void RequestInterrupt(Interrupts interrupt);
+    void RequestInterrupt();
     bool Halted() const;
     void AddCycles(unsigned int cycles);
     bool InterruptIsAboutToRaise();
@@ -78,7 +78,7 @@ private:
     unsigned int m_iCurrentClockCycles;
     int m_iIMECycles;
     int m_iUnhaltCycles;
-    int m_InterruptDelayCycles[5];
+    int m_InterruptDelayCycles;
     int m_iInterruptMode;
     IOPorts* m_pIOPorts;
     u8 m_CurrentPrefix;
@@ -86,8 +86,8 @@ private:
 private:
     u8 FetchOPCode();
     void ExecuteOPCode(u8 opcode);
-    Processor::Interrupts InterruptPending();
-    void ServeInterrupt(Interrupts interrupt);
+    bool InterruptPending();
+    void ServeInterrupt();
     void UpdateDelayedInterrupts();
     void ClearAllFlags();
     void ToggleZeroFlagFromResult(u16 result);

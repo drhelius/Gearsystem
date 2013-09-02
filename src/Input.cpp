@@ -77,29 +77,5 @@ u8 Input::Read()
 
 void Input::Update()
 {
-    u8 current = m_P1 & 0xF0;
 
-    switch (current & 0x30)
-    {
-        case 0x10:
-        {
-            u8 topJoypad = (m_JoypadState >> 4) & 0x0F;
-            current |= topJoypad;
-            break;
-        }
-        case 0x20:
-        {
-            u8 bottomJoypad = m_JoypadState & 0x0F;
-            current |= bottomJoypad;
-            break;
-        }
-        case 0x30:
-            current |= 0x0F;
-            break;
-    }
-
-    if ((m_P1 & ~current & 0x0F) != 0)
-        m_pProcessor->RequestInterrupt(Processor::Joypad_Interrupt);
-
-    m_P1 = current;
 }
