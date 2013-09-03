@@ -35,14 +35,60 @@ SmsIOPorts::~SmsIOPorts()
 
 u8 SmsIOPorts::DoInput(u8 port)
 {
-    return 0x00;
+    if (port < 0x40)
+    {
+        // Reads return $FF (SMS2)
+        return 0xFF;
+    }
+    else if ((port >= 0x40) && (port < 0x80))
+    {
+        // Reads from even addresses return the V counter
+        // Reads from odd addresses return the H counter
+        if ((port & 0x01) == 0x00)
+            return m_pVideo->GetVCounter();
+        else
+            return m_pVideo->GetHCounter();
+    }
+    else if ((port >= 0x80) && (port < 0xC0))
+    {
+        // Reads from even addresses return the VDP data port contents
+        // Reads from odd address return the VDP status flags
+        if ((port & 0x01) == 0x00)
+            return m_pVideo->GetDataPort();
+        else
+            return m_pVideo->GetStatusFlags();
+    }
+    else
+    {
+        // Reads from even addresses return the I/O port A/B register
+        // Reads from odd address return the I/O port B/misc. register
+        return 0x00;
+    }
 }
 
 void SmsIOPorts::DoOutput(u8 port, u8 value)
 {
-    if ((port >= 0x40) && (port < 0x80))
+    if (port < 0x40)
+    {
+        // Writes to even addresses go to memory control register.
+        // Writes to odd addresses go to I/O control register.
+    }
+    else if ((port >= 0x40) && (port < 0x80))
     {
         // Writes to any address go to the SN76489 PSG
         m_pAudio->WriteAudioRegister(value);
+    }
+    else if ((port >= 0x80) && (port < 0xC0))
+    {
+        // Writes to even addresses go to the VDP data port.
+        // Writes to odd addresses go to the VDP control port.
+        if ((port & 0x01) == 0x00)
+            m_pVideo->WriteData(value);
+        else
+            m_pVideo->WriteControl(value);
+    }
+    else
+    {
+        // Writes have no effect.
     }
 }
