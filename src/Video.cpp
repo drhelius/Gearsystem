@@ -38,6 +38,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_VdpAddress = 0;
     m_VCounter = 0;
     m_HCounter = 0;
+    m_iCycleCounter = 0;
 }
 
 Video::~Video()
@@ -49,7 +50,7 @@ Video::~Video()
 
 void Video::Init()
 {
-    m_pFrameBuffer = new u8[GS_WIDTH * GS_HEIGHT];
+    m_pFrameBuffer = new u8[GS_SMS_WIDTH * GS_SMS_HEIGHT];
     m_pVdpVRAM = new u8[0x4000];
     m_pVdpCRAM = new u8[0x40];
     Reset();
@@ -64,7 +65,8 @@ void Video::Reset()
     m_VdpLatch = 0;
     m_VdpCode = 0;
     m_VdpBuffer = 0;
-    for (int i = 0; i < (GS_WIDTH * GS_HEIGHT); i++)
+    m_iCycleCounter = 0;
+    for (int i = 0; i < (GS_SMS_WIDTH * GS_SMS_HEIGHT); i++)
         m_pFrameBuffer[i] = 0;
     for (int i = 0; i < 0x4000; i++)
         m_pVdpVRAM[i] = 0;
@@ -84,9 +86,43 @@ void Video::Reset()
     m_VdpRegister[10] = 0xFF; // H-line interrupt ($FF=OFF)
 }
 
+bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
+{
+    m_iCycleCounter += clockCycles;
+
+    if(m_iCycleCounter >= GS_CYCLES_PER_LINE_NTSC)
+    {
+        ScanLine(m_VCounter);
+
+        m_iCycleCounter -= GS_CYCLES_PER_LINE_NTSC;
+        m_VCounter++;
+
+        if (m_VCounter >= GS_LINES_PER_FRAME_NTSC)
+        {
+            m_VCounter = 0;
+        }
+    }
+
+    m_pColorFrameBuffer = pColorFrameBuffer;
+
+    bool vblank = false;
+
+    return vblank;
+}
+
 u8 Video::GetVCounter()
 {
-    return m_VCounter;
+    // NTSC
+    if (m_VCounter > 0xDA) 
+	    return m_VCounter - 0x06;
+    else
+        return m_VCounter;
+
+    // PAL
+    //if (m_VCounter > 0xF2)
+	//    return m_VCounter - 0x39;
+    //else
+    //    return m_VCounter;
 }
 
 u8 Video::GetHCounter()
@@ -169,12 +205,18 @@ void Video::WriteControl(u8 control)
     }
 }
 
-bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
+void Video::ScanLine(int line)
 {
-    m_pColorFrameBuffer = pColorFrameBuffer;
 
-    bool vblank = false;
-
-
-    return vblank;
 }
+
+void Video::RenderBG(int line)
+{
+
+}
+
+void Video::RenderSprites(int line)
+{
+
+}
+
