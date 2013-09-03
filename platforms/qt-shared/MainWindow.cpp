@@ -124,7 +124,7 @@ void MainWindow::MenuGameBoyLoadROM()
 
     if (!filename.isNull())
     {
-        m_pEmulator->LoadRom(filename.toUtf8().data(), m_pUI->actionForce_Game_Boy_DMG->isChecked());
+        m_pEmulator->LoadRom(filename.toUtf8().data());
         m_pUI->actionPause->setChecked(false);
     }
 
@@ -145,7 +145,7 @@ void MainWindow::MenuGameBoyPause()
 void MainWindow::MenuGameBoyReset()
 {
     m_pUI->actionPause->setChecked(false);
-    m_pEmulator->Reset(m_pUI->actionForce_Game_Boy_DMG->isChecked());
+    m_pEmulator->Reset();
 }
 
 void MainWindow::MenuGameBoySelectStateSlot()

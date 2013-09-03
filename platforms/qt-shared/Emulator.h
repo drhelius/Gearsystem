@@ -30,13 +30,13 @@ public:
     ~Emulator();
     void Init();
     void RunToVBlank(GS_Color* pFrameBuffer);
-    void LoadRom(const char* szFilePath, bool forceDMG);
+    void LoadRom(const char* szFilePath);
     void KeyPressed(GS_Joypads joypad, GS_Keys key);
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
     void Pause();
     void Resume();
     bool IsPaused();
-    void Reset(bool forceDMG);
+    void Reset();
     void MemoryDump();
     void SetSoundSettings(bool enabled, int rate);
     void SaveRam();

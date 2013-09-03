@@ -35,7 +35,7 @@ void Emulator::Init()
     m_pGearsystemCore->Init();
 }
 
-void Emulator::LoadRom(const char* szFilePath, bool forceDMG)
+void Emulator::LoadRom(const char* szFilePath)
 {
     m_Mutex.lock();
     m_pGearsystemCore->SaveRam();
@@ -87,7 +87,7 @@ bool Emulator::IsPaused()
     return paused;
 }
 
-void Emulator::Reset(bool forceDMG)
+void Emulator::Reset()
 {
     m_Mutex.lock();
     m_pGearsystemCore->SaveRam();
