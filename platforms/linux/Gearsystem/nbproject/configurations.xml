@@ -2,26 +2,21 @@
 <configurationDescriptor version="89">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Audio" projectFiles="true">
-      <logicalFolder name="f1" displayName="boost" projectFiles="true">
-        <itemPath>../../../src/audio/boost/array.hpp</itemPath>
-        <itemPath>../../../src/audio/boost/config.hpp</itemPath>
-        <itemPath>../../../src/audio/boost/cstdint.hpp</itemPath>
-        <itemPath>../../../src/audio/boost/scoped_ptr.hpp</itemPath>
-        <itemPath>../../../src/audio/boost/static_assert.hpp</itemPath>
-      </logicalFolder>
       <itemPath>../../../src/audio/Blip_Buffer.cpp</itemPath>
       <itemPath>../../../src/audio/Blip_Buffer.h</itemPath>
       <itemPath>../../../src/audio/Blip_Synth.h</itemPath>
+      <itemPath>../../../src/audio/Effects_Buffer.cpp</itemPath>
+      <itemPath>../../../src/audio/Effects_Buffer.h</itemPath>
+      <itemPath>../../../src/audio/Multi_Buffer.cpp</itemPath>
+      <itemPath>../../../src/audio/Multi_Buffer.h</itemPath>
       <itemPath>../../../src/audio/Sms_Apu.cpp</itemPath>
       <itemPath>../../../src/audio/Sms_Apu.h</itemPath>
       <itemPath>../../../src/audio/Sms_Oscs.h</itemPath>
       <itemPath>../../../src/audio/Sound_Queue.cpp</itemPath>
       <itemPath>../../../src/audio/Sound_Queue.h</itemPath>
-      <itemPath>../../../src/audio/Sound_Writer.cpp</itemPath>
-      <itemPath>../../../src/audio/Sound_Writer.hpp</itemPath>
-      <itemPath>../../../src/audio/Stereo_Buffer.cpp</itemPath>
-      <itemPath>../../../src/audio/Stereo_Buffer.h</itemPath>
       <itemPath>../../../src/audio/blargg_common.h</itemPath>
+      <itemPath>../../../src/audio/blargg_config.h</itemPath>
+      <itemPath>../../../src/audio/blargg_source.h</itemPath>
     </logicalFolder>
     <logicalFolder name="f2" displayName="Core" projectFiles="true">
       <itemPath>../../../src/Audio.cpp</itemPath>
@@ -191,6 +186,23 @@
       </item>
       <item path="../../../src/audio/Blip_Synth.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../src/audio/Effects_Buffer.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Effects_Buffer.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Multi_Buffer.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Multi_Buffer.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../src/audio/Sms_Apu.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/audio/Sms_Apu.h" ex="false" tool="3" flavor2="0">
@@ -201,46 +213,11 @@
       </item>
       <item path="../../../src/audio/Sound_Queue.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../src/audio/Sound_Writer.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../../src/audio/Sound_Writer.hpp"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../../src/audio/Stereo_Buffer.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../../src/audio/Stereo_Buffer.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../../src/audio/blargg_common.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../src/audio/boost/array.hpp" ex="false" tool="3" flavor2="0">
+      <item path="../../../src/audio/blargg_config.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../src/audio/boost/config.hpp"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../../src/audio/boost/cstdint.hpp"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../../src/audio/boost/scoped_ptr.hpp"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../../src/audio/boost/static_assert.hpp"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="../../../src/audio/blargg_source.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/definitions.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -405,6 +382,23 @@
       </item>
       <item path="../../../src/audio/Blip_Synth.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../src/audio/Effects_Buffer.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Effects_Buffer.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Multi_Buffer.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Multi_Buffer.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../src/audio/Sms_Apu.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/audio/Sms_Apu.h" ex="false" tool="3" flavor2="0">
@@ -415,46 +409,11 @@
       </item>
       <item path="../../../src/audio/Sound_Queue.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../src/audio/Sound_Writer.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../../src/audio/Sound_Writer.hpp"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../../src/audio/Stereo_Buffer.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../../src/audio/Stereo_Buffer.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../../src/audio/blargg_common.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../src/audio/boost/array.hpp" ex="false" tool="3" flavor2="0">
+      <item path="../../../src/audio/blargg_config.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../src/audio/boost/config.hpp"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../../src/audio/boost/cstdint.hpp"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../../src/audio/boost/scoped_ptr.hpp"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../../src/audio/boost/static_assert.hpp"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="../../../src/audio/blargg_source.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/definitions.h" ex="false" tool="3" flavor2="0">
       </item>
