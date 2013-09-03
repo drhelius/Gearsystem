@@ -38,6 +38,7 @@ u8 SmsIOPorts::DoInput(u8 port)
     if (port < 0x40)
     {
         // Reads return $FF (SMS2)
+        Log("--> ** Attempting to read from port $%X", port);
         return 0xFF;
     }
     else if ((port >= 0x40) && (port < 0x80))
@@ -75,6 +76,7 @@ void SmsIOPorts::DoOutput(u8 port, u8 value)
     {
         // Writes to even addresses go to memory control register.
         // Writes to odd addresses go to I/O control register.
+        Log("--> ** Attempting to write to port $%X: %X", port, value);
     }
     else if ((port >= 0x40) && (port < 0x80))
     {
@@ -93,5 +95,6 @@ void SmsIOPorts::DoOutput(u8 port, u8 value)
     else
     {
         // Writes have no effect.
+        Log("--> ** Attempting to write to port $%X: %X", port, value);
     }
 }

@@ -34,7 +34,7 @@ public:
     void Init();
     void Reset();
     u8 Tick();
-    void RequestINT();
+    void RequestINT(bool assert);
     void RequestNMI();
     bool Halted() const;
     void AddCycles(unsigned int cycles);

@@ -63,9 +63,11 @@ private:
     u8 m_VdpCode;
     u8 m_VdpBuffer;
     u16 m_VdpAddress;
-    u8 m_VCounter;
-    u8 m_HCounter;
+    int m_iVCounter;
+    int m_iHCounter;
     int m_iCycleCounter;
+    u8 m_VdpStatus;
+    bool m_vVBlankInterrupt;
 };
 
 const u8 kVdpHCounter[0x200] =

@@ -128,9 +128,9 @@ u8 Processor::Tick()
     return m_iCurrentClockCycles;
 }
 
-void Processor::RequestINT()
+void Processor::RequestINT(bool assert)
 {
-    m_bINTRequested = true;
+    m_bINTRequested = assert;
 }
 
 void Processor::RequestNMI()
@@ -257,7 +257,6 @@ void Processor::ServeInterrupt()
     }
     else if (m_bIFF1 && m_bINTRequested)
     {
-        m_bINTRequested = false;
         m_bIFF1 = false;
         m_bIFF2 = false;
         StackPush(&PC);

@@ -36,9 +36,11 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_VdpCode = 0;
     m_VdpBuffer = 0;
     m_VdpAddress = 0;
-    m_VCounter = 0;
-    m_HCounter = 0;
+    m_iVCounter = 0;
+    m_iHCounter = 0;
     m_iCycleCounter = 0;
+    m_VdpStatus = 0;
+    m_vVBlankInterrupt = false;
 }
 
 Video::~Video()
@@ -60,12 +62,14 @@ void Video::Reset()
 {
     m_bFirstByteInSequence = true;
     m_VdpBuffer = 0;
-    m_VCounter = 0;
-    m_HCounter = 0;
+    m_iVCounter = 0;
+    m_iHCounter = 0;
     m_VdpLatch = 0;
     m_VdpCode = 0;
     m_VdpBuffer = 0;
     m_iCycleCounter = 0;
+    m_VdpStatus = 0;
+    m_vVBlankInterrupt = false;
     for (int i = 0; i < (GS_SMS_WIDTH * GS_SMS_HEIGHT); i++)
         m_pFrameBuffer[i] = 0;
     for (int i = 0; i < 0x4000; i++)
@@ -88,24 +92,36 @@ void Video::Reset()
 
 bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
 {
+    bool vblank = false;
+    
     m_iCycleCounter += clockCycles;
 
     if(m_iCycleCounter >= GS_CYCLES_PER_LINE_NTSC)
     {
-        ScanLine(m_VCounter);
+        ScanLine(m_iVCounter);
 
         m_iCycleCounter -= GS_CYCLES_PER_LINE_NTSC;
-        m_VCounter++;
-
-        if (m_VCounter >= GS_LINES_PER_FRAME_NTSC)
+        m_iVCounter++;
+        
+        if (m_iVCounter == 192)
         {
-            m_VCounter = 0;
+            m_VdpStatus = SetBit(m_VdpStatus, 7);
+            m_vVBlankInterrupt = true;
+        }
+        
+        if (m_vVBlankInterrupt && IsSetBit(m_VdpRegister[1], 5) && (m_iVCounter >= 192) && (m_iVCounter < 223))
+        {
+            m_pProcessor->RequestINT(true);
+        }
+
+        if (m_iVCounter >= GS_LINES_PER_FRAME_NTSC)
+        {
+            m_iVCounter = 0;
+            vblank = true;
         }
     }
 
     m_pColorFrameBuffer = pColorFrameBuffer;
-
-    bool vblank = false;
 
     return vblank;
 }
@@ -113,21 +129,21 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
 u8 Video::GetVCounter()
 {
     // NTSC
-    if (m_VCounter > 0xDA) 
-	    return m_VCounter - 0x06;
+    if (m_iVCounter > 0xDA) 
+	    return m_iVCounter - 0x06;
     else
-        return m_VCounter;
+        return m_iVCounter;
 
     // PAL
-    //if (m_VCounter > 0xF2)
-	//    return m_VCounter - 0x39;
+    //if (m_iVCounter > 0xF2)
+	//    return m_iVCounter - 0x39;
     //else
-    //    return m_VCounter;
+    //    return m_iVCounter;
 }
 
 u8 Video::GetHCounter()
 {
-    return m_HCounter;
+    return m_iHCounter;
 }
 
 u8 Video::GetDataPort()
@@ -142,8 +158,12 @@ u8 Video::GetDataPort()
 
 u8 Video::GetStatusFlags()
 {
+    u8 ret = m_VdpStatus;
     m_bFirstByteInSequence = true;
-    return 0x00;
+    m_VdpStatus = UnsetBit(m_VdpStatus, 7);
+    m_vVBlankInterrupt = false;
+    m_pProcessor->RequestINT(false);
+    return ret;
 }
 
 void Video::WriteData(u8 data)
