@@ -51,17 +51,17 @@ void Emulator::RunToVBlank(GS_Color* pFrameBuffer)
     m_Mutex.unlock();
 }
 
-void Emulator::KeyPressed(GS_Keys key)
+void Emulator::KeyPressed(GS_Joypads joypad, GS_Keys key)
 {
     m_Mutex.lock();
-    m_pGearsystemCore->KeyPressed(key);
+    m_pGearsystemCore->KeyPressed(joypad, key);
     m_Mutex.unlock();
 }
 
-void Emulator::KeyReleased(GS_Keys key)
+void Emulator::KeyReleased(GS_Joypads joypad, GS_Keys key)
 {
     m_Mutex.lock();
-    m_pGearsystemCore->KeyReleased(key);
+    m_pGearsystemCore->KeyReleased(joypad, key);
     m_Mutex.unlock();
 }
 

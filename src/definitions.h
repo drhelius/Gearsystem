@@ -79,11 +79,18 @@ enum GS_Keys
     Key_1 = 4,
     Key_2 = 5,
     Key_Start = 6,
-    Key_Right = 0,
-    Key_Left = 1,
-    Key_Up = 2,
-    Key_Down = 3
+    Key_Right = 3,
+    Key_Left = 2,
+    Key_Up = 0,
+    Key_Down = 1
 };
+
+enum GS_Joypads
+{
+    Joypad_1,
+    Joypad_2
+};
+
 
 enum GS_System
 {

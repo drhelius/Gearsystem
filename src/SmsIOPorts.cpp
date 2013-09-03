@@ -62,7 +62,10 @@ u8 SmsIOPorts::DoInput(u8 port)
     {
         // Reads from even addresses return the I/O port A/B register
         // Reads from odd address return the I/O port B/misc. register
-        return 0x00;
+        if ((port & 0x01) == 0x00)
+            return m_pInput->GetPortDC();
+        else
+            return m_pInput->GetPortDD();
     }
 }
 

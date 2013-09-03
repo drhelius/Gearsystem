@@ -80,7 +80,7 @@ void GearsystemCore::Init()
     m_pProcessor = new Processor(m_pMemory);
     m_pAudio = new Audio();
     m_pVideo = new Video(m_pMemory, m_pProcessor);
-    m_pInput = new Input(m_pMemory, m_pProcessor);
+    m_pInput = new Input();
     m_pCartridge = new Cartridge();
     m_pSmsIOPorts = new SmsIOPorts(m_pAudio, m_pVideo, m_pInput);
     m_pProcessor->SetIOPOrts(m_pSmsIOPorts);
@@ -158,14 +158,14 @@ Cartridge* GearsystemCore::GetCartridge()
     return m_pCartridge;
 }
 
-void GearsystemCore::KeyPressed(GS_Keys key)
+void GearsystemCore::KeyPressed(GS_Joypads joypad, GS_Keys key)
 {
-    m_pInput->KeyPressed(key);
+    m_pInput->KeyPressed(joypad, key);
 }
 
-void GearsystemCore::KeyReleased(GS_Keys key)
+void GearsystemCore::KeyReleased(GS_Joypads joypad, GS_Keys key)
 {
-    m_pInput->KeyReleased(key);
+    m_pInput->KeyReleased(joypad, key);
 }
 
 void GearsystemCore::Pause(bool paused)

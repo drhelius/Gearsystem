@@ -43,8 +43,8 @@ public:
     bool LoadROM(const char* szFilePath);
     Memory* GetMemory();
     Cartridge* GetCartridge();
-    void KeyPressed(GS_Keys key);
-    void KeyReleased(GS_Keys key);
+    void KeyPressed(GS_Joypads joypad, GS_Keys key);
+    void KeyReleased(GS_Joypads joypad, GS_Keys key);
     void Pause(bool paused);
     bool IsPaused();
     void ResetROM();
