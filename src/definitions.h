@@ -76,13 +76,14 @@ struct GS_Color
 
 enum GS_Keys
 {
+    Key_Up = 0,
+    Key_Down = 1,
+    Key_Left = 2,
+    Key_Right = 3,
     Key_1 = 4,
     Key_2 = 5,
     Key_Start = 6,
-    Key_Right = 3,
-    Key_Left = 2,
-    Key_Up = 0,
-    Key_Down = 1
+    Key_Pause = 7, 
 };
 
 enum GS_Joypads
@@ -94,7 +95,8 @@ enum GS_Joypads
 
 enum GS_System
 {
-    System_SMS_NTSC,
+    System_SMS_NTSC_USA,
+    System_SMS_NTSC_JAP,
     System_SMS_PAL,
     System_GG
 };

@@ -27,13 +27,15 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_pProcessor = pProcessor;
     InitPointer(m_pFrameBuffer);
     InitPointer(m_pColorFrameBuffer);
-    InitPointer(m_pVRAM);
-    InitPointer(m_pCRAM);
+    InitPointer(m_pVdpVRAM);
+    InitPointer(m_pVdpCRAM);
     m_bFirstByteInSequence = false;
-    m_CachedByte = 0x00;
+    m_VdpLatch = 0;
     for (int i = 0; i < 16; i++)
-        m_VDPRegister[i] = 0;
-    m_Operation = 0;
+        m_VdpRegister[i] = 0;
+    m_VdpCode = 0;
+    m_VdpBuffer = 0;
+    m_VdpAddress = 0;
     m_VCounter = 0;
     m_HCounter = 0;
 }
@@ -41,33 +43,45 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
 Video::~Video()
 {
     SafeDeleteArray(m_pFrameBuffer);
-    SafeDeleteArray(m_pVRAM);
-    SafeDeleteArray(m_pCRAM);
+    SafeDeleteArray(m_pVdpVRAM);
+    SafeDeleteArray(m_pVdpCRAM);
 }
 
 void Video::Init()
 {
     m_pFrameBuffer = new u8[GS_WIDTH * GS_HEIGHT];
-    m_pVRAM = new u8[0x4000];
-    m_pCRAM = new u8[0x40];
+    m_pVdpVRAM = new u8[0x4000];
+    m_pVdpCRAM = new u8[0x40];
     Reset();
 }
 
 void Video::Reset()
 {
     m_bFirstByteInSequence = true;
+    m_VdpBuffer = 0;
     m_VCounter = 0;
     m_HCounter = 0;
-    m_CachedByte = 0x00;
-    m_Operation = 0x00;
+    m_VdpLatch = 0;
+    m_VdpCode = 0;
+    m_VdpBuffer = 0;
     for (int i = 0; i < (GS_WIDTH * GS_HEIGHT); i++)
         m_pFrameBuffer[i] = 0;
     for (int i = 0; i < 0x4000; i++)
-        m_pVRAM[i] = 0;
+        m_pVdpVRAM[i] = 0;
     for (int i = 0; i < 0x40; i++)
-        m_pCRAM[i] = 0;
-    for (int i = 0; i < 16; i++)
-        m_VDPRegister[i] = 0;
+        m_pVdpCRAM[i] = 0;
+
+    m_VdpRegister[0] = 0x36; // Mode
+    m_VdpRegister[1] = 0xA0; // Mode
+    m_VdpRegister[2] = 0xFF; // Screen Map Table Base
+    m_VdpRegister[3] = 0xFF; // Always $FF
+    m_VdpRegister[4] = 0xFF; // Always $FF
+    m_VdpRegister[5] = 0xFF; // Sprite Table Base
+    m_VdpRegister[6] = 0xFB; // Sprite Pattern Table Base
+    m_VdpRegister[7] = 0x00; // Border color #0
+    m_VdpRegister[8] = 0x00; // Scroll-H
+    m_VdpRegister[9] = 0x00; // Scroll-V
+    m_VdpRegister[10] = 0xFF; // H-line interrupt ($FF=OFF)
 }
 
 u8 Video::GetVCounter()
@@ -83,27 +97,11 @@ u8 Video::GetHCounter()
 u8 Video::GetDataPort()
 {
     m_bFirstByteInSequence = true;
-
-    switch (m_Operation)
-    {
-        case VDP_READ_VRAM_OPERATION:
-        case VDP_WRITE_VRAM_OPERATION:
-        case VDP_WRITE_REG_OPERATION:
-        {
-            // VRAM read
-            return m_pVRAM[m_Address];
-            m_Address++;
-            if (m_Address >= 0x4000)
-                m_Address = 0x0000;
-            break;
-        }
-        case VDP_WRITE_CRAM_OPERATION:
-        default:
-        {
-            Log("--> ** Attempting to read data with VDP operation %d", m_Operation);
-            return 0x00;
-        }
-    }
+    u8 ret = m_VdpBuffer;
+    m_VdpBuffer = m_pVdpVRAM[m_VdpAddress];
+    m_VdpAddress++;
+    m_VdpAddress &= 0x3FFF;
+    return ret;
 }
 
 u8 Video::GetStatusFlags()
@@ -115,6 +113,24 @@ u8 Video::GetStatusFlags()
 void Video::WriteData(u8 data)
 {
     m_bFirstByteInSequence = true;
+    m_VdpBuffer = data;
+    switch (m_VdpCode)
+    {
+        case VDP_READ_VRAM_OPERATION:
+        case VDP_WRITE_VRAM_OPERATION:
+        case VDP_WRITE_REG_OPERATION:
+        {
+            m_pVdpVRAM[m_VdpAddress] = data;
+            break;
+        }
+        case VDP_WRITE_CRAM_OPERATION:
+        {
+            m_pVdpCRAM[m_VdpAddress & 0x1F] = data;
+            break;
+        }
+    }
+    m_VdpAddress++;
+    m_VdpAddress &= 0x3FFF;
 }
 
 void Video::WriteControl(u8 control)
@@ -122,34 +138,31 @@ void Video::WriteControl(u8 control)
     if (m_bFirstByteInSequence)
     {
         m_bFirstByteInSequence = false;
-        m_CachedByte = control;
+        m_VdpLatch = control;
     }
     else
     {
         m_bFirstByteInSequence = true;
-        m_Operation = (control >> 6) & 0x03;
+        m_VdpCode = (control >> 6) & 0x03;
+        m_VdpAddress = ((control & 0x3F) << 8) + m_VdpLatch;
 
-        switch (m_Operation)
+        switch (m_VdpCode)
         {
+            case VDP_READ_VRAM_OPERATION:
+            {
+                m_VdpBuffer = m_pVdpVRAM[m_VdpAddress];
+                m_VdpAddress++;
+                m_VdpAddress &= 0x3FFF;
+                break;
+            }
             case VDP_WRITE_REG_OPERATION:
             {
-                u8 value = m_CachedByte;
                 u8 reg = control & 0x0F;
-                m_VDPRegister[reg] = value;
+                m_VdpRegister[reg] = m_VdpLatch;
                 if (reg > 10)
                 {
-                    Log("--> ** Attempting to write on VDP REG %d: %X", reg, value);
+                    Log("--> ** Attempting to write on VDP REG %d: %X", reg, m_VdpLatch);
                 }
-                break;
-            }
-            case VDP_READ_VRAM_OPERATION:
-            case VDP_WRITE_VRAM_OPERATION:
-            {
-                m_Address = ((control & 0x3F) << 8) + m_CachedByte;
-                break;
-            }
-            case VDP_WRITE_CRAM_OPERATION:
-            {
                 break;
             }
         }
