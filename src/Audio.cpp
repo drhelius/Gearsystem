@@ -56,14 +56,18 @@ void Audio::Init()
     m_pBuffer = new Stereo_Buffer();
     m_pSound = new Sound_Queue();
 
-    m_pBuffer->clock_rate(4194304);
-    m_pBuffer->sample_rate(m_iSampleRate);
+    if (!m_pBuffer->set_sample_rate(m_iSampleRate))
+    {
+        Log("There was a problem creating the audio buffer at rate %d", m_iSampleRate);
+    }
+    m_pBuffer->clock_rate(GS_MASTER_CLOCK_NTSC);
 
-    m_pApu->treble_eq(-15.0);
-    m_pBuffer->bass_freq(100);
+    //m_pApu->treble_eq(-15.0);
+    //m_pBuffer->bass_freq(100);
 
     m_pApu->output(m_pBuffer->center(), m_pBuffer->left(), m_pBuffer->right());
-
+    //m_pApu->output(m_pBuffer);
+    
     m_pSound->start(m_iSampleRate, 2);
 }
 
@@ -90,7 +94,7 @@ void Audio::SetSampleRate(int rate)
     if (rate != m_iSampleRate)
     {
         m_iSampleRate = rate;
-        m_pBuffer->sample_rate(m_iSampleRate);
+        m_pBuffer->set_sample_rate(m_iSampleRate);
         m_pSound->stop();
         m_pSound->start(m_iSampleRate, 2);
     }
