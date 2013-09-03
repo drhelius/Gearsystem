@@ -66,7 +66,6 @@ void Audio::Init()
     //m_pBuffer->bass_freq(100);
 
     m_pApu->output(m_pBuffer->center(), m_pBuffer->left(), m_pBuffer->right());
-    //m_pApu->output(m_pBuffer);
     
     m_pSound->start(m_iSampleRate, 2);
 }
