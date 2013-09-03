@@ -21,12 +21,12 @@
 #include "Memory.h"
 #include "Processor.h"
 
-Input::Input(Memory* pMemory, Processor* pProcessor)
+Input::Input()
 {
-    m_pMemory = pMemory;
-    m_pProcessor = pProcessor;
-    m_JoypadState = 0xFF;
-    m_P1 = 0xFF;
+    m_Joypad1 = 0;
+    m_Joypad2 = 0;
+    m_IOPortDC = 0;
+    m_IOPortDD = 0;
     m_iInputCycles = 0;
 }
 
@@ -37,8 +37,10 @@ void Input::Init()
 
 void Input::Reset()
 {
-    m_JoypadState = 0xFF;
-    m_P1 = 0xFF;
+    m_Joypad1 = 0xFF;
+    m_Joypad2 = 0xFF;
+    m_IOPortDC = 0xFF;
+    m_IOPortDD = 0xFF;
     m_iInputCycles = 0;
 }
 
@@ -46,36 +48,42 @@ void Input::Tick(unsigned int clockCycles)
 {
     m_iInputCycles += clockCycles;
 
-    // Joypad Poll Speed (64 Hz)
-    if (m_iInputCycles >= 65536)
+    // Joypad Poll Speed (60 Hz)
+    if (m_iInputCycles >= 71591)
     {
-        m_iInputCycles -= 65536;
+        m_iInputCycles -= 71591;
         Update();
     }
 }
 
-void Input::KeyPressed(GS_Keys key)
+void Input::KeyPressed(GS_Joypads joypad, GS_Keys key)
 {
-    m_JoypadState = UnsetBit(m_JoypadState, key);
+    if (joypad == Joypad_1)
+        m_Joypad1 = UnsetBit(m_Joypad1, key);
+    else
+        m_Joypad2 = UnsetBit(m_Joypad2, key);
 }
 
-void Input::KeyReleased(GS_Keys key)
+void Input::KeyReleased(GS_Joypads joypad, GS_Keys key)
 {
-    m_JoypadState = SetBit(m_JoypadState, key);
+    if (joypad == Joypad_1)
+        m_Joypad1 = SetBit(m_Joypad1, key);
+    else
+        m_Joypad2 = SetBit(m_Joypad2, key);
 }
 
-void Input::Write(u8 value)
+u8 Input::GetPortDC()
 {
-    m_P1 = (m_P1 & 0xCF) | (value & 0x30);
-    Update();
+    return m_IOPortDC;
 }
 
-u8 Input::Read()
+u8 Input::GetPortDD()
 {
-    return m_P1;
+    return m_IOPortDD;
 }
 
 void Input::Update()
 {
-
+    m_IOPortDC = (m_Joypad1 & 0x3F) + ((m_Joypad2 << 6) & 0xC0);
+    m_IOPortDD = ((m_Joypad2 >> 2) & 0x0F);       
 }

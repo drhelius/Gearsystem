@@ -28,23 +28,23 @@ class Processor;
 class Input
 {
 public:
-    Input(Memory* pMemory, Processor* pProcessor);
+    Input();
     void Init();
     void Reset();
     void Tick(unsigned int clockCycles);
-    void KeyPressed(GS_Keys key);
-    void KeyReleased(GS_Keys key);
-    void Write(u8 value);
-    u8 Read();
+    void KeyPressed(GS_Joypads joypad, GS_Keys key);
+    void KeyReleased(GS_Joypads joypad, GS_Keys key);
+    u8 GetPortDC();
+    u8 GetPortDD();
 
 private:
     void Update();
 
 private:
-    Memory* m_pMemory;
-    Processor* m_pProcessor;
-    u8 m_JoypadState;
-    u8 m_P1;
+    u8 m_Joypad1;
+    u8 m_Joypad2;
+    u8 m_IOPortDC;
+    u8 m_IOPortDD;
     int m_iInputCycles;
 };
 
