@@ -39,9 +39,6 @@
     <Filter Include="Core">
       <UniqueIdentifier>{840cfa22-1de9-4056-8fd1-c74fc5ccefdb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Audio\boost">
-      <UniqueIdentifier>{c61a9002-0bd5-40a8-b79e-4a6e25542418}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\qt-shared\VideoSettings.ui">
@@ -184,10 +181,16 @@
     <ClInclude Include="..\..\..\src\SmsIOPorts.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\audio\Stereo_Buffer.h">
+    <ClInclude Include="..\..\..\src\audio\Sound_Queue.h">
       <Filter>Audio</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\audio\blargg_common.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio\blargg_config.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio\blargg_source.h">
       <Filter>Audio</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\audio\Blip_Buffer.h">
@@ -196,32 +199,17 @@
     <ClInclude Include="..\..\..\src\audio\Blip_Synth.h">
       <Filter>Audio</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\audio\Effects_Buffer.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio\Multi_Buffer.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\src\audio\Sms_Apu.h">
       <Filter>Audio</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\audio\Sms_Oscs.h">
       <Filter>Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\audio\Sound_Queue.h">
-      <Filter>Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\audio\Sound_Writer.hpp">
-      <Filter>Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\audio\boost\static_assert.hpp">
-      <Filter>Audio\boost</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\audio\boost\array.hpp">
-      <Filter>Audio\boost</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\audio\boost\config.hpp">
-      <Filter>Audio\boost</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\audio\boost\cstdint.hpp">
-      <Filter>Audio\boost</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\audio\boost\scoped_ptr.hpp">
-      <Filter>Audio\boost</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -342,16 +330,16 @@
     <ClCompile Include="..\..\..\src\audio\Blip_Buffer.cpp">
       <Filter>Audio</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\audio\Effects_Buffer.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\audio\Multi_Buffer.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\src\audio\Sms_Apu.cpp">
       <Filter>Audio</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\audio\Sound_Queue.cpp">
-      <Filter>Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\audio\Sound_Writer.cpp">
-      <Filter>Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\audio\Stereo_Buffer.cpp">
       <Filter>Audio</Filter>
     </ClCompile>
   </ItemGroup>
