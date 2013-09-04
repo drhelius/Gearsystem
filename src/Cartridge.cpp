@@ -236,6 +236,13 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
 {
     if (IsValidPointer(buffer))
     {
+        // Some ROMs have 512 Byte File Headers
+        if ((size % 1024) != 0)
+        {
+            buffer += 512;
+            size -= 512;
+        }
+            
         m_iROMSize = size;
         m_pTheROM = new u8[m_iROMSize];
         memcpy(m_pTheROM, buffer, m_iROMSize);
