@@ -241,6 +241,7 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
         {
             buffer += 512;
             size -= 512;
+            Log("Invalid header found. ROM trimmed to %d bytes", size);
         }
             
         m_iROMSize = size;

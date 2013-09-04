@@ -54,6 +54,7 @@ public:
     void SaveRam(const char* szPath);
     void LoadRam();
     void LoadRam(const char* szPath);
+    float GetVersion();
 
 private:
     void InitMemoryRules();

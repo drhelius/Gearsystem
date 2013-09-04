@@ -76,6 +76,8 @@ GearsystemCore::~GearsystemCore()
 
 void GearsystemCore::Init()
 {
+    Log("-=:: GEARSYSTEM %1.1f ::=-", GEARSYSTEM_VERSION);
+    
     m_pMemory = new Memory();
     m_pProcessor = new Processor(m_pMemory);
     m_pAudio = new Audio();
@@ -170,6 +172,14 @@ void GearsystemCore::KeyReleased(GS_Joypads joypad, GS_Keys key)
 
 void GearsystemCore::Pause(bool paused)
 {
+    if (paused)
+    {
+        Log("Gearsystem PAUSED");
+    }
+    else
+    {
+        Log("Gearsystem RESUMED");
+    }
     m_bPaused = paused;
 }
 
@@ -182,6 +192,7 @@ void GearsystemCore::ResetROM()
 {
     if (m_pCartridge->IsLoadedROM())
     {
+        Log("Gearsystem RESET");
         Reset();
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetTheROM(), m_pCartridge->GetROMSize());
         AddMemoryRules();
@@ -190,11 +201,20 @@ void GearsystemCore::ResetROM()
 
 void GearsystemCore::EnableSound(bool enabled)
 {
+    if (enabled)
+    {
+        Log("Gearsystem sound ENABLED");
+    }
+    else
+    {
+        Log("Gearsystem sound DISABLED");
+    }
     m_pAudio->Enable(enabled);
 }
 
 void GearsystemCore::SetSoundSampleRate(int rate)
 {
+    Log("Gearsystem sound sample rate: %d", rate);
     m_pAudio->SetSampleRate(rate);
 }
 
@@ -214,6 +234,11 @@ void GearsystemCore::LoadRam()
 
 void GearsystemCore::LoadRam(const char* szPath)
 {
+}
+
+float GearsystemCore::GetVersion()
+{
+    return GEARSYSTEM_VERSION;
 }
 
 void GearsystemCore::InitMemoryRules()
