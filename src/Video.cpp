@@ -227,12 +227,56 @@ void Video::WriteControl(u8 control)
 
 void Video::ScanLine(int line)
 {
-
+    RenderBG(line);
 }
 
 void Video::RenderBG(int line)
 {
+    if (line >= 192)
+        return;
+    // 32x24 tiles on screen (256x192 pixels)
+    u16 map_address = 0x3800;//(m_VdpRegister[2] << 10) & 0x3800;
+    u16 tile_address = 0;//(m_VdpRegister[6] << 11) & 0x2000;
 
+    int tile_y = line / 8;
+    int tile_y_offset = line % 8;
+    
+    int pixel_cur = 0;
+    for (int tile_x = 0; tile_x < 32; tile_x++)
+    {
+        int tile_cur_addr = (((tile_y * 32) + tile_x) * 2) + map_address;
+        int tile_cur = (m_pVdpVRAM[tile_cur_addr] & 0xFF) + ((m_pVdpVRAM[tile_cur_addr + 1] & 0x01) << 8);
+        
+        bool second_pallete = IsSetBit(m_pVdpVRAM[tile_cur_addr + 1], 3);
+        
+        int tile_data_addr = tile_address + (tile_cur * 32);
+        int tile_data_offset = tile_data_addr + (tile_y_offset * 4);
+        
+        for (int pixel_x = 0; pixel_x < 8; pixel_x++)
+        {
+            int pixel = ((m_pVdpVRAM[tile_data_offset] >> (7-pixel_x)) & 0x01) +
+            (((m_pVdpVRAM[tile_data_offset + 1] >> (7-pixel_x)) & 0x01) << 1) +
+            (((m_pVdpVRAM[tile_data_offset + 2] >> (7-pixel_x)) & 0x01) << 2) +
+            (((m_pVdpVRAM[tile_data_offset + 3] >> (7-pixel_x)) & 0x01) << 3);
+            
+            if (second_pallete)
+                pixel += 16;
+            int r = m_pVdpCRAM[pixel] & 0x03;
+            int g = (m_pVdpCRAM[pixel] >> 2) & 0x03;
+            int b = (m_pVdpCRAM[pixel] >> 4) & 0x03;
+            
+            GS_Color color;
+            
+            color.red = (r * 255) / 3;
+            color.green = (g * 255) / 3;
+            color.blue = (b * 255) / 3;
+            color.alpha = 0xFF;
+            
+            m_pColorFrameBuffer[(line * 256) + (tile_x * 8) + pixel_x] = color;  
+            
+            pixel_cur++;
+        }
+    }
 }
 
 void Video::RenderSprites(int line)
