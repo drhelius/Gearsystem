@@ -85,5 +85,5 @@ u8 Input::GetPortDD()
 void Input::Update()
 {
     m_IOPortDC = (m_Joypad1 & 0x3F) + ((m_Joypad2 << 6) & 0xC0);
-    m_IOPortDD = ((m_Joypad2 >> 2) & 0x0F);       
+    m_IOPortDD = ((m_Joypad2 >> 2) & 0x0F) | 0xF0;       
 }
