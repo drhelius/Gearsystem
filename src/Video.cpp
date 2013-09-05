@@ -40,7 +40,9 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iHCounter = 0;
     m_iCycleCounter = 0;
     m_VdpStatus = 0;
-    m_vVBlankInterrupt = false;
+    m_bVBlankInterrupt = false;
+    m_bHBlankInterrupt = false;
+    m_HBlankCounter = 0;
 }
 
 Video::~Video()
@@ -69,7 +71,9 @@ void Video::Reset()
     m_VdpBuffer = 0;
     m_iCycleCounter = 0;
     m_VdpStatus = 0;
-    m_vVBlankInterrupt = false;
+    m_bVBlankInterrupt = false;
+    m_bHBlankInterrupt = false;
+    m_HBlankCounter = 0xFF;
     for (int i = 0; i < (GS_SMS_WIDTH * GS_SMS_HEIGHT); i++)
         m_pFrameBuffer[i] = 0;
     for (int i = 0; i < 0x4000; i++)
@@ -93,26 +97,48 @@ void Video::Reset()
 bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
 {
     bool vblank = false;
-    
+
     m_iCycleCounter += clockCycles;
 
-    if(m_iCycleCounter >= GS_CYCLES_PER_LINE_NTSC)
+    if (m_iCycleCounter >= GS_CYCLES_PER_LINE_NTSC)
     {
+        m_iCycleCounter -= GS_CYCLES_PER_LINE_NTSC;
+
         ScanLine(m_iVCounter);
 
-        m_iCycleCounter -= GS_CYCLES_PER_LINE_NTSC;
-        m_iVCounter++;
-        
-        if (m_iVCounter == 192)
+        if (m_iVCounter < 192)
         {
-            m_VdpStatus = SetBit(m_VdpStatus, 7);
-            m_vVBlankInterrupt = true;
+            m_HBlankCounter--;
+            if (m_HBlankCounter == 0xFF)
+            {
+                m_HBlankCounter = m_VdpRegister[10];
+                m_bHBlankInterrupt = true;
+            }
+
+            if (m_iVCounter == 191)
+            {
+                m_VdpStatus = SetBit(m_VdpStatus, 7);
+                m_bVBlankInterrupt = true;
+            }
         }
-        
-        if (m_vVBlankInterrupt && IsSetBit(m_VdpRegister[1], 5) && (m_iVCounter >= 192) && (m_iVCounter < 223))
+        else // m_iVCounter >= 192
+            m_HBlankCounter = m_VdpRegister[10];
+
+        bool interrupt = false;
+
+        if (m_bVBlankInterrupt && IsSetBit(m_VdpRegister[1], 5))
         {
+            interrupt = true;
+        }
+        if (m_bHBlankInterrupt && IsSetBit(m_VdpRegister[0], 4))
+        {
+            interrupt = true;
+        }
+
+        if (interrupt)
             m_pProcessor->RequestINT(true);
-        }
+
+        m_iVCounter++;
 
         if (m_iVCounter >= GS_LINES_PER_FRAME_NTSC)
         {
@@ -129,14 +155,14 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
 u8 Video::GetVCounter()
 {
     // NTSC
-    if (m_iVCounter > 0xDA) 
-	    return m_iVCounter - 0x06;
+    if (m_iVCounter > 0xDA)
+        return m_iVCounter - 0x06;
     else
         return m_iVCounter;
 
     // PAL
     //if (m_iVCounter > 0xF2)
-	//    return m_iVCounter - 0x39;
+    //    return m_iVCounter - 0x39;
     //else
     //    return m_iVCounter;
 }
@@ -161,7 +187,8 @@ u8 Video::GetStatusFlags()
     u8 ret = m_VdpStatus;
     m_bFirstByteInSequence = true;
     m_VdpStatus = UnsetBit(m_VdpStatus, 7);
-    m_vVBlankInterrupt = false;
+    m_bVBlankInterrupt = false;
+    m_bHBlankInterrupt = false;
     m_pProcessor->RequestINT(false);
     return ret;
 }
@@ -235,45 +262,56 @@ void Video::RenderBG(int line)
     if (line >= 192)
         return;
     // 32x24 tiles on screen (256x192 pixels)
-    u16 map_address = 0x3800;//(m_VdpRegister[2] << 10) & 0x3800;
-    u16 tile_address = 0;//(m_VdpRegister[6] << 11) & 0x2000;
+    u16 map_address = (m_VdpRegister[2] << 10) & 0x3800;
 
     int tile_y = line / 8;
     int tile_y_offset = line % 8;
-    
+
     int pixel_cur = 0;
     for (int tile_x = 0; tile_x < 32; tile_x++)
     {
         int tile_cur_addr = (((tile_y * 32) + tile_x) * 2) + map_address;
-        int tile_cur = (m_pVdpVRAM[tile_cur_addr] & 0xFF) + ((m_pVdpVRAM[tile_cur_addr + 1] & 0x01) << 8);
+        int tile_cur = m_pVdpVRAM[tile_cur_addr];
+        if (IsSetBit(m_pVdpVRAM[tile_cur_addr + 1], 0))
+            tile_cur |= 0x0100;
+        bool hflip = IsSetBit(m_pVdpVRAM[tile_cur_addr + 1], 1);
+        bool vflip = IsSetBit(m_pVdpVRAM[tile_cur_addr + 1], 2);
+        int pallete = IsSetBit(m_pVdpVRAM[tile_cur_addr + 1], 3) ? 16 : 0;
+        bool priotirty = IsSetBit(m_pVdpVRAM[tile_cur_addr + 1], 4);
         
-        bool second_pallete = IsSetBit(m_pVdpVRAM[tile_cur_addr + 1], 3);
-        
-        int tile_data_addr = tile_address + (tile_cur * 32);
-        int tile_data_offset = tile_data_addr + (tile_y_offset * 4);
-        
+
+        int tile_data_addr = tile_cur * 32;
+        int tile_data_offset = tile_data_addr + ((vflip ? 7- tile_y_offset : tile_y_offset) * 4);
+
         for (int pixel_x = 0; pixel_x < 8; pixel_x++)
         {
-            int pixel = ((m_pVdpVRAM[tile_data_offset] >> (7-pixel_x)) & 0x01) +
-            (((m_pVdpVRAM[tile_data_offset + 1] >> (7-pixel_x)) & 0x01) << 1) +
-            (((m_pVdpVRAM[tile_data_offset + 2] >> (7-pixel_x)) & 0x01) << 2) +
-            (((m_pVdpVRAM[tile_data_offset + 3] >> (7-pixel_x)) & 0x01) << 3);
-            
-            if (second_pallete)
-                pixel += 16;
+            int tile_pixel_x = 7- pixel_x;
+            if (hflip)
+                tile_pixel_x = pixel_x;
+                
+            int pixel = ((m_pVdpVRAM[tile_data_offset] >> tile_pixel_x) & 0x01) +
+                    (((m_pVdpVRAM[tile_data_offset + 1] >> tile_pixel_x) & 0x01) << 1) +
+                    (((m_pVdpVRAM[tile_data_offset + 2] >> tile_pixel_x) & 0x01) << 2) +
+                    (((m_pVdpVRAM[tile_data_offset + 3] >> tile_pixel_x) & 0x01) << 3);
+
+
+            pixel += pallete;
             int r = m_pVdpCRAM[pixel] & 0x03;
             int g = (m_pVdpCRAM[pixel] >> 2) & 0x03;
             int b = (m_pVdpCRAM[pixel] >> 4) & 0x03;
-            
+
             GS_Color color;
-            
+
             color.red = (r * 255) / 3;
             color.green = (g * 255) / 3;
             color.blue = (b * 255) / 3;
             color.alpha = 0xFF;
             
-            m_pColorFrameBuffer[(line * 256) + (tile_x * 8) + pixel_x] = color;  
-            
+            int final_line = (line * 256);
+            int final_x = ((tile_x * 8) + pixel_x + m_VdpRegister[8]) & 0xFF;
+
+            m_pColorFrameBuffer[final_line + final_x] = color;
+
             pixel_cur++;
         }
     }

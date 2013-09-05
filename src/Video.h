@@ -67,7 +67,9 @@ private:
     int m_iHCounter;
     int m_iCycleCounter;
     u8 m_VdpStatus;
-    bool m_vVBlankInterrupt;
+    bool m_bVBlankInterrupt;
+    bool m_bHBlankInterrupt;
+    u8 m_HBlankCounter;
 };
 
 const u8 kVdpHCounter[0x200] =
