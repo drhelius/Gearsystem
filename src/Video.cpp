@@ -261,59 +261,61 @@ void Video::RenderBG(int line)
 {
     if (line >= 192)
         return;
-    // 32x24 tiles on screen (256x192 pixels)
-    u16 map_address = (m_VdpRegister[2] << 10) & 0x3800;
 
-    int tile_y = line / 8;
-    int tile_y_offset = line % 8;
+    int origin_x = m_VdpRegister[8];
+    int origin_y = m_VdpRegister[9];
+    int scy = line;
+    int map_y = scy + origin_y;
 
-    int pixel_cur = 0;
-    for (int tile_x = 0; tile_x < 32; tile_x++)
+    if (map_y >= 224)
+        map_y -= 224;
+
+    for (int scx = 0; scx < 256; scx++)
     {
-        int tile_cur_addr = (((tile_y * 32) + tile_x) * 2) + map_address;
-        int tile_cur = m_pVdpVRAM[tile_cur_addr];
-        if (IsSetBit(m_pVdpVRAM[tile_cur_addr + 1], 0))
-            tile_cur |= 0x0100;
-        bool hflip = IsSetBit(m_pVdpVRAM[tile_cur_addr + 1], 1);
-        bool vflip = IsSetBit(m_pVdpVRAM[tile_cur_addr + 1], 2);
-        int pallete = IsSetBit(m_pVdpVRAM[tile_cur_addr + 1], 3) ? 16 : 0;
-        bool priotirty = IsSetBit(m_pVdpVRAM[tile_cur_addr + 1], 4);
+        u8 map_x = scx - origin_x;
+        u16 map_address = (m_VdpRegister[2] << 10) & 0x3800;
+
+        int tile_x = map_x / 8;
+        int tile_x_offset = map_x % 8;
+        int tile_y = map_y / 8;
+        int tile_y_offset = map_y % 8;
         
+        int tile_addr = map_address + (((tile_y * 32) + tile_x) * 2);
+        int tile_index = m_pVdpVRAM[tile_addr];
+        int tile_info = m_pVdpVRAM[tile_addr + 1];
+        if (IsSetBit(tile_info, 0))
+            tile_index |= 0x0100;
+        
+        bool hflip = IsSetBit(tile_info, 1);
+        bool vflip = IsSetBit(tile_info, 2);
+        int pallete = IsSetBit(tile_info, 3) ? 16 : 0;
+        bool priotirty = IsSetBit(tile_info, 4);
+        
+        int tile_data_addr = tile_index * 32;
+        tile_data_addr += ((vflip ? 7 - tile_y_offset : tile_y_offset) * 4);
+        
+        int tile_pixel_x = 7 - tile_x_offset;
+        if (hflip)
+            tile_pixel_x = tile_x_offset;
+        
+        int pixel = ((m_pVdpVRAM[tile_data_addr] >> tile_pixel_x) & 0x01) +
+                (((m_pVdpVRAM[tile_data_addr + 1] >> tile_pixel_x) & 0x01) << 1) +
+                (((m_pVdpVRAM[tile_data_addr + 2] >> tile_pixel_x) & 0x01) << 2) +
+                (((m_pVdpVRAM[tile_data_addr + 3] >> tile_pixel_x) & 0x01) << 3) +
+                pallete;
+        
+        int r = m_pVdpCRAM[pixel] & 0x03;
+        int g = (m_pVdpCRAM[pixel] >> 2) & 0x03;
+        int b = (m_pVdpCRAM[pixel] >> 4) & 0x03;
 
-        int tile_data_addr = tile_cur * 32;
-        int tile_data_offset = tile_data_addr + ((vflip ? 7- tile_y_offset : tile_y_offset) * 4);
+        GS_Color final_color;
 
-        for (int pixel_x = 0; pixel_x < 8; pixel_x++)
-        {
-            int tile_pixel_x = 7- pixel_x;
-            if (hflip)
-                tile_pixel_x = pixel_x;
-                
-            int pixel = ((m_pVdpVRAM[tile_data_offset] >> tile_pixel_x) & 0x01) +
-                    (((m_pVdpVRAM[tile_data_offset + 1] >> tile_pixel_x) & 0x01) << 1) +
-                    (((m_pVdpVRAM[tile_data_offset + 2] >> tile_pixel_x) & 0x01) << 2) +
-                    (((m_pVdpVRAM[tile_data_offset + 3] >> tile_pixel_x) & 0x01) << 3);
+        final_color.red = (r * 255) / 3;
+        final_color.green = (g * 255) / 3;
+        final_color.blue = (b * 255) / 3;
+        final_color.alpha = 0xFF;
 
-
-            pixel += pallete;
-            int r = m_pVdpCRAM[pixel] & 0x03;
-            int g = (m_pVdpCRAM[pixel] >> 2) & 0x03;
-            int b = (m_pVdpCRAM[pixel] >> 4) & 0x03;
-
-            GS_Color color;
-
-            color.red = (r * 255) / 3;
-            color.green = (g * 255) / 3;
-            color.blue = (b * 255) / 3;
-            color.alpha = 0xFF;
-            
-            int final_line = (line * 256);
-            int final_x = ((tile_x * 8) + pixel_x + m_VdpRegister[8]) & 0xFF;
-
-            m_pColorFrameBuffer[final_line + final_x] = color;
-
-            pixel_cur++;
-        }
+        m_pColorFrameBuffer[(scy * 256) + scx] = final_color;
     }
 }
 
