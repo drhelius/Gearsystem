@@ -97,7 +97,7 @@ void Video::Reset()
 bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
 {
     bool vblank = false;
-
+    m_pColorFrameBuffer = pColorFrameBuffer;
     m_iCycleCounter += clockCycles;
 
     if (m_iCycleCounter >= GS_CYCLES_PER_LINE_NTSC)
@@ -124,18 +124,8 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
         else // m_iVCounter >= 192
             m_HBlankCounter = m_VdpRegister[10];
 
-        bool interrupt = false;
-
-        if (m_bVBlankInterrupt && IsSetBit(m_VdpRegister[1], 5))
-        {
-            interrupt = true;
-        }
-        if (m_bHBlankInterrupt && IsSetBit(m_VdpRegister[0], 4))
-        {
-            interrupt = true;
-        }
-
-        if (interrupt)
+        if ((m_bVBlankInterrupt && IsSetBit(m_VdpRegister[1], 5)) ||
+                (m_bHBlankInterrupt && IsSetBit(m_VdpRegister[0], 4)))
             m_pProcessor->RequestINT(true);
 
         m_iVCounter++;
@@ -146,8 +136,6 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
             vblank = true;
         }
     }
-
-    m_pColorFrameBuffer = pColorFrameBuffer;
 
     return vblank;
 }
@@ -288,7 +276,7 @@ void Video::RenderBG(int line)
         
         bool hflip = IsSetBit(tile_info, 1);
         bool vflip = IsSetBit(tile_info, 2);
-        int pallete = IsSetBit(tile_info, 3) ? 16 : 0;
+        int palette_offset = IsSetBit(tile_info, 3) ? 16 : 0;
         bool priotirty = IsSetBit(tile_info, 4);
         
         int tile_data_addr = tile_index * 32;
@@ -298,15 +286,15 @@ void Video::RenderBG(int line)
         if (hflip)
             tile_pixel_x = tile_x_offset;
         
-        int pixel = ((m_pVdpVRAM[tile_data_addr] >> tile_pixel_x) & 0x01) +
+        int palette_color = ((m_pVdpVRAM[tile_data_addr] >> tile_pixel_x) & 0x01) +
                 (((m_pVdpVRAM[tile_data_addr + 1] >> tile_pixel_x) & 0x01) << 1) +
                 (((m_pVdpVRAM[tile_data_addr + 2] >> tile_pixel_x) & 0x01) << 2) +
                 (((m_pVdpVRAM[tile_data_addr + 3] >> tile_pixel_x) & 0x01) << 3) +
-                pallete;
+                palette_offset;
         
-        int r = m_pVdpCRAM[pixel] & 0x03;
-        int g = (m_pVdpCRAM[pixel] >> 2) & 0x03;
-        int b = (m_pVdpCRAM[pixel] >> 4) & 0x03;
+        int r = m_pVdpCRAM[palette_color] & 0x03;
+        int g = (m_pVdpCRAM[palette_color] >> 2) & 0x03;
+        int b = (m_pVdpCRAM[palette_color] >> 4) & 0x03;
 
         GS_Color final_color;
 
