@@ -158,5 +158,10 @@ inline bool IsSetBit(const u8 value, const u8 bit)
     return (value & (0x01 << bit)) != 0;
 }
 
+inline u8 FlipBit(const u8 value, const u8 bit)
+{
+    return value ^ (0x01 << bit);
+}
+
 #endif	/* DEFINITIONS_H */
 
