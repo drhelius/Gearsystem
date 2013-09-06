@@ -304,13 +304,13 @@ void Processor::OPCodeED0x67()
 void Processor::OPCodeED0x68()
 {
     // IN L,(C)
-    OPCodes_IN_C(BC.GetLowRegister());
+    OPCodes_IN_C(HL.GetLowRegister());
 }
 
 void Processor::OPCodeED0x69()
 {
     // OUT (C),L
-    OPCodes_OUT_C(BC.GetLowRegister());
+    OPCodes_OUT_C(HL.GetLowRegister());
 }
 
 void Processor::OPCodeED0x6A()
