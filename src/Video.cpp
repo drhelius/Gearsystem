@@ -272,7 +272,7 @@ void Video::RenderBG(int line)
         int tile_index = m_pVdpVRAM[tile_addr];
         int tile_info = m_pVdpVRAM[tile_addr + 1];
         if (IsSetBit(tile_info, 0))
-            tile_index |= 0x0100;
+            tile_index = (tile_index | 0x0100) & 0x1FF;
         
         bool hflip = IsSetBit(tile_info, 1);
         bool vflip = IsSetBit(tile_info, 2);
