@@ -1,31 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="88">
+<configurationDescriptor version="89">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
-    <logicalFolder name="f1" displayName="Audio" projectFiles="true" kind="ROOT">
+    <logicalFolder name="f1" displayName="Audio" projectFiles="true">
+      <itemPath>../../../src/audio/Blip_Buffer.cpp</itemPath>
+      <itemPath>../../../src/audio/Blip_Buffer.h</itemPath>
+      <itemPath>../../../src/audio/Blip_Synth.h</itemPath>
+      <itemPath>../../../src/audio/Effects_Buffer.cpp</itemPath>
+      <itemPath>../../../src/audio/Effects_Buffer.h</itemPath>
+      <itemPath>../../../src/audio/Multi_Buffer.cpp</itemPath>
+      <itemPath>../../../src/audio/Multi_Buffer.h</itemPath>
+      <itemPath>../../../src/audio/Sms_Apu.cpp</itemPath>
+      <itemPath>../../../src/audio/Sms_Apu.h</itemPath>
+      <itemPath>../../../src/audio/Sms_Oscs.h</itemPath>
+      <itemPath>../../../src/audio/Sound_Queue.cpp</itemPath>
+      <itemPath>../../../src/audio/Sound_Queue.h</itemPath>
+      <itemPath>../../../src/audio/blargg_common.h</itemPath>
+      <itemPath>../../../src/audio/blargg_config.h</itemPath>
+      <itemPath>../../../src/audio/blargg_source.h</itemPath>
     </logicalFolder>
-    <logicalFolder name="f2" displayName="Core" projectFiles="true" kind="ROOT">
+    <logicalFolder name="f2" displayName="Core" projectFiles="true">
+      <itemPath>../../../src/Audio.cpp</itemPath>
+      <itemPath>../../../src/Audio.h</itemPath>
       <itemPath>../../../src/Cartridge.cpp</itemPath>
       <itemPath>../../../src/Cartridge.h</itemPath>
       <itemPath>../../../src/EightBitRegister.h</itemPath>
       <itemPath>../../../src/GearsystemCore.cpp</itemPath>
       <itemPath>../../../src/GearsystemCore.h</itemPath>
+      <itemPath>../../../src/IOPorts.h</itemPath>
       <itemPath>../../../src/Input.cpp</itemPath>
       <itemPath>../../../src/Input.h</itemPath>
       <itemPath>../../../src/Memory.cpp</itemPath>
       <itemPath>../../../src/Memory.h</itemPath>
+      <itemPath>../../../src/MemoryRule.cpp</itemPath>
+      <itemPath>../../../src/MemoryRule.h</itemPath>
       <itemPath>../../../src/Memory_inline.h</itemPath>
       <itemPath>../../../src/Processor.cpp</itemPath>
       <itemPath>../../../src/Processor.h</itemPath>
       <itemPath>../../../src/Processor_inline.h</itemPath>
+      <itemPath>../../../src/RomOnlyMemoryRule.cpp</itemPath>
+      <itemPath>../../../src/RomOnlyMemoryRule.h</itemPath>
+      <itemPath>../../../src/SegaMemoryRule.cpp</itemPath>
+      <itemPath>../../../src/SegaMemoryRule.h</itemPath>
       <itemPath>../../../src/SixteenBitRegister.h</itemPath>
+      <itemPath>../../../src/SmsIOPorts.cpp</itemPath>
+      <itemPath>../../../src/SmsIOPorts.h</itemPath>
       <itemPath>../../../src/Video.cpp</itemPath>
       <itemPath>../../../src/Video.h</itemPath>
       <itemPath>../../../src/definitions.h</itemPath>
       <itemPath>../../../src/gearsystem.h</itemPath>
       <itemPath>../../../src/opcode_names.h</itemPath>
       <itemPath>../../../src/opcode_timing.h</itemPath>
+      <itemPath>../../../src/opcodecb_names.h</itemPath>
+      <itemPath>../../../src/opcodedd_names.h</itemPath>
+      <itemPath>../../../src/opcodeddcb_names.h</itemPath>
+      <itemPath>../../../src/opcodeed_names.h</itemPath>
+      <itemPath>../../../src/opcodefd_names.h</itemPath>
+      <itemPath>../../../src/opcodefdcb_names.h</itemPath>
       <itemPath>../../../src/opcodes.cpp</itemPath>
       <itemPath>../../../src/opcodes_cb.cpp</itemPath>
+      <itemPath>../../../src/opcodes_ed.cpp</itemPath>
+      <itemPath>../../../src/opcodexx_names.h</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -92,6 +126,10 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
+      <item path="../../../src/Audio.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/Audio.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../src/Cartridge.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/Cartridge.h" ex="false" tool="3" flavor2="0">
@@ -102,6 +140,8 @@
       </item>
       <item path="../../../src/GearsystemCore.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../src/IOPorts.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../src/Input.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/Input.h" ex="false" tool="3" flavor2="0">
@@ -109,6 +149,10 @@
       <item path="../../../src/Memory.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/Memory.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/MemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/MemoryRule.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/Memory_inline.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -118,11 +162,62 @@
       </item>
       <item path="../../../src/Processor_inline.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../src/RomOnlyMemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/RomOnlyMemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/SegaMemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/SegaMemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../src/SixteenBitRegister.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/SmsIOPorts.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/SmsIOPorts.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/Video.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/Video.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Blip_Buffer.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Blip_Buffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Blip_Synth.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Effects_Buffer.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Effects_Buffer.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Multi_Buffer.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Multi_Buffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Sms_Apu.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Sms_Apu.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Sms_Oscs.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Sound_Queue.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Sound_Queue.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/blargg_common.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/blargg_config.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/blargg_source.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/definitions.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -132,9 +227,25 @@
       </item>
       <item path="../../../src/opcode_timing.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../src/opcodecb_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodedd_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodeddcb_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodeed_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodefd_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodefdcb_names.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../src/opcodes.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/opcodes_cb.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/opcodes_ed.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/opcodexx_names.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../qt-shared/About.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -211,6 +322,10 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
+      <item path="../../../src/Audio.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/Audio.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../src/Cartridge.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/Cartridge.h" ex="false" tool="3" flavor2="0">
@@ -221,6 +336,8 @@
       </item>
       <item path="../../../src/GearsystemCore.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../src/IOPorts.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../src/Input.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/Input.h" ex="false" tool="3" flavor2="0">
@@ -228,6 +345,10 @@
       <item path="../../../src/Memory.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/Memory.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/MemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/MemoryRule.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/Memory_inline.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -237,11 +358,62 @@
       </item>
       <item path="../../../src/Processor_inline.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../src/RomOnlyMemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/RomOnlyMemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/SegaMemoryRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/SegaMemoryRule.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../src/SixteenBitRegister.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/SmsIOPorts.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/SmsIOPorts.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/Video.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/Video.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Blip_Buffer.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Blip_Buffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Blip_Synth.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Effects_Buffer.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Effects_Buffer.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Multi_Buffer.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/audio/Multi_Buffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Sms_Apu.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Sms_Apu.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Sms_Oscs.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Sound_Queue.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/audio/Sound_Queue.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/blargg_common.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/blargg_config.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/audio/blargg_source.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/definitions.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -251,9 +423,25 @@
       </item>
       <item path="../../../src/opcode_timing.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../src/opcodecb_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodedd_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodeddcb_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodeed_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodefd_names.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcodefdcb_names.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../../src/opcodes.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/opcodes_cb.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/opcodes_ed.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/opcodexx_names.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../qt-shared/About.cpp" ex="false" tool="1" flavor2="0">
       </item>
