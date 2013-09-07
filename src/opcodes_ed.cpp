@@ -292,8 +292,8 @@ void Processor::OPCodeED0x67()
     u16 address = HL.GetValue();
     u8 value = m_pMemory->Read(address);
     u8 result = (AF.GetHigh() & 0xF0) | (value & 0x0F);
-    AF.SetHigh(result);
     m_pMemory->Write(address, ((AF.GetHigh() << 4) & 0xF0) | ((value >> 4) & 0x0F));
+    AF.SetHigh(result);
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     ToggleZeroFlagFromResult(result);
     ToggleSignFlagFromResult(result);
@@ -352,8 +352,8 @@ void Processor::OPCodeED0x6F()
     u16 address = HL.GetValue();
     u8 value = m_pMemory->Read(address);
     u8 result = (AF.GetHigh() & 0xF0) | ((value >> 4) & 0x0F);
-    AF.SetHigh(result);
     m_pMemory->Write(address, ((value << 4) & 0xF0) | (AF.GetHigh() & 0x0F));
+    AF.SetHigh(result);
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     ToggleZeroFlagFromResult(result);
     ToggleSignFlagFromResult(result);
