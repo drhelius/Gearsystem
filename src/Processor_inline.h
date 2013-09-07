@@ -592,7 +592,7 @@ inline void Processor::OPCodes_DEC(EightBitRegister* reg)
     ToggleZeroFlagFromResult(result);
     ToggleSignFlagFromResult(result);
     ToggleXYFlagsFromResult(result);
-    if ((result & 0x0F) == 0x00)
+    if ((result & 0x0F) == 0x0F)
         ToggleFlag(FLAG_HALF);
     if (result == 0x7F)
         ToggleFlag(FLAG_PARITY);
@@ -608,7 +608,7 @@ inline void Processor::OPCodes_DEC_HL()
     ToggleZeroFlagFromResult(result);
     ToggleSignFlagFromResult(result);
     ToggleXYFlagsFromResult(result);
-    if ((result & 0x0F) == 0x00)
+    if ((result & 0x0F) == 0x0F)
         ToggleFlag(FLAG_HALF);
     if (result == 0x7F)
         ToggleFlag(FLAG_PARITY);
