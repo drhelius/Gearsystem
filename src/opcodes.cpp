@@ -1761,7 +1761,6 @@ void Processor::OPCode0xF1()
 {
     // POP AF
     StackPop(&AF);
-    AF.SetLow(AF.GetLow() & 0xF0);
 }
 
 void Processor::OPCode0xF2()
