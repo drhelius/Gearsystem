@@ -242,7 +242,24 @@ void Video::WriteControl(u8 control)
 
 void Video::ScanLine(int line)
 {
-    RenderBG(line);
+    if (IsSetBit(m_VdpRegister[1], 6))
+    {
+        // DISPLAY ON
+        RenderBG(line);
+    }
+    else
+    {
+        // DISPLAY OFF
+        for (int scx = 0; scx < 256; scx++)
+        {
+            GS_Color final_color;
+            final_color.red = 0;
+            final_color.green = 0;
+            final_color.blue = 0;
+            final_color.alpha = 0xFF;
+            m_pColorFrameBuffer[(line * 256) + scx] = final_color;
+        }
+    }
 }
 
 void Video::RenderBG(int line)
@@ -259,7 +276,7 @@ void Video::RenderBG(int line)
 
     if (map_y >= 224)
         map_y -= 224;
-    
+
     int palette_color = 0;
 
     for (int scx = 0; scx < 256; scx++)
