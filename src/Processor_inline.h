@@ -415,7 +415,7 @@ inline void Processor::OPCodes_OUTD()
 {
     u8 result = m_pMemory->Read(HL.GetValue());
     m_pIOPorts->DoOutput(BC.GetLow(), result);
-    BC.GetHighRegister()->Decrement();
+    OPCodes_DEC(BC.GetHighRegister());
     HL.Decrement();
     if ((result & 0x80) != 0)
         ToggleFlag(FLAG_NEGATIVE);
