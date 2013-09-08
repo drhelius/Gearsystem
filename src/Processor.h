@@ -95,7 +95,7 @@ private:
     void InvalidOPCode();
     void UndocumentedOPCode();
     SixteenBitRegister* GetPrefixedRegister();
-    u16 GetPrefixedDisplacementValue();
+    u16 GetPrefixedDisplacementAddress();
     bool IsPrefixedInstruction();
     void OPCodes_LD(EightBitRegister* reg1, u8 value);
     void OPCodes_LD(EightBitRegister* reg, u16 address);
