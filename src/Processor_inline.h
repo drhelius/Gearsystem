@@ -167,7 +167,7 @@ inline SixteenBitRegister* Processor::GetPrefixedRegister()
         return &IX;
     else if (m_CurrentPrefix == 0xFD)
         return &IY;
-    else 
+    else
         return &HL;
 }
 
@@ -264,7 +264,7 @@ inline void Processor::OPCodes_LDI()
     if ((n & 0x02) != 0)
         ToggleFlag(FLAG_Y);
     else
-        UntoggleFlag(FLAG_Y);  
+        UntoggleFlag(FLAG_Y);
 }
 
 inline void Processor::OPCodes_LDD()
@@ -343,7 +343,7 @@ inline void Processor::OPCodes_INI()
     HL.Increment();
     if ((result & 0x80) != 0)
         ToggleFlag(FLAG_NEGATIVE);
-	else
+    else
         UntoggleFlag(FLAG_NEGATIVE);
     if ((result + ((BC.GetLow() + 1) & 0xFF)) > 0xFF)
     {
@@ -354,7 +354,7 @@ inline void Processor::OPCodes_INI()
     {
         UntoggleFlag(FLAG_CARRY);
         UntoggleFlag(FLAG_HALF);
-    }  
+    }
     if (((result + ((BC.GetLow() + 1) & 0xFF)) & 0x07) ^ BC.GetHigh())
         ToggleFlag(FLAG_PARITY);
     else
@@ -369,7 +369,7 @@ inline void Processor::OPCodes_IND()
     HL.Decrement();
     if ((result & 0x80) != 0)
         ToggleFlag(FLAG_NEGATIVE);
-	else
+    else
         UntoggleFlag(FLAG_NEGATIVE);
     if ((result + ((BC.GetLow() - 1) & 0xFF)) > 0xFF)
     {
@@ -380,7 +380,7 @@ inline void Processor::OPCodes_IND()
     {
         UntoggleFlag(FLAG_CARRY);
         UntoggleFlag(FLAG_HALF);
-    }  
+    }
     if (((result + ((BC.GetLow() + 1) & 0xFF)) & 0x07) ^ BC.GetHigh())
         ToggleFlag(FLAG_PARITY);
     else
@@ -407,10 +407,10 @@ inline void Processor::OPCodes_OUTI()
     HL.Increment();
     if ((result & 0x80) != 0)
         ToggleFlag(FLAG_NEGATIVE);
-	else
+    else
         UntoggleFlag(FLAG_NEGATIVE);
     if ((HL.GetLow() + result) > 0xFF)
-	{
+    {
         ToggleFlag(FLAG_CARRY);
         ToggleFlag(FLAG_HALF);
     }
@@ -433,10 +433,10 @@ inline void Processor::OPCodes_OUTD()
     HL.Decrement();
     if ((result & 0x80) != 0)
         ToggleFlag(FLAG_NEGATIVE);
-	else
+    else
         UntoggleFlag(FLAG_NEGATIVE);
     if ((HL.GetLow() + result) > 0xFF)
-	{
+    {
         ToggleFlag(FLAG_CARRY);
         ToggleFlag(FLAG_HALF);
     }
@@ -505,7 +505,7 @@ inline void Processor::OPCodes_CP(u8 number)
     if ((carrybits & 0x10) != 0)
         ToggleFlag(FLAG_HALF);
     if ((((carrybits << 1) ^ carrybits) & 0x100) != 0)
-       ToggleFlag(FLAG_PARITY);
+        ToggleFlag(FLAG_PARITY);
 }
 
 inline void Processor::OPCodes_CPI()
@@ -643,7 +643,7 @@ inline void Processor::OPCodes_ADD(u8 number)
     if ((carrybits & 0x10) != 0)
         ToggleFlag(FLAG_HALF);
     if ((((carrybits << 1) ^ carrybits) & 0x100) != 0)
-       ToggleFlag(FLAG_PARITY);
+        ToggleFlag(FLAG_PARITY);
 }
 
 inline void Processor::OPCodes_ADC(u8 number)
@@ -661,7 +661,7 @@ inline void Processor::OPCodes_ADC(u8 number)
     if ((carrybits & 0x10) != 0)
         ToggleFlag(FLAG_HALF);
     if ((((carrybits << 1) ^ carrybits) & 0x100) != 0)
-       ToggleFlag(FLAG_PARITY);
+        ToggleFlag(FLAG_PARITY);
 }
 
 inline void Processor::OPCodes_SUB(u8 number)
@@ -679,7 +679,7 @@ inline void Processor::OPCodes_SUB(u8 number)
     if ((carrybits & 0x10) != 0)
         ToggleFlag(FLAG_HALF);
     if ((((carrybits << 1) ^ carrybits) & 0x100) != 0)
-       ToggleFlag(FLAG_PARITY);
+        ToggleFlag(FLAG_PARITY);
 }
 
 inline void Processor::OPCodes_SBC(u8 number)
@@ -697,7 +697,7 @@ inline void Processor::OPCodes_SBC(u8 number)
     if ((carrybits & 0x10) != 0)
         ToggleFlag(FLAG_HALF);
     if ((((carrybits << 1) ^ carrybits) & 0x100) != 0)
-       ToggleFlag(FLAG_PARITY);
+        ToggleFlag(FLAG_PARITY);
 }
 
 inline void Processor::OPCodes_ADD_HL(u16 number)
@@ -715,7 +715,7 @@ inline void Processor::OPCodes_ADD_HL(u16 number)
     if ((carrybits & 0x1000) != 0)
         ToggleFlag(FLAG_HALF);
     else
-        UntoggleFlag(FLAG_HALF);   
+        UntoggleFlag(FLAG_HALF);
 }
 
 inline void Processor::OPCodes_ADC_HL(u16 number)
@@ -732,7 +732,7 @@ inline void Processor::OPCodes_ADC_HL(u16 number)
         ToggleFlag(FLAG_CARRY);
     if ((carrybits & 0x1000) != 0)
         ToggleFlag(FLAG_HALF);
-	if ((((carrybits << 1) ^ carrybits) & 0x10000) != 0)
+    if ((((carrybits << 1) ^ carrybits) & 0x10000) != 0)
         ToggleFlag(FLAG_PARITY);
 }
 
@@ -750,7 +750,7 @@ inline void Processor::OPCodes_SBC_HL(u16 number)
         ToggleFlag(FLAG_CARRY);
     if ((carrybits & 0x1000) != 0)
         ToggleFlag(FLAG_HALF);
-	if ((((carrybits << 1) ^ carrybits) & 0x10000) != 0)
+    if ((((carrybits << 1) ^ carrybits) & 0x10000) != 0)
         ToggleFlag(FLAG_PARITY);
 }
 
@@ -1104,13 +1104,16 @@ inline void Processor::OPCodes_BIT(EightBitRegister* reg, int bit)
         ToggleFlag(FLAG_PARITY);
     }
     else
-    {     
+    {
         switch (bit)
         {
-            case 3: ToggleFlag(FLAG_X); break;
-            case 5: ToggleFlag(FLAG_Y); break;
-            case 7: ToggleFlag(FLAG_SIGN); break;
-        }          
+            case 3: ToggleFlag(FLAG_X);
+                break;
+            case 5: ToggleFlag(FLAG_Y);
+                break;
+            case 7: ToggleFlag(FLAG_SIGN);
+                break;
+        }
     }
     ToggleFlag(FLAG_HALF);
 }
@@ -1125,7 +1128,7 @@ inline void Processor::OPCodes_BIT_HL(int bit)
         ToggleFlag(FLAG_PARITY);
     }
     else
-    {     
+    {
         if (IsPrefixedInstruction())
         {
             u8 xy = (address >> 8) & 0xFF;
@@ -1140,10 +1143,13 @@ inline void Processor::OPCodes_BIT_HL(int bit)
         {
             switch (bit)
             {
-                case 3: ToggleFlag(FLAG_X); break;
-                case 5: ToggleFlag(FLAG_Y); break;
-                case 7: ToggleFlag(FLAG_SIGN); break;
-            }    
+                case 3: ToggleFlag(FLAG_X);
+                    break;
+                case 5: ToggleFlag(FLAG_Y);
+                    break;
+                case 7: ToggleFlag(FLAG_SIGN);
+                    break;
+            }
         }
     }
     ToggleFlag(FLAG_HALF);
