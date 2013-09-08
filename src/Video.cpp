@@ -104,10 +104,10 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
     {
         m_iCycleCounter -= GS_CYCLES_PER_LINE_NTSC;
 
-        ScanLine(m_iVCounter);
-
         if (m_iVCounter < 192)
         {
+            ScanLine(m_iVCounter);
+            
             m_HBlankCounter--;
             if (m_HBlankCounter == 0xFF)
             {
@@ -264,12 +264,9 @@ void Video::ScanLine(int line)
 
 void Video::RenderBG(int line)
 {
-    if (line >= 192)
-        return;
-
-    int origin_x = m_VdpRegister[8];
-    if (IsSetBit(m_VdpRegister[0], 6) && line < 16)
-        origin_x = 0;
+    int origin_x = 0;
+    if ((line >= 16) && !IsSetBit(m_VdpRegister[0], 6))
+        origin_x = m_VdpRegister[8];
     int origin_y = m_VdpRegister[9];
     int scy = line;
     int map_y = scy + origin_y;
