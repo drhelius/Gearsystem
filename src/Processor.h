@@ -72,6 +72,8 @@ private:
     u8 m_CurrentPrefix;
     bool m_bINTRequested;
     bool m_bNMIRequested;
+    bool m_bPrefixedCBOpcode;
+    u8 m_PrefixedCBValue;
 
 private:
     u8 FetchOPCode();

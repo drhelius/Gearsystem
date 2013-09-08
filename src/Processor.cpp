@@ -25,6 +25,8 @@
 Processor::Processor(Memory* pMemory)
 {
     m_pMemory = pMemory;
+    InitPointer(m_pIOPorts);
+    InitOPCodeFunctors();
     m_bIFF1 = false;
     m_bIFF2 = false;
     m_bHalt = false;
@@ -35,8 +37,8 @@ Processor::Processor(Memory* pMemory)
     m_iInterruptMode = 0;
     m_bINTRequested = false;
     m_bNMIRequested = false;
-    InitPointer(m_pIOPorts);
-    InitOPCodeFunctors();
+    m_bPrefixedCBOpcode = false;
+    m_PrefixedCBValue = 0;
 }
 
 Processor::~Processor()
@@ -74,6 +76,8 @@ void Processor::Reset()
     R.SetValue(0x00);
     m_bINTRequested = false;
     m_bNMIRequested = false;
+    m_bPrefixedCBOpcode = false;
+    m_PrefixedCBValue = 0;
 }
 
 void Processor::SetIOPOrts(IOPorts* pIOPorts)
@@ -155,10 +159,14 @@ void Processor::ExecuteOPCode(u8 opcode)
         case 0xDD:
         case 0xFD:
         {
+            int more_prefixes = false;
             while ((opcode == 0xDD) | (opcode == 0xFD))
             {
                 m_CurrentPrefix = opcode;
                 opcode = FetchOPCode();
+                if (more_prefixes)
+                    m_iCurrentClockCycles += 4;
+                more_prefixes = true;
             }
             break;
         }
@@ -173,9 +181,16 @@ void Processor::ExecuteOPCode(u8 opcode)
     {
         case 0xCB:
         {
+            if (IsPrefixedInstruction())
+            {
+                m_bPrefixedCBOpcode = true;
+                m_PrefixedCBValue = m_pMemory->Read(PC.GetValue());
+                PC.Increment();
+            } 
+            
+            u16 opcode_address = PC.GetValue();
             opcode = FetchOPCode();
-            u16 opcode_address = PC.GetValue() - 1;
-
+            
             if (!m_pMemory->IsDisassembled(opcode_address))
             {
                 if (m_CurrentPrefix == 0xDD)
@@ -189,16 +204,20 @@ void Processor::ExecuteOPCode(u8 opcode)
             (this->*m_OPCodesCB[opcode])();
 
             if (IsPrefixedInstruction())
+            {
                 m_iCurrentClockCycles += kOPCodeXYCBTStates[opcode];
+                m_bPrefixedCBOpcode = false;
+            }
             else
                 m_iCurrentClockCycles += kOPCodeCBTStates[opcode];
+            
             break;
         }
         case 0xED:
         {
             m_CurrentPrefix = 0x00;
+            u16 opcode_address = PC.GetValue();
             opcode = FetchOPCode();
-            u16 opcode_address = PC.GetValue() - 1;
 
             if (!m_pMemory->IsDisassembled(opcode_address))
             {
@@ -213,6 +232,7 @@ void Processor::ExecuteOPCode(u8 opcode)
         default:
         {
             u16 opcode_address = PC.GetValue() - 1;
+            
             if (!m_pMemory->IsDisassembled(opcode_address))
             {
                 if (m_CurrentPrefix == 0xDD)

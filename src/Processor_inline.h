@@ -176,13 +176,27 @@ inline u16 Processor::GetPrefixedDisplacementAddress()
     u16 address = HL.GetValue();
     if (m_CurrentPrefix == 0xDD)
     {
-        address = IX.GetValue() + static_cast<s8> (m_pMemory->Read(PC.GetValue()));
-        PC.Increment();
+        if (m_bPrefixedCBOpcode)
+        {
+            address = IX.GetValue() + static_cast<s8> (m_PrefixedCBValue);
+        }
+        else
+        {
+            address = IX.GetValue() + static_cast<s8> (m_pMemory->Read(PC.GetValue()));
+            PC.Increment();
+        }
     }
     else if (m_CurrentPrefix == 0xFD)
     {
-        address = IY.GetValue() + static_cast<s8> (m_pMemory->Read(PC.GetValue()));
-        PC.Increment();
+        if (m_bPrefixedCBOpcode)
+        {
+            address = IY.GetValue() + static_cast<s8> (m_PrefixedCBValue);
+        }
+        else
+        {
+            address = IY.GetValue() + static_cast<s8> (m_pMemory->Read(PC.GetValue()));
+            PC.Increment();
+        }
     }
     return address;
 }
