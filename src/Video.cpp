@@ -259,43 +259,52 @@ void Video::RenderBG(int line)
 
     if (map_y >= 224)
         map_y -= 224;
+    
+    int palette_color = 0;
 
     for (int scx = 0; scx < 256; scx++)
     {
-        if (IsSetBit(m_VdpRegister[0], 7) && scx >= 192)
-            origin_y = 0;
-        u8 map_x = scx - origin_x;
-        u16 map_address = (m_VdpRegister[2] << 10) & 0x3800;
+        if (IsSetBit(m_VdpRegister[0], 5) && scx < 8)
+        {
+            palette_color = (m_VdpRegister[7] & 0x0F) + 16;
+        }
+        else
+        {
+            if (IsSetBit(m_VdpRegister[0], 7) && scx >= 192)
+                origin_y = 0;
+            u8 map_x = scx - origin_x;
+            u16 map_address = (m_VdpRegister[2] << 10) & 0x3800;
 
-        int tile_x = map_x / 8;
-        int tile_x_offset = map_x % 8;
-        int tile_y = map_y / 8;
-        int tile_y_offset = map_y % 8;
-        
-        int tile_addr = map_address + (((tile_y * 32) + tile_x) * 2);
-        int tile_index = m_pVdpVRAM[tile_addr];
-        int tile_info = m_pVdpVRAM[tile_addr + 1];
-        if (IsSetBit(tile_info, 0))
-            tile_index = (tile_index | 0x0100) & 0x1FF;
-        
-        bool hflip = IsSetBit(tile_info, 1);
-        bool vflip = IsSetBit(tile_info, 2);
-        int palette_offset = IsSetBit(tile_info, 3) ? 16 : 0;
-        bool priotirty = IsSetBit(tile_info, 4);
-        
-        int tile_data_addr = tile_index * 32;
-        tile_data_addr += ((vflip ? 7 - tile_y_offset : tile_y_offset) * 4);
-        
-        int tile_pixel_x = 7 - tile_x_offset;
-        if (hflip)
-            tile_pixel_x = tile_x_offset;
-        
-        int palette_color = ((m_pVdpVRAM[tile_data_addr] >> tile_pixel_x) & 0x01) +
-                (((m_pVdpVRAM[tile_data_addr + 1] >> tile_pixel_x) & 0x01) << 1) +
-                (((m_pVdpVRAM[tile_data_addr + 2] >> tile_pixel_x) & 0x01) << 2) +
-                (((m_pVdpVRAM[tile_data_addr + 3] >> tile_pixel_x) & 0x01) << 3) +
-                palette_offset;
-        
+            int tile_x = map_x / 8;
+            int tile_x_offset = map_x % 8;
+            int tile_y = map_y / 8;
+            int tile_y_offset = map_y % 8;
+
+            int tile_addr = map_address + (((tile_y * 32) + tile_x) * 2);
+            int tile_index = m_pVdpVRAM[tile_addr];
+            int tile_info = m_pVdpVRAM[tile_addr + 1];
+            if (IsSetBit(tile_info, 0))
+                tile_index = (tile_index | 0x0100) & 0x1FF;
+
+            bool hflip = IsSetBit(tile_info, 1);
+            bool vflip = IsSetBit(tile_info, 2);
+            int palette_offset = IsSetBit(tile_info, 3) ? 16 : 0;
+            bool priotirty = IsSetBit(tile_info, 4);
+
+            int tile_data_addr = tile_index * 32;
+            tile_data_addr += ((vflip ? 7 - tile_y_offset : tile_y_offset) * 4);
+
+            int tile_pixel_x = 7 - tile_x_offset;
+            if (hflip)
+                tile_pixel_x = tile_x_offset;
+
+            palette_color = ((m_pVdpVRAM[tile_data_addr] >> tile_pixel_x) & 0x01) +
+                    (((m_pVdpVRAM[tile_data_addr + 1] >> tile_pixel_x) & 0x01) << 1) +
+                    (((m_pVdpVRAM[tile_data_addr + 2] >> tile_pixel_x) & 0x01) << 2) +
+                    (((m_pVdpVRAM[tile_data_addr + 3] >> tile_pixel_x) & 0x01) << 3) +
+                    palette_offset;
+        }
+
         int r = m_pVdpCRAM[palette_color] & 0x03;
         int g = (m_pVdpCRAM[palette_color] >> 2) & 0x03;
         int b = (m_pVdpCRAM[palette_color] >> 4) & 0x03;
