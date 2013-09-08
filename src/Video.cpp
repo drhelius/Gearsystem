@@ -251,6 +251,8 @@ void Video::RenderBG(int line)
         return;
 
     int origin_x = m_VdpRegister[8];
+    if (IsSetBit(m_VdpRegister[0], 6) && line < 16)
+        origin_x = 0;
     int origin_y = m_VdpRegister[9];
     int scy = line;
     int map_y = scy + origin_y;
@@ -260,6 +262,8 @@ void Video::RenderBG(int line)
 
     for (int scx = 0; scx < 256; scx++)
     {
+        if (IsSetBit(m_VdpRegister[0], 7) && scx >= 192)
+            origin_y = 0;
         u8 map_x = scx - origin_x;
         u16 map_address = (m_VdpRegister[2] << 10) & 0x3800;
 
