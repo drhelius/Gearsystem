@@ -20,6 +20,7 @@
 #include "Processor.h"
 #include "Memory.h"
 #include "opcode_timing.h"
+#include "opcode_daa.h"
 
 void Processor::OPCode0x00()
 {
@@ -285,38 +286,14 @@ void Processor::OPCode0x26()
 void Processor::OPCode0x27()
 {
     // DAA
-    int a = AF.GetHigh();
-
-    if (!IsSetFlag(FLAG_NEGATIVE))
-    {
-        if (IsSetFlag(FLAG_HALF) || ((a & 0xF) > 9))
-            a += 0x06;
-
-        if (IsSetFlag(FLAG_CARRY) || (a > 0x9F))
-            a += 0x60;
-    }
-    else
-    {
-        if (IsSetFlag(FLAG_HALF))
-            a = (a - 6) & 0xFF;
-
-        if (IsSetFlag(FLAG_CARRY))
-            a -= 0x60;
-    }
-
-    UntoggleFlag(FLAG_HALF);
-
-    if ((a & 0x100) == 0x100)
-        ToggleFlag(FLAG_CARRY);
-
-    a &= 0xFF;
-
-    ToggleZeroFlagFromResult(a);
-    ToggleSignFlagFromResult(a);
-    ToggleXYFlagsFromResult(a);
-    ToggleParityFlagFromResult(a);
-
-    AF.SetHigh(a);
+    int idx = AF.GetHigh();												\
+	if (IsSetFlag(FLAG_CARRY))
+        idx |= 0x100; 								\
+	if (IsSetFlag(FLAG_HALF))
+        idx |= 0x200; 								\
+	if (IsSetFlag(FLAG_NEGATIVE))
+        idx |= 0x400; 								\
+	AF.SetValue(kOPCodeDAATable[idx]);
 }
 
 void Processor::OPCode0x28()

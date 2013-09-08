@@ -48,6 +48,7 @@
       <itemPath>../../../src/Video.h</itemPath>
       <itemPath>../../../src/definitions.h</itemPath>
       <itemPath>../../../src/gearsystem.h</itemPath>
+      <itemPath>../../../src/opcode_daa.h</itemPath>
       <itemPath>../../../src/opcode_names.h</itemPath>
       <itemPath>../../../src/opcode_timing.h</itemPath>
       <itemPath>../../../src/opcodecb_names.h</itemPath>
@@ -222,6 +223,8 @@
       <item path="../../../src/definitions.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/gearsystem.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcode_daa.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/opcode_names.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -418,6 +421,8 @@
       <item path="../../../src/definitions.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/gearsystem.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/opcode_daa.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/opcode_names.h" ex="false" tool="3" flavor2="0">
       </item>
