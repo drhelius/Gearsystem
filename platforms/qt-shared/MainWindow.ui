@@ -39,7 +39,7 @@
      <x>0</x>
      <y>0</y>
      <width>342</width>
-     <height>26</height>
+     <height>25</height>
     </rect>
    </property>
    <property name="sizePolicy">
@@ -577,6 +577,22 @@
     <hint type="sourcelabel">
      <x>-1</x>
      <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>170</x>
+     <y>160</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>menuWindow_Size</sender>
+   <signal>triggered(QAction*)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>MenuSettingsWindowSize(QAction*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>68</x>
+     <y>80</y>
     </hint>
     <hint type="destinationlabel">
      <x>170</x>
