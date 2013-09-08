@@ -188,7 +188,7 @@ void Processor::ExecuteOPCode(u8 opcode)
 
             (this->*m_OPCodesCB[opcode])();
 
-            if (IsPrefixedIntruction())
+            if (IsPrefixedInstruction())
                 m_iCurrentClockCycles += kOPCodeXYCBTStates[opcode];
             else
                 m_iCurrentClockCycles += kOPCodeCBTStates[opcode];
@@ -225,7 +225,7 @@ void Processor::ExecuteOPCode(u8 opcode)
 
             (this->*m_OPCodes[opcode])();
 
-            if (IsPrefixedIntruction())
+            if (IsPrefixedInstruction())
                 m_iCurrentClockCycles += kOPCodeXYTStates[opcode];
             else
                 m_iCurrentClockCycles += kOPCodeTStates[opcode];
