@@ -25,7 +25,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
 {
     m_pMemory = pMemory;
     m_pProcessor = pProcessor;
-    InitPointer(m_pFrameBuffer);
+    InitPointer(m_pInfoBuffer);
     InitPointer(m_pColorFrameBuffer);
     InitPointer(m_pVdpVRAM);
     InitPointer(m_pVdpCRAM);
@@ -47,14 +47,14 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
 
 Video::~Video()
 {
-    SafeDeleteArray(m_pFrameBuffer);
+    SafeDeleteArray(m_pInfoBuffer);
     SafeDeleteArray(m_pVdpVRAM);
     SafeDeleteArray(m_pVdpCRAM);
 }
 
 void Video::Init()
 {
-    m_pFrameBuffer = new u8[GS_SMS_WIDTH * GS_SMS_HEIGHT];
+    m_pInfoBuffer = new u8[GS_SMS_WIDTH * GS_SMS_HEIGHT];
     m_pVdpVRAM = new u8[0x4000];
     m_pVdpCRAM = new u8[0x40];
     Reset();
@@ -75,7 +75,7 @@ void Video::Reset()
     m_bHBlankInterrupt = false;
     m_HBlankCounter = 0xFF;
     for (int i = 0; i < (GS_SMS_WIDTH * GS_SMS_HEIGHT); i++)
-        m_pFrameBuffer[i] = 0;
+        m_pInfoBuffer[i] = 0;
     for (int i = 0; i < 0x4000; i++)
         m_pVdpVRAM[i] = 0;
     for (int i = 0; i < 0x40; i++)
@@ -246,6 +246,7 @@ void Video::ScanLine(int line)
     {
         // DISPLAY ON
         RenderBG(line);
+        RenderSprites(line);
     }
     else
     {
@@ -264,17 +265,18 @@ void Video::ScanLine(int line)
 
 void Video::RenderBG(int line)
 {
-    int origin_x = 0;
-    if ((line >= 16) && !IsSetBit(m_VdpRegister[0], 6))
-        origin_x = m_VdpRegister[8];
+    int origin_x = m_VdpRegister[8];
+    if ((line < 16) && IsSetBit(m_VdpRegister[0], 6))
+        origin_x = 0;
     int origin_y = m_VdpRegister[9];
     int scy = line;
     int map_y = scy + origin_y;
 
     if (map_y >= 224)
         map_y -= 224;
-
+    
     int palette_color = 0;
+    u8 info = 0;
 
     for (int scx = 0; scx < 256; scx++)
     {
@@ -288,7 +290,7 @@ void Video::RenderBG(int line)
                 origin_y = 0;
             u8 map_x = scx - origin_x;
             u16 map_address = (m_VdpRegister[2] << 10) & 0x3800;
-
+            
             int tile_x = map_x / 8;
             int tile_x_offset = map_x % 8;
             int tile_y = map_y / 8;
@@ -317,6 +319,7 @@ void Video::RenderBG(int line)
                     (((m_pVdpVRAM[tile_data_addr + 2] >> tile_pixel_x) & 0x01) << 2) +
                     (((m_pVdpVRAM[tile_data_addr + 3] >> tile_pixel_x) & 0x01) << 3) +
                     palette_offset;
+            info = 0x01 | (priotirty ? 0x02 : 0);
         }
 
         int r = m_pVdpCRAM[palette_color] & 0x03;
@@ -330,7 +333,9 @@ void Video::RenderBG(int line)
         final_color.blue = (b * 255) / 3;
         final_color.alpha = 0xFF;
 
-        m_pColorFrameBuffer[(scy * 256) + scx] = final_color;
+        int pixel = (scy * 256) + scx;
+        m_pColorFrameBuffer[pixel] = final_color;
+        m_pInfoBuffer[pixel] = info;
     }
 }
 

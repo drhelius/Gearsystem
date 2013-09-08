@@ -53,7 +53,7 @@ private:
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;
-    u8* m_pFrameBuffer;
+    u8* m_pInfoBuffer;
     GS_Color* m_pColorFrameBuffer;
     u8* m_pVdpVRAM;
     u8* m_pVdpCRAM;
