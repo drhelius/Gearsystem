@@ -28,7 +28,7 @@ class Processor;
 class Input
 {
 public:
-    Input();
+    Input(Processor* pProcessor);
     void Init();
     void Reset();
     void Tick(unsigned int clockCycles);
@@ -41,6 +41,7 @@ private:
     void Update();
 
 private:
+    Processor* m_pProccesor;
     u8 m_Joypad1;
     u8 m_Joypad2;
     u8 m_IOPortDC;

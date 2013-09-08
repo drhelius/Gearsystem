@@ -82,7 +82,7 @@ void GearsystemCore::Init()
     m_pProcessor = new Processor(m_pMemory);
     m_pAudio = new Audio();
     m_pVideo = new Video(m_pMemory, m_pProcessor);
-    m_pInput = new Input();
+    m_pInput = new Input(m_pProcessor);
     m_pCartridge = new Cartridge();
     m_pSmsIOPorts = new SmsIOPorts(m_pAudio, m_pVideo, m_pInput);
     m_pProcessor->SetIOPOrts(m_pSmsIOPorts);

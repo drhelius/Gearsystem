@@ -21,8 +21,9 @@
 #include "Memory.h"
 #include "Processor.h"
 
-Input::Input()
+Input::Input(Processor* pProcessor)
 {
+    m_pProccesor = pProcessor;
     m_Joypad1 = 0;
     m_Joypad2 = 0;
     m_IOPortDC = 0;
@@ -59,7 +60,11 @@ void Input::Tick(unsigned int clockCycles)
 void Input::KeyPressed(GS_Joypads joypad, GS_Keys key)
 {
     if (joypad == Joypad_1)
+    {
+        if ((key == Key_Pause) && IsSetBit(m_Joypad1, Key_Pause))
+            m_pProccesor->RequestNMI();
         m_Joypad1 = UnsetBit(m_Joypad1, key);
+    }
     else
         m_Joypad2 = UnsetBit(m_Joypad2, key);
 }
@@ -85,5 +90,5 @@ u8 Input::GetPortDD()
 void Input::Update()
 {
     m_IOPortDC = (m_Joypad1 & 0x3F) + ((m_Joypad2 << 6) & 0xC0);
-    m_IOPortDD = ((m_Joypad2 >> 2) & 0x0F) | 0xF0;       
+    m_IOPortDD = ((m_Joypad2 >> 2) & 0x0F) | 0xF0;    
 }
