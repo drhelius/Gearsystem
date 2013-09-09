@@ -211,6 +211,9 @@
     <ClInclude Include="..\..\..\src\audio\Sms_Oscs.h">
       <Filter>Audio</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\opcode_daa.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\qt-shared\About.cpp">

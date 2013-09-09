@@ -52,6 +52,7 @@
     <ClInclude Include="..\..\..\src\opcodefdcb_names.h" />
     <ClInclude Include="..\..\..\src\opcodefd_names.h" />
     <ClInclude Include="..\..\..\src\opcodexx_names.h" />
+    <ClInclude Include="..\..\..\src\opcode_daa.h" />
     <ClInclude Include="..\..\..\src\opcode_names.h" />
     <ClInclude Include="..\..\..\src\opcode_timing.h" />
     <ClInclude Include="..\..\..\src\Processor.h" />
