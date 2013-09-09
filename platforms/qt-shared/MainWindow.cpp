@@ -316,63 +316,69 @@ void MainWindow::closeEvent(QCloseEvent *evt)
 
 void MainWindow::keyPressEvent(QKeyEvent* e)
 {
-    GS_Joypads joypad = Joypad_1;
-    switch (m_pInputSettings->GetKey(e->key()))
+    if (!e->isAutoRepeat())
     {
-        case 0:
-            m_pEmulator->KeyPressed(joypad, Key_Up);
-            break;
-        case 3:
-            m_pEmulator->KeyPressed(joypad, Key_Left);
-            break;
-        case 1:
-            m_pEmulator->KeyPressed(joypad, Key_Right);
-            break;
-        case 2:
-            m_pEmulator->KeyPressed(joypad, Key_Down);
-            break;
-        case 6:
-            m_pEmulator->KeyPressed(joypad, Key_Start);
-            break;
-        case 5:
-            m_pEmulator->KeyPressed(joypad, Key_2);
-            break;
-        case 4:
-            m_pEmulator->KeyPressed(joypad, Key_1);
-            break;
-        default:
-            break;
+        GS_Joypads joypad = Joypad_1;
+        switch (m_pInputSettings->GetKey(e->key()))
+        {
+            case 0:
+                m_pEmulator->KeyPressed(joypad, Key_Up);
+                break;
+            case 3:
+                m_pEmulator->KeyPressed(joypad, Key_Left);
+                break;
+            case 1:
+                m_pEmulator->KeyPressed(joypad, Key_Right);
+                break;
+            case 2:
+                m_pEmulator->KeyPressed(joypad, Key_Down);
+                break;
+            case 6:
+                m_pEmulator->KeyPressed(joypad, Key_Pause);
+                break;
+            case 5:
+                m_pEmulator->KeyPressed(joypad, Key_2);
+                break;
+            case 4:
+                m_pEmulator->KeyPressed(joypad, Key_1);
+                break;
+            default:
+                break;
+        }
     }
 }
 
 void MainWindow::keyReleaseEvent(QKeyEvent* e)
 {
-    GS_Joypads joypad = Joypad_1;
-    switch (m_pInputSettings->GetKey(e->key()))
+    if (!e->isAutoRepeat())
     {
-        case 0:
-            m_pEmulator->KeyReleased(joypad, Key_Up);
-            break;
-        case 3:
-            m_pEmulator->KeyReleased(joypad, Key_Left);
-            break;
-        case 1:
-            m_pEmulator->KeyReleased(joypad, Key_Right);
-            break;
-        case 2:
-            m_pEmulator->KeyReleased(joypad, Key_Down);
-            break;
-        case 6:
-            m_pEmulator->KeyReleased(joypad, Key_Start);
-            break;
-        case 5:
-            m_pEmulator->KeyReleased(joypad, Key_2);
-            break;
-        case 4:
-            m_pEmulator->KeyReleased(joypad, Key_1);
-            break;
-        default:
-            break;
+        GS_Joypads joypad = Joypad_1;
+        switch (m_pInputSettings->GetKey(e->key()))
+        {
+            case 0:
+                m_pEmulator->KeyReleased(joypad, Key_Up);
+                break;
+            case 3:
+                m_pEmulator->KeyReleased(joypad, Key_Left);
+                break;
+            case 1:
+                m_pEmulator->KeyReleased(joypad, Key_Right);
+                break;
+            case 2:
+                m_pEmulator->KeyReleased(joypad, Key_Down);
+                break;
+            case 6:
+                m_pEmulator->KeyReleased(joypad, Key_Pause);
+                break;
+            case 5:
+                m_pEmulator->KeyReleased(joypad, Key_2);
+                break;
+            case 4:
+                m_pEmulator->KeyReleased(joypad, Key_1);
+                break;
+            default:
+                break;
+        }
     }
 }
 
