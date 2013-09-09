@@ -107,7 +107,7 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
         if (m_iVCounter < 192)
         {
             ScanLine(m_iVCounter);
-            
+
             m_HBlankCounter--;
             if (m_HBlankCounter == 0xFF)
             {
@@ -265,21 +265,20 @@ void Video::ScanLine(int line)
 
 void Video::RenderBG(int line)
 {
+    int scy = line;
     int origin_x = m_VdpRegister[8];
     if ((line < 16) && IsSetBit(m_VdpRegister[0], 6))
         origin_x = 0;
     int origin_y = m_VdpRegister[9];
-    
-    int scy = line;
-    
+
     u16 map_address = (m_VdpRegister[2] << 10) & 0x3800;
     int map_y = scy + origin_y;
     if (map_y >= 224)
         map_y -= 224;
-    
+
     int tile_y = map_y >> 3;
     int tile_y_offset = map_y & 7;
-    
+
     int palette_color = 0;
     u8 info = 0;
 
@@ -294,10 +293,10 @@ void Video::RenderBG(int line)
             if (IsSetBit(m_VdpRegister[0], 7) && (scx >= 192))
                 origin_y = 0;
             u8 map_x = scx - origin_x;
-            
+
             int tile_x = map_x >> 3;
             int tile_x_offset = map_x & 7;
-            
+
             int tile_addr = map_address + (((tile_y << 5) + tile_x) << 1);
             int tile_index = m_pVdpVRAM[tile_addr];
             int tile_info = m_pVdpVRAM[tile_addr + 1];
@@ -307,7 +306,7 @@ void Video::RenderBG(int line)
             bool hflip = IsSetBit(tile_info, 1);
             bool vflip = IsSetBit(tile_info, 2);
             int palette_offset = IsSetBit(tile_info, 3) ? 16 : 0;
-            bool priotirty = IsSetBit(tile_info, 4);
+            bool priority = IsSetBit(tile_info, 4);
 
             int tile_data_addr = tile_index << 5;
             tile_data_addr += ((vflip ? 7 - tile_y_offset : tile_y_offset) << 2);
@@ -321,7 +320,7 @@ void Video::RenderBG(int line)
                     (((m_pVdpVRAM[tile_data_addr + 2] >> tile_pixel_x) & 0x01) << 2) +
                     (((m_pVdpVRAM[tile_data_addr + 3] >> tile_pixel_x) & 0x01) << 3) +
                     palette_offset;
-            info = 0x01 | (priotirty ? 0x02 : 0);
+            info = 0x01 | ((priority && ((palette_color - palette_offset) != 0)) ? 0x02 : 0);
         }
 
         int r = m_pVdpCRAM[palette_color] & 0x03;
@@ -343,6 +342,70 @@ void Video::RenderBG(int line)
 
 void Video::RenderSprites(int line)
 {
+    int scy = line;
+    int sprite_width = 8;
+    int sprite_height = IsSetBit(m_VdpRegister[1], 1) ? 16 : 8;
+    int sprite_shift = IsSetBit(m_VdpRegister[0], 3) ? 8 : 0;
+    u16 sprite_table_address = (m_VdpRegister[5] << 7) & 0x3F00;
+    u16 sprite_table_address_2 = sprite_table_address + 0x80;
+    u16 sprite_tiles_address = (m_VdpRegister[6] << 11) & 0x2000;
 
+    for (int sprite = 0; sprite < 64; sprite++)
+    {
+        int sprite_y = m_pVdpVRAM[sprite_table_address + sprite];
+        if (sprite_y == 0xD0)
+            break;
+        if ((sprite_y > line) || ((sprite_y + sprite_height) <= line))
+            continue;
+
+        u16 sprite_info_address = sprite_table_address_2 + (sprite * 2);
+        int sprite_x = m_pVdpVRAM[sprite_info_address] - sprite_shift;
+        if (sprite_x >= GS_SMS_WIDTH)
+            continue;
+
+        int sprite_tile = m_pVdpVRAM[sprite_info_address + 1];
+        int sprite_tile_addr = sprite_tiles_address + (sprite_tile << 5) + ((line - sprite_y) << 2);
+
+        for (int tile_x = 0; tile_x < 8; tile_x++)
+        {
+            int sprite_pixel_x = sprite_x + tile_x;
+            if (sprite_pixel_x >= GS_SMS_WIDTH)
+                break;
+            if (sprite_pixel_x < 0)
+                continue;
+            if (IsSetBit(m_VdpRegister[0], 5) && (sprite_pixel_x < 8))
+                continue;
+            
+            int pixel = (scy << 8) + (sprite_x + tile_x);
+            
+            if (m_pInfoBuffer[pixel] & 0x02)
+                continue;
+            
+            int tile_pixel_x = 7 - tile_x;
+
+            int palette_color = ((m_pVdpVRAM[sprite_tile_addr] >> tile_pixel_x) & 0x01) +
+                    (((m_pVdpVRAM[sprite_tile_addr + 1] >> tile_pixel_x) & 0x01) << 1) +
+                    (((m_pVdpVRAM[sprite_tile_addr + 2] >> tile_pixel_x) & 0x01) << 2) +
+                    (((m_pVdpVRAM[sprite_tile_addr + 3] >> tile_pixel_x) & 0x01) << 3) +
+                    16;
+            
+            if (palette_color == 16)
+                continue;
+            
+            int r = m_pVdpCRAM[palette_color] & 0x03;
+            int g = (m_pVdpCRAM[palette_color] >> 2) & 0x03;
+            int b = (m_pVdpCRAM[palette_color] >> 4) & 0x03;
+
+            GS_Color final_color;
+
+            final_color.red = (r * 255) / 3;
+            final_color.green = (g * 255) / 3;
+            final_color.blue = (b * 255) / 3;
+            final_color.alpha = 0xFF;
+
+            
+            m_pColorFrameBuffer[pixel] = final_color;
+        }
+    }
 }
 
