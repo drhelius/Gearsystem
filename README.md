@@ -25,14 +25,12 @@ Downloads
 
 Features
 --------
+- Full Z80 core.
 - Mapper support: SEGA, Codemasters, and ROM + RAM cartridges.
+- Multi region: NTSC-JAP, NTSC-USA, PAL-EUR.
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Compressed rom support (ZIP deflate).
 - Multi platform. Runs on Windows, Linux, Mac OS X, Raspberry Pi and iOS.
-
-Todo List
------------
-- 
 
 Compiling Instructions
 ----------------------
@@ -78,6 +76,13 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 - Open the Gearsystem Netbeans project and build.
 - Alternatively you can use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
 - In Ubuntu 12.04 I had to <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the sound to work properly.
+
+Accuracy Tests
+--------------
+
+Zexall Z80 instruction exerciser ([from SMS Power!](http://www.smspower.org/Homebrew/ZEXALL-SMS)):
+
+
 
 License
 -------
