@@ -67,6 +67,11 @@ inline u8 Processor::FetchOPCode()
     return opcode;
 }
 
+inline bool Processor::InterruptPending()
+{
+    return (m_bINTRequested || m_bNMIRequested);
+}
+
 inline void Processor::ClearAllFlags()
 {
     SetFlag(FLAG_NONE);

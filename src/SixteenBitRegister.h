@@ -84,7 +84,6 @@ inline u16 SixteenBitRegister::GetValue() const
 {
     u8 high = m_High.GetValue();
     u8 low = m_Low.GetValue();
-
     return (high << 8) + low;
 }
 

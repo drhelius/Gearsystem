@@ -36,8 +36,6 @@ public:
     u8 Tick();
     void RequestINT(bool assert);
     void RequestNMI();
-    bool Halted() const;
-    void AddCycles(unsigned int cycles);
     void SetIOPOrts(IOPorts* pIOPorts);
 
 private:
@@ -77,9 +75,9 @@ private:
 
 private:
     u8 FetchOPCode();
-    void ExecuteOPCode(u8 opcode);
+    void ExecuteOPCode();
+    bool InterruptPending();
     void ServeInterrupt();
-    void UpdateDelayedInterrupts();
     void ClearAllFlags();
     void ToggleZeroFlagFromResult(u16 result);
     void ToggleSignFlagFromResult(u8 result);

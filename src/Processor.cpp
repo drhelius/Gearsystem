@@ -104,7 +104,7 @@ u8 Processor::Tick()
             }
         }
 
-        if (m_bHalt && (m_bINTRequested || m_bNMIRequested) && (m_iUnhaltCycles == 0))
+        if (m_bHalt && InterruptPending() && (m_iUnhaltCycles == 0))
         {
             m_iUnhaltCycles = 12;
         }
@@ -112,9 +112,9 @@ u8 Processor::Tick()
 
     if (!m_bHalt)
     {
-        if (m_bINTRequested || m_bNMIRequested)
+        if (InterruptPending())
             ServeInterrupt();
-        ExecuteOPCode(FetchOPCode());
+        ExecuteOPCode();
     }
 
     if (m_iIMECycles > 0)
@@ -142,18 +142,10 @@ void Processor::RequestNMI()
     m_bNMIRequested = true;
 }
 
-bool Processor::Halted() const
+void Processor::ExecuteOPCode()
 {
-    return m_bHalt;
-}
-
-void Processor::AddCycles(unsigned int cycles)
-{
-    m_iCurrentClockCycles += cycles;
-}
-
-void Processor::ExecuteOPCode(u8 opcode)
-{
+    u8 opcode = FetchOPCode();
+    
     switch (opcode)
     {
         case 0xDD:
@@ -195,7 +187,8 @@ void Processor::ExecuteOPCode(u8 opcode)
                   
             u16 opcode_address = PC.GetValue();
             opcode = FetchOPCode();
-            
+
+#ifdef DEBUG_GEARSYSTEM  
             if (!m_pMemory->IsDisassembled(opcode_address))
             {
                 if (m_CurrentPrefix == 0xDD)
@@ -205,6 +198,7 @@ void Processor::ExecuteOPCode(u8 opcode)
                 else
                     m_pMemory->Disassemble(opcode_address, kOPCodeCBNames[opcode]);
             }
+#endif
 
             (this->*m_OPCodesCB[opcode])();
 
@@ -226,11 +220,13 @@ void Processor::ExecuteOPCode(u8 opcode)
             m_CurrentPrefix = 0x00;
             u16 opcode_address = PC.GetValue();
             opcode = FetchOPCode();
-
+            
+#ifdef DEBUG_GEARSYSTEM  
             if (!m_pMemory->IsDisassembled(opcode_address))
             {
                 m_pMemory->Disassemble(opcode_address, kOPCodeEDNames[opcode]);
             }
+#endif
 
             (this->*m_OPCodesED[opcode])();
 
@@ -241,7 +237,8 @@ void Processor::ExecuteOPCode(u8 opcode)
         {
             IncreaseR();
             u16 opcode_address = PC.GetValue() - 1;
-            
+
+#ifdef DEBUG_GEARSYSTEM    
             if (!m_pMemory->IsDisassembled(opcode_address))
             {
                 if (m_CurrentPrefix == 0xDD)
@@ -251,6 +248,7 @@ void Processor::ExecuteOPCode(u8 opcode)
                 else
                     m_pMemory->Disassemble(opcode_address, kOPCodeNames[opcode]);
             }
+#endif
 
             (this->*m_OPCodes[opcode])();
 
