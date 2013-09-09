@@ -51,6 +51,5 @@ private:
 };
 
 const unsigned int kSampleBufferSize = 8192;
-const long kSoundFrameLength = 59659;
 
 #endif	/* AUDIO_H */

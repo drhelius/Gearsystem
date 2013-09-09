@@ -109,6 +109,7 @@ void GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer)
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
         }
+        m_pAudio->EndFrame();
     }
 }
 

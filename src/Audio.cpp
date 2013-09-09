@@ -103,8 +103,9 @@ void Audio::WriteAudioRegister(u8 value)
 
 void Audio::EndFrame()
 {
-    m_pApu->end_frame(kSoundFrameLength);
-    m_pBuffer->end_frame(kSoundFrameLength);
+    m_pApu->end_frame(m_Time);
+    m_pBuffer->end_frame(m_Time);
+    m_Time = 0;
 
     if (m_pBuffer->samples_avail() >= kSampleBufferSize)
     {
@@ -119,11 +120,4 @@ void Audio::EndFrame()
 void Audio::Tick(unsigned int clockCycles)
 {
     m_Time += clockCycles;
-
-    if (m_Time >= kSoundFrameLength)
-    {
-        m_Time -= kSoundFrameLength;
-
-        EndFrame();
-    }
 }
