@@ -269,11 +269,16 @@ void Video::RenderBG(int line)
     if ((line < 16) && IsSetBit(m_VdpRegister[0], 6))
         origin_x = 0;
     int origin_y = m_VdpRegister[9];
+    
     int scy = line;
+    
+    u16 map_address = (m_VdpRegister[2] << 10) & 0x3800;
     int map_y = scy + origin_y;
-
     if (map_y >= 224)
         map_y -= 224;
+    
+    int tile_y = map_y >> 3;
+    int tile_y_offset = map_y & 7;
     
     int palette_color = 0;
     u8 info = 0;
@@ -286,17 +291,14 @@ void Video::RenderBG(int line)
         }
         else
         {
-            if (IsSetBit(m_VdpRegister[0], 7) && scx >= 192)
+            if (IsSetBit(m_VdpRegister[0], 7) && (scx >= 192))
                 origin_y = 0;
             u8 map_x = scx - origin_x;
-            u16 map_address = (m_VdpRegister[2] << 10) & 0x3800;
             
-            int tile_x = map_x / 8;
-            int tile_x_offset = map_x % 8;
-            int tile_y = map_y / 8;
-            int tile_y_offset = map_y % 8;
-
-            int tile_addr = map_address + (((tile_y * 32) + tile_x) * 2);
+            int tile_x = map_x >> 3;
+            int tile_x_offset = map_x & 7;
+            
+            int tile_addr = map_address + (((tile_y << 5) + tile_x) << 1);
             int tile_index = m_pVdpVRAM[tile_addr];
             int tile_info = m_pVdpVRAM[tile_addr + 1];
             if (IsSetBit(tile_info, 0))
@@ -307,8 +309,8 @@ void Video::RenderBG(int line)
             int palette_offset = IsSetBit(tile_info, 3) ? 16 : 0;
             bool priotirty = IsSetBit(tile_info, 4);
 
-            int tile_data_addr = tile_index * 32;
-            tile_data_addr += ((vflip ? 7 - tile_y_offset : tile_y_offset) * 4);
+            int tile_data_addr = tile_index << 5;
+            tile_data_addr += ((vflip ? 7 - tile_y_offset : tile_y_offset) << 2);
 
             int tile_pixel_x = 7 - tile_x_offset;
             if (hflip)
@@ -333,7 +335,7 @@ void Video::RenderBG(int line)
         final_color.blue = (b * 255) / 3;
         final_color.alpha = 0xFF;
 
-        int pixel = (scy * 256) + scx;
+        int pixel = (scy << 8) + scx;
         m_pColorFrameBuffer[pixel] = final_color;
         m_pInfoBuffer[pixel] = info;
     }
