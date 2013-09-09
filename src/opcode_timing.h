@@ -17,8 +17,8 @@
  * 
  */
 
-#ifndef OPCODE_CYCLES_H
-#define	OPCODE_CYCLES_H
+#ifndef OPCODE_TIMING_H
+#define	OPCODE_TIMING_H
 
 const u8 kOPCodeTStates[256] =
 {
@@ -146,5 +146,5 @@ const u8 kOPCodeXYCBTStates[256] =
 /* 0xF0 */  23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23
 };
 
-#endif	/* OPCODE_CYCLES_H */
+#endif	/* OPCODE_TIMING_H */
 
