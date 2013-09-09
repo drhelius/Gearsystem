@@ -78,7 +78,6 @@ private:
 private:
     u8 FetchOPCode();
     void ExecuteOPCode(u8 opcode);
-    bool InterruptPending();
     void ServeInterrupt();
     void UpdateDelayedInterrupts();
     void ClearAllFlags();
@@ -94,6 +93,7 @@ private:
     void StackPush(SixteenBitRegister* reg);
     void StackPop(SixteenBitRegister* reg);
     void SetInterruptMode(int mode);
+    void IncreaseR();
     void InvalidOPCode();
     void UndocumentedOPCode();
     SixteenBitRegister* GetPrefixedRegister();

@@ -104,7 +104,7 @@ u8 Processor::Tick()
             }
         }
 
-        if (m_bHalt && InterruptPending() && (m_iUnhaltCycles == 0))
+        if (m_bHalt && (m_bINTRequested || m_bNMIRequested) && (m_iUnhaltCycles == 0))
         {
             m_iUnhaltCycles = 12;
         }
@@ -112,7 +112,7 @@ u8 Processor::Tick()
 
     if (!m_bHalt)
     {
-        if (InterruptPending())
+        if (m_bINTRequested || m_bNMIRequested)
             ServeInterrupt();
         ExecuteOPCode(FetchOPCode());
     }
@@ -167,6 +167,7 @@ void Processor::ExecuteOPCode(u8 opcode)
                 if (more_prefixes)
                     m_iCurrentClockCycles += 4;
                 more_prefixes = true;
+                IncreaseR();
             }
             break;
         }
@@ -181,13 +182,17 @@ void Processor::ExecuteOPCode(u8 opcode)
     {
         case 0xCB:
         {
+            IncreaseR();
+
             if (IsPrefixedInstruction())
             {
                 m_bPrefixedCBOpcode = true;
                 m_PrefixedCBValue = m_pMemory->Read(PC.GetValue());
                 PC.Increment();
             } 
-            
+            else
+                IncreaseR();
+                  
             u16 opcode_address = PC.GetValue();
             opcode = FetchOPCode();
             
@@ -215,6 +220,9 @@ void Processor::ExecuteOPCode(u8 opcode)
         }
         case 0xED:
         {
+            IncreaseR();
+            IncreaseR();
+
             m_CurrentPrefix = 0x00;
             u16 opcode_address = PC.GetValue();
             opcode = FetchOPCode();
@@ -231,6 +239,7 @@ void Processor::ExecuteOPCode(u8 opcode)
         }
         default:
         {
+            IncreaseR();
             u16 opcode_address = PC.GetValue() - 1;
             
             if (!m_pMemory->IsDisassembled(opcode_address))
@@ -260,11 +269,6 @@ void Processor::ExecuteOPCode(u8 opcode)
     }
 }
 
-bool Processor::InterruptPending()
-{
-    return (m_bINTRequested || m_bNMIRequested);
-}
-
 void Processor::ServeInterrupt()
 {
     if (m_bNMIRequested)
@@ -274,6 +278,7 @@ void Processor::ServeInterrupt()
         StackPush(&PC);
         PC.SetValue(0x0066);
         m_iCurrentClockCycles += 11;
+        IncreaseR();
     }
     else if (m_bIFF1 && m_bINTRequested)
     {
@@ -282,6 +287,7 @@ void Processor::ServeInterrupt()
         StackPush(&PC);
         PC.SetValue(0x0038);
         m_iCurrentClockCycles += 13;
+        IncreaseR();
     }
 }
 

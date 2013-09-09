@@ -206,6 +206,12 @@ inline bool Processor::IsPrefixedInstruction()
     return (m_CurrentPrefix == 0xDD) || (m_CurrentPrefix == 0xFD);
 }
 
+inline void Processor::IncreaseR()
+{
+    u8 r = R.GetValue();
+    R.SetValue(((r + 1) & 0x7F) | (r & 0x80));
+}
+
 inline void Processor::OPCodes_LD(EightBitRegister* reg1, u8 value)
 {
     reg1->SetValue(value);
