@@ -58,7 +58,6 @@
     <ClInclude Include="..\..\..\src\Processor.h" />
     <ClInclude Include="..\..\..\src\Processor_inline.h" />
     <ClInclude Include="..\..\..\src\RomOnlyMemoryRule.h" />
-    <ClInclude Include="..\..\..\src\SegaIOPorts.h" />
     <ClInclude Include="..\..\..\src\SegaMemoryRule.h" />
     <ClInclude Include="..\..\..\src\SixteenBitRegister.h" />
     <ClInclude Include="..\..\..\src\SmsIOPorts.h" />
@@ -157,7 +156,6 @@
     <ClCompile Include="..\..\..\src\opcodes_ed.cpp" />
     <ClCompile Include="..\..\..\src\Processor.cpp" />
     <ClCompile Include="..\..\..\src\RomOnlyMemoryRule.cpp" />
-    <ClCompile Include="..\..\..\src\SegaIOPorts.cpp" />
     <ClCompile Include="..\..\..\src\SegaMemoryRule.cpp" />
     <ClCompile Include="..\..\..\src\SmsIOPorts.cpp" />
     <ClCompile Include="..\..\..\src\Video.cpp" />

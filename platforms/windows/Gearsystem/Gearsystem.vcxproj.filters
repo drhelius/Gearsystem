@@ -148,9 +148,6 @@
     <ClInclude Include="..\..\..\src\RomOnlyMemoryRule.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\SegaIOPorts.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\SegaMemoryRule.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -316,9 +313,6 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\RomOnlyMemoryRule.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\SegaIOPorts.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\SegaMemoryRule.cpp">
