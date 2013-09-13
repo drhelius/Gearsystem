@@ -70,6 +70,7 @@ private:
     bool m_bVBlankInterrupt;
     bool m_bHBlankInterrupt;
     u8 m_HBlankCounter;
+    u8 m_ScrollV;
 };
 
 const u8 kVdpHCounter[0x200] =

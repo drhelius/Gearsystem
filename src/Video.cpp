@@ -43,6 +43,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_bVBlankInterrupt = false;
     m_bHBlankInterrupt = false;
     m_HBlankCounter = 0;
+    m_ScrollV = 0;
 }
 
 Video::~Video()
@@ -74,6 +75,7 @@ void Video::Reset()
     m_bVBlankInterrupt = false;
     m_bHBlankInterrupt = false;
     m_HBlankCounter = 0xFF;
+    m_ScrollV = 0;
     for (int i = 0; i < (GS_SMS_WIDTH * GS_SMS_HEIGHT); i++)
         m_pInfoBuffer[i] = 0;
     for (int i = 0; i < 0x4000; i++)
@@ -132,6 +134,7 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
 
         if (m_iVCounter >= GS_LINES_PER_FRAME_NTSC)
         {
+            m_ScrollV = m_VdpRegister[9];
             m_iVCounter = 0;
             vblank = true;
         }
@@ -157,6 +160,7 @@ u8 Video::GetVCounter()
 
 u8 Video::GetHCounter()
 {
+    // Not implemented
     return m_iHCounter;
 }
 
@@ -269,7 +273,7 @@ void Video::RenderBG(int line)
     int origin_x = m_VdpRegister[8];
     if ((line < 16) && IsSetBit(m_VdpRegister[0], 6))
         origin_x = 0;
-    int origin_y = m_VdpRegister[9];
+    int origin_y = m_ScrollV;
 
     u16 map_address = (m_VdpRegister[2] << 10) & 0x3800;
     int map_y = scy + origin_y;
