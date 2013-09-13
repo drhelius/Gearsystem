@@ -350,12 +350,22 @@ void Video::RenderSprites(int line)
     u16 sprite_table_address = (m_VdpRegister[5] << 7) & 0x3F00;
     u16 sprite_table_address_2 = sprite_table_address + 0x80;
     u16 sprite_tiles_address = (m_VdpRegister[6] << 11) & 0x2000;
-
-    for (int sprite = 63; sprite >= 0; sprite--)
+    
+    int max_sprite = 0;
+    
+    for (int sprite = 0; sprite < 64; sprite++)
     {
         int sprite_y = m_pVdpVRAM[sprite_table_address + sprite];
         if (sprite_y == 0xD0)
+        {
+            max_sprite = sprite - 1;
             break;
+        }
+    }
+
+    for (int sprite = max_sprite; sprite >= 0; sprite--)
+    {
+        int sprite_y = m_pVdpVRAM[sprite_table_address + sprite] + 1;
         if ((sprite_y > line) || ((sprite_y + sprite_height) <= line))
             continue;
         
