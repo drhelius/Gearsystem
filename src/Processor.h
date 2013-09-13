@@ -751,6 +751,41 @@ private:
     void OPCodeED0xBB();
 };
 
+const bool kZ80ParityTable[256] = {
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true,
+    true, false, false, true, false, true, true, false,
+    true, false, false, true, false, true, true, false,
+    false, true, true, false, true, false, false, true
+};
+
 #include "Processor_inline.h"
 
 #endif	/* PROCESSOR_H */

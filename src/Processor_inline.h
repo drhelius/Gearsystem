@@ -25,41 +25,6 @@
 #include "Processor.h"
 #include "IOPorts.h"
 
-const bool kZ80ParityTable[256] = {
-    true, false, false, true, false, true, true, false,
-    false, true, true, false, true, false, false, true,
-    false, true, true, false, true, false, false, true,
-    true, false, false, true, false, true, true, false,
-    false, true, true, false, true, false, false, true,
-    true, false, false, true, false, true, true, false,
-    true, false, false, true, false, true, true, false,
-    false, true, true, false, true, false, false, true,
-    false, true, true, false, true, false, false, true,
-    true, false, false, true, false, true, true, false,
-    true, false, false, true, false, true, true, false,
-    false, true, true, false, true, false, false, true,
-    true, false, false, true, false, true, true, false,
-    false, true, true, false, true, false, false, true,
-    false, true, true, false, true, false, false, true,
-    true, false, false, true, false, true, true, false,
-    false, true, true, false, true, false, false, true,
-    true, false, false, true, false, true, true, false,
-    true, false, false, true, false, true, true, false,
-    false, true, true, false, true, false, false, true,
-    true, false, false, true, false, true, true, false,
-    false, true, true, false, true, false, false, true,
-    false, true, true, false, true, false, false, true,
-    true, false, false, true, false, true, true, false,
-    true, false, false, true, false, true, true, false,
-    false, true, true, false, true, false, false, true,
-    false, true, true, false, true, false, false, true,
-    true, false, false, true, false, true, true, false,
-    false, true, true, false, true, false, false, true,
-    true, false, false, true, false, true, true, false,
-    true, false, false, true, false, true, true, false,
-    false, true, true, false, true, false, false, true
-};
-
 inline u8 Processor::FetchOPCode()
 {
     u8 opcode = m_pMemory->Read(PC.GetValue());
@@ -168,42 +133,52 @@ inline void Processor::SetInterruptMode(int mode)
 
 inline SixteenBitRegister* Processor::GetPrefixedRegister()
 {
-    if (m_CurrentPrefix == 0xDD)
-        return &IX;
-    else if (m_CurrentPrefix == 0xFD)
-        return &IY;
-    else
-        return &HL;
+    switch (m_CurrentPrefix)
+    {
+        case 0xDD:
+            return &IX;
+        case 0xFD:
+            return &IY;
+        default:
+            return &HL;
+    }
 }
 
 inline u16 Processor::GetPrefixedDisplacementAddress()
 {
-    u16 address = HL.GetValue();
-    if (m_CurrentPrefix == 0xDD)
+    switch (m_CurrentPrefix)
     {
-        if (m_bPrefixedCBOpcode)
+        case 0xDD:
         {
-            address = IX.GetValue() + static_cast<s8> (m_PrefixedCBValue);
+            u16 address = IX.GetValue();
+            if (m_bPrefixedCBOpcode)
+            {
+                address += static_cast<s8> (m_PrefixedCBValue);
+            }
+            else
+            {
+                address += static_cast<s8> (m_pMemory->Read(PC.GetValue()));
+                PC.Increment();
+            }
+            return address;
         }
-        else
+        case 0xFD:
         {
-            address = IX.GetValue() + static_cast<s8> (m_pMemory->Read(PC.GetValue()));
-            PC.Increment();
+            u16 address = IY.GetValue();
+            if (m_bPrefixedCBOpcode)
+            {
+                address += static_cast<s8> (m_PrefixedCBValue);
+            }
+            else
+            {
+                address += static_cast<s8> (m_pMemory->Read(PC.GetValue()));
+                PC.Increment();
+            }
+            return address;
         }
+        default:
+            return HL.GetValue();
     }
-    else if (m_CurrentPrefix == 0xFD)
-    {
-        if (m_bPrefixedCBOpcode)
-        {
-            address = IY.GetValue() + static_cast<s8> (m_PrefixedCBValue);
-        }
-        else
-        {
-            address = IY.GetValue() + static_cast<s8> (m_pMemory->Read(PC.GetValue()));
-            PC.Increment();
-        }
-    }
-    return address;
 }
 
 inline bool Processor::IsPrefixedInstruction()
@@ -238,7 +213,7 @@ inline void Processor::OPCodes_LD_dd_nn(SixteenBitRegister* reg)
     PC.Increment();
     u8 h = m_pMemory->Read(PC.GetValue());
     PC.Increment();
-    u16 address = (h << 8) + l;
+    u16 address = (h << 8) | l;
     reg->SetLow(m_pMemory->Read(address));
     reg->SetHigh(m_pMemory->Read(address + 1));
 }
@@ -249,7 +224,7 @@ inline void Processor::OPCodes_LD_nn_dd(SixteenBitRegister* reg)
     PC.Increment();
     u8 h = m_pMemory->Read(PC.GetValue());
     PC.Increment();
-    u16 address = (h << 8) + l;
+    u16 address = (h << 8) | l;
     m_pMemory->Write(address, reg->GetLow());
     m_pMemory->Write(address + 1, reg->GetHigh());
 }
