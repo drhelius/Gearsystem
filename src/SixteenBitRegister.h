@@ -26,7 +26,10 @@
 class SixteenBitRegister
 {
 public:
-    SixteenBitRegister() { }
+
+    SixteenBitRegister()
+    {
+    }
     void SetLow(u8 low);
     u8 GetLow() const;
     void SetHigh(u8 high);
@@ -42,7 +45,6 @@ private:
     EightBitRegister m_High;
     EightBitRegister m_Low;
 };
-
 
 inline void SixteenBitRegister::SetLow(u8 low)
 {
@@ -76,15 +78,15 @@ inline EightBitRegister* SixteenBitRegister::GetLowRegister()
 
 inline void SixteenBitRegister::SetValue(u16 value)
 {
-    m_Low.SetValue((u8) (value & 0xFF));
-    m_High.SetValue((u8) ((value >> 8) & 0xFF));
+    m_Low.SetValue(static_cast<u8> (value));
+    m_High.SetValue(static_cast<u8> (value >> 8));
 }
 
 inline u16 SixteenBitRegister::GetValue() const
 {
     u8 high = m_High.GetValue();
     u8 low = m_Low.GetValue();
-    return (high << 8) + low;
+    return (high << 8) | low;
 }
 
 inline void SixteenBitRegister::Increment()
