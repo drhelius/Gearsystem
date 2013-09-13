@@ -351,7 +351,7 @@ void Video::RenderSprites(int line)
     u16 sprite_table_address_2 = sprite_table_address + 0x80;
     u16 sprite_tiles_address = (m_VdpRegister[6] << 11) & 0x2000;
     
-    int max_sprite = 0;
+    int max_sprite = 63;
     
     for (int sprite = 0; sprite < 64; sprite++)
     {
