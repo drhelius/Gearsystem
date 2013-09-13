@@ -175,6 +175,7 @@ u8 Video::GetStatusFlags()
     u8 ret = m_VdpStatus;
     m_bFirstByteInSequence = true;
     m_VdpStatus = UnsetBit(m_VdpStatus, 7);
+    m_VdpStatus = UnsetBit(m_VdpStatus, 5);
     m_bVBlankInterrupt = false;
     m_bHBlankInterrupt = false;
     m_pProcessor->RequestINT(false);
@@ -342,6 +343,7 @@ void Video::RenderBG(int line)
 
 void Video::RenderSprites(int line)
 {
+    int sprite_collision = false;
     int scy = line;
     int sprite_height = IsSetBit(m_VdpRegister[1], 1) ? 16 : 8;
     int sprite_shift = IsSetBit(m_VdpRegister[0], 3) ? 8 : 0;
@@ -349,7 +351,7 @@ void Video::RenderSprites(int line)
     u16 sprite_table_address_2 = sprite_table_address + 0x80;
     u16 sprite_tiles_address = (m_VdpRegister[6] << 11) & 0x2000;
 
-    for (int sprite = 0; sprite < 64; sprite++)
+    for (int sprite = 63; sprite >= 0; sprite--)
     {
         int sprite_y = m_pVdpVRAM[sprite_table_address + sprite];
         if (sprite_y == 0xD0)
@@ -402,9 +404,16 @@ void Video::RenderSprites(int line)
             final_color.blue = (b * 255) / 3;
             final_color.alpha = 0xFF;
 
-            
             m_pColorFrameBuffer[pixel] = final_color;
+            
+            if ((m_pInfoBuffer[pixel] & 0x04) != 0)
+                sprite_collision = true;
+            else
+                m_pInfoBuffer[pixel] |= 0x04;
         }
     }
+    
+    if (sprite_collision)
+        m_VdpStatus = SetBit(m_VdpStatus, 5);
 }
 
