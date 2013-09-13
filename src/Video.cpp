@@ -343,7 +343,6 @@ void Video::RenderBG(int line)
 void Video::RenderSprites(int line)
 {
     int scy = line;
-    int sprite_width = 8;
     int sprite_height = IsSetBit(m_VdpRegister[1], 1) ? 16 : 8;
     int sprite_shift = IsSetBit(m_VdpRegister[0], 3) ? 8 : 0;
     u16 sprite_table_address = (m_VdpRegister[5] << 7) & 0x3F00;
@@ -358,7 +357,7 @@ void Video::RenderSprites(int line)
         if ((sprite_y > line) || ((sprite_y + sprite_height) <= line))
             continue;
 
-        u16 sprite_info_address = sprite_table_address_2 + (sprite * 2);
+        u16 sprite_info_address = sprite_table_address_2 + (sprite << 1);
         int sprite_x = m_pVdpVRAM[sprite_info_address] - sprite_shift;
         if (sprite_x >= GS_SMS_WIDTH)
             continue;
