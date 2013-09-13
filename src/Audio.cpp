@@ -56,7 +56,9 @@ void Audio::Init()
     m_pBuffer = new Stereo_Buffer();
     m_pSound = new Sound_Queue();
 
-    m_pBuffer->clock_rate(3579545);
+    // Clock rate for NTSC is 3579545, 3559545 to avoid sttutering at 60hz
+    // Clock rate for PAL is 3546895
+    m_pBuffer->clock_rate(3559545);
     m_pBuffer->set_sample_rate(m_iSampleRate);
 
     m_pApu->treble_eq(-15.0);
