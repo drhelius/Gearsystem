@@ -237,11 +237,17 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
     if (IsValidPointer(buffer))
     {
         // Some ROMs have 512 Byte File Headers
-        if ((size % 1024) != 0)
+        if ((size % 1024) == 512)
         {
             buffer += 512;
             size -= 512;
-            Log("Invalid header found. ROM trimmed to %d bytes", size);
+            Log("Invalid size found. ROM trimmed to %d bytes", size);
+        }
+        // Unkown size
+        else if ((size % 1024) != 0)
+        {
+            Log("Invalid size found. %d bytes", size);
+            return false;
         }
             
         m_iROMSize = size;
@@ -266,6 +272,9 @@ unsigned int Cartridge::Pow2Ceil(u16 n)
 
 bool Cartridge::TestValidROM(u16 location)
 {
+    if (location + 0x10 > m_iROMSize)
+        return false;
+    
     char tmrsega[9] = {0};
     tmrsega[8] = 0;
 
