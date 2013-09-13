@@ -25,11 +25,12 @@
 class Audio;
 class Video;
 class Input;
+class Cartridge;
 
 class SmsIOPorts : public IOPorts
 {
 public:
-    SmsIOPorts(Audio* pAudio, Video* pVideo, Input* pInput);
+    SmsIOPorts(Audio* pAudio, Video* pVideo, Input* pInput, Cartridge* pCartridge);
     virtual ~SmsIOPorts();
     virtual u8 DoInput(u8 port);
     virtual void DoOutput(u8 port, u8 value);
@@ -37,6 +38,8 @@ private:
     Audio* m_pAudio;
     Video* m_pVideo;
     Input* m_pInput;
+    Cartridge* m_pCartridge;
+    u8 m_Port3F;
 };
 
 #endif	/* SMSIOPORTS_H */

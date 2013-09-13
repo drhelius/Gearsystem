@@ -27,6 +27,7 @@ Cartridge::Cartridge()
     InitPointer(m_pTheROM);
     m_iROMSize = 0;
     m_Type = CartridgeNotSupported;
+    m_Zone = CartridgeUnknownZone;
     m_bValidROM = false;
     m_bLoaded = false;
     m_szFilePath[0] = 0;
@@ -48,6 +49,7 @@ void Cartridge::Reset()
 {
     SafeDeleteArray(m_pTheROM);
     m_Type = CartridgeNotSupported;
+    m_Zone = CartridgeUnknownZone;
     m_bValidROM = false;
     m_bLoaded = false;
     m_szFilePath[0] = 0;
@@ -68,6 +70,16 @@ bool Cartridge::IsLoadedROM() const
 Cartridge::CartridgeTypes Cartridge::GetType() const
 {
     return m_Type;
+}
+
+Cartridge::CartridgeZones Cartridge::GetZone() const
+{
+    return m_Zone;
+}
+
+void Cartridge::ForzeZone(Cartridge::CartridgeZones zone)
+{
+    m_Zone = zone;
 }
 
 int Cartridge::GetROMSize() const
@@ -311,6 +323,48 @@ bool Cartridge::GatherMetadata()
     else
     {
         Log("ROM is NOT Valid. No header found");
+    }
+    
+    u8 zone = (m_pTheROM[headerLocation + 0x0F] >> 4) & 0x0F;
+    
+    switch (zone)
+    {
+        case 3:
+        {
+            m_Zone = CartridgeJapanSMS;
+            Log("Cartridge zone is SMS Japan");
+            break;
+        }
+        case 4:
+        {
+            m_Zone = CartridgeExportSMS;
+            Log("Cartridge zone is SMS Export");
+            break;
+        }
+        case 5:
+        {
+            m_Zone = CartridgeJapanGG;
+            Log("Cartridge zone is GG Japan");
+            break;
+        }
+        case 6:
+        {
+            m_Zone = CartridgeExportGG;
+            Log("Cartridge zone is GG Export");
+            break;
+        }
+        case 7:
+        {
+            m_Zone = CartridgeInternationalGG;
+            Log("Cartridge zone is GG International");
+            break;
+        }
+        default:
+        {
+            m_Zone = CartridgeUnknownZone;
+            Log("Unknown cartridge zone");
+            break;
+        }
     }
 
     m_iROMBankCount = std::max(Pow2Ceil(m_iROMSize / 0x4000), 1u);

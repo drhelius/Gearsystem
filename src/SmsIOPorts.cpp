@@ -21,12 +21,15 @@
 #include "Audio.h"
 #include "Video.h"
 #include "Input.h"
+#include "Cartridge.h"
 
-SmsIOPorts::SmsIOPorts(Audio* pAudio, Video* pVideo, Input* pInput)
+SmsIOPorts::SmsIOPorts(Audio* pAudio, Video* pVideo, Input* pInput, Cartridge* pCartridge)
 {
     m_pAudio = pAudio;
     m_pVideo = pVideo;
     m_pInput = pInput;
+    m_pCartridge = pCartridge;
+    m_Port3F = 0;
 }
 
 SmsIOPorts::~SmsIOPorts()
@@ -66,7 +69,7 @@ u8 SmsIOPorts::DoInput(u8 port)
         if ((port & 0x01) == 0x00)
             return m_pInput->GetPortDC();
         else
-            return m_pInput->GetPortDD();
+            return ((m_pInput->GetPortDD() & 0x3F) | (m_Port3F & 0xC0));
     }
 }
 
@@ -76,7 +79,16 @@ void SmsIOPorts::DoOutput(u8 port, u8 value)
     {
         // Writes to even addresses go to memory control register.
         // Writes to odd addresses go to I/O control register.
-        Log("--> ** Attempting to write to port $%X: %X", port, value);
+        if ((port & 0x01) == 0x00)
+        {
+            Log("--> ** Attempting to write to memory control port $%X: %X", port, value);
+        }
+        else
+        {
+            m_Port3F =  ((value & 0x80) | (value & 0x20) << 1) & 0xC0;
+            if (m_pCartridge->GetZone() == Cartridge::CartridgeExportSMS)
+                m_Port3F ^= 0xC0;
+        }
     }
     else if ((port >= 0x40) && (port < 0x80))
     {
@@ -95,6 +107,13 @@ void SmsIOPorts::DoOutput(u8 port, u8 value)
     else
     {
         // Writes have no effect.
-        Log("--> ** Attempting to write to port $%X: %X", port, value);
+        if ((port == 0xDE) || (port == 0xDF))
+        {
+            Log("--> ** Attempting to write to keyboard port $%X: %X", port, value);
+        }
+        else
+        {
+            Log("--> ** Attempting to write to port $%X: %X", port, value);
+        }      
     }
 }

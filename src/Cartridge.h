@@ -32,6 +32,15 @@ public:
 		CartridgeCodemastersMapper,
         CartridgeNotSupported
     };
+    enum CartridgeZones
+    {
+        CartridgeJapanSMS,
+        CartridgeExportSMS,
+        CartridgeJapanGG,
+        CartridgeExportGG,
+        CartridgeInternationalGG,
+        CartridgeUnknownZone
+    };
 
 public:
     Cartridge();
@@ -41,6 +50,8 @@ public:
     bool IsValidROM() const;
     bool IsLoadedROM() const;
     CartridgeTypes GetType() const;
+    CartridgeZones GetZone() const;
+    void ForzeZone(CartridgeZones zone);
     int GetROMSize() const;
     int GetROMBankCount() const;
     const char* GetFilePath() const;
@@ -59,6 +70,7 @@ private:
     u8* m_pTheROM;
     int m_iROMSize;
     CartridgeTypes m_Type;
+    CartridgeZones m_Zone;
     bool m_bValidROM;
     bool m_bLoaded;
     char m_szFilePath[512];
