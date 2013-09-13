@@ -174,8 +174,7 @@ u8 Video::GetStatusFlags()
 {
     u8 ret = m_VdpStatus;
     m_bFirstByteInSequence = true;
-    m_VdpStatus = UnsetBit(m_VdpStatus, 7);
-    m_VdpStatus = UnsetBit(m_VdpStatus, 5);
+    m_VdpStatus = 0x00;
     m_bVBlankInterrupt = false;
     m_bHBlankInterrupt = false;
     m_pProcessor->RequestINT(false);
@@ -344,6 +343,7 @@ void Video::RenderBG(int line)
 void Video::RenderSprites(int line)
 {
     int sprite_collision = false;
+    int sprite_count = 0;
     int scy = line;
     int sprite_height = IsSetBit(m_VdpRegister[1], 1) ? 16 : 8;
     int sprite_shift = IsSetBit(m_VdpRegister[0], 3) ? 8 : 0;
@@ -358,6 +358,10 @@ void Video::RenderSprites(int line)
             break;
         if ((sprite_y > line) || ((sprite_y + sprite_height) <= line))
             continue;
+        
+        sprite_count++;
+        if (sprite_count > 8)
+            m_VdpStatus = SetBit(m_VdpStatus, 6);
 
         u16 sprite_info_address = sprite_table_address_2 + (sprite << 1);
         int sprite_x = m_pVdpVRAM[sprite_info_address] - sprite_shift;
