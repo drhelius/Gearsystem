@@ -80,7 +80,9 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 Accuracy Tests
 --------------
 
-Zexall Z80 instruction exerciser ([from SMS Power!](http://www.smspower.org/Homebrew/ZEXALL-SMS)):
+Zexall Z80 instruction exerciser ([from SMS Power!](http://www.smspower.org/Homebrew/ZEXALL-SMS))
+
+Gearsystem passes all tests in Zexdoc. It passes all tests in Zexall except for BIT n,(HL) due to the undocumented behaviour of the XY flags on this instructions.
 
 ![zexall.sms](http://www.geardome.com/files/gearsystem/zexall.png)
 
