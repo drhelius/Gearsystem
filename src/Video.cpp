@@ -39,6 +39,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iVCounter = 0;
     m_iHCounter = 0;
     m_iCycleCounter = 0;
+    m_iCycleAdjustment = 0;
     m_VdpStatus = 0;
     m_bVBlankInterrupt = false;
     m_bHBlankInterrupt = false;
@@ -70,7 +71,9 @@ void Video::Reset()
     m_VdpLatch = 0;
     m_VdpCode = 0;
     m_VdpBuffer = 0;
+    m_VdpAddress = 0;
     m_iCycleCounter = 0;
+    m_iCycleAdjustment = 0;
     m_VdpStatus = 0;
     m_bVBlankInterrupt = false;
     m_bHBlankInterrupt = false;
@@ -94,6 +97,9 @@ void Video::Reset()
     m_VdpRegister[8] = 0x00; // Scroll-H
     m_VdpRegister[9] = 0x00; // Scroll-V
     m_VdpRegister[10] = 0xFF; // H-line interrupt ($FF=OFF)
+    
+    for (int i = 11; i < 16; i++)
+        m_VdpRegister[i] = 0;
 }
 
 bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
@@ -104,8 +110,14 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
 
     if (m_iCycleCounter >= GS_CYCLES_PER_LINE_NTSC)
     {
+        m_iCycleAdjustment++;
+        if (m_iCycleAdjustment >= GS_CYCLES_ADJUSTMENT_LINE_NTSC)
+        {
+            m_iCycleAdjustment = 0;
+            m_iCycleCounter += GS_CYCLES_PER_LINE_LEFT_NTSC;
+        }
         m_iCycleCounter -= GS_CYCLES_PER_LINE_NTSC;
-
+        
         if (m_iVCounter < 192)
         {
             ScanLine(m_iVCounter);
