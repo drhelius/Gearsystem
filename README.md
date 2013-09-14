@@ -89,7 +89,7 @@ Gearsystem passes all tests in Zexdoc. It passes all tests in Zexall except for 
 Screenshots
 -----------
 
-![Screenshot](http://www.geardome.com/files/gearsystem/01.png) ![Screenshot](http://www.geardome.com/files/gearsystem/02.png)
+![Screenshot](http://www.geardome.com/files/gearsystem/01.png)![Screenshot](http://www.geardome.com/files/gearsystem/02.png)
 ![Screenshot](http://www.geardome.com/files/gearsystem/03.png)![Screenshot](http://www.geardome.com/files/gearsystem/04.png)
 ![Screenshot](http://www.geardome.com/files/gearsystem/05.png)![Screenshot](http://www.geardome.com/files/gearsystem/06.png)
 ![Screenshot](http://www.geardome.com/files/gearsystem/07.png)![Screenshot](http://www.geardome.com/files/gearsystem/08.png)
