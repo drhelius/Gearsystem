@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>421</width>
-    <height>418</height>
+    <width>412</width>
+    <height>374</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,8 +22,8 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>60</x>
-     <y>370</y>
+     <x>50</x>
+     <y>330</y>
      <width>341</width>
      <height>32</height>
     </rect>
@@ -365,32 +365,6 @@
      <string>Down:</string>
     </property>
    </widget>
-  </widget>
-  <widget class="QLineEdit" name="lineEditPause">
-   <property name="geometry">
-    <rect>
-     <x>80</x>
-     <y>320</y>
-     <width>111</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_15">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>320</y>
-     <width>62</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Pause:</string>
-   </property>
   </widget>
  </widget>
  <tabstops>
