@@ -23,11 +23,13 @@
 
 SegaMemoryRule::SegaMemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
+    m_pRAMBanks = new u8[0x8000];
     Reset();
 }
 
 SegaMemoryRule::~SegaMemoryRule()
 {
+    SafeDeleteArray(m_pRAMBanks);
 }
 
 u8 SegaMemoryRule::PerformRead(u16 address)
@@ -49,13 +51,19 @@ u8 SegaMemoryRule::PerformRead(u16 address)
         u8* pROM = m_pCartridge->GetTheROM();
         return pROM[(address - 0x4000) + m_iMapperSlotAddress[1]];
     }
-    else if (address < 0xC000) 
+    else if (address < 0xC000)
     {
-        // ROM page 2
-        u8* pROM = m_pCartridge->GetTheROM();
-        return pROM[(address - 0x8000) + m_iMapperSlotAddress[2]];
-
-        // this space is also available to external ram
+        if (m_bRAMEnabled)
+        {
+            // External RAM
+            return m_pRAMBanks [(address - 0x8000) + m_RAMBankStartAddress];
+        }
+        else
+        {
+            // ROM page 2
+            u8* pROM = m_pCartridge->GetTheROM();
+            return pROM[(address - 0x8000) + m_iMapperSlotAddress[2]];
+        }
     }
     else
     {
@@ -71,15 +79,20 @@ void SegaMemoryRule::PerformWrite(u16 address, u8 value)
         // ROM page 0 and 1
         Log("--> ** Attempting to write on ROM address $%X %X", address, value);
     }
-    else if (address < 0xC000) 
+    else if (address < 0xC000)
     {
-        // ROM page 2
-        Log("--> ** Attempting to write on ROM page 2 $%X %X", address, value);
-
-        // this space is also available to external ram
-        // m_pMemory->Load(address, value);
+        if (m_bRAMEnabled)
+        {
+            // External RAM
+            m_pRAMBanks[(address - 0x8000) + m_RAMBankStartAddress] = value;
+        }
+        else
+        {
+            // ROM page 2
+            Log("--> ** Attempting to write on ROM page 2 $%X %X", address, value);
+        }
     }
-    else if (address < 0xE000) 
+    else if (address < 0xE000)
     {
         // RAM
         m_pMemory->Load(address, value);
@@ -94,7 +107,16 @@ void SegaMemoryRule::PerformWrite(u16 address, u8 value)
         {
             case 0xFFFC:
             {
-                Log("--> ** Attempting to write to Control reg $%X %X", address, value);
+                if (value != 0)
+                {
+                    m_bRAMEnabled = IsSetBit(value, 3);
+                    m_RAMBankStartAddress = IsSetBit(value, 2) ? 0x4000 : 0x0000;
+
+                    if (m_bRAMEnabled)
+                    {
+                        Log("--> External RAM bank $%X", m_RAMBankStartAddress);
+                    }
+                }
                 break;
             }
             case 0xFFFD:
@@ -118,17 +140,15 @@ void SegaMemoryRule::PerformWrite(u16 address, u8 value)
                 m_iMapperSlotAddress[2] = m_iMapperSlot[2] * 0x4000;
                 break;
             }
-            default:
-            {
-                //Log("--> ** Attempting to write on mirrored RAM $%X %X", address, value);
-                break;
-            }
         }
     }
 }
 
 void SegaMemoryRule::Reset()
 {
+    m_RAMBankStartAddress = 0;
+    m_bRAMEnabled = false;
+
     for (int i = 0; i < 3; i++)
     {
         m_iMapperSlot[i] = i;

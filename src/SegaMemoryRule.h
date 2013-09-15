@@ -34,6 +34,9 @@ public:
 private:
     int m_iMapperSlot[3];
     int m_iMapperSlotAddress[3];
+    u8* m_pRAMBanks;
+    u16 m_RAMBankStartAddress;
+    bool m_bRAMEnabled;
 };
 
 #endif	/* SEGAMEMORYRULE_H */
