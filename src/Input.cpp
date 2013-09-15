@@ -30,15 +30,17 @@ Input::Input(Processor* pProcessor)
     m_IOPortDD = 0;
     m_IOPort00 = 0;
     m_iInputCycles = 0;
+    m_bGameGear = false;
 }
 
 void Input::Init()
 {
-    Reset();
+    Reset(false);
 }
 
-void Input::Reset()
+void Input::Reset(bool bGameGear)
 {
+    m_bGameGear = bGameGear;
     m_Joypad1 = 0xFF;
     m_Joypad2 = 0xFF;
     m_IOPortDC = 0xFF;
@@ -63,7 +65,7 @@ void Input::KeyPressed(GS_Joypads joypad, GS_Keys key)
 {
     if (joypad == Joypad_1)
     {
-        if ((key == Key_Pause) && IsSetBit(m_Joypad1, Key_Pause))
+        if (!m_bGameGear && (key == Key_Start) && IsSetBit(m_Joypad1, Key_Start))
             m_pProccesor->RequestNMI();
         m_Joypad1 = UnsetBit(m_Joypad1, key);
     }

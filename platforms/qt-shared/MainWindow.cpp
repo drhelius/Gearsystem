@@ -334,7 +334,7 @@ void MainWindow::keyPressEvent(QKeyEvent* e)
                 m_pEmulator->KeyPressed(joypad, Key_Down);
                 break;
             case 6:
-                m_pEmulator->KeyPressed(joypad, Key_Pause);
+                m_pEmulator->KeyPressed(joypad, Key_Start);
                 break;
             case 5:
                 m_pEmulator->KeyPressed(joypad, Key_2);
@@ -368,7 +368,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent* e)
                 m_pEmulator->KeyReleased(joypad, Key_Down);
                 break;
             case 6:
-                m_pEmulator->KeyReleased(joypad, Key_Pause);
+                m_pEmulator->KeyReleased(joypad, Key_Start);
                 break;
             case 5:
                 m_pEmulator->KeyReleased(joypad, Key_2);

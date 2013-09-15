@@ -108,7 +108,6 @@ enum GS_Keys
     Key_1 = 4,
     Key_2 = 5,
     Key_Start = 6,
-    Key_Pause = 7, 
 };
 
 enum GS_Joypads

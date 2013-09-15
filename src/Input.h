@@ -30,7 +30,7 @@ class Input
 public:
     Input(Processor* pProcessor);
     void Init();
-    void Reset();
+    void Reset(bool bGameGear);
     void Tick(unsigned int clockCycles);
     void KeyPressed(GS_Joypads joypad, GS_Keys key);
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
@@ -49,6 +49,7 @@ private:
     u8 m_IOPortDD;
     u8 m_IOPort00;
     int m_iInputCycles;
+    bool m_bGameGear;
 };
 
 #endif	/* INPUT_H */
