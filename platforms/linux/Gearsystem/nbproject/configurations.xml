@@ -23,6 +23,8 @@
       <itemPath>../../../src/Audio.h</itemPath>
       <itemPath>../../../src/Cartridge.cpp</itemPath>
       <itemPath>../../../src/Cartridge.h</itemPath>
+      <itemPath>../../../src/CodemastersMemoryRule.cpp</itemPath>
+      <itemPath>../../../src/CodemastersMemoryRule.h</itemPath>
       <itemPath>../../../src/EightBitRegister.h</itemPath>
       <itemPath>../../../src/GearsystemCore.cpp</itemPath>
       <itemPath>../../../src/GearsystemCore.h</itemPath>
@@ -133,6 +135,16 @@
       <item path="../../../src/Cartridge.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/Cartridge.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/CodemastersMemoryRule.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/CodemastersMemoryRule.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../../src/EightBitRegister.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -329,6 +341,16 @@
       <item path="../../../src/Cartridge.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../src/Cartridge.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/CodemastersMemoryRule.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/CodemastersMemoryRule.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../../src/EightBitRegister.h" ex="false" tool="3" flavor2="0">
       </item>
