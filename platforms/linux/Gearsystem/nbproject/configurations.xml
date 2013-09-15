@@ -26,6 +26,8 @@
       <itemPath>../../../src/CodemastersMemoryRule.cpp</itemPath>
       <itemPath>../../../src/CodemastersMemoryRule.h</itemPath>
       <itemPath>../../../src/EightBitRegister.h</itemPath>
+      <itemPath>../../../src/GameGearIOPorts.cpp</itemPath>
+      <itemPath>../../../src/GameGearIOPorts.h</itemPath>
       <itemPath>../../../src/GearsystemCore.cpp</itemPath>
       <itemPath>../../../src/GearsystemCore.h</itemPath>
       <itemPath>../../../src/IOPorts.h</itemPath>
@@ -147,6 +149,10 @@
             flavor2="0">
       </item>
       <item path="../../../src/EightBitRegister.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/GameGearIOPorts.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/GameGearIOPorts.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/GearsystemCore.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -353,6 +359,10 @@
             flavor2="0">
       </item>
       <item path="../../../src/EightBitRegister.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/GameGearIOPorts.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/GameGearIOPorts.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/GearsystemCore.cpp" ex="false" tool="1" flavor2="0">
       </item>
