@@ -44,6 +44,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     this->addAction(m_pUI->actionPause);
     this->addAction(m_pUI->actionSave_State);
     this->addAction(m_pUI->actionLoad_State);
+    
+    this->setWindowTitle(GEARSYSTEM_TITLE);
 
     m_pExitShortcut = new QShortcut(QKeySequence(Qt::Key_Escape), this);
     m_pExitShortcut->setContext(Qt::ApplicationShortcut);

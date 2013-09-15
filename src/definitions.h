@@ -30,6 +30,7 @@
 
 #define DEBUG_GEARSYSTEM 1
 
+#define GEARSYSTEM_TITLE "Gearsystem 0.1"
 #define GEARSYSTEM_VERSION 0.1
 
 #ifndef NULL
