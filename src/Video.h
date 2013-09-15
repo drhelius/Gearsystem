@@ -78,37 +78,33 @@ private:
 
 inline GS_Color Video::ConvertTo8BitColor(int palette_color)
 {
+    int r, g, b, highest_value;
     if (m_bGameGear)
     {
-        int r = m_pVdpCRAM[palette_color * 2] & 0x0F;
-        int g = (m_pVdpCRAM[palette_color * 2] >> 4) & 0x0F;
-        int b = (m_pVdpCRAM[(palette_color * 2) + 1]) & 0x0F;
-
-        GS_Color final_color;
-
-        final_color.red = (r * 255) / 15;
-        final_color.green = (g * 255) / 15;
-        final_color.blue = (b * 255) / 15;
-        final_color.alpha = 0xFF;
-        return final_color;
+        int palette_color_2 = palette_color << 1;
+        r = m_pVdpCRAM[palette_color_2] & 0x0F;
+        g = (m_pVdpCRAM[palette_color_2] >> 4) & 0x0F;
+        b = (m_pVdpCRAM[(palette_color_2) + 1]) & 0x0F;
+        highest_value = 15;
     }
     else
     {
-        int r = m_pVdpCRAM[palette_color] & 0x03;
-        int g = (m_pVdpCRAM[palette_color] >> 2) & 0x03;
-        int b = (m_pVdpCRAM[palette_color] >> 4) & 0x03;
-
-        GS_Color final_color;
-
-        final_color.red = (r * 255) / 3;
-        final_color.green = (g * 255) / 3;
-        final_color.blue = (b * 255) / 3;
-        final_color.alpha = 0xFF;
-        return final_color;
+        r = m_pVdpCRAM[palette_color] & 0x03;
+        g = (m_pVdpCRAM[palette_color] >> 2) & 0x03;
+        b = (m_pVdpCRAM[palette_color] >> 4) & 0x03;
+        highest_value = 3;
     }
+
+    GS_Color final_color;
+
+    final_color.red = (r * 255) / highest_value;
+    final_color.green = (g * 255) / highest_value;
+    final_color.blue = (b * 255) / highest_value;
+    final_color.alpha = 0xFF;
+    return final_color;
 }
 
-const u8 kVdpHCounter[0x200] ={
+const u8 kVdpHCounter[0x200] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
     0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F,
