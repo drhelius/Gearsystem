@@ -26,6 +26,7 @@
 #include "Cartridge.h"
 #include "MemoryRule.h"
 #include "SegaMemoryRule.h"
+#include "CodemastersMemoryRule.h"
 #include "RomOnlyMemoryRule.h"
 #include "SmsIOPorts.h"
 
@@ -38,6 +39,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pInput);
     InitPointer(m_pCartridge);
     InitPointer(m_pSegaMemoryRule);
+    InitPointer(m_pCodemastersMemoryRule);
     InitPointer(m_pRomOnlyMemoryRule);
     InitPointer(m_pSmsIOPorts);
     m_bPaused = true;
@@ -65,6 +67,7 @@ GearsystemCore::~GearsystemCore()
 
     SafeDelete(m_pSmsIOPorts);
     SafeDelete(m_pRomOnlyMemoryRule);
+    SafeDelete(m_pCodemastersMemoryRule);
     SafeDelete(m_pSegaMemoryRule);
     SafeDelete(m_pCartridge);
     SafeDelete(m_pInput);
@@ -244,6 +247,7 @@ float GearsystemCore::GetVersion()
 
 void GearsystemCore::InitMemoryRules()
 {
+    m_pCodemastersMemoryRule = new CodemastersMemoryRule(m_pMemory, m_pCartridge);
     m_pSegaMemoryRule = new SegaMemoryRule(m_pMemory, m_pCartridge);
     m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pMemory, m_pCartridge);
 }
@@ -261,6 +265,9 @@ bool GearsystemCore::AddMemoryRules()
             break;
         case Cartridge::CartridgeSegaMapper:
             m_pMemory->SetCurrentRule(m_pSegaMemoryRule);
+            break;
+        case Cartridge::CartridgeCodemastersMapper:
+            m_pMemory->SetCurrentRule(m_pCodemastersMemoryRule);
             break;
         case Cartridge::CartridgeNotSupported:
             notSupported = true;
@@ -280,6 +287,7 @@ void GearsystemCore::Reset()
     m_pVideo->Reset();
     m_pInput->Reset();
     m_pSegaMemoryRule->Reset();
+    m_pCodemastersMemoryRule->Reset();
     m_pRomOnlyMemoryRule->Reset();
     m_bPaused = false;
 }

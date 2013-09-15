@@ -29,6 +29,7 @@ class Video;
 class Input;
 class Cartridge;
 class SegaMemoryRule;
+class CodemastersMemoryRule;
 class RomOnlyMemoryRule;
 class MemoryRule;
 class SmsIOPorts;
@@ -69,6 +70,7 @@ private:
     Input* m_pInput;
     Cartridge* m_pCartridge;
     SegaMemoryRule* m_pSegaMemoryRule;
+    CodemastersMemoryRule* m_pCodemastersMemoryRule;
     RomOnlyMemoryRule* m_pRomOnlyMemoryRule;
     SmsIOPorts* m_pSmsIOPorts;
     bool m_bPaused;
