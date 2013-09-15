@@ -76,3 +76,6 @@ platforms/ios/Gearsystem.xcodeproj/xcuserdata/*
 *.xcexplist
 
 *.xcsettings
+
+*.sms
+*.gg
