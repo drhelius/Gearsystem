@@ -67,8 +67,8 @@ private:
     int m_iHCounter;
     int m_iCycleCounter;
     int m_iCycleAdjustment;
+    int m_iHBlankCycles;
     u8 m_VdpStatus;
-    bool m_bVBlankInterrupt;
     bool m_bHBlankInterrupt;
     u8 m_HBlankCounter;
     u8 m_ScrollV;

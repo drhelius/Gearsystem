@@ -41,7 +41,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iCycleCounter = 0;
     m_iCycleAdjustment = 0;
     m_VdpStatus = 0;
-    m_bVBlankInterrupt = false;
+    m_iHBlankCycles = 0;
     m_bHBlankInterrupt = false;
     m_HBlankCounter = 0;
     m_ScrollV = 0;
@@ -75,7 +75,7 @@ void Video::Reset()
     m_iCycleCounter = 0;
     m_iCycleAdjustment = 0;
     m_VdpStatus = 0;
-    m_bVBlankInterrupt = false;
+    m_iHBlankCycles = 0;
     m_bHBlankInterrupt = false;
     m_HBlankCounter = 0xFF;
     m_ScrollV = 0;
@@ -107,6 +107,18 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
     bool vblank = false;
     m_pColorFrameBuffer = pColorFrameBuffer;
     m_iCycleCounter += clockCycles;
+    
+    if (m_iHBlankCycles > 0)
+    {
+        m_iHBlankCycles -= clockCycles;
+        
+        if (m_iHBlankCycles <= 0)
+        {
+            m_iHBlankCycles = 0;
+            if (m_bHBlankInterrupt && IsSetBit(m_VdpRegister[0], 4))
+                m_pProcessor->RequestINT(true);
+        }
+    }
 
     if (m_iCycleCounter >= GS_CYCLES_PER_LINE_NTSC)
     {
@@ -125,7 +137,8 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
             if (m_iVCounter == 191)
             {
                 m_VdpStatus = SetBit(m_VdpStatus, 7);
-                m_bVBlankInterrupt = true;
+                if (IsSetBit(m_VdpRegister[1], 5))
+                    m_pProcessor->RequestINT(true);
             }
         }
 
@@ -144,14 +157,11 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
             {
                 m_HBlankCounter = m_VdpRegister[10];
                 m_bHBlankInterrupt = true;
+                m_iHBlankCycles = 110;
             }
         }
         else
-            m_HBlankCounter = m_VdpRegister[10];
-
-        if ((m_bVBlankInterrupt && IsSetBit(m_VdpRegister[1], 5)) ||
-                (m_bHBlankInterrupt && IsSetBit(m_VdpRegister[0], 4)))
-            m_pProcessor->RequestINT(true);
+            m_HBlankCounter = m_VdpRegister[10];   
     }
     return vblank;
 }
@@ -192,7 +202,6 @@ u8 Video::GetStatusFlags()
     u8 ret = m_VdpStatus;
     m_bFirstByteInSequence = true;
     m_VdpStatus = 0x00;
-    m_bVBlankInterrupt = false;
     m_bHBlankInterrupt = false;
     m_pProcessor->RequestINT(false);
     return ret;
