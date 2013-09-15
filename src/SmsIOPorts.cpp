@@ -81,7 +81,7 @@ void SmsIOPorts::DoOutput(u8 port, u8 value)
         // Writes to odd addresses go to I/O control register.
         if ((port & 0x01) == 0x00)
         {
-            Log("--> ** Attempting to write to memory control port $%X: %X", port, value);
+            Log("--> ** Output to memory control port $%X: %X", port, value);
         }
         else
         {
@@ -104,16 +104,22 @@ void SmsIOPorts::DoOutput(u8 port, u8 value)
         else
             m_pVideo->WriteControl(value);
     }
+#ifdef DEBUG_GEARSYSTEM 
     else
     {
         // Writes have no effect.
         if ((port == 0xDE) || (port == 0xDF))
         {
-            Log("--> ** Attempting to write to keyboard port $%X: %X", port, value);
+            Log("--> ** Output to keyboard port $%X: %X", port, value);
+        }
+        else if ((port == 0xF0) || (port == 0xF1) || (port == 0xF2))
+        {
+            Log("--> ** Output to YM2413 port $%X: %X", port, value);
         }
         else
         {
-            Log("--> ** Attempting to write to port $%X: %X", port, value);
+            Log("--> ** Output to port $%X: %X", port, value);
         }      
     }
+#endif
 }
