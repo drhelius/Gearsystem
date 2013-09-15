@@ -17,39 +17,30 @@
  * 
  */
 
-#ifndef INPUT_H
-#define	INPUT_H
+#ifndef GAMEGEARIOPORTS_H
+#define	GAMEGEARIOPORTS_H
 
-#include "definitions.h"
+#include "IOPorts.h"
 
-class Memory;
-class Processor;
+class Audio;
+class Video;
+class Input;
+class Cartridge;
 
-class Input
+class GameGearIOPorts : public IOPorts
 {
 public:
-    Input(Processor* pProcessor);
-    void Init();
-    void Reset();
-    void Tick(unsigned int clockCycles);
-    void KeyPressed(GS_Joypads joypad, GS_Keys key);
-    void KeyReleased(GS_Joypads joypad, GS_Keys key);
-    u8 GetPortDC();
-    u8 GetPortDD();
-    u8 GetPort00();
-
+    GameGearIOPorts(Audio* pAudio, Video* pVideo, Input* pInput, Cartridge* pCartridge);
+    virtual ~GameGearIOPorts();
+    virtual u8 DoInput(u8 port);
+    virtual void DoOutput(u8 port, u8 value);
 private:
-    void Update();
-
-private:
-    Processor* m_pProccesor;
-    u8 m_Joypad1;
-    u8 m_Joypad2;
-    u8 m_IOPortDC;
-    u8 m_IOPortDD;
-    u8 m_IOPort00;
-    int m_iInputCycles;
+    Audio* m_pAudio;
+    Video* m_pVideo;
+    Input* m_pInput;
+    Cartridge* m_pCartridge;
+    u8 m_Port3F;
 };
 
-#endif	/* INPUT_H */
+#endif	/* GAMEGEARIOPORTS_H */
 

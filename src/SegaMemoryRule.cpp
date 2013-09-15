@@ -103,6 +103,7 @@ void SegaMemoryRule::PerformWrite(u16 address, u8 value)
         // RAM (mirror)
         m_pMemory->Load(address, value);
         m_pMemory->Load(address - 0x2000, value);
+        
         switch (address)
         {
             case 0xFFFC:

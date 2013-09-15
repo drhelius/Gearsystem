@@ -37,18 +37,10 @@ u8 RomOnlyMemoryRule::PerformRead(u16 address)
 
 void RomOnlyMemoryRule::PerformWrite(u16 address, u8 value)
 {
-    if (address < 0x8000)
+    if (address < 0xC000)
     {
-        // ROM page 0 and 1
+        // ROM page 0, 1 and 2
         Log("--> ** Attempting to write on ROM address $%X %X", address, value);
-    }
-    else if (address < 0xC000)
-    {
-        // ROM page 2
-        Log("--> ** Attempting to write on ROM page 2 $%X %X", address, value);
-
-        // this space is also available to external ram
-        // m_pMemory->Load(address, value);
     }
     else if (address < 0xE000)
     {
@@ -61,15 +53,6 @@ void RomOnlyMemoryRule::PerformWrite(u16 address, u8 value)
         // RAM (mirror)
         m_pMemory->Load(address, value);
         m_pMemory->Load(address - 0x2000, value);
-
-        if (address >= 0xFFCC)
-        {
-            Log("--> ** Attempting to write to Control reg $%X %X", address, value);
-        }
-        else
-        {
-            Log("--> ** Attempting to write on mirrored RAM $%X %X", address, value);
-        }
     }
 }
 

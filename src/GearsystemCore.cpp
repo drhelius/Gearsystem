@@ -29,6 +29,7 @@
 #include "CodemastersMemoryRule.h"
 #include "RomOnlyMemoryRule.h"
 #include "SmsIOPorts.h"
+#include "GameGearIOPorts.h"
 
 GearsystemCore::GearsystemCore()
 {
@@ -42,6 +43,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pCodemastersMemoryRule);
     InitPointer(m_pRomOnlyMemoryRule);
     InitPointer(m_pSmsIOPorts);
+    InitPointer(m_pGameGearIOPorts);
     m_bPaused = true;
 }
 
@@ -65,6 +67,7 @@ GearsystemCore::~GearsystemCore()
     }
 #endif
 
+    SafeDelete(m_pGameGearIOPorts);
     SafeDelete(m_pSmsIOPorts);
     SafeDelete(m_pRomOnlyMemoryRule);
     SafeDelete(m_pCodemastersMemoryRule);
@@ -88,7 +91,7 @@ void GearsystemCore::Init()
     m_pInput = new Input(m_pProcessor);
     m_pCartridge = new Cartridge();
     m_pSmsIOPorts = new SmsIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge);
-    m_pProcessor->SetIOPOrts(m_pSmsIOPorts);
+    m_pGameGearIOPorts = new GameGearIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge);
 
     m_pMemory->Init();
     m_pProcessor->Init();
@@ -275,6 +278,17 @@ bool GearsystemCore::AddMemoryRules()
         default:
             notSupported = true;
     }
+    
+    if (m_pCartridge->IsGameGear())
+    {
+        Log("Game Gear Mode enabled");
+        m_pProcessor->SetIOPOrts(m_pGameGearIOPorts);
+    }
+    else
+    {
+        Log("Master System Mode enabled");
+        m_pProcessor->SetIOPOrts(m_pSmsIOPorts);
+    }
 
     return !notSupported;
 }
@@ -284,7 +298,7 @@ void GearsystemCore::Reset()
     m_pMemory->Reset();
     m_pProcessor->Reset();
     m_pAudio->Reset();
-    m_pVideo->Reset();
+    m_pVideo->Reset(m_pCartridge->IsGameGear());
     m_pInput->Reset();
     m_pSegaMemoryRule->Reset();
     m_pCodemastersMemoryRule->Reset();

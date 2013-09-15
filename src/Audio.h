@@ -37,6 +37,7 @@ public:
     bool IsEnabled() const;
     void SetSampleRate(int rate);
     void WriteAudioRegister(u8 value);
+    void WriteGGStereoRegister(u8 value);
     void EndFrame();
     void Tick(unsigned int clockCycles);
 

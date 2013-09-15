@@ -103,6 +103,11 @@ void Audio::WriteAudioRegister(u8 value)
     m_pApu->write_data(m_Time, value);
 }
 
+void Audio::WriteGGStereoRegister(u8 value)
+{
+    m_pApu->write_ggstereo(m_Time, value);
+}
+
 void Audio::EndFrame()
 {
     m_pApu->end_frame(m_Time);

@@ -47,6 +47,7 @@ public:
     ~Cartridge();
     void Init();
     void Reset();
+    bool IsGameGear() const;
     bool IsValidROM() const;
     bool IsLoadedROM() const;
     CartridgeTypes GetType() const;
@@ -76,6 +77,7 @@ private:
     char m_szFilePath[512];
     char m_szFileName[512];
     int m_iROMBankCount;
+    bool m_bGameGear;
 };
 
 #endif	/* CARTRIDGE_H */

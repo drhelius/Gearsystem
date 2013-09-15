@@ -33,6 +33,7 @@ class CodemastersMemoryRule;
 class RomOnlyMemoryRule;
 class MemoryRule;
 class SmsIOPorts;
+class GameGearIOPorts;
 
 class GearsystemCore
 {
@@ -73,6 +74,7 @@ private:
     CodemastersMemoryRule* m_pCodemastersMemoryRule;
     RomOnlyMemoryRule* m_pRomOnlyMemoryRule;
     SmsIOPorts* m_pSmsIOPorts;
+    GameGearIOPorts* m_pGameGearIOPorts;
     bool m_bPaused;
 };
 

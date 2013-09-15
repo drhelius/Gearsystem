@@ -22,7 +22,6 @@
 
 #include "definitions.h"
 #include "MemoryRule.h"
-#include "SegaMemoryRule.h"
 #include <vector>
 
 class Memory

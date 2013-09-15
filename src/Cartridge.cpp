@@ -33,6 +33,7 @@ Cartridge::Cartridge()
     m_szFilePath[0] = 0;
     m_szFileName[0] = 0;
     m_iROMBankCount = 0;
+    m_bGameGear = false;
 }
 
 Cartridge::~Cartridge()
@@ -55,6 +56,12 @@ void Cartridge::Reset()
     m_szFilePath[0] = 0;
     m_szFileName[0] = 0;
     m_iROMBankCount = 0;
+    m_bGameGear = false;
+}
+
+bool Cartridge::IsGameGear() const
+{
+    return m_bGameGear;
 }
 
 bool Cartridge::IsValidROM() const
@@ -140,6 +147,8 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
 
         if ((extension == "sms") || (extension == "gg"))
         {
+            m_bGameGear = (extension == "gg");
+
             void *p;
             size_t uncomp_size;
 
@@ -216,6 +225,7 @@ bool Cartridge::LoadFromFile(const char* path)
         }
         else
         {
+            m_bGameGear = (extension == "gg");
             m_bLoaded = LoadFromBuffer(reinterpret_cast<u8*> (memblock), size);
         }
 
@@ -344,18 +354,21 @@ bool Cartridge::GatherMetadata()
         case 5:
         {
             m_Zone = CartridgeJapanGG;
+            m_bGameGear = true;
             Log("Cartridge zone is GG Japan");
             break;
         }
         case 6:
         {
             m_Zone = CartridgeExportGG;
+            m_bGameGear = true;
             Log("Cartridge zone is GG Export");
             break;
         }
         case 7:
         {
             m_Zone = CartridgeInternationalGG;
+            m_bGameGear = true;
             Log("Cartridge zone is GG International");
             break;
         }
@@ -399,6 +412,11 @@ bool Cartridge::GatherMetadata()
         default:
             Log("ERROR with cartridge type!!");
             break;
+    }
+    
+    if (m_bGameGear)
+    {
+        Log("Game Gear cartridge identified");
     }
 
     return (m_Type != CartridgeNotSupported);

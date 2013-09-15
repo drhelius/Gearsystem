@@ -45,6 +45,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_bHBlankInterrupt = false;
     m_HBlankCounter = 0;
     m_ScrollV = 0;
+    m_bGameGear = false;
 }
 
 Video::~Video()
@@ -59,11 +60,12 @@ void Video::Init()
     m_pInfoBuffer = new u8[GS_SMS_WIDTH * GS_SMS_HEIGHT];
     m_pVdpVRAM = new u8[0x4000];
     m_pVdpCRAM = new u8[0x40];
-    Reset();
+    Reset(false);
 }
 
-void Video::Reset()
+void Video::Reset(bool bGameGear)
 {
+    m_bGameGear = bGameGear;
     m_bFirstByteInSequence = true;
     m_VdpBuffer = 0;
     m_iVCounter = 0;
@@ -107,11 +109,11 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
     bool vblank = false;
     m_pColorFrameBuffer = pColorFrameBuffer;
     m_iCycleCounter += clockCycles;
-    
+
     if (m_iHBlankCycles > 0)
     {
         m_iHBlankCycles -= clockCycles;
-        
+
         if (m_iHBlankCycles <= 0)
         {
             m_iHBlankCycles = 0;
@@ -161,7 +163,7 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
             }
         }
         else
-            m_HBlankCounter = m_VdpRegister[10];   
+            m_HBlankCounter = m_VdpRegister[10];
     }
     return vblank;
 }
@@ -222,7 +224,7 @@ void Video::WriteData(u8 data)
         }
         case VDP_WRITE_CRAM_OPERATION:
         {
-            m_pVdpCRAM[m_VdpAddress & 0x1F] = data;
+            m_pVdpCRAM[m_VdpAddress & (m_bGameGear ? 0x3F : 0x1F)] = data;
             break;
         }
     }
@@ -292,6 +294,7 @@ void Video::ScanLine(int line)
 void Video::RenderBG(int line)
 {
     int scy = line;
+    int scy_256 = scy << 8;
     int origin_x = m_VdpRegister[8];
     if ((line < 16) && IsSetBit(m_VdpRegister[0], 6))
         origin_x = 0;
@@ -349,19 +352,18 @@ void Video::RenderBG(int line)
             info = 0x01 | ((priority && ((palette_color - palette_offset) != 0)) ? 0x02 : 0);
         }
 
-        int r = m_pVdpCRAM[palette_color] & 0x03;
-        int g = (m_pVdpCRAM[palette_color] >> 2) & 0x03;
-        int b = (m_pVdpCRAM[palette_color] >> 4) & 0x03;
-
-        GS_Color final_color;
-
-        final_color.red = (r * 255) / 3;
-        final_color.green = (g * 255) / 3;
-        final_color.blue = (b * 255) / 3;
-        final_color.alpha = 0xFF;
-
-        int pixel = (scy << 8) + scx;
-        m_pColorFrameBuffer[pixel] = final_color;
+        int pixel = scy_256 + scx;
+        if (m_bGameGear && ((scx < GS_GG_X_OFFSET) || (scx >= (GS_GG_X_OFFSET + GS_GG_WIDTH)) || (scy < GS_GG_Y_OFFSET) || (scy >= (GS_GG_Y_OFFSET + GS_GG_HEIGHT))))
+        {
+            GS_Color final_color;
+            final_color.red = 0;
+            final_color.green = 0;
+            final_color.blue = 0;
+            final_color.alpha = 0xFF;
+            m_pColorFrameBuffer[pixel] = final_color;
+        }
+        else
+            m_pColorFrameBuffer[pixel] = ConvertTo8BitColor(palette_color);
         m_pInfoBuffer[pixel] = info;
     }
 }
@@ -371,6 +373,7 @@ void Video::RenderSprites(int line)
     int sprite_collision = false;
     int sprite_count = 0;
     int scy = line;
+    int scy_256 = scy << 8;
     int sprite_height = IsSetBit(m_VdpRegister[1], 1) ? 16 : 8;
     int sprite_shift = IsSetBit(m_VdpRegister[0], 3) ? 8 : 0;
     u16 sprite_table_address = (m_VdpRegister[5] << 7) & 0x3F00;
@@ -417,7 +420,7 @@ void Video::RenderSprites(int line)
             if (IsSetBit(m_VdpRegister[0], 5) && (sprite_pixel_x < 8))
                 continue;
 
-            int pixel = (scy << 8) + (sprite_x + tile_x);
+            int pixel = scy_256 + sprite_pixel_x;
 
             if (m_pInfoBuffer[pixel] & 0x02)
                 continue;
@@ -427,24 +430,23 @@ void Video::RenderSprites(int line)
             int palette_color = ((m_pVdpVRAM[sprite_tile_addr] >> tile_pixel_x) & 0x01) +
                     (((m_pVdpVRAM[sprite_tile_addr + 1] >> tile_pixel_x) & 0x01) << 1) +
                     (((m_pVdpVRAM[sprite_tile_addr + 2] >> tile_pixel_x) & 0x01) << 2) +
-                    (((m_pVdpVRAM[sprite_tile_addr + 3] >> tile_pixel_x) & 0x01) << 3) +
-                    16;
-
-            if (palette_color == 16)
+                    (((m_pVdpVRAM[sprite_tile_addr + 3] >> tile_pixel_x) & 0x01) << 3);
+            if (palette_color == 0)
                 continue;
 
-            int r = m_pVdpCRAM[palette_color] & 0x03;
-            int g = (m_pVdpCRAM[palette_color] >> 2) & 0x03;
-            int b = (m_pVdpCRAM[palette_color] >> 4) & 0x03;
+            palette_color += 16;
 
-            GS_Color final_color;
-
-            final_color.red = (r * 255) / 3;
-            final_color.green = (g * 255) / 3;
-            final_color.blue = (b * 255) / 3;
-            final_color.alpha = 0xFF;
-
-            m_pColorFrameBuffer[pixel] = final_color;
+            if (m_bGameGear && ((sprite_pixel_x < GS_GG_X_OFFSET) || (sprite_pixel_x >= (GS_GG_X_OFFSET + GS_GG_WIDTH)) || (scy < GS_GG_Y_OFFSET) || (scy >= (GS_GG_Y_OFFSET + GS_GG_HEIGHT))))
+            {
+                GS_Color final_color;
+                final_color.red = 0;
+                final_color.green = 0;
+                final_color.blue = 0;
+                final_color.alpha = 0xFF;
+                m_pColorFrameBuffer[pixel] = final_color;
+            }
+            else
+                m_pColorFrameBuffer[pixel] = ConvertTo8BitColor(palette_color);
 
             if ((m_pInfoBuffer[pixel] & 0x04) != 0)
                 sprite_collision = true;

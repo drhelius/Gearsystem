@@ -28,6 +28,7 @@ Input::Input(Processor* pProcessor)
     m_Joypad2 = 0;
     m_IOPortDC = 0;
     m_IOPortDD = 0;
+    m_IOPort00 = 0;
     m_iInputCycles = 0;
 }
 
@@ -42,6 +43,7 @@ void Input::Reset()
     m_Joypad2 = 0xFF;
     m_IOPortDC = 0xFF;
     m_IOPortDD = 0xFF;
+    m_IOPort00 = 0xFF;
     m_iInputCycles = 0;
 }
 
@@ -87,8 +89,14 @@ u8 Input::GetPortDD()
     return m_IOPortDD;
 }
 
+u8 Input::GetPort00()
+{
+    return m_IOPort00;
+}
+
 void Input::Update()
 {
     m_IOPortDC = (m_Joypad1 & 0x3F) + ((m_Joypad2 << 6) & 0xC0);
     m_IOPortDD = ((m_Joypad2 >> 2) & 0x0F) | 0xF0;    
+    m_IOPort00 = (IsSetBit(m_Joypad1, Key_Start) ? 0x80 : 0) | 0x7F;
 }
