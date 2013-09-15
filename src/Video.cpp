@@ -97,7 +97,7 @@ void Video::Reset()
     m_VdpRegister[8] = 0x00; // Scroll-H
     m_VdpRegister[9] = 0x00; // Scroll-V
     m_VdpRegister[10] = 0xFF; // H-line interrupt ($FF=OFF)
-    
+
     for (int i = 11; i < 16; i++)
         m_VdpRegister[i] = 0;
 }
@@ -117,17 +117,10 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
             m_iCycleCounter += GS_CYCLES_PER_LINE_LEFT_NTSC;
         }
         m_iCycleCounter -= GS_CYCLES_PER_LINE_NTSC;
-        
+
         if (m_iVCounter < 192)
         {
             ScanLine(m_iVCounter);
-
-            m_HBlankCounter--;
-            if (m_HBlankCounter == 0xFF)
-            {
-                m_HBlankCounter = m_VdpRegister[10];
-                m_bHBlankInterrupt = true;
-            }
 
             if (m_iVCounter == 191)
             {
@@ -135,23 +128,31 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
                 m_bVBlankInterrupt = true;
             }
         }
-        else // m_iVCounter >= 192
-            m_HBlankCounter = m_VdpRegister[10];
-
-        if ((m_bVBlankInterrupt && IsSetBit(m_VdpRegister[1], 5)) ||
-                (m_bHBlankInterrupt && IsSetBit(m_VdpRegister[0], 4)))
-            m_pProcessor->RequestINT(true);
 
         m_iVCounter++;
-
         if (m_iVCounter >= GS_LINES_PER_FRAME_NTSC)
         {
             m_ScrollV = m_VdpRegister[9];
             m_iVCounter = 0;
             vblank = true;
         }
-    }
 
+        if ((m_iVCounter >= 0) && (m_iVCounter < 193))
+        {
+            m_HBlankCounter--;
+            if (m_HBlankCounter == 0xFF)
+            {
+                m_HBlankCounter = m_VdpRegister[10];
+                m_bHBlankInterrupt = true;
+            }
+        }
+        else
+            m_HBlankCounter = m_VdpRegister[10];
+
+        if ((m_bVBlankInterrupt && IsSetBit(m_VdpRegister[1], 5)) ||
+                (m_bHBlankInterrupt && IsSetBit(m_VdpRegister[0], 4)))
+            m_pProcessor->RequestINT(true);
+    }
     return vblank;
 }
 
@@ -366,9 +367,9 @@ void Video::RenderSprites(int line)
     u16 sprite_table_address = (m_VdpRegister[5] << 7) & 0x3F00;
     u16 sprite_table_address_2 = sprite_table_address + 0x80;
     u16 sprite_tiles_address = (m_VdpRegister[6] << 11) & 0x2000;
-    
+
     int max_sprite = 63;
-    
+
     for (int sprite = 0; sprite < 64; sprite++)
     {
         int sprite_y = m_pVdpVRAM[sprite_table_address + sprite];
@@ -384,7 +385,7 @@ void Video::RenderSprites(int line)
         int sprite_y = m_pVdpVRAM[sprite_table_address + sprite] + 1;
         if ((sprite_y > line) || ((sprite_y + sprite_height) <= line))
             continue;
-        
+
         sprite_count++;
         if (sprite_count > 8)
             m_VdpStatus = SetBit(m_VdpStatus, 6);
@@ -406,12 +407,12 @@ void Video::RenderSprites(int line)
                 continue;
             if (IsSetBit(m_VdpRegister[0], 5) && (sprite_pixel_x < 8))
                 continue;
-            
+
             int pixel = (scy << 8) + (sprite_x + tile_x);
-            
+
             if (m_pInfoBuffer[pixel] & 0x02)
                 continue;
-            
+
             int tile_pixel_x = 7 - tile_x;
 
             int palette_color = ((m_pVdpVRAM[sprite_tile_addr] >> tile_pixel_x) & 0x01) +
@@ -419,10 +420,10 @@ void Video::RenderSprites(int line)
                     (((m_pVdpVRAM[sprite_tile_addr + 2] >> tile_pixel_x) & 0x01) << 2) +
                     (((m_pVdpVRAM[sprite_tile_addr + 3] >> tile_pixel_x) & 0x01) << 3) +
                     16;
-            
+
             if (palette_color == 16)
                 continue;
-            
+
             int r = m_pVdpCRAM[palette_color] & 0x03;
             int g = (m_pVdpCRAM[palette_color] >> 2) & 0x03;
             int b = (m_pVdpCRAM[palette_color] >> 4) & 0x03;
@@ -435,14 +436,14 @@ void Video::RenderSprites(int line)
             final_color.alpha = 0xFF;
 
             m_pColorFrameBuffer[pixel] = final_color;
-            
+
             if ((m_pInfoBuffer[pixel] & 0x04) != 0)
                 sprite_collision = true;
             else
                 m_pInfoBuffer[pixel] |= 0x04;
         }
     }
-    
+
     if (sprite_collision)
         m_VdpStatus = SetBit(m_VdpStatus, 5);
 }
