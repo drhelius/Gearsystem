@@ -112,18 +112,10 @@ void GameGearIOPorts::DoOutput(u8 port, u8 value)
 {
     if (port < 0x07)
     {
-        switch (port)
+        if (port == 0x06)
         {
-            case 0x06:
-            {
-                // SN76489 PSG
-                m_pAudio->WriteGGStereoRegister(value);
-                break;
-            }
-            default:
-            {
-                Log("--> ** Output to GG port $%X: %X", port, value);
-            }
+            // SN76489 PSG
+            m_pAudio->WriteGGStereoRegister(value);
         }
     }
     else if (port < 0x40)

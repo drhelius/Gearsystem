@@ -21,6 +21,7 @@
 #include <algorithm>
 #include "Cartridge.h"
 #include "miniz/miniz.c"
+#include "game_db.h"
 
 Cartridge::Cartridge()
 {
@@ -275,7 +276,10 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
         m_iROMSize = size;
         m_pTheROM = new u8[m_iROMSize];
         memcpy(m_pTheROM, buffer, m_iROMSize);
-        return GatherMetadata();
+        
+        u32 crc = CalculateCRC32(0, m_pTheROM, m_iROMSize);
+        
+        return GatherMetadata(crc);
     }
     else
         return false;
@@ -308,7 +312,7 @@ bool Cartridge::TestValidROM(u16 location)
     return (strcmp(tmrsega, "TMR SEGA") == 0);
 }
 
-bool Cartridge::GatherMetadata()
+bool Cartridge::GatherMetadata(u32 crc)
 {
     u16 headerLocation = 0x7FF0;
     m_bValidROM = true;
@@ -395,6 +399,8 @@ bool Cartridge::GatherMetadata()
         m_Type = Cartridge::CartridgeSegaMapper;
     }
     
+    GetInfoFromDB(crc);
+    
     switch (m_Type)
     {
         case Cartridge::CartridgeRomOnlyMapper:
@@ -420,5 +426,32 @@ bool Cartridge::GatherMetadata()
     }
 
     return (m_Type != CartridgeNotSupported);
+}
+
+void Cartridge::GetInfoFromDB(u32 crc)
+{
+    int i = 0;
+    
+    while(kGameDatabase[i].title != 0)
+    {
+        u32 db_crc = kGameDatabase[i].crc;
+        
+        if (db_crc == crc)
+        {
+            Log("ROM found in database: %s", kGameDatabase[i].title);
+            
+            if (kGameDatabase[i].mapper == GS_DB_CODEMASTERS_MAPPER)
+                m_Type = Cartridge::CartridgeCodemastersMapper;
+            
+            if (kGameDatabase[i].sms_mode)
+            {
+                Log("Forcing Master System mode");
+                m_bGameGear = false;
+            }
+            break;
+        }
+        
+        i++;
+    }
 }
 

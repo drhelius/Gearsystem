@@ -63,7 +63,8 @@ public:
 
 private:
     unsigned int Pow2Ceil(u16 n);
-    bool GatherMetadata();
+    bool GatherMetadata(u32 crc);
+    void GetInfoFromDB(u32 crc);
     bool LoadFromZipFile(const u8* buffer, int size);
     bool TestValidROM(u16 location);
 
