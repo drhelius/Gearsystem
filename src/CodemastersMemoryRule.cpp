@@ -49,8 +49,6 @@ u8 CodemastersMemoryRule::PerformRead(u16 address)
         // ROM page 2
         u8* pROM = m_pCartridge->GetTheROM();
         return pROM[(address - 0x8000) + m_iMapperSlotAddress[2]];
-
-        // this space is also available to external ram
     }
     else
     {
@@ -68,27 +66,27 @@ void CodemastersMemoryRule::PerformWrite(u16 address, u8 value)
         {
             case 0x0000:
             {
-                //Log("--> ** Selecting bank %d for slot 0", value);
                 m_iMapperSlot[0] = value & (m_pCartridge->GetROMBankCount() - 1);
                 m_iMapperSlotAddress[0] = m_iMapperSlot[0] * 0x4000;
                 break;
             }
             case 0x4000:
             {
-                //Log("--> ** Selecting bank %d for slot 1", value);
                 m_iMapperSlot[1] = value & (m_pCartridge->GetROMBankCount() - 1);
                 m_iMapperSlotAddress[1] = m_iMapperSlot[1] * 0x4000;
                 break;
             }
             case 0x8000:
             {
-                //Log("--> ** Selecting bank %d for slot 2", value);
                 m_iMapperSlot[2] = value & (m_pCartridge->GetROMBankCount() - 1);
                 m_iMapperSlotAddress[2] = m_iMapperSlot[2] * 0x4000;
                 break;
             }
+            default:
+            {
+                Log("--> ** Attempting to write on ROM address $%X %X", address, value);
+            }
         }
-       
     }
     else if (address < 0xE000)
     {
