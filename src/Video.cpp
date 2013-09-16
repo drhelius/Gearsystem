@@ -50,6 +50,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iCyclesAdjustmentLine = 0;
     m_iCyclesPerLineLeft = 0;
     m_iLinesPerFrame = 0;
+    m_bPAL = false;
 }
 
 Video::~Video()
@@ -70,6 +71,7 @@ void Video::Init()
 void Video::Reset(bool bGameGear, bool bPAL)
 {
     m_bGameGear = bGameGear;
+    m_bPAL = bPAL;
     m_iCyclesPerLine = bPAL ? GS_CYCLES_PER_LINE_PAL : GS_CYCLES_PER_LINE_NTSC;
     m_iCyclesAdjustmentLine = bPAL ? GS_CYCLES_ADJUSTMENT_LINE_PAL : GS_CYCLES_ADJUSTMENT_LINE_NTSC;
     m_iCyclesPerLineLeft = bPAL ? GS_CYCLES_PER_LINE_LEFT_PAL : GS_CYCLES_PER_LINE_LEFT_NTSC;
@@ -178,17 +180,22 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
 
 u8 Video::GetVCounter()
 {
-    // NTSC
-    if (m_iVCounter > 0xDA)
-        return m_iVCounter - 0x06;
+    if (m_bPAL)
+    {
+        // PAL
+        if (m_iVCounter > 0xF2)
+            return m_iVCounter - 0x39;
+        else
+            return m_iVCounter;
+    }
     else
-        return m_iVCounter;
-
-    // PAL
-    //if (m_iVCounter > 0xF2)
-    //    return m_iVCounter - 0x39;
-    //else
-    //    return m_iVCounter;
+    {
+        // NTSC
+        if (m_iVCounter > 0xDA)
+            return m_iVCounter - 0x06;
+        else
+            return m_iVCounter;
+    }
 }
 
 u8 Video::GetHCounter()

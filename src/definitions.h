@@ -77,7 +77,6 @@ typedef int64_t s64;
 #define GS_SCREEN_WIDTH (GS_SMS_WIDTH + (GS_BORDER_LEFT_RIGHT * 2))
 #define GS_SCREEN_HEIGHT (GS_SMS_HEIGHT + (GS_BORDER_TOP_BOTTOM * 2))
 
-
 #define GS_MASTER_CLOCK_NTSC 3579545
 #define GS_LINES_PER_FRAME_NTSC 262
 #define GS_FRAMES_PER_SECOND_NTSC 60
@@ -116,7 +115,6 @@ enum GS_Joypads
     Joypad_1,
     Joypad_2
 };
-
 
 enum GS_System
 {
