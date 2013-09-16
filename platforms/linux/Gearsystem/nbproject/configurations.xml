@@ -51,6 +51,7 @@
       <itemPath>../../../src/Video.cpp</itemPath>
       <itemPath>../../../src/Video.h</itemPath>
       <itemPath>../../../src/definitions.h</itemPath>
+      <itemPath>../../../src/game_db.h</itemPath>
       <itemPath>../../../src/gearsystem.h</itemPath>
       <itemPath>../../../src/opcode_names.h</itemPath>
       <itemPath>../../../src/opcode_timing.h</itemPath>
@@ -238,6 +239,8 @@
       <item path="../../../src/audio/blargg_source.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/definitions.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/game_db.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/gearsystem.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -448,6 +451,8 @@
       <item path="../../../src/audio/blargg_source.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/definitions.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/game_db.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/gearsystem.h" ex="false" tool="3" flavor2="0">
       </item>
