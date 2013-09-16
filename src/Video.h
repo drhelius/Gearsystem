@@ -36,7 +36,7 @@ public:
     Video(Memory* pMemory, Processor* pProcessor);
     ~Video();
     void Init();
-    void Reset(bool bGameGear);
+    void Reset(bool bGameGear, bool bPAL);
     bool Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer);
     u8 GetVCounter();
     u8 GetHCounter();
@@ -74,6 +74,10 @@ private:
     u8 m_HBlankCounter;
     u8 m_ScrollV;
     bool m_bGameGear;
+    int m_iCyclesPerLine;
+    int m_iCyclesAdjustmentLine;
+    int m_iCyclesPerLineLeft;
+    int m_iLinesPerFrame;
 };
 
 inline GS_Color Video::ConvertTo8BitColor(int palette_color)

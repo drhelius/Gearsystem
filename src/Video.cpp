@@ -46,6 +46,10 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_HBlankCounter = 0;
     m_ScrollV = 0;
     m_bGameGear = false;
+    m_iCyclesPerLine = 0;
+    m_iCyclesAdjustmentLine = 0;
+    m_iCyclesPerLineLeft = 0;
+    m_iLinesPerFrame = 0;
 }
 
 Video::~Video()
@@ -60,12 +64,16 @@ void Video::Init()
     m_pInfoBuffer = new u8[GS_SMS_WIDTH * GS_SMS_HEIGHT];
     m_pVdpVRAM = new u8[0x4000];
     m_pVdpCRAM = new u8[0x40];
-    Reset(false);
+    Reset(false, false);
 }
 
-void Video::Reset(bool bGameGear)
+void Video::Reset(bool bGameGear, bool bPAL)
 {
     m_bGameGear = bGameGear;
+    m_iCyclesPerLine = bPAL ? GS_CYCLES_PER_LINE_PAL : GS_CYCLES_PER_LINE_NTSC;
+    m_iCyclesAdjustmentLine = bPAL ? GS_CYCLES_ADJUSTMENT_LINE_PAL : GS_CYCLES_ADJUSTMENT_LINE_NTSC;
+    m_iCyclesPerLineLeft = bPAL ? GS_CYCLES_PER_LINE_LEFT_PAL : GS_CYCLES_PER_LINE_LEFT_NTSC;
+    m_iLinesPerFrame = bPAL ? GS_LINES_PER_FRAME_PAL : GS_LINES_PER_FRAME_NTSC;
     m_bFirstByteInSequence = true;
     m_VdpBuffer = 0;
     m_iVCounter = 0;
@@ -122,15 +130,15 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
         }
     }
 
-    if (m_iCycleCounter >= GS_CYCLES_PER_LINE_NTSC)
+    if (m_iCycleCounter >= m_iCyclesPerLine)
     {
         m_iCycleAdjustment++;
-        if (m_iCycleAdjustment >= GS_CYCLES_ADJUSTMENT_LINE_NTSC)
+        if (m_iCycleAdjustment >= m_iCyclesAdjustmentLine)
         {
             m_iCycleAdjustment = 0;
-            m_iCycleCounter += GS_CYCLES_PER_LINE_LEFT_NTSC;
+            m_iCycleCounter += m_iCyclesPerLineLeft;
         }
-        m_iCycleCounter -= GS_CYCLES_PER_LINE_NTSC;
+        m_iCycleCounter -= m_iCyclesPerLine;
 
         if (m_iVCounter < 192)
         {
@@ -145,7 +153,7 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
         }
 
         m_iVCounter++;
-        if (m_iVCounter >= GS_LINES_PER_FRAME_NTSC)
+        if (m_iVCounter >= m_iLinesPerFrame)
         {
             m_ScrollV = m_VdpRegister[9];
             m_iVCounter = 0;

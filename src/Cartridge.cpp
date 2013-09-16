@@ -35,6 +35,7 @@ Cartridge::Cartridge()
     m_szFileName[0] = 0;
     m_iROMBankCount = 0;
     m_bGameGear = false;
+    m_bPAL = false;
 }
 
 Cartridge::~Cartridge()
@@ -58,11 +59,17 @@ void Cartridge::Reset()
     m_szFileName[0] = 0;
     m_iROMBankCount = 0;
     m_bGameGear = false;
+    m_bPAL = false;
 }
 
 bool Cartridge::IsGameGear() const
 {
     return m_bGameGear;
+}
+
+bool Cartridge::IsPAL() const
+{
+    return m_bPAL;
 }
 
 bool Cartridge::IsValidROM() const
@@ -448,6 +455,13 @@ void Cartridge::GetInfoFromDB(u32 crc)
                 Log("Forcing Master System mode");
                 m_bGameGear = false;
             }
+            
+            if (kGameDatabase[i].pal)
+            {
+                Log("PAL cartridge: Running at 50Hz");
+                m_bPAL = true;
+            }
+            
             break;
         }
         

@@ -298,7 +298,7 @@ void GearsystemCore::Reset()
     m_pMemory->Reset();
     m_pProcessor->Reset();
     m_pAudio->Reset();
-    m_pVideo->Reset(m_pCartridge->IsGameGear());
+    m_pVideo->Reset(m_pCartridge->IsGameGear(), m_pCartridge->IsPAL());
     m_pInput->Reset(m_pCartridge->IsGameGear());
     m_pSegaMemoryRule->Reset();
     m_pCodemastersMemoryRule->Reset();
