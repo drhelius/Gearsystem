@@ -187,6 +187,16 @@ u8 Video::GetVCounter()
             return m_iVCounter - 0x39;
         else
             return m_iVCounter;
+       
+        // 224 lines
+        /*
+        if (m_iVCounter <= 0xFF)
+            return m_iVCounter;
+        else if ((m_iVCounter > 0xFF) && (m_iVCounter < 0x103))
+            return m_iVCounter - 0x100;
+        else
+            return m_iVCounter - 0x39;
+        */
     }
     else
     {
