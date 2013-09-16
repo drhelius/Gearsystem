@@ -44,18 +44,23 @@ u8 GameGearIOPorts::DoInput(u8 port)
         {
             case 0x00:
             {
-                return m_pInput->GetPort00();
+                u8 port00 = m_pInput->GetPort00();
+                if (m_pCartridge->GetZone() == Cartridge::CartridgeExportSMS)
+                    port00 |= 0x40;
+                return port00;
             }
-            default:
-            {
-                Log("--> ** Attempting to read from GG port $%X", port);
+            case 0x01:
+                return 0x7F;
+            case 0x03:
+            case 0x05:
                 return 0x00;
-            }
+            default:
+                return 0xFF;
         }
     }
     else if (port < 0x40)
     {
-        // Reads return $FF (SMS2)
+        // Reads return $FF (GG)
         Log("--> ** Attempting to read from port $%X", port);
         return 0xFF;
     }
