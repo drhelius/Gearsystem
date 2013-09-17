@@ -50,6 +50,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iCyclesAdjustmentLine = 0;
     m_iCyclesPerLineLeft = 0;
     m_iLinesPerFrame = 0;
+    m_bHBlank = false;
 }
 
 Video::~Video()
@@ -89,6 +90,7 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_bHBlankInterrupt = false;
     m_HBlankCounter = 0xFF;
     m_ScrollV = 0;
+    m_bHBlank = false;
     for (int i = 0; i < (GS_SMS_WIDTH * GS_SMS_HEIGHT); i++)
         m_pInfoBuffer[i] = 0;
     for (int i = 0; i < 0x4000; i++)
@@ -118,61 +120,56 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
     m_pColorFrameBuffer = pColorFrameBuffer;
     m_iCycleCounter += clockCycles;
 
-    if (m_iHBlankCycles > 0)
+    if (m_bHBlank) // During HBLANK
     {
-        m_iHBlankCycles -= clockCycles;
-
-        if (m_iHBlankCycles <= 0)
+        if (m_iCycleCounter >= 36)
         {
-            m_iHBlankCycles = 0;
-            if (m_bHBlankInterrupt && IsSetBit(m_VdpRegister[0], 4))
-                m_pProcessor->RequestINT(true);
-        }
-    }
-
-    if (m_iCycleCounter >= m_iCyclesPerLine)
-    {
-        m_iCycleAdjustment++;
-        if (m_iCycleAdjustment >= m_iCyclesAdjustmentLine)
-        {
-            m_iCycleAdjustment = 0;
-            m_iCycleCounter += m_iCyclesPerLineLeft;
-        }
-        m_iCycleCounter -= m_iCyclesPerLine;
-
-        if (m_iVCounter < 192)
-        {
-            ScanLine(m_iVCounter);
-
-            if (m_iVCounter == 191)
+            m_iCycleCounter -= 36;
+            m_bHBlank = false;
+            
+            m_iVCounter++;
+            
+            if (m_iVCounter >= m_iLinesPerFrame)
+            {
+                m_ScrollV = m_VdpRegister[9];
+                m_iVCounter = 0;
+                vblank = true;
+            }
+            else if (m_iVCounter == 191)
             {
                 m_VdpStatus = SetBit(m_VdpStatus, 7);
                 if (IsSetBit(m_VdpRegister[1], 5))
                     m_pProcessor->RequestINT(true);
             }
         }
-
-        m_iVCounter++;
-        if (m_iVCounter >= m_iLinesPerFrame)
-        {
-            m_ScrollV = m_VdpRegister[9];
-            m_iVCounter = 0;
-            vblank = true;
-        }
-
-        if ((m_iVCounter >= 0) && (m_iVCounter < 193))
-        {
-            m_HBlankCounter--;
-            if (m_HBlankCounter == 0xFF)
-            {
-                m_HBlankCounter = m_VdpRegister[10];
-                m_bHBlankInterrupt = true;
-                m_iHBlankCycles = 110;
-            }
-        }
-        else
-            m_HBlankCounter = m_VdpRegister[10];
     }
+    else // During Active Display
+    {
+        if (m_iCycleCounter >= 191)
+        {
+            m_iCycleCounter -= 191;
+            m_bHBlank = true;
+            
+            if (m_iVCounter < 192)
+                ScanLine(m_iVCounter);
+
+            if (m_iVCounter < 193)
+            {
+                if (m_HBlankCounter < 0)
+                {
+                    m_HBlankCounter = m_VdpRegister[10];
+                    m_bHBlankInterrupt = true;
+                    m_iHBlankCycles = 0;
+                    if (m_bHBlankInterrupt && IsSetBit(m_VdpRegister[0], 4))
+                        m_pProcessor->RequestINT(true);
+                }            
+                m_HBlankCounter--;
+            }
+            else
+                m_HBlankCounter = m_VdpRegister[10];
+        }
+    }
+
     return vblank;
 }
 
