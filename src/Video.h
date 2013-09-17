@@ -71,7 +71,7 @@ private:
     int m_iHBlankCycles;
     u8 m_VdpStatus;
     bool m_bHBlankInterrupt;
-    u8 m_HBlankCounter;
+    int m_iHBlankCounter;
     u8 m_ScrollV;
     bool m_bGameGear;
     int m_iCyclesPerLine;

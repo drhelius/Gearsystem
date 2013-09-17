@@ -43,7 +43,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_VdpStatus = 0;
     m_iHBlankCycles = 0;
     m_bHBlankInterrupt = false;
-    m_HBlankCounter = 0;
+    m_iHBlankCounter = 0;
     m_ScrollV = 0;
     m_bGameGear = false;
     m_iCyclesPerLine = 0;
@@ -90,7 +90,7 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_VdpStatus = 0;
     m_iHBlankCycles = 0;
     m_bHBlankInterrupt = false;
-    m_HBlankCounter = 0xFF;
+    m_iHBlankCounter = 0xFF;
     m_ScrollV = 0;
     m_bHBlank = false;
     for (int i = 0; i < (GS_SMS_WIDTH * GS_SMS_HEIGHT); i++)
@@ -121,6 +121,18 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
     bool vblank = false;
     m_pColorFrameBuffer = pColorFrameBuffer;
     m_iCycleCounter += clockCycles;
+    
+    if (m_iHBlankCycles > 0)
+    {
+        m_iHBlankCycles -= clockCycles;
+
+        if (m_iHBlankCycles <= 0)
+        {
+            m_iHBlankCycles = 0;
+            if (m_bHBlankInterrupt && IsSetBit(m_VdpRegister[0], 4))
+                m_pProcessor->RequestINT(true);
+        }
+    }
 
     if (m_bHBlank) // During HBLANK
     {
@@ -137,7 +149,7 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
                 m_iVCounter = 0;
                 vblank = true;
             }
-            else if (m_iVCounter == 192)
+            if (m_iVCounter == 192)
             {
                 m_VdpStatus = SetBit(m_VdpStatus, 7);
                 if (IsSetBit(m_VdpRegister[1], 5))
@@ -152,23 +164,23 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
             m_iCycleCounter -= 191;
             m_bHBlank = true;
             
-            if (m_iVCounter < 192)
+                        if (m_iVCounter < 192)
                 ScanLine(m_iVCounter);
-
+            
             if (m_iVCounter < 193)
             {
-                if (m_HBlankCounter < 0)
+                if (m_iHBlankCounter < 0)
                 {
-                    m_HBlankCounter = m_VdpRegister[10];
+                    m_iHBlankCounter = m_VdpRegister[10];
                     m_bHBlankInterrupt = true;
                     m_iHBlankCycles = 0;
                     if (m_bHBlankInterrupt && IsSetBit(m_VdpRegister[0], 4))
                         m_pProcessor->RequestINT(true);
                 }            
-                m_HBlankCounter--;
+                m_iHBlankCounter--;
             }
             else
-                m_HBlankCounter = m_VdpRegister[10];
+                m_iHBlankCounter = m_VdpRegister[10];
         }
     }
 
