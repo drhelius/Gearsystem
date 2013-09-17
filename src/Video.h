@@ -69,8 +69,10 @@ private:
     int m_iCycleCounter;
     int m_iCycleAdjustment;
     int m_iHBlankCycles;
+    int m_iVBlankCycles;
     u8 m_VdpStatus;
     bool m_bHBlankInterrupt;
+    bool m_bVBlankInterrupt;
     int m_iHBlankCounter;
     u8 m_ScrollV;
     bool m_bGameGear;
@@ -78,6 +80,7 @@ private:
     int m_iCyclesAdjustmentLine;
     int m_iCyclesPerLineLeft;
     int m_iLinesPerFrame;
+    int m_iTotalHBlankCycles;
     bool m_bPAL;
     bool m_bHBlank;
 };
