@@ -55,6 +55,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iHBlankDurationCycles = 0;
     m_bPAL = false;
     m_bDuringHBlank = false;
+    m_bReg10CounterDecremented = false;
 }
 
 Video::~Video()
@@ -95,6 +96,7 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_iVBlankInterruptCyclesLeft = 0;
     m_bHBlankInterruptRequested = false;
     m_bVBlankInterruptRequested = false;
+    m_bReg10CounterDecremented = false;
     m_ScrollV = 0;
     for (int i = 0; i < (GS_SMS_WIDTH * GS_SMS_HEIGHT); i++)
         m_pInfoBuffer[i] = 0;
@@ -163,13 +165,13 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
         }
     }
 
-    if (m_bDuringHBlank) // During HBLANK
+    if (m_bDuringHBlank)
     {
         if (m_iCycleCounter >= m_iHBlankDurationCycles)
         {
             m_iCycleCounter -= m_iHBlankDurationCycles;
             m_bDuringHBlank = false;
-            
+
             m_iVCounter++;
             
             if (m_iVCounter >= m_iLinesPerFrame)
@@ -180,15 +182,15 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
             }
         }
     }
-    else // During Active Display
-    {
-        if (m_iCycleCounter >= (m_iCyclesPerLine - m_iHBlankDurationCycles))
+    else
+    {    
+        // Counter decremented around the middle of the active display period
+        if (!m_bReg10CounterDecremented && (m_iCycleCounter >= 90))
         {
-            m_iCycleCounter -= (m_iCyclesPerLine - m_iHBlankDurationCycles);
-            m_bDuringHBlank = true;
+            m_bReg10CounterDecremented = true;
             
             if (m_iVCounter < 192)
-                ScanLine(m_iVCounter);    
+                ScanLine(m_iVCounter);  
             
             if (m_iVCounter < 193)
             {
@@ -202,6 +204,13 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
             }
             else
                 m_iVdpRegister10Counter = m_VdpRegister[10];
+        }
+        
+        if (m_iCycleCounter >= (m_iCyclesPerLine - m_iHBlankDurationCycles)) 
+        {
+            m_bReg10CounterDecremented = false;
+            m_iCycleCounter -= (m_iCyclesPerLine - m_iHBlankDurationCycles);
+            m_bDuringHBlank = true;
             
             if (m_iVCounter == 192)
             {
@@ -226,13 +235,13 @@ u8 Video::GetVCounter()
             return m_iVCounter;
        
         // 224 lines
-        /*
-        if (m_iVCounter <= 0xFF)
-            return m_iVCounter;
-        else if ((m_iVCounter > 0xFF) && (m_iVCounter < 0x103))
+        /*    
+        if (m_iVCounter > 0x102)
+            return m_iVCounter - 0x39;
+        else if (m_iVCounter > 0xFF)
             return m_iVCounter - 0x100;
         else
-            return m_iVCounter - 0x39;
+            return m_iVCounter;
         */
     }
     else

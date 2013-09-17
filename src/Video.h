@@ -83,6 +83,7 @@ private:
     int m_iHBlankDurationCycles;
     bool m_bPAL;
     bool m_bDuringHBlank;
+    bool m_bReg10CounterDecremented;
 };
 
 inline GS_Color Video::ConvertTo8BitColor(int palette_color)
