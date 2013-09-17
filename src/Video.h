@@ -67,22 +67,22 @@ private:
     int m_iVCounter;
     int m_iHCounter;
     int m_iCycleCounter;
-    int m_iCycleAdjustment;
-    int m_iHBlankCycles;
-    int m_iVBlankCycles;
+    int m_iCycleAdjustmentCounter;
+    int m_iHBlankInterruptCyclesLeft;
+    int m_iVBlankInterruptCyclesLeft;
     u8 m_VdpStatus;
-    bool m_bHBlankInterrupt;
-    bool m_bVBlankInterrupt;
-    int m_iHBlankCounter;
+    bool m_bHBlankInterruptRequested;
+    bool m_bVBlankInterruptRequested;
+    int m_iVdpRegister10Counter;
     u8 m_ScrollV;
     bool m_bGameGear;
     int m_iCyclesPerLine;
-    int m_iCyclesAdjustmentLine;
-    int m_iCyclesPerLineLeft;
+    int m_iAdjustmentLine;
+    int m_iAdjustmentCycles;
     int m_iLinesPerFrame;
-    int m_iTotalHBlankCycles;
+    int m_iHBlankDurationCycles;
     bool m_bPAL;
-    bool m_bHBlank;
+    bool m_bDuringHBlank;
 };
 
 inline GS_Color Video::ConvertTo8BitColor(int palette_color)

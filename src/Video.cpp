@@ -39,22 +39,22 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iVCounter = 0;
     m_iHCounter = 0;
     m_iCycleCounter = 0;
-    m_iCycleAdjustment = 0;
+    m_iCycleAdjustmentCounter = 0;
     m_VdpStatus = 0;
-    m_iHBlankCycles = 0;
-    m_iVBlankCycles = 0;
-    m_bHBlankInterrupt = false;
-    m_bVBlankInterrupt = false;
-    m_iHBlankCounter = 0;
+    m_iHBlankInterruptCyclesLeft = 0;
+    m_iVBlankInterruptCyclesLeft = 0;
+    m_bHBlankInterruptRequested = false;
+    m_bVBlankInterruptRequested = false;
+    m_iVdpRegister10Counter = 0;
     m_ScrollV = 0;
     m_bGameGear = false;
     m_iCyclesPerLine = 0;
-    m_iCyclesAdjustmentLine = 0;
-    m_iCyclesPerLineLeft = 0;
+    m_iAdjustmentLine = 0;
+    m_iAdjustmentCycles = 0;
     m_iLinesPerFrame = 0;
-    m_iTotalHBlankCycles = 0;
+    m_iHBlankDurationCycles = 0;
     m_bPAL = false;
-    m_bHBlank = false;
+    m_bDuringHBlank = false;
 }
 
 Video::~Video()
@@ -77,10 +77,10 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_bGameGear = bGameGear;
     m_bPAL = bPAL;
     m_iCyclesPerLine = bPAL ? GS_CYCLES_PER_LINE_PAL : GS_CYCLES_PER_LINE_NTSC;
-    m_iCyclesAdjustmentLine = bPAL ? GS_CYCLES_ADJUSTMENT_LINE_PAL : GS_CYCLES_ADJUSTMENT_LINE_NTSC;
-    m_iCyclesPerLineLeft = bPAL ? GS_CYCLES_PER_LINE_LEFT_PAL : GS_CYCLES_PER_LINE_LEFT_NTSC;
+    m_iAdjustmentLine = bPAL ? GS_CYCLES_ADJUSTMENT_LINE_PAL : GS_CYCLES_ADJUSTMENT_LINE_NTSC;
+    m_iAdjustmentCycles = bPAL ? GS_CYCLES_PER_LINE_LEFT_PAL : GS_CYCLES_PER_LINE_LEFT_NTSC;
     m_iLinesPerFrame = bPAL ? GS_LINES_PER_FRAME_PAL : GS_LINES_PER_FRAME_NTSC;
-    m_iTotalHBlankCycles = bPAL ? GS_HBLANK_CYCLES_PAL : GS_HBLANK_CYCLES_NTSC;
+    m_iHBlankDurationCycles = bPAL ? GS_HBLANK_CYCLES_PAL : GS_HBLANK_CYCLES_NTSC;
     m_bFirstByteInSequence = true;
     m_VdpBuffer = 0;
     m_iVCounter = 0;
@@ -89,12 +89,12 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_VdpCode = 0;
     m_VdpBuffer = 0;
     m_VdpAddress = 0;
-    m_iCycleAdjustment = 0;
+    m_iCycleAdjustmentCounter = 0;
     m_VdpStatus = 0;
-    m_iHBlankCycles = 0;
-    m_iVBlankCycles = 0;
-    m_bHBlankInterrupt = false;
-    m_bVBlankInterrupt = false;
+    m_iHBlankInterruptCyclesLeft = 0;
+    m_iVBlankInterruptCyclesLeft = 0;
+    m_bHBlankInterruptRequested = false;
+    m_bVBlankInterruptRequested = false;
     m_ScrollV = 0;
     for (int i = 0; i < (GS_SMS_WIDTH * GS_SMS_HEIGHT); i++)
         m_pInfoBuffer[i] = 0;
@@ -118,57 +118,57 @@ void Video::Reset(bool bGameGear, bool bPAL)
     for (int i = 11; i < 16; i++)
         m_VdpRegister[i] = 0;
     
-    m_bHBlank = true;
-    m_iCycleCounter = 36;
+    m_bDuringHBlank = true;
+    m_iCycleCounter = m_iHBlankDurationCycles;
     m_iVCounter = m_iLinesPerFrame - 1;
-    m_iHBlankCounter = m_VdpRegister[10];
-    m_iCycleAdjustment = (m_iCyclesAdjustmentLine * m_iCyclesPerLine);
+    m_iVdpRegister10Counter = m_VdpRegister[10];
+    m_iCycleAdjustmentCounter = (m_iAdjustmentLine * m_iCyclesPerLine);
 }
 
 bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
 {
-    bool vblank = false;
+    bool return_vblank = false;
     m_pColorFrameBuffer = pColorFrameBuffer;
     
-    m_iCycleAdjustment -= clockCycles;
-    if (m_iCycleAdjustment <= 0)
+    m_iCycleAdjustmentCounter -= clockCycles;
+    if (m_iCycleAdjustmentCounter <= 0)
     {
-        m_iCycleAdjustment += (m_iCyclesAdjustmentLine * m_iCyclesPerLine);
-        clockCycles += m_iCyclesPerLineLeft;
+        m_iCycleAdjustmentCounter += (m_iAdjustmentLine * m_iCyclesPerLine);
+        clockCycles += m_iAdjustmentCycles;
     }
     
     m_iCycleCounter += clockCycles;
 
-    if (m_iHBlankCycles > 0)
+    if (m_iHBlankInterruptCyclesLeft > 0)
     {
-        m_iHBlankCycles -= clockCycles;
+        m_iHBlankInterruptCyclesLeft -= clockCycles;
 
-        if (m_iHBlankCycles <= 0)
+        if (m_iHBlankInterruptCyclesLeft <= 0)
         {
-            m_iHBlankCycles = 0;
-            if (m_bHBlankInterrupt && IsSetBit(m_VdpRegister[0], 4))
+            m_iHBlankInterruptCyclesLeft = 0;
+            if (m_bHBlankInterruptRequested && IsSetBit(m_VdpRegister[0], 4))
                 m_pProcessor->RequestINT(true);
         }
     }
     
-    if (m_iVBlankCycles > 0)
+    if (m_iVBlankInterruptCyclesLeft > 0)
     {
-        m_iVBlankCycles -= clockCycles;
+        m_iVBlankInterruptCyclesLeft -= clockCycles;
 
-        if (m_iVBlankCycles <= 0)
+        if (m_iVBlankInterruptCyclesLeft <= 0)
         {
-            m_iVBlankCycles = 0;
-            if (m_bVBlankInterrupt && IsSetBit(m_VdpRegister[1], 5))
+            m_iVBlankInterruptCyclesLeft = 0;
+            if (m_bVBlankInterruptRequested && IsSetBit(m_VdpRegister[1], 5))
                 m_pProcessor->RequestINT(true);
         }
     }
 
-    if (m_bHBlank) // During HBLANK
+    if (m_bDuringHBlank) // During HBLANK
     {
-        if (m_iCycleCounter >= m_iTotalHBlankCycles)
+        if (m_iCycleCounter >= m_iHBlankDurationCycles)
         {
-            m_iCycleCounter -= m_iTotalHBlankCycles;
-            m_bHBlank = false;
+            m_iCycleCounter -= m_iHBlankDurationCycles;
+            m_bDuringHBlank = false;
             
             m_iVCounter++;
             
@@ -176,43 +176,43 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
             {
                 m_ScrollV = m_VdpRegister[9];
                 m_iVCounter = 0;
-                vblank = true;
+                return_vblank = true;
             }
         }
     }
     else // During Active Display
     {
-        if (m_iCycleCounter >= (m_iCyclesPerLine - m_iTotalHBlankCycles))
+        if (m_iCycleCounter >= (m_iCyclesPerLine - m_iHBlankDurationCycles))
         {
-            m_iCycleCounter -= (m_iCyclesPerLine - m_iTotalHBlankCycles);
-            m_bHBlank = true;
+            m_iCycleCounter -= (m_iCyclesPerLine - m_iHBlankDurationCycles);
+            m_bDuringHBlank = true;
             
             if (m_iVCounter < 192)
                 ScanLine(m_iVCounter);    
             
             if (m_iVCounter < 193)
             {
-                m_iHBlankCounter--;
-                if (m_iHBlankCounter < 0)
+                m_iVdpRegister10Counter--;
+                if (m_iVdpRegister10Counter < 0)
                 {
-                    m_iHBlankCounter = m_VdpRegister[10];
-                    m_bHBlankInterrupt = true;
-                    m_iHBlankCycles = 16;
+                    m_iVdpRegister10Counter = m_VdpRegister[10];
+                    m_bHBlankInterruptRequested = true;
+                    m_iHBlankInterruptCyclesLeft = 16;
                 }
             }
             else
-                m_iHBlankCounter = m_VdpRegister[10];
+                m_iVdpRegister10Counter = m_VdpRegister[10];
             
             if (m_iVCounter == 192)
             {
                 m_VdpStatus = SetBit(m_VdpStatus, 7);
-                m_bVBlankInterrupt = true;
-                m_iVBlankCycles = 16;
+                m_bVBlankInterruptRequested = true;
+                m_iVBlankInterruptCyclesLeft = 16;
             }
         }
     }
 
-    return vblank;
+    return return_vblank;
 }
 
 u8 Video::GetVCounter()
@@ -266,8 +266,8 @@ u8 Video::GetStatusFlags()
     u8 ret = m_VdpStatus;
     m_bFirstByteInSequence = true;
     m_VdpStatus = 0x00;
-    m_bHBlankInterrupt = false;
-    m_bVBlankInterrupt = false;
+    m_bHBlankInterruptRequested = false;
+    m_bVBlankInterruptRequested = false;
     m_pProcessor->RequestINT(false);
     return ret;
 }
