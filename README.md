@@ -25,9 +25,11 @@ Downloads
 
 Features
 --------
-- Full Z80 core.
-- Mapper support: SEGA, Codemasters, and ROM + RAM cartridges.
+- Accurate Z80 core.
+- Mapper support: SEGA, Codemasters, and ROM only cartridges.
+- External RAM support with save files.
 - Multi region: NTSC-JAP, NTSC-USA, PAL-EUR.
+- Internal database for rom detection.
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Compressed rom support (ZIP deflate).
 - Multi platform. Runs on Windows, Linux, Mac OS X, Raspberry Pi and iOS.
