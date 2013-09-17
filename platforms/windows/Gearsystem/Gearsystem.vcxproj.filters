@@ -211,6 +211,15 @@
     <ClInclude Include="..\..\..\src\opcode_daa.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\CodemastersMemoryRule.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\game_db.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\GameGearIOPorts.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\qt-shared\About.cpp">
@@ -338,6 +347,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\audio\Sound_Queue.cpp">
       <Filter>Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\CodemastersMemoryRule.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\GameGearIOPorts.cpp">
+      <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

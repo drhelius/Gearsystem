@@ -36,8 +36,11 @@
     <ClInclude Include="..\..\..\src\audio\Sms_Oscs.h" />
     <ClInclude Include="..\..\..\src\audio\Sound_Queue.h" />
     <ClInclude Include="..\..\..\src\Cartridge.h" />
+    <ClInclude Include="..\..\..\src\CodemastersMemoryRule.h" />
     <ClInclude Include="..\..\..\src\definitions.h" />
     <ClInclude Include="..\..\..\src\EightBitRegister.h" />
+    <ClInclude Include="..\..\..\src\GameGearIOPorts.h" />
+    <ClInclude Include="..\..\..\src\game_db.h" />
     <ClInclude Include="..\..\..\src\gearsystem.h" />
     <ClInclude Include="..\..\..\src\GearsystemCore.h" />
     <ClInclude Include="..\..\..\src\Input.h" />
@@ -147,6 +150,8 @@
     <ClCompile Include="..\..\..\src\audio\Sms_Apu.cpp" />
     <ClCompile Include="..\..\..\src\audio\Sound_Queue.cpp" />
     <ClCompile Include="..\..\..\src\Cartridge.cpp" />
+    <ClCompile Include="..\..\..\src\CodemastersMemoryRule.cpp" />
+    <ClCompile Include="..\..\..\src\GameGearIOPorts.cpp" />
     <ClCompile Include="..\..\..\src\GearsystemCore.cpp" />
     <ClCompile Include="..\..\..\src\Input.cpp" />
     <ClCompile Include="..\..\..\src\Memory.cpp" />
