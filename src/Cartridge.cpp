@@ -438,14 +438,15 @@ bool Cartridge::GatherMetadata(u32 crc)
 void Cartridge::GetInfoFromDB(u32 crc)
 {
     int i = 0;
+    bool found = false;
     
-    while(kGameDatabase[i].title != 0)
+    while(!found && (kGameDatabase[i].title != 0))
     {
         u32 db_crc = kGameDatabase[i].crc;
         
         if (db_crc == crc)
         {
-            Log("ROM found in database: %s", kGameDatabase[i].title);
+            found = true;
             
             if (kGameDatabase[i].mapper == GS_DB_CODEMASTERS_MAPPER)
                 m_Type = Cartridge::CartridgeCodemastersMapper;
@@ -461,11 +462,19 @@ void Cartridge::GetInfoFromDB(u32 crc)
                 Log("PAL cartridge: Running at 50Hz");
                 m_bPAL = true;
             }
-            
-            break;
         }
-        
-        i++;
+        else
+            i++;
     }
+    
+    if (found)
+    {
+        Log("ROM found in database: %s. CRC: %X", kGameDatabase[i].title, crc);
+    }
+    else
+    {
+        Log("ROM not found in database. CRC: %X", crc);
+    }
+        
 }
 
