@@ -79,6 +79,7 @@ private:
     int m_iCyclesPerLineLeft;
     int m_iLinesPerFrame;
     bool m_bPAL;
+    bool m_bHBlank;
 };
 
 inline GS_Color Video::ConvertTo8BitColor(int palette_color)
