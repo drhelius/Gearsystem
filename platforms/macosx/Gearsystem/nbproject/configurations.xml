@@ -23,7 +23,11 @@
       <itemPath>../../../src/Audio.h</itemPath>
       <itemPath>../../../src/Cartridge.cpp</itemPath>
       <itemPath>../../../src/Cartridge.h</itemPath>
+      <itemPath>../../../src/CodemastersMemoryRule.cpp</itemPath>
+      <itemPath>../../../src/CodemastersMemoryRule.h</itemPath>
       <itemPath>../../../src/EightBitRegister.h</itemPath>
+      <itemPath>../../../src/GameGearIOPorts.cpp</itemPath>
+      <itemPath>../../../src/GameGearIOPorts.h</itemPath>
       <itemPath>../../../src/GearsystemCore.cpp</itemPath>
       <itemPath>../../../src/GearsystemCore.h</itemPath>
       <itemPath>../../../src/IOPorts.h</itemPath>
@@ -47,6 +51,7 @@
       <itemPath>../../../src/Video.cpp</itemPath>
       <itemPath>../../../src/Video.h</itemPath>
       <itemPath>../../../src/definitions.h</itemPath>
+      <itemPath>../../../src/game_db.h</itemPath>
       <itemPath>../../../src/gearsystem.h</itemPath>
       <itemPath>../../../src/opcode_daa.h</itemPath>
       <itemPath>../../../src/opcode_names.h</itemPath>
@@ -135,7 +140,21 @@
       </item>
       <item path="../../../src/Cartridge.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../src/CodemastersMemoryRule.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/CodemastersMemoryRule.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../../src/EightBitRegister.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/GameGearIOPorts.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/GameGearIOPorts.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/GearsystemCore.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -221,6 +240,8 @@
       <item path="../../../src/audio/blargg_source.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/definitions.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/game_db.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/gearsystem.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -333,7 +354,21 @@
       </item>
       <item path="../../../src/Cartridge.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../../src/CodemastersMemoryRule.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../src/CodemastersMemoryRule.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../../src/EightBitRegister.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/GameGearIOPorts.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../src/GameGearIOPorts.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/GearsystemCore.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -419,6 +454,8 @@
       <item path="../../../src/audio/blargg_source.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/definitions.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../src/game_db.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../src/gearsystem.h" ex="false" tool="3" flavor2="0">
       </item>
