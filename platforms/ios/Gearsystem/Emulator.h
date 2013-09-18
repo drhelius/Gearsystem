@@ -29,10 +29,7 @@
     GS_Color* theTexture;
     EmulatorInput* theInput;
     GLint iOSFrameBuffer;
-    GLuint accumulationFramebuffer;
-    GLuint accumulationTexture;
     GLuint GBTexture;
-    BOOL firstFrame;
 }
 
 @property (nonatomic) BOOL multiplier;

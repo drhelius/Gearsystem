@@ -21,9 +21,8 @@
 #import "Emulator.h"
 #include "inputmanager.h"
 
-const float kMixFrameAlpha = 0.35f;
-const float kGB_Width = 160.0f;
-const float kGB_Height = 144.0f;
+const float kGB_Width = 256.0f;
+const float kGB_Height = 192.0f;
 const float kGB_TexWidth = kGB_Width / 256.0f;
 const float kGB_TexHeight = kGB_Height / 256.0f;
 const GLfloat box[] = {0.0f, kGB_Height, 1.0f, kGB_Width,kGB_Height, 1.0f, 0.0f, 0.0f, 1.0f, kGB_Width, 0.0f, 1.0f};
@@ -36,9 +35,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 -(id)init
 {
     if (self = [super init])
-    {
-        firstFrame = YES;
-        
+    {   
         theGearsystemCore = new GearsystemCore();
         theGearsystemCore->Init();
         
@@ -82,9 +79,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 
 -(void)shutdownGL
 {
-    glDeleteTextures(1, &accumulationTexture);
     glDeleteTextures(1, &GBTexture);
-    glDeleteFramebuffers(1, &accumulationFramebuffer);
     initialized = NO;
 }
 
@@ -120,8 +115,6 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 {
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &iOSFrameBuffer);
     
-    glGenFramebuffers(1, &accumulationFramebuffer);
-    glGenTextures(1, &accumulationTexture);
     glGenTextures(1, &GBTexture);
     
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -135,11 +128,6 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, GBTexture);
     [self setupTextureWithData: (GLvoid*) theTexture];
-
-    glBindFramebuffer(GL_FRAMEBUFFER, accumulationFramebuffer);
-    glBindTexture(GL_TEXTURE_2D, accumulationTexture);
-    [self setupTextureWithData: NULL];
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, accumulationTexture, 0);  
 }
 
 -(void)renderFrame
@@ -147,7 +135,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     glBindFramebuffer(GL_FRAMEBUFFER, iOSFrameBuffer);
     glBindTexture(GL_TEXTURE_2D, GBTexture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
-    [self renderQuadWithViewportWidth:(80 * multiplier) andHeight:(72 * multiplier) andMirrorY:NO];
+    [self renderQuadWithViewportWidth:(128 * multiplier) andHeight:(96 * multiplier) andMirrorY:NO];
 }
 
 
@@ -179,7 +167,6 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     theGearsystemCore->SaveRam();
     theGearsystemCore->LoadROM([filePath UTF8String]);
     theGearsystemCore->LoadRam();
-    firstFrame = YES;
 }
 
 -(void)keyPressed: (GS_Keys)key
@@ -212,7 +199,6 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     theGearsystemCore->SaveRam();
     theGearsystemCore->ResetROM();
     theGearsystemCore->LoadRam();
-    firstFrame = YES;
 }
 
 -(void)save

@@ -71,12 +71,12 @@
         if (retina)
         {
             multiplier = 3;
-            view.frame = CGRectMake(40, 28, 80 * multiplier, 72 * multiplier);
+            view.frame = CGRectMake(0, 0, 128 * multiplier, 96 * multiplier);
         }
         else
         {
             multiplier = 4;
-            view.frame = CGRectMake(0, 0, 80 * multiplier, 72 * multiplier);
+            view.frame = CGRectMake(0, 0, 128 * multiplier, 96 * multiplier);
         }
     }
     else
@@ -85,12 +85,12 @@
         if (retina)
         {
             multiplier = 5;
-            view.frame = CGRectMake(187, 53, 80 * multiplier, 72 * multiplier);
+            view.frame = CGRectMake(0, 0, 128 * multiplier, 96 * multiplier);
         }
         else
         {
             multiplier = 4;
-            view.frame = CGRectMake(222, 82, 80 * multiplier, 72 * multiplier);
+            view.frame = CGRectMake(0, 0, 128 * multiplier, 96 * multiplier);
         }
     }
     
