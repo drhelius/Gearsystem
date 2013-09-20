@@ -1,6 +1,6 @@
 /*
- * Gearboy - Nintendo Game Boy Emulator
- * Copyright (C) 2012  Ignacio Sanchez
+ * Gearsystem - Sega Master System / Game Gear Emulator
+ * Copyright (C) 2013  Ignacio Sanchez
  
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,7 +78,7 @@
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        self.title = @"Gearboy";
+        self.title = @"Gearsystem";
         
         self.theGLViewController = [[GLViewController alloc] initWithNibName:@"GLViewController" bundle:nil];
         self.theGLViewController.preferredFramesPerSecond = 60;
