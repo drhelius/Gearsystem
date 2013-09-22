@@ -392,7 +392,11 @@ void Video::RenderBG(int line)
         else
         {
             if (IsSetBit(m_VdpRegister[0], 7) && (scx >= 192))
-                origin_y = 0;
+            {
+                map_y = scy;
+                tile_y = map_y >> 3;
+                tile_y_offset = map_y & 7;
+            }
             u8 map_x = scx - origin_x;
 
             int tile_x = map_x >> 3;
