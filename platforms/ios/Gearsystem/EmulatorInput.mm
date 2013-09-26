@@ -82,10 +82,10 @@ void EmulatorInput::Init()
     {
         if (retina)
         {
-            InputManager::Instance().AddCircleRegionEvent(536.0f, 721.0f, 72.0f, m_pInputCallbackButtons, 1, false);
-            InputManager::Instance().AddCircleRegionEvent(650.0f, 721.0f, 72.0f, m_pInputCallbackButtons, 2, false);
+            InputManager::Instance().AddCircleRegionEvent(542.0f, 721.0f, 72.0f, m_pInputCallbackButtons, 1, false);
+            InputManager::Instance().AddCircleRegionEvent(652.0f, 721.0f, 72.0f, m_pInputCallbackButtons, 2, false);
             InputManager::Instance().AddCircleRegionEvent(408.0f, 891.0f, 60.0f, m_pInputCallbackButtons, 3, false);
-            InputManager::Instance().AddCircleRegionEvent(186.0f, 680.0f, 116.0f, m_pInputCallbackController, 0, true);
+            InputManager::Instance().AddCircleRegionEvent(168.0f, 680.0f, 116.0f, m_pInputCallbackController, 0, true);
         }
         else
         {
