@@ -184,11 +184,12 @@ void Processor::ExecuteOPCode()
             } 
             else
                 IncreaseR();
-                  
-            u16 opcode_address = PC.GetValue();
+                    
             opcode = FetchOPCode();
 
-#ifdef DEBUG_GEARSYSTEM  
+#ifdef DISASM_GEARSYSTEM
+            u16 opcode_address = PC.GetValue() - 1;
+            
             if (!m_pMemory->IsDisassembled(opcode_address))
             {
                 if (m_CurrentPrefix == 0xDD)
@@ -218,10 +219,11 @@ void Processor::ExecuteOPCode()
             IncreaseR();
 
             m_CurrentPrefix = 0x00;
-            u16 opcode_address = PC.GetValue();
             opcode = FetchOPCode();
             
-#ifdef DEBUG_GEARSYSTEM  
+#ifdef DISASM_GEARSYSTEM
+            u16 opcode_address = PC.GetValue() - 1;
+            
             if (!m_pMemory->IsDisassembled(opcode_address))
             {
                 m_pMemory->Disassemble(opcode_address, kOPCodeEDNames[opcode]);
@@ -236,9 +238,10 @@ void Processor::ExecuteOPCode()
         default:
         {
             IncreaseR();
-            u16 opcode_address = PC.GetValue() - 1;
 
-#ifdef DEBUG_GEARSYSTEM    
+#ifdef DISASM_GEARSYSTEM
+            u16 opcode_address = PC.GetValue() - 1;
+            
             if (!m_pMemory->IsDisassembled(opcode_address))
             {
                 if (m_CurrentPrefix == 0xDD)
