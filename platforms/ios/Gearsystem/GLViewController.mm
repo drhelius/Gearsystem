@@ -84,8 +84,8 @@
         iPad = YES;
         if (retina)
         {
-            multiplier = 5;
-            view.frame = CGRectMake(0, 0, 128 * multiplier, 96 * multiplier);
+            multiplier = 3;
+            view.frame = CGRectMake(192, 46, 128 * multiplier, 96 * multiplier);
         }
         else
         {
