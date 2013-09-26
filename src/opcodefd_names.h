@@ -20,6 +20,8 @@
 #ifndef OPCODEFD_NAMES_H
 #define	OPCODEFD_NAMES_H
 
+#ifdef DISASM_GEARSYSTEM
+
 static const char* kOPCodeFDNames[256] = {
     "NOP",
     "LD BC,nn",
@@ -293,6 +295,8 @@ static const char* kOPCodeFDNames[256] = {
     "CP n",
     "RST 38H"
 };
+
+#endif
 
 #endif	/* OPCODEFD_NAMES_H */
 

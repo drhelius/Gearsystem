@@ -20,6 +20,8 @@
 #ifndef OPCODEED_NAMES_H
 #define	OPCODEED_NAMES_H
 
+#ifdef DISASM_GEARSYSTEM
+
 static const char* kOPCodeEDNames[256] = {
     "INVALID",
     "INVALID",
@@ -293,6 +295,8 @@ static const char* kOPCodeEDNames[256] = {
     "INVALID",
     "INVALID",
 };
+
+#endif
 
 #endif	/* OPCODEED_NAMES_H */
 
