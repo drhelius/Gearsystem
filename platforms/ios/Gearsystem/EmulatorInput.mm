@@ -60,7 +60,6 @@ void EmulatorInput::Init()
                 InputManager::Instance().AddCircleRegionEvent(257.0f, 354.0f, 35.0f, m_pInputCallbackButtons, 1, false);
                 InputManager::Instance().AddCircleRegionEvent(203.0f, 380.0f, 35.0f, m_pInputCallbackButtons, 2, false);
                 InputManager::Instance().AddCircleRegionEvent(181.0f, 462.0f, 30.0f, m_pInputCallbackButtons, 3, false);
-                InputManager::Instance().AddCircleRegionEvent(129.0f, 462.0f, 30.0f, m_pInputCallbackButtons, 4, false);
                 InputManager::Instance().AddCircleRegionEvent(76.0f, 370.0f, 52.0f, m_pInputCallbackController, 0, true);
             }
             else
@@ -68,7 +67,6 @@ void EmulatorInput::Init()
                 InputManager::Instance().AddCircleRegionEvent(280.0f, 325.0f, 30.0f, m_pInputCallbackButtons, 1, false);
                 InputManager::Instance().AddCircleRegionEvent(233.0f, 345.0f, 30.0f, m_pInputCallbackButtons, 2, false);
                 InputManager::Instance().AddCircleRegionEvent(182.0f, 390.0f, 25.0f, m_pInputCallbackButtons, 3, false);
-                InputManager::Instance().AddCircleRegionEvent(128.0f, 390.0f, 25.0f, m_pInputCallbackButtons, 4, false);
                 InputManager::Instance().AddCircleRegionEvent(57.0f, 342.0f, 50.0f, m_pInputCallbackController, 0, true);
             }
         }
@@ -77,7 +75,6 @@ void EmulatorInput::Init()
             InputManager::Instance().AddCircleRegionEvent(256.0f, 316.0f, 29.0f, m_pInputCallbackButtons, 1, false);
             InputManager::Instance().AddCircleRegionEvent(213.0f, 337.0f, 29.0f, m_pInputCallbackButtons, 2, false);
             InputManager::Instance().AddCircleRegionEvent(167.0f, 397.0f, 25.0f, m_pInputCallbackButtons, 3, false);
-            InputManager::Instance().AddCircleRegionEvent(121.0f, 397.0f, 25.0f, m_pInputCallbackButtons, 4, false);
             InputManager::Instance().AddCircleRegionEvent(80.0f, 331.0f, 50.0f, m_pInputCallbackController, 0, true);
         }
     }
@@ -85,18 +82,16 @@ void EmulatorInput::Init()
     {
         if (retina)
         {
-            InputManager::Instance().AddCircleRegionEvent(674.0f, 660.0f, 78.0f, m_pInputCallbackButtons, 1, false);
-            InputManager::Instance().AddCircleRegionEvent(544.0f, 721.0f, 78.0f, m_pInputCallbackButtons, 2, false);
+            InputManager::Instance().AddCircleRegionEvent(536.0f, 721.0f, 72.0f, m_pInputCallbackButtons, 1, false);
+            InputManager::Instance().AddCircleRegionEvent(650.0f, 721.0f, 72.0f, m_pInputCallbackButtons, 2, false);
             InputManager::Instance().AddCircleRegionEvent(408.0f, 891.0f, 60.0f, m_pInputCallbackButtons, 3, false);
-            InputManager::Instance().AddCircleRegionEvent(276.0f, 891.0f, 60.0f, m_pInputCallbackButtons, 4, false);
-            InputManager::Instance().AddCircleRegionEvent(151.0f, 699.0f, 110.0f, m_pInputCallbackController, 0, true);
+            InputManager::Instance().AddCircleRegionEvent(186.0f, 680.0f, 116.0f, m_pInputCallbackController, 0, true);
         }
         else
         {
-            InputManager::Instance().AddCircleRegionEvent(614.0f, 623.0f, 64.0f, m_pInputCallbackButtons, 1, false);
-            InputManager::Instance().AddCircleRegionEvent(510.0f, 671.0f, 64.0f, m_pInputCallbackButtons, 2, false);
+            InputManager::Instance().AddCircleRegionEvent(536.0f, 721.0f, 72.0f, m_pInputCallbackButtons, 1, false);
+            InputManager::Instance().AddCircleRegionEvent(650.0f, 721.0f, 72.0f, m_pInputCallbackButtons, 2, false);
             InputManager::Instance().AddCircleRegionEvent(400.0f, 809.0f, 50.0f, m_pInputCallbackButtons, 3, false);
-            InputManager::Instance().AddCircleRegionEvent(293.0f, 809.0f, 50.0f, m_pInputCallbackButtons, 4, false);
             InputManager::Instance().AddCircleRegionEvent(192.0f, 653.0f, 100.0f, m_pInputCallbackController, 0, true);
         }
     }
@@ -156,10 +151,12 @@ void EmulatorInput::InputController(stInputCallbackParameter parameter, int id)
             
             if (m_bController[i])
             {
+                Log("dir press %d", i);
                 [m_pEmulator keyPressed:key];
             }
             else
             {
+                Log("dir release %d", i);
                 [m_pEmulator keyReleased:key];
             }
         }
@@ -178,9 +175,6 @@ void EmulatorInput::InputButtons(stInputCallbackParameter parameter, int id)
             key = GS_Keys::Key_2;
             break;
         case 3:
-            key = GS_Keys::Key_Start;
-            break;
-        case 4:
             key = GS_Keys::Key_Start;
             break;
         default:
