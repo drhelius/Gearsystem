@@ -50,6 +50,7 @@ private:
     void RenderBG(int line);
     void RenderSprites(int line);
     GS_Color ConvertTo8BitColor(int palette_color);
+    void FillPadding();
 
 private:
     Memory* m_pMemory;
@@ -84,6 +85,7 @@ private:
     bool m_bPAL;
     bool m_bDuringHBlank;
     bool m_bReg10CounterDecremented;
+    bool m_bExtendedMode224;
 };
 
 inline GS_Color Video::ConvertTo8BitColor(int palette_color)

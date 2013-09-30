@@ -71,7 +71,7 @@ typedef int64_t s64;
 #define FLAG_NONE 0
 
 #define GS_SMS_WIDTH 256
-#define GS_SMS_HEIGHT 192
+#define GS_SMS_HEIGHT 224
 #define GS_GG_WIDTH 160
 #define GS_GG_HEIGHT 144
 #define GS_GG_X_OFFSET 48

@@ -56,6 +56,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_bPAL = false;
     m_bDuringHBlank = false;
     m_bReg10CounterDecremented = false;
+    m_bExtendedMode224 = false;
 }
 
 Video::~Video()
@@ -119,7 +120,8 @@ void Video::Reset(bool bGameGear, bool bPAL)
 
     for (int i = 11; i < 16; i++)
         m_VdpRegister[i] = 0;
-    
+
+    m_bExtendedMode224 = false;
     m_bDuringHBlank = true;
     m_iCycleCounter = m_iHBlankDurationCycles;
     m_iVCounter = m_iLinesPerFrame - 1;
@@ -131,14 +133,14 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
 {
     bool return_vblank = false;
     m_pColorFrameBuffer = pColorFrameBuffer;
-    
+
     m_iCycleAdjustmentCounter -= clockCycles;
     if (m_iCycleAdjustmentCounter <= 0)
     {
         m_iCycleAdjustmentCounter += (m_iAdjustmentLine * m_iCyclesPerLine);
         clockCycles += m_iAdjustmentCycles;
     }
-    
+
     m_iCycleCounter += clockCycles;
 
     if (m_iHBlankInterruptCyclesLeft > 0)
@@ -152,7 +154,7 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
                 m_pProcessor->RequestINT(true);
         }
     }
-    
+
     if (m_iVBlankInterruptCyclesLeft > 0)
     {
         m_iVBlankInterruptCyclesLeft -= clockCycles;
@@ -173,25 +175,27 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
             m_bDuringHBlank = false;
 
             m_iVCounter++;
-            
+
             if (m_iVCounter >= m_iLinesPerFrame)
             {
                 m_ScrollV = m_VdpRegister[9];
                 m_iVCounter = 0;
                 return_vblank = true;
+                if (!m_bExtendedMode224)
+                    FillPadding();
             }
         }
     }
     else
-    {    
+    {
         // Counter decremented around the middle of the active display period
         if (!m_bReg10CounterDecremented && (m_iCycleCounter >= 90))
         {
             m_bReg10CounterDecremented = true;
-            
+
             if (m_iVCounter < 192)
-                ScanLine(m_iVCounter);  
-            
+                ScanLine(m_iVCounter);
+
             if (m_iVCounter < 193)
             {
                 m_iVdpRegister10Counter--;
@@ -205,13 +209,13 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
             else
                 m_iVdpRegister10Counter = m_VdpRegister[10];
         }
-        
-        if (m_iCycleCounter >= (m_iCyclesPerLine - m_iHBlankDurationCycles)) 
+
+        if (m_iCycleCounter >= (m_iCyclesPerLine - m_iHBlankDurationCycles))
         {
             m_bReg10CounterDecremented = false;
             m_iCycleCounter -= (m_iCyclesPerLine - m_iHBlankDurationCycles);
             m_bDuringHBlank = true;
-            
+
             if (m_iVCounter == 192)
             {
                 m_VdpStatus = SetBit(m_VdpStatus, 7);
@@ -228,29 +232,47 @@ u8 Video::GetVCounter()
 {
     if (m_bPAL)
     {
-        // PAL
-        if (m_iVCounter > 0xF2)
-            return m_iVCounter - 0x39;
+        if (m_bExtendedMode224)
+        {
+            // 224 lines
+            if (m_iVCounter > 0x102)
+                return m_iVCounter - 0x39;
+            else if (m_iVCounter > 0xFF)
+                return m_iVCounter - 0x100;
+            else
+                return m_iVCounter;
+        }
         else
-            return m_iVCounter;
-       
-        // 224 lines
-        /*    
-        if (m_iVCounter > 0x102)
-            return m_iVCounter - 0x39;
-        else if (m_iVCounter > 0xFF)
-            return m_iVCounter - 0x100;
-        else
-            return m_iVCounter;
-        */
+        {
+            // 192 lines
+            if (m_iVCounter > 0xF2)
+                return m_iVCounter - 0x39;
+            else
+                return m_iVCounter;
+        }
     }
     else
     {
         // NTSC
-        if (m_iVCounter > 0xDA)
-            return m_iVCounter - 0x06;
+        if (m_bExtendedMode224)
+        {
+            // TODO: fix 
+            // 224 lines
+            if (m_iVCounter > 0x102)
+                return m_iVCounter - 0x39;
+            else if (m_iVCounter > 0xFF)
+                return m_iVCounter - 0x100;
+            else
+                return m_iVCounter;
+        }
         else
-            return m_iVCounter;
+        {
+            // 192 lines
+            if (m_iVCounter > 0xDA)
+                return m_iVCounter - 0x06;
+            else
+                return m_iVCounter;
+        }
     }
 }
 
@@ -351,6 +373,11 @@ void Video::ScanLine(int line)
     else
     {
         // DISPLAY OFF
+        if (!m_bExtendedMode224)
+            line += 16;
+
+        int line_256 = line << 8;
+
         for (int scx = 0; scx < 256; scx++)
         {
             GS_Color final_color;
@@ -358,7 +385,7 @@ void Video::ScanLine(int line)
             final_color.green = 0;
             final_color.blue = 0;
             final_color.alpha = 0xFF;
-            m_pColorFrameBuffer[(line * 256) + scx] = final_color;
+            m_pColorFrameBuffer[line_256 + scx] = final_color;
         }
     }
 }
@@ -366,7 +393,7 @@ void Video::ScanLine(int line)
 void Video::RenderBG(int line)
 {
     int scy = line;
-    int scy_256 = scy << 8;
+    int scy_256 = (m_bExtendedMode224 ? scy : (scy + 16)) << 8;
     int origin_x = m_VdpRegister[8];
     if ((line < 16) && IsSetBit(m_VdpRegister[0], 6))
         origin_x = 0;
@@ -449,7 +476,7 @@ void Video::RenderSprites(int line)
     int sprite_collision = false;
     int sprite_count = 0;
     int scy = line;
-    int scy_256 = scy << 8;
+    int scy_256 = (m_bExtendedMode224 ? scy : (scy + 16)) << 8;
     int sprite_height = IsSetBit(m_VdpRegister[1], 1) ? 16 : 8;
     int sprite_shift = IsSetBit(m_VdpRegister[0], 3) ? 8 : 0;
     u16 sprite_table_address = (m_VdpRegister[5] << 7) & 0x3F00;
@@ -533,5 +560,36 @@ void Video::RenderSprites(int line)
 
     if (sprite_collision)
         m_VdpStatus = SetBit(m_VdpStatus, 5);
+}
+
+void Video::FillPadding()
+{
+    GS_Color final_color;
+
+    if (m_bGameGear)
+    {
+        final_color.red = 0;
+        final_color.green = 0;
+        final_color.blue = 0;
+        final_color.alpha = 0xFF;
+    }
+    else
+    {
+        int palette_color = (m_VdpRegister[7] & 0x0F) + 16;
+        final_color = ConvertTo8BitColor(palette_color);
+    }
+
+    for (int line = 0; line < 224; line++)
+    {
+        if (line == 16)
+            line = 208;
+
+        int line_256 = line << 8;
+
+        for (int scx = 0; scx < 256; scx++)
+        {
+            m_pColorFrameBuffer[line_256 + scx] = final_color;
+        }
+    }
 }
 
