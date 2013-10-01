@@ -41,9 +41,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iCycleCounter = 0;
     m_iCycleAdjustmentCounter = 0;
     m_VdpStatus = 0;
-    m_iHBlankInterruptCyclesLeft = 0;
     m_iVBlankInterruptCyclesLeft = 0;
-    m_bHBlankInterruptRequested = false;
     m_bVBlankInterruptRequested = false;
     m_iVdpRegister10Counter = 0;
     m_ScrollV = 0;
@@ -93,9 +91,7 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_VdpAddress = 0;
     m_iCycleAdjustmentCounter = 0;
     m_VdpStatus = 0;
-    m_iHBlankInterruptCyclesLeft = 0;
     m_iVBlankInterruptCyclesLeft = 0;
-    m_bHBlankInterruptRequested = false;
     m_bVBlankInterruptRequested = false;
     m_bReg10CounterDecremented = false;
     m_ScrollV = 0;
@@ -142,18 +138,6 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
     }
 
     m_iCycleCounter += clockCycles;
-
-    if (m_iHBlankInterruptCyclesLeft > 0)
-    {
-        m_iHBlankInterruptCyclesLeft -= clockCycles;
-
-        if (m_iHBlankInterruptCyclesLeft <= 0)
-        {
-            m_iHBlankInterruptCyclesLeft = 0;
-            if (m_bHBlankInterruptRequested && IsSetBit(m_VdpRegister[0], 4))
-                m_pProcessor->RequestINT(true);
-        }
-    }
 
     if (m_iVBlankInterruptCyclesLeft > 0)
     {
@@ -202,8 +186,8 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
                 if (m_iVdpRegister10Counter < 0)
                 {
                     m_iVdpRegister10Counter = m_VdpRegister[10];
-                    m_bHBlankInterruptRequested = true;
-                    m_iHBlankInterruptCyclesLeft = 16;
+                    if (IsSetBit(m_VdpRegister[0], 4))
+                        m_pProcessor->RequestINT(true);
                 }
             }
             else
@@ -297,7 +281,6 @@ u8 Video::GetStatusFlags()
     u8 ret = m_VdpStatus;
     m_bFirstByteInSequence = true;
     m_VdpStatus = 0x00;
-    m_bHBlankInterruptRequested = false;
     m_bVBlankInterruptRequested = false;
     m_pProcessor->RequestINT(false);
     return ret;
