@@ -172,15 +172,17 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
     }
     else
     {
+        int max_height = m_bExtendedMode224 ? 224 : 192;
+        
         // Counter decremented around the middle of the active display period
         if (!m_bReg10CounterDecremented && (m_iCycleCounter >= 90))
         {
             m_bReg10CounterDecremented = true;
 
-            if (m_iVCounter < 192)
+            if (m_iVCounter < max_height)
                 ScanLine(m_iVCounter);
 
-            if (m_iVCounter < 193)
+            if (m_iVCounter < (max_height + 1))
             {
                 m_iVdpRegister10Counter--;
                 if (m_iVdpRegister10Counter < 0)
@@ -200,7 +202,7 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
             m_iCycleCounter -= (m_iCyclesPerLine - m_iHBlankDurationCycles);
             m_bDuringHBlank = true;
 
-            if (m_iVCounter == 192)
+            if (m_iVCounter == max_height)
             {
                 m_VdpStatus = SetBit(m_VdpStatus, 7);
                 m_bVBlankInterruptRequested = true;
@@ -242,10 +244,8 @@ u8 Video::GetVCounter()
         {
             // TODO: fix 
             // 224 lines
-            if (m_iVCounter > 0x102)
-                return m_iVCounter - 0x39;
-            else if (m_iVCounter > 0xFF)
-                return m_iVCounter - 0x100;
+            if (m_iVCounter > 0xEA)
+                return m_iVCounter - 0x06;
             else
                 return m_iVCounter;
         }
@@ -335,7 +335,12 @@ void Video::WriteControl(u8 control)
             {
                 u8 reg = control & 0x0F;
                 m_VdpRegister[reg] = m_VdpLatch;
-                if (reg > 10)
+                
+                if (reg < 2)
+                {
+                    m_bExtendedMode224 = (m_VdpRegister[0] & 0x06) && (m_VdpRegister[1] & 0x10);
+                }
+                else if (reg > 10)
                 {
                     Log("--> ** Attempting to write on VDP REG %d: %X", reg, m_VdpLatch);
                 }
@@ -382,10 +387,16 @@ void Video::RenderBG(int line)
         origin_x = 0;
     int origin_y = m_ScrollV;
 
-    u16 map_address = (m_VdpRegister[2] << 10) & 0x3800;
+    u16 map_address = (m_VdpRegister[2] & (m_bExtendedMode224 ? 0x0C : 0x0E)) << 10;
     int map_y = scy + origin_y;
-    if (map_y >= 224)
-        map_y -= 224;
+    
+    if (m_bExtendedMode224)
+    {
+        map_address |= 0x700;
+        map_y &= 0xFF;
+    }
+    else if (map_y >= 224)
+            map_y -= 224;
 
     int tile_y = map_y >> 3;
     int tile_y_offset = map_y & 7;
@@ -439,7 +450,9 @@ void Video::RenderBG(int line)
         }
 
         int pixel = scy_256 + scx;
-        if (m_bGameGear && ((scx < GS_GG_X_OFFSET) || (scx >= (GS_GG_X_OFFSET + GS_GG_WIDTH)) || (scy < GS_GG_Y_OFFSET) || (scy >= (GS_GG_Y_OFFSET + GS_GG_HEIGHT))))
+        int gg_y_offset = m_bExtendedMode224 ? GS_GG_Y_OFFSET + 16 : GS_GG_Y_OFFSET;
+        
+        if (m_bGameGear && ((scx < GS_GG_X_OFFSET) || (scx >= (GS_GG_X_OFFSET + GS_GG_WIDTH)) || (scy < gg_y_offset) || (scy >= (gg_y_offset + GS_GG_HEIGHT))))
         {
             GS_Color final_color;
             final_color.red = 0;
@@ -471,7 +484,7 @@ void Video::RenderSprites(int line)
     for (int sprite = 0; sprite < 64; sprite++)
     {
         int sprite_y = m_pVdpVRAM[sprite_table_address + sprite];
-        if (sprite_y == 0xD0)
+        if (!m_bExtendedMode224 && (sprite_y == 0xD0))
         {
             max_sprite = sprite - 1;
             break;
@@ -521,8 +534,9 @@ void Video::RenderSprites(int line)
                 continue;
 
             palette_color += 16;
+            int gg_y_offset = m_bExtendedMode224 ? GS_GG_Y_OFFSET + 16 : GS_GG_Y_OFFSET;
 
-            if (m_bGameGear && ((sprite_pixel_x < GS_GG_X_OFFSET) || (sprite_pixel_x >= (GS_GG_X_OFFSET + GS_GG_WIDTH)) || (scy < GS_GG_Y_OFFSET) || (scy >= (GS_GG_Y_OFFSET + GS_GG_HEIGHT))))
+            if (m_bGameGear && ((sprite_pixel_x < GS_GG_X_OFFSET) || (sprite_pixel_x >= (GS_GG_X_OFFSET + GS_GG_WIDTH)) || (scy < gg_y_offset) || (scy >= (gg_y_offset + GS_GG_HEIGHT))))
             {
                 GS_Color final_color;
                 final_color.red = 0;
