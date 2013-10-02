@@ -242,7 +242,6 @@ u8 Video::GetVCounter()
         // NTSC
         if (m_bExtendedMode224)
         {
-            // TODO: fix 
             // 224 lines
             if (m_iVCounter > 0xEA)
                 return m_iVCounter - 0x06;
@@ -338,7 +337,7 @@ void Video::WriteControl(u8 control)
                 
                 if (reg < 2)
                 {
-                    m_bExtendedMode224 = (m_VdpRegister[0] & 0x06) && (m_VdpRegister[1] & 0x10);
+                    m_bExtendedMode224 = ((m_VdpRegister[0] & 0x06) == 0x06) && ((m_VdpRegister[1] & 0x18) == 0x10);
                 }
                 else if (reg > 10)
                 {
