@@ -25,12 +25,13 @@ Downloads
 
 Features
 --------
-- Very accurate Z80 core.
+- Highly accurate Z80 core.
 - Multi-Mapper support: SEGA, Codemasters, and ROM only cartridges.
 - External RAM support with save files.
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
 - SMS2 only 224 mode support.
 - Internal database for rom detection.
+- Sound emulation using SDL Audio and [Gb_Snd_Emu library](http://slack.net/%7Eant/libs/audio.html#Sms_Snd_Emu).
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Compressed rom support (ZIP deflate).
 - Multi platform. Runs on Windows, Linux, Mac OS X, Raspberry Pi and iOS.
