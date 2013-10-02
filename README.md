@@ -6,7 +6,7 @@ Gearsystem
 
 Gearsystem is a Sega Master System / Game Gear emulator written in C++ that runs on iOS, Raspberry Pi, Mac, Windows and Linux.
 
-The main focus of this emulator is readability of source code with a high compatibility.
+The main focus of this emulator is readability of source code with very high compatibility.
 
 Follow me on Twitter for updates: http://twitter.com/drhelius
 
@@ -18,17 +18,18 @@ If you want new features ask for them but don't forget donating, thanks :)
 
 Downloads
 --------
-- Gearsystem 0.1 for Jailbroken iOS: Not yet.
-- Gearsystem 0.1 for Non-Jailbroken iOS: Not yet. 
-- Gearsystem 0.1 for Windows: Not yet.
-- Gearsystem 0.1 for Linux: Not yet.
+- Gearsystem 1.0 for Jailbroken iOS: Not yet.
+- Gearsystem 1.0 for Non-Jailbroken iOS: Not yet. 
+- Gearsystem 1.0 for Windows: Not yet.
+- Gearsystem 1.0 for Linux: Not yet.
 
 Features
 --------
-- Accurate Z80 core.
-- Mapper support: SEGA, Codemasters, and ROM only cartridges.
+- Very accurate Z80 core.
+- Multi-Mapper support: SEGA, Codemasters, and ROM only cartridges.
 - External RAM support with save files.
-- Multi region: NTSC-JAP, NTSC-USA, PAL-EUR.
+- Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
+- SMS2 only 224 mode support.
 - Internal database for rom detection.
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Compressed rom support (ZIP deflate).
