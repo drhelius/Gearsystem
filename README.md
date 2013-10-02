@@ -31,7 +31,7 @@ Features
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
 - SMS2 only 224 mode support.
 - Internal database for rom detection.
-- Sound emulation using SDL Audio and [Gb_Snd_Emu library](http://slack.net/%7Eant/libs/audio.html#Sms_Snd_Emu).
+- Sound emulation using SDL Audio and [Sms_Snd_Emu library](http://slack.net/%7Eant/libs/audio.html#Sms_Snd_Emu).
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Compressed rom support (ZIP deflate).
 - Multi platform. Runs on Windows, Linux, Mac OS X, Raspberry Pi and iOS.
