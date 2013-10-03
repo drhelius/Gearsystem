@@ -35,7 +35,7 @@
 #endif
 
 #define GEARSYSTEM_TITLE "Gearsystem 1.0"
-#define GEARSYSTEM_VERSION 0.1
+#define GEARSYSTEM_VERSION 1.0
 
 #ifndef NULL
 #define NULL 0
