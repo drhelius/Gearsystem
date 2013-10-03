@@ -32,6 +32,7 @@ public:
     void Init();
     void Reset();
     void SetCurrentRule(MemoryRule* pRule);
+    MemoryRule* GetCurrentRule();
     u8 Read(u16 address);
     void Write(u16 address, u8 value);
     u8 Retrieve(u16 address);

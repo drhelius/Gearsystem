@@ -83,7 +83,7 @@ GearsystemCore::~GearsystemCore()
 void GearsystemCore::Init()
 {
     Log("-=:: GEARSYSTEM %1.1f ::=-", GEARSYSTEM_VERSION);
-    
+
     m_pMemory = new Memory();
     m_pProcessor = new Processor(m_pMemory);
     m_pAudio = new Audio();
@@ -232,6 +232,35 @@ void GearsystemCore::SaveRam()
 
 void GearsystemCore::SaveRam(const char* szPath)
 {
+    if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()) && m_pMemory->GetCurrentRule()->PersistedRAM())
+    {
+        Log("Saving RAM...");
+
+        using namespace std;
+
+        char path[512];
+
+        if (IsValidPointer(szPath))
+        {
+            strcpy(path, szPath);
+            strcat(path, "/");
+            strcat(path, m_pCartridge->GetFileName());
+        }
+        else
+        {
+            strcpy(path, m_pCartridge->GetFilePath());
+        }
+
+        strcat(path, ".gearsystem");
+
+        Log("Save file: %s", path);
+
+        ofstream file(path, ios::out | ios::binary);
+
+        m_pMemory->GetCurrentRule()->SaveRam(file);
+
+        Log("RAM saved");
+    }
 }
 
 void GearsystemCore::LoadRam()
@@ -241,6 +270,55 @@ void GearsystemCore::LoadRam()
 
 void GearsystemCore::LoadRam(const char* szPath)
 {
+    if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()))
+    {
+        Log("Loading RAM...");
+
+        using namespace std;
+
+        char path[512];
+
+        if (IsValidPointer(szPath))
+        {
+            strcpy(path, szPath);
+            strcat(path, "/");
+            strcat(path, m_pCartridge->GetFileName());
+        }
+        else
+        {
+            strcpy(path, m_pCartridge->GetFilePath());
+        }
+
+        strcat(path, ".gearsystem");
+
+        Log("Opening save file: %s", path);
+
+        ifstream file(path, ios::in | ios::binary);
+
+        if (!file.fail())
+        {
+            char signature[16];
+
+            file.read(signature, 16);
+
+            file.seekg(0, file.end);
+            s32 fileSize = (s32) file.tellg();
+            file.seekg(0, file.beg);
+
+            if (m_pMemory->GetCurrentRule()->LoadRam(file, fileSize))
+            {
+                Log("RAM loaded");
+            }
+            else
+            {
+                Log("Save file size incorrect: %d", fileSize);
+            }
+        }
+        else
+        {
+            Log("Save file doesn't exist");
+        }
+    }
 }
 
 float GearsystemCore::GetVersion()
@@ -278,7 +356,7 @@ bool GearsystemCore::AddMemoryRules()
         default:
             notSupported = true;
     }
-    
+
     if (m_pCartridge->IsGameGear())
     {
         Log("Game Gear Mode enabled");

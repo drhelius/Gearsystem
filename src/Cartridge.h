@@ -51,6 +51,7 @@ public:
     bool IsPAL() const;
     bool IsValidROM() const;
     bool IsLoadedROM() const;
+    bool HasRAMWithoutBattery() const;
     CartridgeTypes GetType() const;
     CartridgeZones GetZone() const;
     void ForzeZone(CartridgeZones zone);
@@ -81,6 +82,7 @@ private:
     int m_iROMBankCount;
     bool m_bGameGear;
     bool m_bPAL;
+    bool m_bRAMWithoutBattery;
 };
 
 #endif	/* CARTRIDGE_H */

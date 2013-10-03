@@ -57,6 +57,11 @@ void Memory::SetCurrentRule(MemoryRule* pRule)
     m_pCurrentMemoryRule = pRule;
 }
 
+MemoryRule* Memory::GetCurrentRule()
+{
+    return m_pCurrentMemoryRule;
+}
+
 void Memory::Disassemble(u16 address, const char* szDisassembled)
 {
     strcpy(m_pDisassembledMap[address].szDisString, szDisassembled);

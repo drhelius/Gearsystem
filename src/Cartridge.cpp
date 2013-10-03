@@ -36,6 +36,7 @@ Cartridge::Cartridge()
     m_iROMBankCount = 0;
     m_bGameGear = false;
     m_bPAL = false;
+    m_bRAMWithoutBattery = false;
 }
 
 Cartridge::~Cartridge()
@@ -51,6 +52,7 @@ void Cartridge::Init()
 void Cartridge::Reset()
 {
     SafeDeleteArray(m_pTheROM);
+    m_iROMSize = 0;
     m_Type = CartridgeNotSupported;
     m_Zone = CartridgeUnknownZone;
     m_bValidROM = false;
@@ -60,6 +62,7 @@ void Cartridge::Reset()
     m_iROMBankCount = 0;
     m_bGameGear = false;
     m_bPAL = false;
+    m_bRAMWithoutBattery = false;
 }
 
 bool Cartridge::IsGameGear() const
@@ -80,6 +83,10 @@ bool Cartridge::IsValidROM() const
 bool Cartridge::IsLoadedROM() const
 {
     return m_bLoaded;
+}
+bool Cartridge::HasRAMWithoutBattery() const
+{
+    return m_bRAMWithoutBattery;
 }
 
 Cartridge::CartridgeTypes Cartridge::GetType() const
@@ -448,6 +455,8 @@ void Cartridge::GetInfoFromDB(u32 crc)
         {
             found = true;
             
+            Log("ROM found in database: %s. CRC: %X", kGameDatabase[i].title, crc);
+            
             if (kGameDatabase[i].mapper == GS_DB_CODEMASTERS_MAPPER)
                 m_Type = Cartridge::CartridgeCodemastersMapper;
             
@@ -462,19 +471,20 @@ void Cartridge::GetInfoFromDB(u32 crc)
                 Log("PAL cartridge: Running at 50Hz");
                 m_bPAL = true;
             }
+            
+            if (kGameDatabase[i].no_battery)
+            {
+                Log("Cartridge with SRAM but no battery");
+                m_bRAMWithoutBattery = true;
+            }
         }
         else
             i++;
     }
     
-    if (found)
-    {
-        Log("ROM found in database: %s. CRC: %X", kGameDatabase[i].title, crc);
-    }
-    else
+    if (!found)
     {
         Log("ROM not found in database. CRC: %X", crc);
-    }
-        
+    }     
 }
 

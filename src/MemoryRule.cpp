@@ -29,3 +29,18 @@ MemoryRule::~MemoryRule()
 {
 
 }
+
+void MemoryRule::SaveRam(std::ofstream&)
+{
+
+}
+
+bool MemoryRule::LoadRam(std::ifstream&, s32)
+{
+    return false;
+}
+
+bool MemoryRule::PersistedRAM()
+{
+    return false;
+}

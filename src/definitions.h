@@ -28,7 +28,7 @@
 #include <iostream>
 #include <fstream>
 
-//#define DEBUG_GEARSYSTEM 1
+#define DEBUG_GEARSYSTEM 1
 
 #ifdef DEBUG_GEARSYSTEM
 #define DISASM_GEARSYSTEM 1

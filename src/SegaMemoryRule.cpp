@@ -110,6 +110,8 @@ void SegaMemoryRule::PerformWrite(u16 address, u8 value)
             {
                 m_bRAMEnabled = IsSetBit(value, 3);
                 m_RAMBankStartAddress = IsSetBit(value, 2) ? 0x4000 : 0x0000;
+                if (m_bRAMEnabled && !m_pCartridge->HasRAMWithoutBattery())
+                    m_bPersistRAM = true;
                 break;
             }
             case 0xFFFD:
@@ -138,6 +140,7 @@ void SegaMemoryRule::Reset()
 {
     m_RAMBankStartAddress = 0;
     m_bRAMEnabled = false;
+    m_bPersistRAM = false;
 
     for (int i = 0; i < 3; i++)
     {
@@ -146,3 +149,42 @@ void SegaMemoryRule::Reset()
     }
 }
 
+void SegaMemoryRule::SaveRam(std::ofstream & file)
+{
+    Log("SegaMemoryRule save RAM...");
+
+    for (int i = 0x0000; i < 0x8000; i++)
+    {
+        u8 ram_byte = m_pRAMBanks[i];
+        file.write(reinterpret_cast<const char*> (&ram_byte), 1);
+    }
+
+    Log("SegaMemoryRule save RAM done");
+}
+
+bool SegaMemoryRule::LoadRam(std::ifstream & file, s32 fileSize)
+{
+    Log("SegaMemoryRule load RAM...");
+    
+    if ((fileSize > 0) && (fileSize != 0x8000))
+    {
+        Log("SegaMemoryRule incorrect size. Expected: 512 Found: %d", fileSize);
+        return false;
+    }
+
+    for (int i = 0x0000; i < 0x8000; i++)
+    {
+        u8 ram_byte = 0;
+        file.read(reinterpret_cast<char*> (&ram_byte), 1);
+        m_pRAMBanks[i] = ram_byte;
+    }
+
+    Log("SegaMemoryRule load RAM done");
+    
+    return true;
+}
+
+bool SegaMemoryRule::PersistedRAM()
+{
+    return m_bPersistRAM;
+}

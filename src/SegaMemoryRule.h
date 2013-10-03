@@ -30,6 +30,9 @@ public:
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);
     virtual void Reset();
+    virtual void SaveRam(std::ofstream &file);
+    virtual bool LoadRam(std::ifstream &file, s32 fileSize);
+    virtual bool PersistedRAM();
 
 private:
     int m_iMapperSlot[3];
@@ -37,6 +40,7 @@ private:
     u8* m_pRAMBanks;
     u16 m_RAMBankStartAddress;
     bool m_bRAMEnabled;
+    bool m_bPersistRAM;
 };
 
 #endif	/* SEGAMEMORYRULE_H */
