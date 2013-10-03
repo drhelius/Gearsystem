@@ -71,12 +71,12 @@
         if (retina)
         {
             multiplier = 3;
-            view.frame = CGRectMake(0, 0, 128 * multiplier, 96 * multiplier);
+            view.frame = CGRectMake(0, 0, 128 * multiplier, 112 * multiplier);
         }
         else
         {
-            multiplier = 4;
-            view.frame = CGRectMake(0, 0, 128 * multiplier, 96 * multiplier);
+            multiplier = 2;
+            view.frame = CGRectMake(0, 0, 128 * multiplier, 112 * multiplier);
         }
     }
     else
@@ -84,13 +84,13 @@
         iPad = YES;
         if (retina)
         {
-            multiplier = 3;
-            view.frame = CGRectMake(192, 46, 128 * multiplier, 96 * multiplier);
+            multiplier = 4;
+            view.frame = CGRectMake(192, 46, 128 * multiplier, 112 * multiplier);
         }
         else
         {
             multiplier = 4;
-            view.frame = CGRectMake(0, 0, 128 * multiplier, 96 * multiplier);
+            view.frame = CGRectMake(0, 0, 128 * multiplier, 112 * multiplier);
         }
     }
     

@@ -22,7 +22,7 @@
 #include "inputmanager.h"
 
 const float kGB_Width = 256.0f;
-const float kGB_Height = 192.0f;
+const float kGB_Height = 224.0f;
 const float kGB_TexWidth = kGB_Width / 256.0f;
 const float kGB_TexHeight = kGB_Height / 256.0f;
 const GLfloat box[] = {0.0f, kGB_Height, 1.0f, kGB_Width,kGB_Height, 1.0f, 0.0f, 0.0f, 1.0f, kGB_Width, 0.0f, 1.0f};
@@ -135,7 +135,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     glBindFramebuffer(GL_FRAMEBUFFER, iOSFrameBuffer);
     glBindTexture(GL_TEXTURE_2D, GBTexture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
-    [self renderQuadWithViewportWidth:(128 * multiplier) andHeight:(96 * multiplier) andMirrorY:NO];
+    [self renderQuadWithViewportWidth:(128 * multiplier) andHeight:(112 * multiplier) andMirrorY:NO];
 }
 
 
