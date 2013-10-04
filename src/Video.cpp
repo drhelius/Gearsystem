@@ -173,7 +173,7 @@ bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
     else
     {
         int max_height = m_bExtendedMode224 ? 224 : 192;
-        
+
         // Counter decremented around the middle of the active display period
         if (!m_bReg10CounterDecremented && (m_iCycleCounter >= 90))
         {
@@ -334,7 +334,7 @@ void Video::WriteControl(u8 control)
             {
                 u8 reg = control & 0x0F;
                 m_VdpRegister[reg] = m_VdpLatch;
-                
+
                 if (reg < 2)
                 {
                     m_bExtendedMode224 = ((m_VdpRegister[0] & 0x06) == 0x06) && ((m_VdpRegister[1] & 0x18) == 0x10);
@@ -351,28 +351,31 @@ void Video::WriteControl(u8 control)
 
 void Video::ScanLine(int line)
 {
-    if (IsSetBit(m_VdpRegister[1], 6))
+    if (IsValidPointer(m_pColorFrameBuffer))
     {
-        // DISPLAY ON
-        RenderBG(line);
-        RenderSprites(line);
-    }
-    else
-    {
-        // DISPLAY OFF
-        if (!m_bExtendedMode224)
-            line += 16;
-
-        int line_256 = line << 8;
-
-        for (int scx = 0; scx < 256; scx++)
+        if (IsSetBit(m_VdpRegister[1], 6))
         {
-            GS_Color final_color;
-            final_color.red = 0;
-            final_color.green = 0;
-            final_color.blue = 0;
-            final_color.alpha = 0xFF;
-            m_pColorFrameBuffer[line_256 + scx] = final_color;
+            // DISPLAY ON
+            RenderBG(line);
+            RenderSprites(line);
+        }
+        else
+        {
+            // DISPLAY OFF
+            if (!m_bExtendedMode224)
+                line += 16;
+
+            int line_256 = line << 8;
+
+            for (int scx = 0; scx < 256; scx++)
+            {
+                GS_Color final_color;
+                final_color.red = 0;
+                final_color.green = 0;
+                final_color.blue = 0;
+                final_color.alpha = 0xFF;
+                m_pColorFrameBuffer[line_256 + scx] = final_color;
+            }
         }
     }
 }
@@ -388,7 +391,7 @@ void Video::RenderBG(int line)
 
     u16 map_address = (m_VdpRegister[2] & (m_bExtendedMode224 ? 0x0C : 0x0E)) << 10;
     int map_y = scy + origin_y;
-    
+
     if (m_bExtendedMode224)
     {
         map_address |= 0x700;
@@ -450,7 +453,7 @@ void Video::RenderBG(int line)
 
         int pixel = scy_256 + scx;
         int gg_y_offset = m_bExtendedMode224 ? GS_GG_Y_OFFSET + 16 : GS_GG_Y_OFFSET;
-        
+
         if (m_bGameGear && ((scx < GS_GG_X_OFFSET) || (scx >= (GS_GG_X_OFFSET + GS_GG_WIDTH)) || (scy < gg_y_offset) || (scy >= (gg_y_offset + GS_GG_HEIGHT))))
         {
             GS_Color final_color;
@@ -560,31 +563,34 @@ void Video::RenderSprites(int line)
 
 void Video::FillPadding()
 {
-    GS_Color final_color;
-
-    if (m_bGameGear)
+    if (IsValidPointer(m_pColorFrameBuffer))
     {
-        final_color.red = 0;
-        final_color.green = 0;
-        final_color.blue = 0;
-        final_color.alpha = 0xFF;
-    }
-    else
-    {
-        int palette_color = (m_VdpRegister[7] & 0x0F) + 16;
-        final_color = ConvertTo8BitColor(palette_color);
-    }
+        GS_Color final_color;
 
-    for (int line = 0; line < 224; line++)
-    {
-        if (line == 16)
-            line = 208;
-
-        int line_256 = line << 8;
-
-        for (int scx = 0; scx < 256; scx++)
+        if (m_bGameGear)
         {
-            m_pColorFrameBuffer[line_256 + scx] = final_color;
+            final_color.red = 0;
+            final_color.green = 0;
+            final_color.blue = 0;
+            final_color.alpha = 0xFF;
+        }
+        else
+        {
+            int palette_color = (m_VdpRegister[7] & 0x0F) + 16;
+            final_color = ConvertTo8BitColor(palette_color);
+        }
+
+        for (int line = 0; line < 224; line++)
+        {
+            if (line == 16)
+                line = 208;
+
+            int line_256 = line << 8;
+
+            for (int scx = 0; scx < 256; scx++)
+            {
+                m_pColorFrameBuffer[line_256 + scx] = final_color;
+            }
         }
     }
 }

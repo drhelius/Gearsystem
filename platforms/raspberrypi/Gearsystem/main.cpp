@@ -29,7 +29,7 @@
 #include "GLES/gl.h"
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
-#include "gearboy.h"
+#include "gearsystem.h"
 
 bool running = true;
 bool paused = false;
@@ -37,9 +37,9 @@ EGLDisplay display;
 EGLSurface surface;
 EGLContext context;
 
-const float kGS_Width = 192.0f;
+const float kGS_Width = 256.0f;
 const float kGS_Height = 224.0f;
-const float kGS_TexWidth = kGS_Width / 256.0f;
+const float kGS_TexWidth = 1.0f;
 const float kGS_TexHeight = kGS_Height / 256.0f;
 const GLfloat kQuadTex[8] = { 0, 0, kGS_TexWidth, 0, kGS_TexWidth, kGS_TexHeight, 0, kGS_TexHeight};
 GLshort quadVerts[8];
@@ -65,32 +65,32 @@ void update(void)
             switch(keyevent.key.keysym.sym)
             {
                 case SDLK_LEFT:
-                theGearsystemCore->KeyPressed(Key_Left);
+                theGearsystemCore->KeyPressed(Joypad_1, Key_Left);
                 break;
                 case SDLK_RIGHT:
-                theGearsystemCore->KeyPressed(Key_Right);
+                theGearsystemCore->KeyPressed(Joypad_1, Key_Right);
                 break;
                 case SDLK_UP:
-                theGearsystemCore->KeyPressed(Key_Up);
+                theGearsystemCore->KeyPressed(Joypad_1, Key_Up);
                 break;
                 case SDLK_DOWN:
-                theGearsystemCore->KeyPressed(Key_Down);
+                theGearsystemCore->KeyPressed(Joypad_1, Key_Down);
                 break;
                 case SDLK_a:
-                theGearsystemCore->KeyPressed(Key_1);
+                theGearsystemCore->KeyPressed(Joypad_1, Key_1);
                 break;
                 case SDLK_s:
-                theGearsystemCore->KeyPressed(Key_2);
+                theGearsystemCore->KeyPressed(Joypad_1, Key_2);
                 break;
                 case SDLK_p:
                 paused = !paused;
                 theGearsystemCore->Pause(paused);
                 break;
                 case SDLK_SPACE:
-                theGearsystemCore->KeyPressed(Key_Start);
+                theGearsystemCore->KeyPressed(Joypad_1, Key_Start);
                 break;
                 case SDLK_RETURN:
-                theGearsystemCore->KeyPressed(Key_Start);
+                theGearsystemCore->KeyPressed(Joypad_1, Key_Start);
                 break;
                 case SDLK_ESCAPE:
                 running = false;
@@ -103,28 +103,28 @@ void update(void)
             switch(keyevent.key.keysym.sym)
             {
                 case SDLK_LEFT:
-                theGearsystemCore->KeyReleased(Key_Left);
+                theGearsystemCore->KeyReleased(Joypad_1, Key_Left);
                 break;
                 case SDLK_RIGHT:
-                theGearsystemCore->KeyReleased(Key_Right);
+                theGearsystemCore->KeyReleased(Joypad_1, Key_Right);
                 break;
                 case SDLK_UP:
-                theGearsystemCore->KeyReleased(Key_Up);
+                theGearsystemCore->KeyReleased(Joypad_1, Key_Up);
                 break;
                 case SDLK_DOWN:
-                theGearsystemCore->KeyReleased(Key_Down);
+                theGearsystemCore->KeyReleased(Joypad_1, Key_Down);
                 break;
                 case SDLK_a:
-                theGearsystemCore->KeyReleased(Key_1);
+                theGearsystemCore->KeyReleased(Joypad_1, Key_1);
                 break;
                 case SDLK_s:
-                theGearsystemCore->KeyReleased(Key_2);
+                theGearsystemCore->KeyReleased(Joypad_1, Key_2);
                 break;
                 case SDLK_SPACE:
-                theGearsystemCore->KeyReleased(Key_Start);
+                theGearsystemCore->KeyReleased(Joypad_1, Key_Start);
                 break;
                 case SDLK_RETURN:
-                theGearsystemCore->KeyReleased(Key_Start);
+                theGearsystemCore->KeyReleased(Joypad_1, Key_Start);
                 break;
                 default:
                 break;
@@ -132,10 +132,10 @@ void update(void)
         }
     }
 
-    //theGearsystemCore->RunToVBlank(NULL); // this is to force 30 FPS
+    theGearsystemCore->RunToVBlank(NULL); // this is to force 30 FPS
     theGearsystemCore->RunToVBlank(theFrameBuffer);
 
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 192, 224, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theFrameBuffer);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 224, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theFrameBuffer);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     eglSwapBuffers(display, surface);
 }
@@ -200,14 +200,14 @@ void init_ogl(void)
     success = graphics_get_display_size(0 /* LCD */, &screen_width, &screen_height);
     assert( success >= 0 );
 
-    int32_t zoom = screen_width / SMS_WIDTH;
-    int32_t zoom2 = screen_height / SMS_HEIGHT;
+    int32_t zoom = screen_width / GS_SMS_WIDTH;
+    int32_t zoom2 = screen_height / GS_SMS_HEIGHT;
 
     if (zoom2 < zoom)
         zoom = zoom2;
 
-    int32_t display_width = SMS_WIDTH * zoom;
-    int32_t display_height = SMS_HEIGHT * zoom;
+    int32_t display_width = GS_SMS_WIDTH * zoom;
+    int32_t display_height = GS_SMS_HEIGHT * zoom;
     int32_t display_offset_x = (screen_width / 2) - (display_width / 2);
     int32_t display_offset_y = (screen_height / 2) - (display_height / 2);
 
@@ -286,13 +286,13 @@ void init(void)
     theGearsystemCore = new GearsystemCore();
     theGearsystemCore->Init();
 
-    theFrameBuffer = new GS_Color[SMS_WIDTH * SMS_HEIGHT];
+    theFrameBuffer = new GS_Color[GS_SMS_WIDTH * GS_SMS_HEIGHT];
 
-    for (int y = 0; y < SMS_HEIGHT; ++y)
+    for (int y = 0; y < GS_SMS_HEIGHT; ++y)
     {
-        for (int x = 0; x < SMS_WIDTH; ++x)
+        for (int x = 0; x < GS_SMS_WIDTH; ++x)
         {
-            int pixel = (y * SMS_WIDTH) + x;
+            int pixel = (y * GS_SMS_WIDTH) + x;
             theFrameBuffer[pixel].red = theFrameBuffer[pixel].green = theFrameBuffer[pixel].blue = 0x00;
             theFrameBuffer[pixel].alpha = 0xFF;
         }
@@ -313,7 +313,7 @@ void end(void)
 
 int main(int argc, char** argv)
 {
-    if (argc < 2 || argc > 4)
+    if (argc < 2 || argc > 3)
     {
         printf("usage: %s rom_path [options]\n", argv[0]);
         printf("options:\n-nosound\n");
@@ -321,8 +321,6 @@ int main(int argc, char** argv)
     }
 
     init();
-
-    bool forcedmg = false;
 
     if (argc > 2)
     {
