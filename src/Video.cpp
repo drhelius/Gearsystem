@@ -509,6 +509,7 @@ void Video::RenderSprites(int line)
             continue;
 
         int sprite_tile = m_pVdpVRAM[sprite_info_address + 1];
+        sprite_tile &= (sprite_height == 16) ? 0xFE : 0xFF;
         int sprite_tile_addr = sprite_tiles_address + (sprite_tile << 5) + ((line - sprite_y) << 2);
 
         for (int tile_x = 0; tile_x < 8; tile_x++)
