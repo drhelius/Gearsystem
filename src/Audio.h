@@ -51,6 +51,6 @@ private:
     blip_sample_t* m_pSampleBuffer;
 };
 
-const unsigned int kSampleBufferSize = 8192;
+const long kSampleBufferSize = 8192;
 
 #endif	/* AUDIO_H */
