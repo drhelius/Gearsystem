@@ -90,7 +90,7 @@
         else
         {
             multiplier = 4;
-            view.frame = CGRectMake(0, 0, 128 * multiplier, 112 * multiplier);
+            view.frame = CGRectMake(128, 28, 128 * multiplier, 112 * multiplier);
         }
     }
     
