@@ -85,7 +85,7 @@
         if (retina)
         {
             multiplier = 4;
-            view.frame = CGRectMake(192, 46, 128 * multiplier, 112 * multiplier);
+            view.frame = CGRectMake(128, 28, 128 * multiplier, 112 * multiplier);
         }
         else
         {
