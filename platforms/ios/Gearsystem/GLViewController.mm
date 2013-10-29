@@ -68,30 +68,14 @@
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
     {
         iPad = NO;
-        if (retina)
-        {
-            multiplier = 3;
-            view.frame = CGRectMake(0, 0, 128 * multiplier, 112 * multiplier);
-        }
-        else
-        {
-            multiplier = 2;
-            view.frame = CGRectMake(0, 0, 128 * multiplier, 112 * multiplier);
-        }
+        multiplier = 2;
+        view.frame = CGRectMake(31, 15, 128 * multiplier, 112 * multiplier);
     }
     else
     {
         iPad = YES;
-        if (retina)
-        {
-            multiplier = 4;
-            view.frame = CGRectMake(128, 28, 128 * multiplier, 112 * multiplier);
-        }
-        else
-        {
-            multiplier = 4;
-            view.frame = CGRectMake(128, 28, 128 * multiplier, 112 * multiplier);
-        }
+        multiplier = 4;
+        view.frame = CGRectMake(128, 28, 128 * multiplier, 112 * multiplier);
     }
     
     self.theEmulator.multiplier = multiplier * (retina ? 2 : 1);
