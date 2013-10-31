@@ -39,61 +39,31 @@ void EmulatorInput::Init()
     for (int i = 0; i < 4; i++)
         m_bController[i] = false;
     
-    CGFloat scale;
-    if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
-        scale=[[UIScreen mainScreen] scale];
-    } else {
-        scale=1; 
-    }
-    
-    BOOL retina;
-    retina = (scale != 1);
-    
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
     {
-        if (retina)
+        CGRect screenBounds = [[UIScreen mainScreen] bounds];
+        if (screenBounds.size.height == 568)
         {
-            CGRect screenBounds = [[UIScreen mainScreen] bounds];
-            if (screenBounds.size.height == 568)
-            {
-                // 4-inch screen (iPhone 5)
-                InputManager::Instance().AddCircleRegionEvent(257.0f, 354.0f, 35.0f, m_pInputCallbackButtons, 1, false);
-                InputManager::Instance().AddCircleRegionEvent(203.0f, 380.0f, 35.0f, m_pInputCallbackButtons, 2, false);
-                InputManager::Instance().AddCircleRegionEvent(181.0f, 462.0f, 30.0f, m_pInputCallbackButtons, 3, false);
-                InputManager::Instance().AddCircleRegionEvent(76.0f, 370.0f, 52.0f, m_pInputCallbackController, 0, true);
-            }
-            else
-            {
-                InputManager::Instance().AddCircleRegionEvent(280.0f, 325.0f, 30.0f, m_pInputCallbackButtons, 1, false);
-                InputManager::Instance().AddCircleRegionEvent(233.0f, 345.0f, 30.0f, m_pInputCallbackButtons, 2, false);
-                InputManager::Instance().AddCircleRegionEvent(182.0f, 390.0f, 25.0f, m_pInputCallbackButtons, 3, false);
-                InputManager::Instance().AddCircleRegionEvent(57.0f, 342.0f, 50.0f, m_pInputCallbackController, 0, true);
-            }
+            // 4-inch screen (iPhone 5)
+            InputManager::Instance().AddCircleRegionEvent(221.0f, 358.0f, 34.0f, m_pInputCallbackButtons, 1, false);
+            InputManager::Instance().AddCircleRegionEvent(280.0f, 358.0f, 34.0f, m_pInputCallbackButtons, 2, false);
+            InputManager::Instance().AddCircleRegionEvent(163.0f, 298.0f, 25.0f, m_pInputCallbackButtons, 3, false);
+            InputManager::Instance().AddCircleRegionEvent(69.0f, 342.0f, 50.0f, m_pInputCallbackController, 0, true);
         }
         else
         {
-            InputManager::Instance().AddCircleRegionEvent(256.0f, 316.0f, 29.0f, m_pInputCallbackButtons, 1, false);
-            InputManager::Instance().AddCircleRegionEvent(213.0f, 337.0f, 29.0f, m_pInputCallbackButtons, 2, false);
-            InputManager::Instance().AddCircleRegionEvent(167.0f, 397.0f, 25.0f, m_pInputCallbackButtons, 3, false);
-            InputManager::Instance().AddCircleRegionEvent(80.0f, 331.0f, 50.0f, m_pInputCallbackController, 0, true);
+            InputManager::Instance().AddCircleRegionEvent(221.0f, 330.0f, 34.0f, m_pInputCallbackButtons, 1, false);
+            InputManager::Instance().AddCircleRegionEvent(280.0f, 330.0f, 34.0f, m_pInputCallbackButtons, 2, false);
+            InputManager::Instance().AddCircleRegionEvent(163.0f, 271.0f, 25.0f, m_pInputCallbackButtons, 3, false);
+            InputManager::Instance().AddCircleRegionEvent(69.0f, 315.0f, 50.0f, m_pInputCallbackController, 0, true);
         }
     }
     else
     {
-        if (retina)
-        {
-            InputManager::Instance().AddCircleRegionEvent(542.0f, 721.0f, 72.0f, m_pInputCallbackButtons, 1, false);
-            InputManager::Instance().AddCircleRegionEvent(652.0f, 721.0f, 72.0f, m_pInputCallbackButtons, 2, false);
-            InputManager::Instance().AddCircleRegionEvent(408.0f, 891.0f, 60.0f, m_pInputCallbackButtons, 3, false);
-            InputManager::Instance().AddCircleRegionEvent(168.0f, 680.0f, 116.0f, m_pInputCallbackController, 0, true);
-        }
-        else
-        {
-            InputManager::Instance().AddCircleRegionEvent(536.0f, 721.0f, 72.0f, m_pInputCallbackButtons, 1, false);
-            InputManager::Instance().AddCircleRegionEvent(650.0f, 721.0f, 72.0f, m_pInputCallbackButtons, 2, false);
-            InputManager::Instance().AddCircleRegionEvent(400.0f, 809.0f, 50.0f, m_pInputCallbackButtons, 3, false);
-            InputManager::Instance().AddCircleRegionEvent(192.0f, 653.0f, 100.0f, m_pInputCallbackController, 0, true);
-        }
+        InputManager::Instance().AddCircleRegionEvent(530.0f, 718.0f, 75.0f, m_pInputCallbackButtons, 1, false);
+        InputManager::Instance().AddCircleRegionEvent(665.0f, 718.0f, 75.0f, m_pInputCallbackButtons, 2, false);
+        InputManager::Instance().AddCircleRegionEvent(391.0f, 576.0f, 60.0f, m_pInputCallbackButtons, 3, false);
+        InputManager::Instance().AddCircleRegionEvent(168.0f, 680.0f, 116.0f, m_pInputCallbackController, 0, true);
     }
 }
 
