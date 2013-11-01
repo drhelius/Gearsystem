@@ -21,6 +21,7 @@ Downloads
 - Gearsystem 1.0 for Jailbroken iOS: Cydia. You can open rom files from other apps like Safari or Dropbox.
 - Gearsystem 1.0 for Non-Jailbroken iOS: Use your developer certificate to compile and install it, then you can open rom files from other apps or use [iTunes file sharing](http://support.apple.com/kb/ht4094). 
 - Gearsystem 1.0 for Windows: [Gearsystem-1.0-Windows.zip](http://www.geardome.com/files/gearsystem/Gearsystem-1.0-Windows.zip)
+- Gearsystem 1.0 for Linux: [Gearsystem-1.0-Linux.tar.gz](http://www.geardome.com/files/gearsystem/Gearsystem-1.0-Linux.tar.gz)
 
 Features
 --------
