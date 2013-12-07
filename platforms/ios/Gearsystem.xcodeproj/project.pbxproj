@@ -42,10 +42,10 @@
 		667CEFDF15FD43720078A433 /* GLViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 667CEFDD15FD43720078A433 /* GLViewController.xib */; };
 		667CF01915FD5E320078A433 /* Emulator.mm in Sources */ = {isa = PBXBuildFile; fileRef = 667CF01815FD5E320078A433 /* Emulator.mm */; };
 		667ED35316B3640200FD2545 /* gb-568h@2x.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 667ED35216B3640200FD2545 /* gb-568h@2x.jpg */; };
+		66A1BB9C1853BE510089461F /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66A1BB9B1853BE510089461F /* SDL.framework */; };
 		66D34FE815FFDF410046912E /* inputmanager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66D34FE515FFDF410046912E /* inputmanager.mm */; };
 		66D34FE915FFDF410046912E /* timer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66D34FE715FFDF410046912E /* timer.mm */; };
 		66D34FF115FFEC480046912E /* EmulatorInput.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66D34FEF15FFEC470046912E /* EmulatorInput.mm */; };
-		66D4BA7415FABB4000D4937F /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D4BA7315FABB4000D4937F /* SDL.framework */; };
 		66D4BA7715FABB6C00D4937F /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D4BA7615FABB6C00D4937F /* GLKit.framework */; };
 		66D4BA7B15FABB8600D4937F /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D4BA7A15FABB8600D4937F /* AudioToolbox.framework */; };
 		66D4BA7D15FABB9100D4937F /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66D4BA7C15FABB9100D4937F /* OpenGLES.framework */; };
@@ -146,6 +146,7 @@
 		667CF01715FD5E320078A433 /* Emulator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Emulator.h; sourceTree = "<group>"; };
 		667CF01815FD5E320078A433 /* Emulator.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Emulator.mm; sourceTree = "<group>"; };
 		667ED35216B3640200FD2545 /* gb-568h@2x.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = "gb-568h@2x.jpg"; path = "img/gb-568h@2x.jpg"; sourceTree = "<group>"; };
+		66A1BB9B1853BE510089461F /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = SDL/SDL.framework; sourceTree = "<group>"; };
 		66D34FE315FFDF400046912E /* inputcallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inputcallback.h; sourceTree = "<group>"; };
 		66D34FE415FFDF400046912E /* inputmanager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inputmanager.h; sourceTree = "<group>"; };
 		66D34FE515FFDF410046912E /* inputmanager.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = inputmanager.mm; sourceTree = "<group>"; };
@@ -156,7 +157,6 @@
 		66D34FED15FFE0EA0046912E /* Vector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Vector.h; sourceTree = "<group>"; };
 		66D34FEF15FFEC470046912E /* EmulatorInput.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = EmulatorInput.mm; sourceTree = "<group>"; };
 		66D34FF015FFEC480046912E /* EmulatorInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EmulatorInput.h; sourceTree = "<group>"; };
-		66D4BA7315FABB4000D4937F /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = SDL/SDL.framework; sourceTree = "<group>"; };
 		66D4BA7615FABB6C00D4937F /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		66D4BA7815FABB7B00D4937F /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		66D4BA7A15FABB8600D4937F /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
@@ -189,6 +189,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				66A1BB9C1853BE510089461F /* SDL.framework in Frameworks */,
 				66D4BA7F15FABBC500D4937F /* QuartzCore.framework in Frameworks */,
 				66D4BA7D15FABB9100D4937F /* OpenGLES.framework in Frameworks */,
 				66D4BA7B15FABB8600D4937F /* AudioToolbox.framework in Frameworks */,
@@ -196,7 +197,6 @@
 				66DCB34C15F940CC0076F6F6 /* UIKit.framework in Frameworks */,
 				66DCB34E15F940CC0076F6F6 /* Foundation.framework in Frameworks */,
 				66DCB35015F940CC0076F6F6 /* CoreGraphics.framework in Frameworks */,
-				66D4BA7415FABB4000D4937F /* SDL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -334,6 +334,7 @@
 		66DCB34A15F940CC0076F6F6 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				66A1BB9B1853BE510089461F /* SDL.framework */,
 				66D4BA7A15FABB8600D4937F /* AudioToolbox.framework */,
 				66D4BA7815FABB7B00D4937F /* CoreAudio.framework */,
 				66DCB34F15F940CC0076F6F6 /* CoreGraphics.framework */,
@@ -341,7 +342,6 @@
 				66D4BA7615FABB6C00D4937F /* GLKit.framework */,
 				66D4BA7C15FABB9100D4937F /* OpenGLES.framework */,
 				66D4BA7E15FABBC500D4937F /* QuartzCore.framework */,
-				66D4BA7315FABB4000D4937F /* SDL.framework */,
 				66DCB34B15F940CC0076F6F6 /* UIKit.framework */,
 			);
 			name = Frameworks;
@@ -643,10 +643,14 @@
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/SDL\"",
+					/Users/nacho/github/Gearsystem/platforms/ios/SDL,
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "";
+				HEADER_SEARCH_PATHS = (
+					"../../src/**",
+					"./SDL/include/**",
+				);
 				INFOPLIST_FILE = "Gearsystem/Gearsystem-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -659,10 +663,14 @@
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/SDL\"",
+					/Users/nacho/github/Gearsystem/platforms/ios/SDL,
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "";
+				HEADER_SEARCH_PATHS = (
+					"../../src/**",
+					"./SDL/include/**",
+				);
 				INFOPLIST_FILE = "Gearsystem/Gearsystem-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
