@@ -79,3 +79,5 @@ platforms/ios/Gearsystem.xcodeproj/xcuserdata/*
 
 *.sms
 *.gg
+
+platforms/macosx/Gearsystem/nbproject/private/launcher.properties
