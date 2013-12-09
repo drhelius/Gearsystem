@@ -415,6 +415,11 @@
 			attributes = {
 				LastUpgradeCheck = 0500;
 				ORGANIZATIONNAME = "Ignacio Sánchez Ginés";
+				TargetAttributes = {
+					66DCB34615F940CC0076F6F6 = {
+						DevelopmentTeam = V3F66RFMSJ;
+					};
+				};
 			};
 			buildConfigurationList = 66DCB34115F940CC0076F6F6 /* Build configuration list for PBXProject "Gearsystem" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -641,6 +646,8 @@
 		66DCB37215F940CC0076F6F6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					/Users/nacho/github/Gearsystem/platforms/ios/SDL,
@@ -654,6 +661,7 @@
 				INFOPLIST_FILE = "Gearsystem/Gearsystem-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -661,6 +669,8 @@
 		66DCB37315F940CC0076F6F6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					/Users/nacho/github/Gearsystem/platforms/ios/SDL,
@@ -674,6 +684,7 @@
 				INFOPLIST_FILE = "Gearsystem/Gearsystem-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
