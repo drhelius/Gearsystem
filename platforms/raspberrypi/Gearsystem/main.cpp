@@ -24,7 +24,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <sys/time.h>
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #include "bcm_host.h"
 #include "GLES/gl.h"
 #include "EGL/egl.h"
@@ -49,6 +49,8 @@ GS_Color* theFrameBuffer;
 GLuint theGSTexture;
 
 uint32_t screen_width, screen_height;
+
+SDL_Window* theWindow;
 
 void update(void)
 {
@@ -147,7 +149,9 @@ void init_sdl(void)
         Log("SDL Error Init: %s", SDL_GetError());
     }
 
-    if (SDL_SetVideoMode(0, 0, 32, SDL_SWSURFACE) == NULL)
+    theWindow = SDL_CreateWindow("Gearsystem", 0, 0, 0, 0, 0);
+
+    if (theWindow == NULL)
     {
         Log("SDL Error Video: %s", SDL_GetError());
     }
@@ -307,6 +311,7 @@ void end(void)
 {
     SafeDeleteArray(theFrameBuffer);
     SafeDelete(theGearsystemCore);
+    SDL_DestroyWindow(theWindow);
     SDL_Quit();
     bcm_host_deinit();
 }
