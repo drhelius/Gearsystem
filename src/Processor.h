@@ -56,6 +56,7 @@ private:
     SixteenBitRegister IY;
     SixteenBitRegister SP;
     SixteenBitRegister PC;
+    SixteenBitRegister XY;  // MEMPTR register for XY flags
     EightBitRegister I;
     EightBitRegister R;
     bool m_bIFF1;
@@ -75,6 +76,7 @@ private:
 
 private:
     u8 FetchOPCode();
+    u16 FetchArg16();
     void ExecuteOPCode();
     bool InterruptPending();
     void ServeInterrupt();
@@ -104,14 +106,18 @@ private:
     void OPCodes_LD_nn_dd(SixteenBitRegister* reg);
     void OPCodes_LDI();
     void OPCodes_LDD();
+    void OPCodes_RST(u16 address);
     void OPCodes_CALL_nn();
+    void OPCodes_CALL_nn_Conditional(bool condition);
     void OPCodes_JP_nn();
+    void OPCodes_JP_nn_Conditional(bool condition);
     void OPCodes_JR_n();
-    void OPCodes_IN_n(EightBitRegister* reg);
+    void OPCodes_JR_n_conditional(bool condition);
+    void OPCodes_RET();
+    void OPCodes_RET_Conditional(bool condition);
     void OPCodes_IN_C(EightBitRegister* reg);
     void OPCodes_INI();
     void OPCodes_IND();
-    void OPCodes_OUT_n(EightBitRegister* reg);
     void OPCodes_OUT_C(EightBitRegister* reg);
     void OPCodes_OUTI();
     void OPCodes_OUTD();

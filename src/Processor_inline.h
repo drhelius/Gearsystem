@@ -32,6 +32,15 @@ inline u8 Processor::FetchOPCode()
     return opcode;
 }
 
+inline u16 Processor::FetchArg16()
+{
+    u16 pc = PC.GetValue();
+    u8 l = m_pMemory->Read(pc);
+    u8 h = m_pMemory->Read(pc + 1);
+    PC.SetValue(pc + 2);
+    return (h << 8) | l;
+}
+
 inline bool Processor::InterruptPending()
 {
     return (m_bINTRequested || m_bNMIRequested);
@@ -159,6 +168,7 @@ inline u16 Processor::GetPrefixedDisplacementAddress()
             {
                 address += static_cast<s8> (m_pMemory->Read(PC.GetValue()));
                 PC.Increment();
+                XY.SetValue(address);
             }
             return address;
         }
@@ -173,6 +183,7 @@ inline u16 Processor::GetPrefixedDisplacementAddress()
             {
                 address += static_cast<s8> (m_pMemory->Read(PC.GetValue()));
                 PC.Increment();
+                XY.SetValue(address);
             }
             return address;
         }
@@ -209,24 +220,20 @@ inline void Processor::OPCodes_LD(u16 address, u8 reg)
 
 inline void Processor::OPCodes_LD_dd_nn(SixteenBitRegister* reg)
 {
-    u8 l = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    u8 h = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    u16 address = (h << 8) | l;
+    u16 address = FetchArg16();
     reg->SetLow(m_pMemory->Read(address));
-    reg->SetHigh(m_pMemory->Read(address + 1));
+    address++;
+    reg->SetHigh(m_pMemory->Read(address));
+    XY.SetValue(address);
 }
 
 inline void Processor::OPCodes_LD_nn_dd(SixteenBitRegister* reg)
 {
-    u8 l = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    u8 h = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    u16 address = (h << 8) | l;
+    u16 address = FetchArg16();
     m_pMemory->Write(address, reg->GetLow());
-    m_pMemory->Write(address + 1, reg->GetHigh());
+    address++;
+    m_pMemory->Write(address, reg->GetHigh());
+    XY.SetValue(address);
 }
 
 inline void Processor::OPCodes_LDI()
@@ -277,23 +284,58 @@ inline void Processor::OPCodes_LDD()
         UntoggleFlag(FLAG_Y);
 }
 
+inline void Processor::OPCodes_RST(u16 address)
+{
+    StackPush(&PC);
+    PC.SetValue(address);
+    XY.SetValue(address);
+}
+
 inline void Processor::OPCodes_CALL_nn()
 {
-    u8 l = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    u8 h = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
+    u16 address = FetchArg16();
     StackPush(&PC);
-    PC.SetHigh(h);
-    PC.SetLow(l);
+    PC.SetValue(address);
+    XY.SetValue(address);
+}
+
+inline void Processor::OPCodes_CALL_nn_Conditional(bool condition)
+{
+    u16 address = FetchArg16();
+    if (condition)
+    {
+        StackPush(&PC);
+        PC.SetValue(address);
+        m_bBranchTaken = true;
+    }
+    XY.SetValue(address);
 }
 
 inline void Processor::OPCodes_JP_nn()
 {
     u8 l = m_pMemory->Read(PC.GetValue());
     u8 h = m_pMemory->Read(PC.GetValue() + 1);
-    PC.SetHigh(h);
-    PC.SetLow(l);
+    u16 address = (h << 8) | l;
+    PC.SetValue(address);
+    XY.SetValue(address);
+}
+
+inline void Processor::OPCodes_JP_nn_Conditional(bool condition)
+{
+    u8 l = m_pMemory->Read(PC.GetValue());
+    u8 h = m_pMemory->Read(PC.GetValue() + 1);
+    u16 address = (h << 8) | l;
+    if (condition)
+    {
+        PC.SetValue(address);
+        m_bBranchTaken = true;
+    }
+    else
+    {
+        PC.Increment();
+        PC.Increment();
+    }
+    XY.SetValue(address);
 }
 
 inline void Processor::OPCodes_JR_n()
@@ -302,11 +344,30 @@ inline void Processor::OPCodes_JR_n()
     PC.SetValue(pc + 1 + (static_cast<s8> (m_pMemory->Read(pc))));
 }
 
-inline void Processor::OPCodes_IN_n(EightBitRegister* reg)
+inline void Processor::OPCodes_JR_n_conditional(bool condition)
 {
-    u8 port = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    reg->SetValue(m_pIOPorts->DoInput(port));
+    if (condition)
+    {
+        OPCodes_JR_n();
+        m_bBranchTaken = true;
+    }
+    else
+        PC.Increment();
+}
+
+inline void Processor::OPCodes_RET()
+{
+    StackPop(&PC);
+    XY.SetValue(PC.GetValue());
+}
+
+inline void Processor::OPCodes_RET_Conditional(bool condition)
+{
+    if (condition)
+    {
+        OPCodes_RET();
+        m_bBranchTaken = true;
+    }
 }
 
 inline void Processor::OPCodes_IN_C(EightBitRegister* reg)
@@ -323,6 +384,7 @@ inline void Processor::OPCodes_IN_C(EightBitRegister* reg)
 
 inline void Processor::OPCodes_INI()
 {
+    XY.SetValue(BC.GetValue() + 1);
     u8 result = m_pIOPorts->DoInput(BC.GetLow());
     m_pMemory->Write(HL.GetValue(), result);
     OPCodes_DEC(BC.GetHighRegister());
@@ -349,6 +411,7 @@ inline void Processor::OPCodes_INI()
 
 inline void Processor::OPCodes_IND()
 {
+    XY.SetValue(BC.GetValue() - 1);
     u8 result = m_pIOPorts->DoInput(BC.GetLow());
     m_pMemory->Write(HL.GetValue(), result);
     OPCodes_DEC(BC.GetHighRegister());
@@ -373,13 +436,6 @@ inline void Processor::OPCodes_IND()
         UntoggleFlag(FLAG_PARITY);
 }
 
-inline void Processor::OPCodes_OUT_n(EightBitRegister* reg)
-{
-    u8 port = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    m_pIOPorts->DoOutput(port, reg->GetValue());
-}
-
 inline void Processor::OPCodes_OUT_C(EightBitRegister* reg)
 {
     m_pIOPorts->DoOutput(BC.GetLow(), reg->GetValue());
@@ -390,6 +446,7 @@ inline void Processor::OPCodes_OUTI()
     u8 result = m_pMemory->Read(HL.GetValue());
     m_pIOPorts->DoOutput(BC.GetLow(), result);
     OPCodes_DEC(BC.GetHighRegister());
+    XY.SetValue(BC.GetValue() + 1);
     HL.Increment();
     if ((result & 0x80) != 0)
         ToggleFlag(FLAG_NEGATIVE);
@@ -416,6 +473,7 @@ inline void Processor::OPCodes_OUTD()
     u8 result = m_pMemory->Read(HL.GetValue());
     m_pIOPorts->DoOutput(BC.GetLow(), result);
     OPCodes_DEC(BC.GetHighRegister());
+    XY.SetValue(BC.GetValue() - 1);
     HL.Decrement();
     if ((result & 0x80) != 0)
         ToggleFlag(FLAG_NEGATIVE);
@@ -522,6 +580,7 @@ inline void Processor::OPCodes_CPI()
         ToggleFlag(FLAG_Y);
     else
         UntoggleFlag(FLAG_Y);
+    XY.Increment();
 }
 
 inline void Processor::OPCodes_CPD()
@@ -552,6 +611,7 @@ inline void Processor::OPCodes_CPD()
         ToggleFlag(FLAG_Y);
     else
         UntoggleFlag(FLAG_Y);
+    XY.Decrement();
 }
 
 inline void Processor::OPCodes_INC(EightBitRegister* reg)
@@ -689,6 +749,7 @@ inline void Processor::OPCodes_SBC(u8 number)
 inline void Processor::OPCodes_ADD_HL(u16 number)
 {
     SixteenBitRegister* reg = GetPrefixedRegister();
+    XY.SetValue(reg->GetValue() + 1);
     int result = reg->GetValue() + number;
     int carrybits = reg->GetValue() ^ number ^ result;
     reg->SetValue(static_cast<u16> (result));
@@ -706,6 +767,7 @@ inline void Processor::OPCodes_ADD_HL(u16 number)
 
 inline void Processor::OPCodes_ADC_HL(u16 number)
 {
+    XY.SetValue(HL.GetValue() + 1);
     int result = HL.GetValue() + number + (IsSetFlag(FLAG_CARRY) ? 1 : 0);
     int carrybits = HL.GetValue() ^ number ^ result;
     u16 final_result = static_cast<u16> (result);
@@ -724,6 +786,7 @@ inline void Processor::OPCodes_ADC_HL(u16 number)
 
 inline void Processor::OPCodes_SBC_HL(u16 number)
 {
+    XY.SetValue(HL.GetValue() + 1);
     int result = HL.GetValue() - number - (IsSetFlag(FLAG_CARRY) ? 1 : 0);
     int carrybits = HL.GetValue() ^ number ^ result;
     u16 final_result = static_cast<u16> (result);
@@ -1084,23 +1147,17 @@ inline void Processor::OPCodes_BIT(EightBitRegister* reg, int bit)
     u8 value = reg->GetValue();
     if (IsPrefixedInstruction())
         value = m_pMemory->Read(GetPrefixedDisplacementAddress());
-    if (((value >> bit) & 0x01) == 0)
+    if (!IsSetBit(value, bit))
     {
         ToggleFlag(FLAG_ZERO);
         ToggleFlag(FLAG_PARITY);
-    }
-    else
-    {
-        switch (bit)
-        {
-            case 3: ToggleFlag(FLAG_X);
-                break;
-            case 5: ToggleFlag(FLAG_Y);
-                break;
-            case 7: ToggleFlag(FLAG_SIGN);
-                break;
-        }
-    }
+    }    
+    else if (bit == 7)
+        ToggleFlag(FLAG_SIGN);
+    if (IsSetBit(value, 3))
+        ToggleFlag(FLAG_X);
+    if (IsSetBit(value, 5))
+        ToggleFlag(FLAG_Y);
     ToggleFlag(FLAG_HALF);
 }
 
@@ -1108,36 +1165,18 @@ inline void Processor::OPCodes_BIT_HL(int bit)
 {
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     u16 address = GetPrefixedDisplacementAddress();
-    if (((m_pMemory->Read(address) >> bit) & 0x01) == 0)
+    if (!IsSetBit(m_pMemory->Read(address), bit))
     {
         ToggleFlag(FLAG_ZERO);
         ToggleFlag(FLAG_PARITY);
     }
-    else
-    {
-        if (IsPrefixedInstruction())
-        {
-            u8 xy = (address >> 8) & 0xFF;
-            if ((xy & 0x08) != 0)
-                ToggleFlag(FLAG_X);
-            if ((xy & 0x20) != 0)
-                ToggleFlag(FLAG_Y);
-            if (bit == 7)
-                ToggleFlag(FLAG_SIGN);
-        }
-        else
-        {
-            switch (bit)
-            {
-                case 3: ToggleFlag(FLAG_X);
-                    break;
-                case 5: ToggleFlag(FLAG_Y);
-                    break;
-                case 7: ToggleFlag(FLAG_SIGN);
-                    break;
-            }
-        }
-    }
+    else if (bit == 7)
+        ToggleFlag(FLAG_SIGN);
+    u8 xy = IsPrefixedInstruction() ? ((address >> 8) & 0xFF) : XY.GetHigh();
+    if (IsSetBit(xy, 3))
+        ToggleFlag(FLAG_X);
+    if (IsSetBit(xy, 5))
+        ToggleFlag(FLAG_Y);
     ToggleFlag(FLAG_HALF);
 }
 

@@ -40,6 +40,8 @@ void Processor::OPCode0x02()
 {
     // LD (BC),A
     OPCodes_LD(BC.GetValue(), AF.GetHigh());
+    XY.SetLow((BC.GetValue() + 1) & 0xFF);
+    XY.SetHigh(AF.GetHigh());
 }
 
 void Processor::OPCode0x03()
@@ -89,6 +91,7 @@ void Processor::OPCode0x0A()
 {
     // LD A,(BC)
     OPCodes_LD(AF.GetHighRegister(), BC.GetValue());
+    XY.SetValue(BC.GetValue() + 1);
 }
 
 void Processor::OPCode0x0B()
@@ -126,13 +129,7 @@ void Processor::OPCode0x10()
 {
     // DJNZ (PC+e)
     BC.GetHighRegister()->Decrement();
-    if (BC.GetHigh() != 0)
-    {
-        OPCodes_JR_n();
-        m_bBranchTaken = true;
-    }
-    else
-        PC.Increment();
+    OPCodes_JR_n_conditional(BC.GetHigh() != 0);
 }
 
 void Processor::OPCode0x11()
@@ -148,6 +145,8 @@ void Processor::OPCode0x12()
 {
     // LD (DE),A
     OPCodes_LD(DE.GetValue(), AF.GetHigh());
+    XY.SetLow((DE.GetValue() + 1) & 0xFF);
+    XY.SetHigh(AF.GetHigh());
 }
 
 void Processor::OPCode0x13()
@@ -197,6 +196,7 @@ void Processor::OPCode0x1A()
 {
     // LD A,(DE)
     OPCodes_LD(AF.GetHighRegister(), DE.GetValue());
+    XY.SetValue(DE.GetValue() + 1);
 }
 
 void Processor::OPCode0x1B()
@@ -233,13 +233,7 @@ void Processor::OPCode0x1F()
 void Processor::OPCode0x20()
 {
     // JR NZ,n
-    if (!IsSetFlag(FLAG_ZERO))
-    {
-        OPCodes_JR_n();
-        m_bBranchTaken = true;
-    }
-    else
-        PC.Increment();
+    OPCodes_JR_n_conditional(!IsSetFlag(FLAG_ZERO));
 }
 
 void Processor::OPCode0x21()
@@ -286,26 +280,20 @@ void Processor::OPCode0x26()
 void Processor::OPCode0x27()
 {
     // DAA
-    int idx = AF.GetHigh();												\
-	if (IsSetFlag(FLAG_CARRY))
-        idx |= 0x100; 								\
-	if (IsSetFlag(FLAG_HALF))
-        idx |= 0x200; 								\
-	if (IsSetFlag(FLAG_NEGATIVE))
-        idx |= 0x400; 								\
-	AF.SetValue(kOPCodeDAATable[idx]);
+    int idx = AF.GetHigh();
+    if (IsSetFlag(FLAG_CARRY))
+        idx |= 0x100; 
+    if (IsSetFlag(FLAG_HALF))
+        idx |= 0x200;
+    if (IsSetFlag(FLAG_NEGATIVE))
+        idx |= 0x400;
+    AF.SetValue(kOPCodeDAATable[idx]);
 }
 
 void Processor::OPCode0x28()
 {
     // JR Z,n
-    if (IsSetFlag(FLAG_ZERO))
-    {
-        OPCodes_JR_n();
-        m_bBranchTaken = true;
-    }
-    else
-        PC.Increment();
+    OPCodes_JR_n_conditional(IsSetFlag(FLAG_ZERO));
 }
 
 void Processor::OPCode0x29()
@@ -359,13 +347,7 @@ void Processor::OPCode0x2F()
 void Processor::OPCode0x30()
 {
     // JR NC,n
-    if (!IsSetFlag(FLAG_CARRY))
-    {
-        OPCodes_JR_n();
-        m_bBranchTaken = true;
-    }
-    else
-        PC.Increment();
+    OPCodes_JR_n_conditional(!IsSetFlag(FLAG_CARRY));
 }
 
 void Processor::OPCode0x31()
@@ -380,11 +362,10 @@ void Processor::OPCode0x31()
 void Processor::OPCode0x32()
 {
     // LD (nn),A
-    u8 l = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    u8 h = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    m_pMemory->Write((h << 8) + l, AF.GetHigh());
+    u16 address = FetchArg16();
+    m_pMemory->Write(address, AF.GetHigh());
+    XY.SetLow((address + 1) & 0xFF);
+    XY.SetHigh(AF.GetHigh());
 }
 
 void Processor::OPCode0x33()
@@ -441,13 +422,7 @@ void Processor::OPCode0x37()
 void Processor::OPCode0x38()
 {
     // JR C,n
-    if (IsSetFlag(FLAG_CARRY))
-    {
-        OPCodes_JR_n();
-        m_bBranchTaken = true;
-    }
-    else
-        PC.Increment();
+    OPCodes_JR_n_conditional(IsSetFlag(FLAG_CARRY));
 }
 
 void Processor::OPCode0x39()
@@ -459,12 +434,9 @@ void Processor::OPCode0x39()
 void Processor::OPCode0x3A()
 {
     // LD A,(nn)
-    u8 l = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    u8 h = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    u16 address = (h << 8) + l;
+    u16 address = FetchArg16();
     AF.GetHighRegister()->SetValue(m_pMemory->Read(address));
+    XY.SetValue(address + 1);
 }
 
 void Processor::OPCode0x3B()
@@ -1287,11 +1259,7 @@ void Processor::OPCode0xBF()
 void Processor::OPCode0xC0()
 {
     // RET NZ
-    if (!IsSetFlag(FLAG_ZERO))
-    {
-        StackPop(&PC);
-        m_bBranchTaken = true;
-    }
+    OPCodes_RET_Conditional(!IsSetFlag(FLAG_ZERO));
 }
 
 void Processor::OPCode0xC1()
@@ -1303,16 +1271,7 @@ void Processor::OPCode0xC1()
 void Processor::OPCode0xC2()
 {
     // JP NZ,nn
-    if (!IsSetFlag(FLAG_ZERO))
-    {
-        OPCodes_JP_nn();
-        m_bBranchTaken = true;
-    }
-    else
-    {
-        PC.Increment();
-        PC.Increment();
-    }
+    OPCodes_JP_nn_Conditional(!IsSetFlag(FLAG_ZERO));
 }
 
 void Processor::OPCode0xC3()
@@ -1324,16 +1283,7 @@ void Processor::OPCode0xC3()
 void Processor::OPCode0xC4()
 {
     // CALL NZ,nn
-    if (!IsSetFlag(FLAG_ZERO))
-    {
-        OPCodes_CALL_nn();
-        m_bBranchTaken = true;
-    }
-    else
-    {
-        PC.Increment();
-        PC.Increment();
-    }
+    OPCodes_CALL_nn_Conditional(!IsSetFlag(FLAG_ZERO));
 }
 
 void Processor::OPCode0xC5()
@@ -1352,39 +1302,25 @@ void Processor::OPCode0xC6()
 void Processor::OPCode0xC7()
 {
     // RST 00H
-    StackPush(&PC);
-    PC.SetValue(0x0000);
+    OPCodes_RST(0x0000);
 }
 
 void Processor::OPCode0xC8()
 {
     // RET Z
-    if (IsSetFlag(FLAG_ZERO))
-    {
-        StackPop(&PC);
-        m_bBranchTaken = true;
-    }
+    OPCodes_RET_Conditional(IsSetFlag(FLAG_ZERO));
 }
 
 void Processor::OPCode0xC9()
 {
     // RET
-    StackPop(&PC);
+    OPCodes_RET();
 }
 
 void Processor::OPCode0xCA()
 {
     // JP Z,nn
-    if (IsSetFlag(FLAG_ZERO))
-    {
-        OPCodes_JP_nn();
-        m_bBranchTaken = true;
-    }
-    else
-    {
-        PC.Increment();
-        PC.Increment();
-    }
+    OPCodes_JP_nn_Conditional(IsSetFlag(FLAG_ZERO));
 }
 
 void Processor::OPCode0xCB()
@@ -1396,16 +1332,7 @@ void Processor::OPCode0xCB()
 void Processor::OPCode0xCC()
 {
     // CALL Z,nn
-    if (IsSetFlag(FLAG_ZERO))
-    {
-        OPCodes_CALL_nn();
-        m_bBranchTaken = true;
-    }
-    else
-    {
-        PC.Increment();
-        PC.Increment();
-    }
+    OPCodes_CALL_nn_Conditional(IsSetFlag(FLAG_ZERO));
 }
 
 void Processor::OPCode0xCD()
@@ -1424,18 +1351,13 @@ void Processor::OPCode0xCE()
 void Processor::OPCode0xCF()
 {
     // RST 08H
-    StackPush(&PC);
-    PC.SetValue(0x0008);
+    OPCodes_RST(0x0008);
 }
 
 void Processor::OPCode0xD0()
 {
     // RET NC
-    if (!IsSetFlag(FLAG_CARRY))
-    {
-        StackPop(&PC);
-        m_bBranchTaken = true;
-    }
+    OPCodes_RET_Conditional(!IsSetFlag(FLAG_CARRY));
 }
 
 void Processor::OPCode0xD1()
@@ -1447,37 +1369,23 @@ void Processor::OPCode0xD1()
 void Processor::OPCode0xD2()
 {
     // JP NC,nn
-    if (!IsSetFlag(FLAG_CARRY))
-    {
-        OPCodes_JP_nn();
-        m_bBranchTaken = true;
-    }
-    else
-    {
-        PC.Increment();
-        PC.Increment();
-    }
+    OPCodes_JP_nn_Conditional(!IsSetFlag(FLAG_CARRY));
 }
 
 void Processor::OPCode0xD3()
 {
     // OUT (n),A
-    OPCodes_OUT_n(AF.GetHighRegister());
+    u8 port = m_pMemory->Read(PC.GetValue());
+    PC.Increment();
+    m_pIOPorts->DoOutput(port, AF.GetHigh());
+    XY.SetLow((port + 1) & 0xFF);
+    XY.SetHigh(AF.GetHigh());
 }
 
 void Processor::OPCode0xD4()
 {
     // CALL NC,nn
-    if (!IsSetFlag(FLAG_CARRY))
-    {
-        OPCodes_CALL_nn();
-        m_bBranchTaken = true;
-    }
-    else
-    {
-        PC.Increment();
-        PC.Increment();
-    }
+    OPCodes_CALL_nn_Conditional(!IsSetFlag(FLAG_CARRY));
 }
 
 void Processor::OPCode0xD5()
@@ -1496,18 +1404,13 @@ void Processor::OPCode0xD6()
 void Processor::OPCode0xD7()
 {
     // RST 10H
-    StackPush(&PC);
-    PC.SetValue(0x0010);
+    OPCodes_RST(0x0010);
 }
 
 void Processor::OPCode0xD8()
 {
     // RET C
-    if (IsSetFlag(FLAG_CARRY))
-    {
-        StackPop(&PC);
-        m_bBranchTaken = true;
-    }
+    OPCodes_RET_Conditional(IsSetFlag(FLAG_CARRY));
 }
 
 void Processor::OPCode0xD9()
@@ -1521,37 +1424,23 @@ void Processor::OPCode0xD9()
 void Processor::OPCode0xDA()
 {
     // JP C,nn
-    if (IsSetFlag(FLAG_CARRY))
-    {
-        OPCodes_JP_nn();
-        m_bBranchTaken = true;
-    }
-    else
-    {
-        PC.Increment();
-        PC.Increment();
-    }
+    OPCodes_JP_nn_Conditional(IsSetFlag(FLAG_CARRY));
 }
 
 void Processor::OPCode0xDB()
 {
     // IN A,(n)
-    OPCodes_IN_n(AF.GetHighRegister());
+    u8 a = AF.GetHigh();
+    u8 port = m_pMemory->Read(PC.GetValue());
+    PC.Increment();
+    AF.SetHigh(m_pIOPorts->DoInput(port));
+    XY.SetValue((a << 8) | (port + 1));
 }
 
 void Processor::OPCode0xDC()
 {
     // CALL C,nn
-    if (IsSetFlag(FLAG_CARRY))
-    {
-        OPCodes_CALL_nn();
-        m_bBranchTaken = true;
-    }
-    else
-    {
-        PC.Increment();
-        PC.Increment();
-    }
+    OPCodes_CALL_nn_Conditional(IsSetFlag(FLAG_CARRY));
 }
 
 void Processor::OPCode0xDD()
@@ -1570,18 +1459,13 @@ void Processor::OPCode0xDE()
 void Processor::OPCode0xDF()
 {
     // RST 18H
-    StackPush(&PC);
-    PC.SetValue(0x0018);
+    OPCodes_RST(0x0018);
 }
 
 void Processor::OPCode0xE0()
 {
     // RET PO
-    if (!IsSetFlag(FLAG_PARITY))
-    {
-        StackPop(&PC);
-        m_bBranchTaken = true;
-    }
+    OPCodes_RET_Conditional(!IsSetFlag(FLAG_PARITY));
 }
 
 void Processor::OPCode0xE1()
@@ -1593,16 +1477,7 @@ void Processor::OPCode0xE1()
 void Processor::OPCode0xE2()
 {
     // JP PO,nn
-    if (!IsSetFlag(FLAG_PARITY))
-    {
-        OPCodes_JP_nn();
-        m_bBranchTaken = true;
-    }
-    else
-    {
-        PC.Increment();
-        PC.Increment();
-    }
+    OPCodes_JP_nn_Conditional(!IsSetFlag(FLAG_PARITY));
 }
 
 void Processor::OPCode0xE3()
@@ -1615,21 +1490,13 @@ void Processor::OPCode0xE3()
     reg->SetHigh(m_pMemory->Read(SP.GetValue() + 1));
     m_pMemory->Write(SP.GetValue(), l);
     m_pMemory->Write(SP.GetValue() + 1, h);
+    XY.SetValue(reg->GetValue());
 }
 
 void Processor::OPCode0xE4()
 {
     // CALL PO,nn
-    if (!IsSetFlag(FLAG_PARITY))
-    {
-        OPCodes_CALL_nn();
-        m_bBranchTaken = true;
-    }
-    else
-    {
-        PC.Increment();
-        PC.Increment();
-    }
+    OPCodes_CALL_nn_Conditional(!IsSetFlag(FLAG_PARITY));
 }
 
 void Processor::OPCode0xE5()
@@ -1648,18 +1515,13 @@ void Processor::OPCode0xE6()
 void Processor::OPCode0xE7()
 {
     // RST 20H
-    StackPush(&PC);
-    PC.SetValue(0x0020);
+    OPCodes_RST(0x0020);
 }
 
 void Processor::OPCode0xE8()
 {
     // RET PE
-    if (IsSetFlag(FLAG_PARITY))
-    {
-        StackPop(&PC);
-        m_bBranchTaken = true;
-    }
+    OPCodes_RET_Conditional(IsSetFlag(FLAG_PARITY));
 }
 
 void Processor::OPCode0xE9()
@@ -1671,16 +1533,7 @@ void Processor::OPCode0xE9()
 void Processor::OPCode0xEA()
 {
     // JP PE,nn
-    if (IsSetFlag(FLAG_PARITY))
-    {
-        OPCodes_JP_nn();
-        m_bBranchTaken = true;
-    }
-    else
-    {
-        PC.Increment();
-        PC.Increment();
-    }
+    OPCodes_JP_nn_Conditional(IsSetFlag(FLAG_PARITY));
 }
 
 void Processor::OPCode0xEB()
@@ -1692,16 +1545,7 @@ void Processor::OPCode0xEB()
 void Processor::OPCode0xEC()
 {
     // CALL PE,nn
-    if (IsSetFlag(FLAG_PARITY))
-    {
-        OPCodes_CALL_nn();
-        m_bBranchTaken = true;
-    }
-    else
-    {
-        PC.Increment();
-        PC.Increment();
-    }
+    OPCodes_CALL_nn_Conditional(IsSetFlag(FLAG_PARITY));
 }
 
 void Processor::OPCode0xED()
@@ -1720,18 +1564,13 @@ void Processor::OPCode0xEE()
 void Processor::OPCode0xEF()
 {
     // RST 28H
-    StackPush(&PC);
-    PC.SetValue(0x28);
+    OPCodes_RST(0x28);
 }
 
 void Processor::OPCode0xF0()
 {
     // RET P
-    if (!IsSetFlag(FLAG_SIGN))
-    {
-        StackPop(&PC);
-        m_bBranchTaken = true;
-    }
+    OPCodes_RET_Conditional(!IsSetFlag(FLAG_SIGN));
 }
 
 void Processor::OPCode0xF1()
@@ -1743,16 +1582,7 @@ void Processor::OPCode0xF1()
 void Processor::OPCode0xF2()
 {
     // JP P,nn
-    if (!IsSetFlag(FLAG_SIGN))
-    {
-        OPCodes_JP_nn();
-        m_bBranchTaken = true;
-    }
-    else
-    {
-        PC.Increment();
-        PC.Increment();
-    }
+    OPCodes_JP_nn_Conditional(!IsSetFlag(FLAG_SIGN));
 }
 
 void Processor::OPCode0xF3()
@@ -1766,16 +1596,7 @@ void Processor::OPCode0xF3()
 void Processor::OPCode0xF4()
 {
     // CALL P,nn
-    if (!IsSetFlag(FLAG_SIGN))
-    {
-        OPCodes_CALL_nn();
-        m_bBranchTaken = true;
-    }
-    else
-    {
-        PC.Increment();
-        PC.Increment();
-    }
+    OPCodes_CALL_nn_Conditional(!IsSetFlag(FLAG_SIGN));
 }
 
 void Processor::OPCode0xF5()
@@ -1794,18 +1615,13 @@ void Processor::OPCode0xF6()
 void Processor::OPCode0xF7()
 {
     // RST 30H
-    StackPush(&PC);
-    PC.SetValue(0x0030);
+    OPCodes_RST(0x0030);
 }
 
 void Processor::OPCode0xF8()
 {
     // RET M
-    if (IsSetFlag(FLAG_SIGN))
-    {
-        StackPop(&PC);
-        m_bBranchTaken = true;
-    }
+    OPCodes_RET_Conditional(IsSetFlag(FLAG_SIGN));
 }
 
 void Processor::OPCode0xF9()
@@ -1817,16 +1633,7 @@ void Processor::OPCode0xF9()
 void Processor::OPCode0xFA()
 {
     // JP M,nn
-    if (IsSetFlag(FLAG_SIGN))
-    {
-        OPCodes_JP_nn();
-        m_bBranchTaken = true;
-    }
-    else
-    {
-        PC.Increment();
-        PC.Increment();
-    }
+    OPCodes_JP_nn_Conditional(IsSetFlag(FLAG_SIGN));
 }
 
 void Processor::OPCode0xFB()
@@ -1839,16 +1646,7 @@ void Processor::OPCode0xFB()
 void Processor::OPCode0xFC()
 {
     // CALL M,nn
-    if (IsSetFlag(FLAG_SIGN))
-    {
-        OPCodes_CALL_nn();
-        m_bBranchTaken = true;
-    }
-    else
-    {
-        PC.Increment();
-        PC.Increment();
-    }
+    OPCodes_CALL_nn_Conditional(IsSetFlag(FLAG_SIGN));
 }
 
 void Processor::OPCode0xFD()
@@ -1867,6 +1665,5 @@ void Processor::OPCode0xFE()
 void Processor::OPCode0xFF()
 {
     // RST 38H
-    StackPush(&PC);
-    PC.SetValue(0x0038);
+    OPCodes_RST(0x0038);
 }

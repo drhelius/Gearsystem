@@ -72,6 +72,7 @@ void Processor::Reset()
     BC2.SetValue(0x0000);
     DE2.SetValue(0x0000);
     HL2.SetValue(0x0000);
+    XY.SetValue(0x0000);
     I.SetValue(0x00);
     R.SetValue(0x00);
     m_bINTRequested = false;
@@ -290,6 +291,7 @@ void Processor::ServeInterrupt()
         m_iCurrentClockCycles += 13;
         IncreaseR();
     }
+    XY.SetValue(PC.GetValue());
 }
 
 void Processor::InvalidOPCode()
