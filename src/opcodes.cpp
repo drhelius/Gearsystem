@@ -414,8 +414,8 @@ void Processor::OPCode0x37()
 {
     // SCF
     ToggleFlag(FLAG_CARRY);
-    UntoggleFlag(FLAG_HALF);
-    UntoggleFlag(FLAG_NEGATIVE);
+    ClearFlag(FLAG_HALF);
+    ClearFlag(FLAG_NEGATIVE);
     ToggleXYFlagsFromResult(AF.GetHigh());
 }
 
@@ -472,8 +472,8 @@ void Processor::OPCode0x3F()
     if (half)
         ToggleFlag(FLAG_HALF);
     else
-        UntoggleFlag(FLAG_HALF);
-    UntoggleFlag(FLAG_NEGATIVE);
+        ClearFlag(FLAG_HALF);
+    ClearFlag(FLAG_NEGATIVE);
     ToggleXYFlagsFromResult(AF.GetHigh());
 }
 
@@ -516,7 +516,7 @@ void Processor::OPCode0x45()
 void Processor::OPCode0x46()
 {
     // LD B,(HL)
-    OPCodes_LD(BC.GetHighRegister(), GetPrefixedDisplacementAddress());
+    OPCodes_LD(BC.GetHighRegister(), GetEffectiveAddress());
 }
 
 void Processor::OPCode0x47()
@@ -564,7 +564,7 @@ void Processor::OPCode0x4D()
 void Processor::OPCode0x4E()
 {
     // LD C,(HL)
-    OPCodes_LD(BC.GetLowRegister(), GetPrefixedDisplacementAddress());
+    OPCodes_LD(BC.GetLowRegister(), GetEffectiveAddress());
 }
 
 void Processor::OPCode0x4F()
@@ -612,7 +612,7 @@ void Processor::OPCode0x55()
 void Processor::OPCode0x56()
 {
     // LD D,(HL)
-    OPCodes_LD(DE.GetHighRegister(), GetPrefixedDisplacementAddress());
+    OPCodes_LD(DE.GetHighRegister(), GetEffectiveAddress());
 }
 
 void Processor::OPCode0x57()
@@ -660,7 +660,7 @@ void Processor::OPCode0x5D()
 void Processor::OPCode0x5E()
 {
     // LD E,(HL)
-    OPCodes_LD(DE.GetLowRegister(), GetPrefixedDisplacementAddress());
+    OPCodes_LD(DE.GetLowRegister(), GetEffectiveAddress());
 }
 
 void Processor::OPCode0x5F()
@@ -708,7 +708,7 @@ void Processor::OPCode0x65()
 void Processor::OPCode0x66()
 {
     // LD H,(HL)
-    OPCodes_LD(HL.GetHighRegister(), GetPrefixedDisplacementAddress());
+    OPCodes_LD(HL.GetHighRegister(), GetEffectiveAddress());
 }
 
 void Processor::OPCode0x67()
@@ -756,7 +756,7 @@ void Processor::OPCode0x6D()
 void Processor::OPCode0x6E()
 {
     // LD L,(HL)
-    OPCodes_LD(HL.GetLowRegister(), GetPrefixedDisplacementAddress());
+    OPCodes_LD(HL.GetLowRegister(), GetEffectiveAddress());
 }
 
 void Processor::OPCode0x6F()
@@ -768,46 +768,46 @@ void Processor::OPCode0x6F()
 void Processor::OPCode0x70()
 {
     // LD (HL),B
-    OPCodes_LD(GetPrefixedDisplacementAddress(), BC.GetHigh());
+    OPCodes_LD(GetEffectiveAddress(), BC.GetHigh());
 }
 
 void Processor::OPCode0x71()
 {
     // LD (HL),C
-    OPCodes_LD(GetPrefixedDisplacementAddress(), BC.GetLow());
+    OPCodes_LD(GetEffectiveAddress(), BC.GetLow());
 }
 
 void Processor::OPCode0x72()
 {
     // LD (HL),D
-    OPCodes_LD(GetPrefixedDisplacementAddress(), DE.GetHigh());
+    OPCodes_LD(GetEffectiveAddress(), DE.GetHigh());
 }
 
 void Processor::OPCode0x73()
 {
     // LD (HL),E
-    OPCodes_LD(GetPrefixedDisplacementAddress(), DE.GetLow());
+    OPCodes_LD(GetEffectiveAddress(), DE.GetLow());
 }
 
 void Processor::OPCode0x74()
 {
     // LD (HL),H
-    OPCodes_LD(GetPrefixedDisplacementAddress(), HL.GetHigh());
+    OPCodes_LD(GetEffectiveAddress(), HL.GetHigh());
 }
 
 void Processor::OPCode0x75()
 {
     // LD (HL),L
-    OPCodes_LD(GetPrefixedDisplacementAddress(), HL.GetLow());
+    OPCodes_LD(GetEffectiveAddress(), HL.GetLow());
 }
 
 void Processor::OPCode0x76()
 {
     // HALT
-    if (m_iIMECycles > 0)
+    if (m_iIMETStates > 0)
     {
         // If EI is pending interrupts are triggered before Halt
-        m_iIMECycles = 0;
+        m_iIMETStates = 0;
         m_bIFF1 = true;
         m_bIFF2 = true;
         PC.Decrement();
@@ -819,7 +819,7 @@ void Processor::OPCode0x76()
 void Processor::OPCode0x77()
 {
     // LD (HL),A
-    OPCodes_LD(GetPrefixedDisplacementAddress(), AF.GetHigh());
+    OPCodes_LD(GetEffectiveAddress(), AF.GetHigh());
 }
 
 void Processor::OPCode0x78()
@@ -862,7 +862,7 @@ void Processor::OPCode0x7D()
 void Processor::OPCode0x7E()
 {
     // LD A,(HL)
-    OPCodes_LD(AF.GetHighRegister(), GetPrefixedDisplacementAddress());
+    OPCodes_LD(AF.GetHighRegister(), GetEffectiveAddress());
 }
 
 void Processor::OPCode0x7F()
@@ -910,7 +910,7 @@ void Processor::OPCode0x85()
 void Processor::OPCode0x86()
 {
     // ADD A,(HL)
-    OPCodes_ADD(m_pMemory->Read(GetPrefixedDisplacementAddress()));
+    OPCodes_ADD(m_pMemory->Read(GetEffectiveAddress()));
 }
 
 void Processor::OPCode0x87()
@@ -958,7 +958,7 @@ void Processor::OPCode0x8D()
 void Processor::OPCode0x8E()
 {
     // ADC A,(HL)
-    OPCodes_ADC(m_pMemory->Read(GetPrefixedDisplacementAddress()));
+    OPCodes_ADC(m_pMemory->Read(GetEffectiveAddress()));
 }
 
 void Processor::OPCode0x8F()
@@ -1006,7 +1006,7 @@ void Processor::OPCode0x95()
 void Processor::OPCode0x96()
 {
     // SUB (HL)
-    OPCodes_SUB(m_pMemory->Read(GetPrefixedDisplacementAddress()));
+    OPCodes_SUB(m_pMemory->Read(GetEffectiveAddress()));
 }
 
 void Processor::OPCode0x97()
@@ -1054,7 +1054,7 @@ void Processor::OPCode0x9D()
 void Processor::OPCode0x9E()
 {
     // SBC (HL)
-    OPCodes_SBC(m_pMemory->Read(GetPrefixedDisplacementAddress()));
+    OPCodes_SBC(m_pMemory->Read(GetEffectiveAddress()));
 }
 
 void Processor::OPCode0x9F()
@@ -1102,7 +1102,7 @@ void Processor::OPCode0xA5()
 void Processor::OPCode0xA6()
 {
     // AND (HL)
-    OPCodes_AND(m_pMemory->Read(GetPrefixedDisplacementAddress()));
+    OPCodes_AND(m_pMemory->Read(GetEffectiveAddress()));
 }
 
 void Processor::OPCode0xA7()
@@ -1150,7 +1150,7 @@ void Processor::OPCode0xAD()
 void Processor::OPCode0xAE()
 {
     // XOR (HL)
-    OPCodes_XOR(m_pMemory->Read(GetPrefixedDisplacementAddress()));
+    OPCodes_XOR(m_pMemory->Read(GetEffectiveAddress()));
 }
 
 void Processor::OPCode0xAF()
@@ -1199,7 +1199,7 @@ void Processor::OPCode0xB5()
 void Processor::OPCode0xB6()
 {
     // OR (HL)
-    OPCodes_OR(m_pMemory->Read(GetPrefixedDisplacementAddress()));
+    OPCodes_OR(m_pMemory->Read(GetEffectiveAddress()));
 }
 
 void Processor::OPCode0xB7()
@@ -1247,7 +1247,7 @@ void Processor::OPCode0xBD()
 void Processor::OPCode0xBE()
 {
     // CP (HL)
-    OPCodes_CP(m_pMemory->Read(GetPrefixedDisplacementAddress()));
+    OPCodes_CP(m_pMemory->Read(GetEffectiveAddress()));
 }
 
 void Processor::OPCode0xBF()
@@ -1590,7 +1590,7 @@ void Processor::OPCode0xF3()
     // DI
     m_bIFF1 = false;
     m_bIFF2 = false;
-    m_iIMECycles = 0;
+    m_iIMETStates = 0;
 }
 
 void Processor::OPCode0xF4()
@@ -1640,7 +1640,7 @@ void Processor::OPCode0xFB()
 {
     // EI
     int ei_cycles = kOPCodeTStates[0xFB];
-    m_iIMECycles = ei_cycles + 1;
+    m_iIMETStates = ei_cycles + 1;
 }
 
 void Processor::OPCode0xFC()

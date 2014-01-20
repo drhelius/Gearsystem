@@ -173,12 +173,12 @@ void Processor::OPCodeED0x57()
     ToggleSignFlagFromResult(value);
     ToggleZeroFlagFromResult(value);
     ToggleXYFlagsFromResult(value);
-    UntoggleFlag(FLAG_HALF);
-    UntoggleFlag(FLAG_NEGATIVE);
+    ClearFlag(FLAG_HALF);
+    ClearFlag(FLAG_NEGATIVE);
     if (m_bIFF2)
         ToggleFlag(FLAG_PARITY);
     else
-        UntoggleFlag(FLAG_PARITY);
+        ClearFlag(FLAG_PARITY);
 }
 
 void Processor::OPCodeED0x58()
@@ -233,12 +233,12 @@ void Processor::OPCodeED0x5F()
     ToggleSignFlagFromResult(value);
     ToggleZeroFlagFromResult(value);
     ToggleXYFlagsFromResult(value);
-    UntoggleFlag(FLAG_HALF);
-    UntoggleFlag(FLAG_NEGATIVE);
+    ClearFlag(FLAG_HALF);
+    ClearFlag(FLAG_NEGATIVE);
     if (m_bIFF2)
         ToggleFlag(FLAG_PARITY);
     else
-        UntoggleFlag(FLAG_PARITY);
+        ClearFlag(FLAG_PARITY);
 }
 
 void Processor::OPCodeED0x60()

@@ -25,12 +25,12 @@
 
 Cartridge::Cartridge()
 {
-    InitPointer(m_pTheROM);
+    InitPointer(m_pROM);
     m_iROMSize = 0;
     m_Type = CartridgeNotSupported;
     m_Zone = CartridgeUnknownZone;
     m_bValidROM = false;
-    m_bLoaded = false;
+    m_bReady = false;
     m_szFilePath[0] = 0;
     m_szFileName[0] = 0;
     m_iROMBankCount = 0;
@@ -41,7 +41,7 @@ Cartridge::Cartridge()
 
 Cartridge::~Cartridge()
 {
-    SafeDeleteArray(m_pTheROM);
+    SafeDeleteArray(m_pROM);
 }
 
 void Cartridge::Init()
@@ -51,12 +51,12 @@ void Cartridge::Init()
 
 void Cartridge::Reset()
 {
-    SafeDeleteArray(m_pTheROM);
+    SafeDeleteArray(m_pROM);
     m_iROMSize = 0;
     m_Type = CartridgeNotSupported;
     m_Zone = CartridgeUnknownZone;
     m_bValidROM = false;
-    m_bLoaded = false;
+    m_bReady = false;
     m_szFilePath[0] = 0;
     m_szFileName[0] = 0;
     m_iROMBankCount = 0;
@@ -80,9 +80,9 @@ bool Cartridge::IsValidROM() const
     return m_bValidROM;
 }
 
-bool Cartridge::IsLoadedROM() const
+bool Cartridge::IsReady() const
 {
-    return m_bLoaded;
+    return m_bReady;
 }
 bool Cartridge::HasRAMWithoutBattery() const
 {
@@ -124,9 +124,9 @@ const char* Cartridge::GetFileName() const
     return m_szFileName;
 }
 
-u8* Cartridge::GetTheROM() const
+u8* Cartridge::GetROM() const
 {
-    return m_pTheROM;
+    return m_pROM;
 }
 
 bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
@@ -236,15 +236,15 @@ bool Cartridge::LoadFromFile(const char* path)
         if (extension == "zip")
         {
             Log("Loading from ZIP...");
-            m_bLoaded = LoadFromZipFile(reinterpret_cast<u8*> (memblock), size);
+            m_bReady = LoadFromZipFile(reinterpret_cast<u8*> (memblock), size);
         }
         else
         {
             m_bGameGear = (extension == "gg");
-            m_bLoaded = LoadFromBuffer(reinterpret_cast<u8*> (memblock), size);
+            m_bReady = LoadFromBuffer(reinterpret_cast<u8*> (memblock), size);
         }
 
-        if (m_bLoaded)
+        if (m_bReady)
         {
             Log("ROM loaded", path);
         }
@@ -258,15 +258,15 @@ bool Cartridge::LoadFromFile(const char* path)
     else
     {
         Log("There was a problem loading the file %s...", path);
-        m_bLoaded = false;
+        m_bReady = false;
     }
 
-    if (!m_bLoaded)
+    if (!m_bReady)
     {
         Reset();
     }
 
-    return m_bLoaded;
+    return m_bReady;
 }
 
 bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
@@ -288,10 +288,10 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
         }
             
         m_iROMSize = size;
-        m_pTheROM = new u8[m_iROMSize];
-        memcpy(m_pTheROM, buffer, m_iROMSize);
+        m_pROM = new u8[m_iROMSize];
+        memcpy(m_pROM, buffer, m_iROMSize);
         
-        u32 crc = CalculateCRC32(0, m_pTheROM, m_iROMSize);
+        u32 crc = CalculateCRC32(0, m_pROM, m_iROMSize);
         
         return GatherMetadata(crc);
     }
@@ -320,7 +320,7 @@ bool Cartridge::TestValidROM(u16 location)
 
     for (int i = 0; i < 8; i++)
     {
-        tmrsega[i] = m_pTheROM[location + i];
+        tmrsega[i] = m_pROM[location + i];
     }
     
     return (strcmp(tmrsega, "TMR SEGA") == 0);
@@ -353,7 +353,7 @@ bool Cartridge::GatherMetadata(u32 crc)
         Log("ROM is NOT Valid. No header found");
     }
     
-    u8 zone = (m_pTheROM[headerLocation + 0x0F] >> 4) & 0x0F;
+    u8 zone = (m_pROM[headerLocation + 0x0F] >> 4) & 0x0F;
     
     switch (zone)
     {

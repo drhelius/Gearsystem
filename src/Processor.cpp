@@ -31,9 +31,9 @@ Processor::Processor(Memory* pMemory)
     m_bIFF2 = false;
     m_bHalt = false;
     m_bBranchTaken = false;
-    m_iCurrentClockCycles = 0;
-    m_iIMECycles = 0;
-    m_iUnhaltCycles = 0;
+    m_iTStates = 0;
+    m_iIMETStates = 0;
+    m_iUnhaltTStates = 0;
     m_iInterruptMode = 0;
     m_bINTRequested = false;
     m_bNMIRequested = false;
@@ -56,9 +56,9 @@ void Processor::Reset()
     m_bIFF2 = false;
     m_bHalt = false;
     m_bBranchTaken = false;
-    m_iCurrentClockCycles = 0;
-    m_iIMECycles = 0;
-    m_iUnhaltCycles = 0;
+    m_iTStates = 0;
+    m_iIMETStates = 0;
+    m_iUnhaltTStates = 0;
     m_iInterruptMode = 1;
     PC.SetValue(0x0000);
     SP.SetValue(0xDFF0);
@@ -88,26 +88,26 @@ void Processor::SetIOPOrts(IOPorts* pIOPorts)
 
 u8 Processor::Tick()
 {
-    m_iCurrentClockCycles = 0;
+    m_iTStates = 0;
 
     if (m_bHalt)
     {
-        m_iCurrentClockCycles += 4;
+        m_iTStates += 4;
 
-        if (m_iUnhaltCycles > 0)
+        if (m_iUnhaltTStates > 0)
         {
-            m_iUnhaltCycles -= m_iCurrentClockCycles;
+            m_iUnhaltTStates -= m_iTStates;
 
-            if (m_iUnhaltCycles <= 0)
+            if (m_iUnhaltTStates <= 0)
             {
-                m_iUnhaltCycles = 0;
+                m_iUnhaltTStates = 0;
                 m_bHalt = false;
             }
         }
 
-        if (m_bHalt && InterruptPending() && (m_iUnhaltCycles == 0))
+        if (m_bHalt && InterruptPending() && (m_iUnhaltTStates == 0))
         {
-            m_iUnhaltCycles = 12;
+            m_iUnhaltTStates = 12;
         }
     }
 
@@ -118,19 +118,19 @@ u8 Processor::Tick()
         ExecuteOPCode();
     }
 
-    if (m_iIMECycles > 0)
+    if (m_iIMETStates > 0)
     {
-        m_iIMECycles -= m_iCurrentClockCycles;
+        m_iIMETStates -= m_iTStates;
 
-        if (m_iIMECycles <= 0)
+        if (m_iIMETStates <= 0)
         {
-            m_iIMECycles = 0;
+            m_iIMETStates = 0;
             m_bIFF1 = true;
             m_bIFF2 = true;
         }
     }
 
-    return m_iCurrentClockCycles;
+    return m_iTStates;
 }
 
 void Processor::RequestINT(bool assert)
@@ -158,7 +158,7 @@ void Processor::ExecuteOPCode()
                 m_CurrentPrefix = opcode;
                 opcode = FetchOPCode();
                 if (more_prefixes)
-                    m_iCurrentClockCycles += 4;
+                    m_iTStates += 4;
                 more_prefixes = true;
                 IncreaseR();
             }
@@ -206,11 +206,11 @@ void Processor::ExecuteOPCode()
 
             if (IsPrefixedInstruction())
             {
-                m_iCurrentClockCycles += kOPCodeXYCBTStates[opcode];
+                m_iTStates += kOPCodeXYCBTStates[opcode];
                 m_bPrefixedCBOpcode = false;
             }
             else
-                m_iCurrentClockCycles += kOPCodeCBTStates[opcode];
+                m_iTStates += kOPCodeCBTStates[opcode];
             
             break;
         }
@@ -233,7 +233,7 @@ void Processor::ExecuteOPCode()
 
             (this->*m_OPCodesED[opcode])();
 
-            m_iCurrentClockCycles += kOPCodeEDTStates[opcode];
+            m_iTStates += kOPCodeEDTStates[opcode];
             break;
         }
         default:
@@ -257,14 +257,14 @@ void Processor::ExecuteOPCode()
             (this->*m_OPCodes[opcode])();
 
             if (IsPrefixedInstruction())
-                m_iCurrentClockCycles += kOPCodeXYTStates[opcode];
+                m_iTStates += kOPCodeXYTStates[opcode];
             else
-                m_iCurrentClockCycles += kOPCodeTStates[opcode];
+                m_iTStates += kOPCodeTStates[opcode];
 
             if (m_bBranchTaken)
             {
                 m_bBranchTaken = false;
-                m_iCurrentClockCycles += kOPCodeTStatesBranched[opcode];
+                m_iTStates += kOPCodeTStatesBranched[opcode];
             }
             break;
         }
@@ -279,7 +279,7 @@ void Processor::ServeInterrupt()
         m_bIFF1 = false;
         StackPush(&PC);
         PC.SetValue(0x0066);
-        m_iCurrentClockCycles += 11;
+        m_iTStates += 11;
         IncreaseR();
     }
     else if (m_bIFF1 && m_bINTRequested)
@@ -288,7 +288,7 @@ void Processor::ServeInterrupt()
         m_bIFF2 = false;
         StackPush(&PC);
         PC.SetValue(0x0038);
-        m_iCurrentClockCycles += 13;
+        m_iTStates += 13;
         IncreaseR();
     }
     XY.SetValue(PC.GetValue());

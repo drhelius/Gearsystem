@@ -63,9 +63,9 @@ private:
     bool m_bIFF2;
     bool m_bHalt;
     bool m_bBranchTaken;
-    unsigned int m_iCurrentClockCycles;
-    int m_iIMECycles;
-    int m_iUnhaltCycles;
+    unsigned int m_iTStates;
+    int m_iIMETStates;
+    int m_iUnhaltTStates;
     int m_iInterruptMode;
     IOPorts* m_pIOPorts;
     u8 m_CurrentPrefix;
@@ -88,7 +88,7 @@ private:
     void SetFlag(u8 flag);
     void FlipFlag(u8 flag);
     void ToggleFlag(u8 flag);
-    void UntoggleFlag(u8 flag);
+    void ClearFlag(u8 flag);
     bool IsSetFlag(u8 flag);
     void StackPush(SixteenBitRegister* reg);
     void StackPop(SixteenBitRegister* reg);
@@ -97,7 +97,7 @@ private:
     void InvalidOPCode();
     void UndocumentedOPCode();
     SixteenBitRegister* GetPrefixedRegister();
-    u16 GetPrefixedDisplacementAddress();
+    u16 GetEffectiveAddress();
     bool IsPrefixedInstruction();
     void OPCodes_LD(EightBitRegister* reg1, u8 value);
     void OPCodes_LD(EightBitRegister* reg, u16 address);

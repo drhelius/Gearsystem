@@ -42,13 +42,13 @@ u8 SegaMemoryRule::PerformRead(u16 address)
     else if (address < 0x4000)
     {
         // ROM page 0
-        u8* pROM = m_pCartridge->GetTheROM();
+        u8* pROM = m_pCartridge->GetROM();
         return pROM[address + m_iMapperSlotAddress[0]];
     }
     else if (address < 0x8000)
     {
         // ROM page 1
-        u8* pROM = m_pCartridge->GetTheROM();
+        u8* pROM = m_pCartridge->GetROM();
         return pROM[(address - 0x4000) + m_iMapperSlotAddress[1]];
     }
     else if (address < 0xC000)
@@ -61,7 +61,7 @@ u8 SegaMemoryRule::PerformRead(u16 address)
         else
         {
             // ROM page 2
-            u8* pROM = m_pCartridge->GetTheROM();
+            u8* pROM = m_pCartridge->GetROM();
             return pROM[(address - 0x8000) + m_iMapperSlotAddress[2]];
         }
     }

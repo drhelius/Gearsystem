@@ -50,7 +50,7 @@ GearsystemCore::GearsystemCore()
 GearsystemCore::~GearsystemCore()
 {
 #ifdef DEBUG_GEARSYSTEM
-    if (m_pCartridge->IsLoadedROM())
+    if (m_pCartridge->IsReady())
     {
         Log("Saving Memory Dump...");
 
@@ -105,7 +105,7 @@ void GearsystemCore::Init()
 
 void GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer)
 {
-    if (!m_bPaused && m_pCartridge->IsLoadedROM())
+    if (!m_bPaused && m_pCartridge->IsReady())
     {
         bool vblank = false;
         while (!vblank)
@@ -122,7 +122,7 @@ void GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer)
 bool GearsystemCore::LoadROM(const char* szFilePath)
 {
 #ifdef DEBUG_GEARSYSTEM
-    if (m_pCartridge->IsLoadedROM())
+    if (m_pCartridge->IsReady())
     {
         Log("Saving Memory Dump...");
 
@@ -143,7 +143,7 @@ bool GearsystemCore::LoadROM(const char* szFilePath)
     if (loaded)
     {
         Reset();
-        m_pMemory->LoadSlotsFromROM(m_pCartridge->GetTheROM(), m_pCartridge->GetROMSize());
+        m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
         bool romTypeOK = AddMemoryRules();
 
         if (!romTypeOK)
@@ -197,11 +197,11 @@ bool GearsystemCore::IsPaused()
 
 void GearsystemCore::ResetROM()
 {
-    if (m_pCartridge->IsLoadedROM())
+    if (m_pCartridge->IsReady())
     {
         Log("Gearsystem RESET");
         Reset();
-        m_pMemory->LoadSlotsFromROM(m_pCartridge->GetTheROM(), m_pCartridge->GetROMSize());
+        m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
         AddMemoryRules();
     }
 }
@@ -232,7 +232,7 @@ void GearsystemCore::SaveRam()
 
 void GearsystemCore::SaveRam(const char* szPath)
 {
-    if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()) && m_pMemory->GetCurrentRule()->PersistedRAM())
+    if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()) && m_pMemory->GetCurrentRule()->PersistedRAM())
     {
         Log("Saving RAM...");
 
@@ -270,7 +270,7 @@ void GearsystemCore::LoadRam()
 
 void GearsystemCore::LoadRam(const char* szPath)
 {
-    if (m_pCartridge->IsLoadedROM() && IsValidPointer(m_pMemory->GetCurrentRule()))
+    if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
         Log("Loading RAM...");
 

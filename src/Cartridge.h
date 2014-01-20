@@ -50,7 +50,7 @@ public:
     bool IsGameGear() const;
     bool IsPAL() const;
     bool IsValidROM() const;
-    bool IsLoadedROM() const;
+    bool IsReady() const;
     bool HasRAMWithoutBattery() const;
     CartridgeTypes GetType() const;
     CartridgeZones GetZone() const;
@@ -59,7 +59,7 @@ public:
     int GetROMBankCount() const;
     const char* GetFilePath() const;
     const char* GetFileName() const;
-    u8* GetTheROM() const;
+    u8* GetROM() const;
     bool LoadFromFile(const char* path);
     bool LoadFromBuffer(const u8* buffer, int size);
 
@@ -71,12 +71,12 @@ private:
     bool TestValidROM(u16 location);
 
 private:
-    u8* m_pTheROM;
+    u8* m_pROM;
     int m_iROMSize;
     CartridgeTypes m_Type;
     CartridgeZones m_Zone;
     bool m_bValidROM;
-    bool m_bLoaded;
+    bool m_bReady;
     char m_szFilePath[512];
     char m_szFileName[512];
     int m_iROMBankCount;
