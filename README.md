@@ -25,7 +25,7 @@ Downloads
 
 Features
 --------
-- Highly accurate Z80 core.
+- Highly accurate Z80 core, including undocumented functionality.
 - Multi-Mapper support: SEGA, Codemasters, and ROM only cartridges.
 - External RAM support with save files.
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
@@ -85,7 +85,7 @@ Accuracy Tests
 
 Zexall Z80 instruction exerciser ([from SMS Power!](http://www.smspower.org/Homebrew/ZEXALL-SMS))
 
-Gearsystem passes all tests in Zexdoc. It passes all tests in Zexall except for BIT n,(HL) due to the undocumented behaviour of the XY flags on these instructions.
+Gearsystem passes all tests in Zexall, including undocumented instructions and behaviours. 
 
 ![zexall.sms](http://www.geardome.com/files/gearsystem/zexall.png)
 
