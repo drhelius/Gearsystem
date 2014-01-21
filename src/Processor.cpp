@@ -62,9 +62,9 @@ void Processor::Reset()
     m_iInterruptMode = 1;
     PC.SetValue(0x0000);
     SP.SetValue(0xDFF0);
-    IX.SetValue(0x0000);
-    IY.SetValue(0x0000);
-    AF.SetValue(0x0000);
+    IX.SetValue(0xFFFF);
+    IY.SetValue(0xFFFF);
+    AF.SetValue(0x0040);  // Zero flag set
     BC.SetValue(0x0000);
     DE.SetValue(0x0000);
     HL.SetValue(0x0000);
