@@ -514,6 +514,7 @@ void Processor::OPCodeED0xB0()
         PC.Decrement();
         PC.Decrement();
         XY.SetValue(PC.GetValue() + 1);
+        m_iTStates += 5;
     }
 }
 
@@ -526,6 +527,7 @@ void Processor::OPCodeED0xB1()
         PC.Decrement();
         PC.Decrement();
         XY.SetValue(PC.GetValue() + 1);
+        m_iTStates += 5;
     }
 }
 
@@ -537,6 +539,7 @@ void Processor::OPCodeED0xB2()
     {
         PC.Decrement();
         PC.Decrement();
+        m_iTStates += 5;
     }
 }
 
@@ -548,6 +551,7 @@ void Processor::OPCodeED0xB3()
     {
         PC.Decrement();
         PC.Decrement();
+        m_iTStates += 5;
     }
 }
 
@@ -560,6 +564,7 @@ void Processor::OPCodeED0xB8()
         PC.Decrement();
         PC.Decrement();
         XY.SetValue(PC.GetValue() + 1);
+        m_iTStates += 5;
     }
 }
 
@@ -572,6 +577,7 @@ void Processor::OPCodeED0xB9()
         PC.Decrement();
         PC.Decrement();
         XY.SetValue(PC.GetValue() + 1);
+        m_iTStates += 5;
     }
 }
 
@@ -583,6 +589,7 @@ void Processor::OPCodeED0xBA()
     {
         PC.Decrement();
         PC.Decrement();
+        m_iTStates += 5;
     }
 }
 
@@ -594,5 +601,6 @@ void Processor::OPCodeED0xBB()
     {
         PC.Decrement();
         PC.Decrement();
+        m_iTStates += 5;
     }
 }
