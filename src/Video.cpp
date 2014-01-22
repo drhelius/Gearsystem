@@ -101,7 +101,7 @@ void Video::Reset(bool bGameGear, bool bPAL)
         m_pVdpCRAM[i] = 0;
 
     m_VdpRegister[0] = 0x36; // Mode
-    m_VdpRegister[1] = 0xA0; // Mode
+    m_VdpRegister[1] = 0x80; // Mode
     m_VdpRegister[2] = 0xFF; // Screen Map Table Base
     m_VdpRegister[3] = 0xFF; // Always $FF
     m_VdpRegister[4] = 0xFF; // Always $FF
