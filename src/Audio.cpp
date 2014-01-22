@@ -57,7 +57,7 @@ void Audio::Init()
     m_pSound = new Sound_Queue();
 
     // Clock rate for NTSC is 3579545, 3559545 to avoid sttutering at 60hz
-    // Clock rate for PAL is 3546895
+    // Clock rate for PAL is 3546893
     m_pBuffer->clock_rate(3559545);
     m_pBuffer->set_sample_rate(m_iSampleRate);
 

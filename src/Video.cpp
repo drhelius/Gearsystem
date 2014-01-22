@@ -38,7 +38,6 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iVCounter = 0;
     m_iHCounter = 0;
     m_iCycleCounter = 0;
-    m_iCycleAdjustmentCounter = 0;
     m_VdpStatus = 0;
     m_iVBlankInterruptCyclesLeft = 0;
     m_bVBlankInterruptRequested = false;
@@ -46,8 +45,6 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_ScrollV = 0;
     m_bGameGear = false;
     m_iCyclesPerLine = 0;
-    m_iAdjustmentLine = 0;
-    m_iAdjustmentCycles = 0;
     m_iLinesPerFrame = 0;
     m_iHBlankDurationCycles = 0;
     m_bPAL = false;
@@ -76,8 +73,6 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_bGameGear = bGameGear;
     m_bPAL = bPAL;
     m_iCyclesPerLine = bPAL ? GS_CYCLES_PER_LINE_PAL : GS_CYCLES_PER_LINE_NTSC;
-    m_iAdjustmentLine = bPAL ? GS_CYCLES_ADJUSTMENT_LINE_PAL : GS_CYCLES_ADJUSTMENT_LINE_NTSC;
-    m_iAdjustmentCycles = bPAL ? GS_CYCLES_PER_LINE_LEFT_PAL : GS_CYCLES_PER_LINE_LEFT_NTSC;
     m_iLinesPerFrame = bPAL ? GS_LINES_PER_FRAME_PAL : GS_LINES_PER_FRAME_NTSC;
     m_iHBlankDurationCycles = bPAL ? GS_HBLANK_CYCLES_PAL : GS_HBLANK_CYCLES_NTSC;
     m_bFirstByteInSequence = true;
@@ -87,7 +82,6 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_VdpCode = 0;
     m_VdpBuffer = 0;
     m_VdpAddress = 0;
-    m_iCycleAdjustmentCounter = 0;
     m_VdpStatus = 0;
     m_iVBlankInterruptCyclesLeft = 0;
     m_bVBlankInterruptRequested = false;
@@ -120,20 +114,12 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_iCycleCounter = m_iHBlankDurationCycles;
     m_iVCounter = m_iLinesPerFrame - 1;
     m_iVdpRegister10Counter = m_VdpRegister[10];
-    m_iCycleAdjustmentCounter = (m_iAdjustmentLine * m_iCyclesPerLine);
 }
 
-bool Video::Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer)
+bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
 {
     bool return_vblank = false;
     m_pColorFrameBuffer = pColorFrameBuffer;
-
-    m_iCycleAdjustmentCounter -= clockCycles;
-    if (m_iCycleAdjustmentCounter <= 0)
-    {
-        m_iCycleAdjustmentCounter += (m_iAdjustmentLine * m_iCyclesPerLine);
-        clockCycles += m_iAdjustmentCycles;
-    }
 
     m_iCycleCounter += clockCycles;
 

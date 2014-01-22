@@ -33,7 +33,7 @@ public:
     ~Processor();
     void Init();
     void Reset();
-    u8 Tick();
+    unsigned int Tick();
     void RequestINT(bool assert);
     void RequestNMI();
     void SetIOPOrts(IOPorts* pIOPorts);

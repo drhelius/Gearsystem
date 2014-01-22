@@ -86,7 +86,7 @@ void Processor::SetIOPOrts(IOPorts* pIOPorts)
     m_pIOPorts = pIOPorts;
 }
 
-u8 Processor::Tick()
+unsigned int Processor::Tick()
 {
     m_iTStates = 0;
 

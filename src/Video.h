@@ -37,7 +37,7 @@ public:
     ~Video();
     void Init();
     void Reset(bool bGameGear, bool bPAL);
-    bool Tick(unsigned int &clockCycles, GS_Color* pColorFrameBuffer);
+    bool Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer);
     u8 GetVCounter();
     u8 GetHCounter();
     u8 GetDataPort();
@@ -67,7 +67,6 @@ private:
     int m_iVCounter;
     int m_iHCounter;
     int m_iCycleCounter;
-    int m_iCycleAdjustmentCounter;
     int m_iVBlankInterruptCyclesLeft;
     u8 m_VdpStatus;
     bool m_bVBlankInterruptRequested;
@@ -75,8 +74,6 @@ private:
     u8 m_ScrollV;
     bool m_bGameGear;
     int m_iCyclesPerLine;
-    int m_iAdjustmentLine;
-    int m_iAdjustmentCycles;
     int m_iLinesPerFrame;
     int m_iHBlankDurationCycles;
     bool m_bPAL;
