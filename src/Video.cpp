@@ -275,7 +275,7 @@ u8 Video::GetDataPort()
 
 u8 Video::GetStatusFlags()
 {
-    u8 ret = m_VdpStatus;
+    u8 ret = m_VdpStatus | 0x1F;
     m_bFirstByteInSequence = true;
     m_VdpStatus = 0x00;
     m_bVBlankInterruptRequested = false;
