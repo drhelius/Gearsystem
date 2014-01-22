@@ -30,7 +30,6 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     InitPointer(m_pVdpVRAM);
     InitPointer(m_pVdpCRAM);
     m_bFirstByteInSequence = false;
-    m_VdpLatch = 0;
     for (int i = 0; i < 16; i++)
         m_VdpRegister[i] = 0;
     m_VdpCode = 0;
@@ -85,7 +84,6 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_VdpBuffer = 0;
     m_iVCounter = 0;
     m_iHCounter = 0;
-    m_VdpLatch = 0;
     m_VdpCode = 0;
     m_VdpBuffer = 0;
     m_VdpAddress = 0;
@@ -313,13 +311,13 @@ void Video::WriteControl(u8 control)
     if (m_bFirstByteInSequence)
     {
         m_bFirstByteInSequence = false;
-        m_VdpLatch = control;
+        m_VdpAddress = (m_VdpAddress & 0xFF00) | control;
     }
     else
     {
         m_bFirstByteInSequence = true;
         m_VdpCode = (control >> 6) & 0x03;
-        m_VdpAddress = ((control & 0x3F) << 8) + m_VdpLatch;
+        m_VdpAddress = (m_VdpAddress & 0x00FF) | ((control & 0x3F) << 8);
 
         switch (m_VdpCode)
         {
@@ -333,7 +331,7 @@ void Video::WriteControl(u8 control)
             case VDP_WRITE_REG_OPERATION:
             {
                 u8 reg = control & 0x0F;
-                m_VdpRegister[reg] = m_VdpLatch;
+                m_VdpRegister[reg] = (m_VdpAddress & 0x00FF);
 
                 if (reg < 2)
                 {

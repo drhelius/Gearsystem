@@ -60,7 +60,6 @@ private:
     u8* m_pVdpVRAM;
     u8* m_pVdpCRAM;
     bool m_bFirstByteInSequence;
-    u8 m_VdpLatch;
     u8 m_VdpRegister[16];
     u8 m_VdpCode;
     u8 m_VdpBuffer;
