@@ -10,10 +10,10 @@
 			<key>CFBundleTypeIconFiles</key>
 			<array/>
 			<key>CFBundleTypeName</key>
-			<string>Game Boy ROM</string>
+			<string>Master System / Game Gear ROM<</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>com.geardome.gearboy.rom</string>
+				<string>com.geardome.gearsystem.rom</string>
 			</array>
 		</dict>
 	</array>
