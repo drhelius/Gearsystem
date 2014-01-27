@@ -804,16 +804,8 @@ void Processor::OPCode0x75()
 void Processor::OPCode0x76()
 {
     // HALT
-    if (m_iIMETStates > 0)
-    {
-        // If EI is pending interrupts are triggered before Halt
-        m_iIMETStates = 0;
-        m_bIFF1 = true;
-        m_bIFF2 = true;
-        PC.Decrement();
-    }
-    else
-        m_bHalt = true;
+    m_bHalt = true;
+    PC.Decrement();
 }
 
 void Processor::OPCode0x77()
@@ -1590,7 +1582,6 @@ void Processor::OPCode0xF3()
     // DI
     m_bIFF1 = false;
     m_bIFF2 = false;
-    m_iIMETStates = 0;
 }
 
 void Processor::OPCode0xF4()
@@ -1639,8 +1630,9 @@ void Processor::OPCode0xFA()
 void Processor::OPCode0xFB()
 {
     // EI
-    int ei_cycles = kOPCodeTStates[0xFB];
-    m_iIMETStates = ei_cycles + 1;
+    m_bIFF1 = true;
+    m_bIFF2 = true;
+    m_bAfterEI = true;
 }
 
 void Processor::OPCode0xFC()

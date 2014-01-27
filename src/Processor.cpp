@@ -32,8 +32,7 @@ Processor::Processor(Memory* pMemory)
     m_bHalt = false;
     m_bBranchTaken = false;
     m_iTStates = 0;
-    m_iIMETStates = 0;
-    m_iUnhaltTStates = 0;
+    m_bAfterEI = false;
     m_iInterruptMode = 0;
     m_bINTRequested = false;
     m_bNMIRequested = false;
@@ -57,8 +56,7 @@ void Processor::Reset()
     m_bHalt = false;
     m_bBranchTaken = false;
     m_iTStates = 0;
-    m_iIMETStates = 0;
-    m_iUnhaltTStates = 0;
+    m_bAfterEI = false;
     m_iInterruptMode = 1;
     PC.SetValue(0x0000);
     SP.SetValue(0xDFF0);
@@ -90,45 +88,34 @@ unsigned int Processor::Tick()
 {
     m_iTStates = 0;
 
-    if (m_bHalt)
+    if (m_bNMIRequested)
     {
-        m_iTStates += 4;
-
-        if (m_iUnhaltTStates > 0)
-        {
-            m_iUnhaltTStates -= m_iTStates;
-
-            if (m_iUnhaltTStates <= 0)
-            {
-                m_iUnhaltTStates = 0;
-                m_bHalt = false;
-            }
-        }
-
-        if (m_bHalt && InterruptPending() && (m_iUnhaltTStates == 0))
-        {
-            m_iUnhaltTStates = 12;
-        }
+        LeaveHalt();
+        m_bNMIRequested = false;
+        m_bIFF1 = false;
+        StackPush(&PC);
+        PC.SetValue(0x0066);
+        m_iTStates += 11;
+        IncreaseR();
+        XY.SetValue(PC.GetValue());
+        return m_iTStates;
     }
-
-    if (!m_bHalt)
+    else if (m_bIFF1 && m_bINTRequested && !m_bAfterEI)
     {
-        if (InterruptPending())
-            ServeInterrupt();
-        ExecuteOPCode();
-    }
-
-    if (m_iIMETStates > 0)
-    {
-        m_iIMETStates -= m_iTStates;
-
-        if (m_iIMETStates <= 0)
-        {
-            m_iIMETStates = 0;
-            m_bIFF1 = true;
-            m_bIFF2 = true;
-        }
-    }
+        LeaveHalt();
+        m_bIFF1 = false;
+        m_bIFF2 = false;
+        StackPush(&PC);
+        PC.SetValue(0x0038);
+        m_iTStates += 13;
+        IncreaseR();
+        XY.SetValue(PC.GetValue());
+        return m_iTStates;
+    } 
+    
+    m_bAfterEI = false;
+        
+    ExecuteOPCode();
 
     return m_iTStates;
 }
@@ -269,29 +256,6 @@ void Processor::ExecuteOPCode()
             break;
         }
     }
-}
-
-void Processor::ServeInterrupt()
-{
-    if (m_bNMIRequested)
-    {
-        m_bNMIRequested = false;
-        m_bIFF1 = false;
-        StackPush(&PC);
-        PC.SetValue(0x0066);
-        m_iTStates += 11;
-        IncreaseR();
-    }
-    else if (m_bIFF1 && m_bINTRequested)
-    {
-        m_bIFF1 = false;
-        m_bIFF2 = false;
-        StackPush(&PC);
-        PC.SetValue(0x0038);
-        m_iTStates += 13;
-        IncreaseR();
-    }
-    XY.SetValue(PC.GetValue());
 }
 
 void Processor::InvalidOPCode()

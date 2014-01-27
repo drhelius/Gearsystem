@@ -41,9 +41,13 @@ inline u16 Processor::FetchArg16()
     return (h << 8) | l;
 }
 
-inline bool Processor::InterruptPending()
+inline void Processor::LeaveHalt()
 {
-    return (m_bINTRequested || m_bNMIRequested);
+    if (m_bHalt)
+    {
+        m_bHalt = false;
+        PC.Increment();
+    }
 }
 
 inline void Processor::ClearAllFlags()

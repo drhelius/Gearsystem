@@ -64,8 +64,7 @@ private:
     bool m_bHalt;
     bool m_bBranchTaken;
     unsigned int m_iTStates;
-    int m_iIMETStates;
-    int m_iUnhaltTStates;
+    bool m_bAfterEI;
     int m_iInterruptMode;
     IOPorts* m_pIOPorts;
     u8 m_CurrentPrefix;
@@ -78,8 +77,7 @@ private:
     u8 FetchOPCode();
     u16 FetchArg16();
     void ExecuteOPCode();
-    bool InterruptPending();
-    void ServeInterrupt();
+    void LeaveHalt();
     void ClearAllFlags();
     void ToggleZeroFlagFromResult(u16 result);
     void ToggleSignFlagFromResult(u8 result);
