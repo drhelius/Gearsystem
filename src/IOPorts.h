@@ -27,6 +27,7 @@ class IOPorts
 public:
     IOPorts() { };
     virtual ~IOPorts() { };
+    virtual void Reset() = 0;
     virtual u8 DoInput(u8 port) = 0;
     virtual void DoOutput(u8 port, u8 value) = 0;
 };

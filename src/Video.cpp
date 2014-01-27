@@ -39,18 +39,22 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iHCounter = 0;
     m_iCycleCounter = 0;
     m_VdpStatus = 0;
-    m_iVBlankInterruptCyclesLeft = 0;
-    m_bVBlankInterruptRequested = false;
     m_iVdpRegister10Counter = 0;
-    m_ScrollV = 0;
+    m_ScrollX = 0;
+    m_ScrollY = 0;
     m_bGameGear = false;
     m_iCyclesPerLine = 0;
     m_iLinesPerFrame = 0;
-    m_iHBlankDurationCycles = 0;
     m_bPAL = false;
-    m_bDuringHBlank = false;
+    m_bVIntReached = false;
+    m_bVCounterIncremented = false;
+    m_bHIntReached = false;
+    m_bScrollXLatched = false;
+    m_bVIntFlagSet = false;
+    m_bScanlineRendered = false;
     m_bReg10CounterDecremented = false;
     m_bExtendedMode224 = false;
+    m_iRenderLine = 0;
 }
 
 Video::~Video()
@@ -74,7 +78,6 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_bPAL = bPAL;
     m_iCyclesPerLine = bPAL ? GS_CYCLES_PER_LINE_PAL : GS_CYCLES_PER_LINE_NTSC;
     m_iLinesPerFrame = bPAL ? GS_LINES_PER_FRAME_PAL : GS_LINES_PER_FRAME_NTSC;
-    m_iHBlankDurationCycles = bPAL ? GS_HBLANK_CYCLES_PAL : GS_HBLANK_CYCLES_NTSC;
     m_bFirstByteInSequence = true;
     m_VdpBuffer = 0;
     m_iVCounter = 0;
@@ -83,10 +86,9 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_VdpBuffer = 0;
     m_VdpAddress = 0;
     m_VdpStatus = 0;
-    m_iVBlankInterruptCyclesLeft = 0;
-    m_bVBlankInterruptRequested = false;
     m_bReg10CounterDecremented = false;
-    m_ScrollV = 0;
+    m_ScrollX = 0;
+    m_ScrollY = 0;
     for (int i = 0; i < (GS_SMS_WIDTH * GS_SMS_HEIGHT); i++)
         m_pInfoBuffer[i] = 0;
     for (int i = 0; i < 0x4000; i++)
@@ -102,100 +104,123 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_VdpRegister[5] = 0xFF; // Sprite Table Base
     m_VdpRegister[6] = 0xFB; // Sprite Pattern Table Base
     m_VdpRegister[7] = 0x00; // Border color #0
-    m_VdpRegister[8] = 0x00; // Scroll-H
-    m_VdpRegister[9] = 0x00; // Scroll-V
+    m_VdpRegister[8] = 0x00; // Scroll-X
+    m_VdpRegister[9] = 0x00; // Scroll-Y
     m_VdpRegister[10] = 0xFF; // H-line interrupt ($FF=OFF)
 
     for (int i = 11; i < 16; i++)
         m_VdpRegister[i] = 0;
 
     m_bExtendedMode224 = false;
-    m_bDuringHBlank = true;
-    m_iCycleCounter = m_iHBlankDurationCycles;
-    m_iVCounter = m_iLinesPerFrame - 1;
+    m_bVIntReached = false;
+    m_bVCounterIncremented = false;
+    m_bHIntReached = false;
+    m_bScrollXLatched = false;
+    m_bVIntFlagSet = false;
+    m_bScanlineRendered = false;
+    m_iCycleCounter = 0;
+    m_iVCounter = 0;
     m_iVdpRegister10Counter = m_VdpRegister[10];
+    m_iRenderLine = 0;
 }
 
 bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
 {
+    int max_height = m_bExtendedMode224 ? 224 : 192;
     bool return_vblank = false;
     m_pColorFrameBuffer = pColorFrameBuffer;
-
+    
     m_iCycleCounter += clockCycles;
-
-    if (m_iVBlankInterruptCyclesLeft > 0)
+    
+    ///// VINT /////
+    if (!m_bVIntReached && (m_iCycleCounter >= 210))  // 207
     {
-        m_iVBlankInterruptCyclesLeft -= clockCycles;
-
-        if (m_iVBlankInterruptCyclesLeft <= 0)
-        {
-            m_iVBlankInterruptCyclesLeft = 0;
-            if (m_bVBlankInterruptRequested && IsSetBit(m_VdpRegister[1], 5))
-                m_pProcessor->RequestINT(true);
-        }
+        m_bVIntReached = true;
+        if ((m_iRenderLine == max_height) && (IsSetBit(m_VdpRegister[1], 5)))
+            m_pProcessor->RequestINT(true);
     }
-
-    if (m_bDuringHBlank)
+    
+    ///// XSCROLL /////
+    if (!m_bScrollXLatched && (m_iCycleCounter >= 210))  // 211
     {
-        if (m_iCycleCounter >= m_iHBlankDurationCycles)
-        {
-            m_iCycleCounter -= m_iHBlankDurationCycles;
-            m_bDuringHBlank = false;
-
-            m_iVCounter++;
-
-            if (m_iVCounter >= m_iLinesPerFrame)
-            {
-                m_ScrollV = m_VdpRegister[9];
-                m_iVCounter = 0;
-                return_vblank = true;
-                if (!m_bExtendedMode224)
-                    FillPadding();
-            }
-        }
+        m_bScrollXLatched = true;
+        m_ScrollX = m_VdpRegister[8];   // latch scroll X
     }
-    else
+    
+    ///// HINT /////
+    if (!m_bHIntReached && (m_iCycleCounter >= 211))  // HCount 0xF3 desde 216 funciona Vcount
     {
-        int max_height = m_bExtendedMode224 ? 224 : 192;
-
-        // Counter decremented around the middle of the active display period
-        if (!m_bReg10CounterDecremented && (m_iCycleCounter >= 90))
+        m_bHIntReached = true;
+        if (m_iRenderLine < (max_height + 1))
         {
-            m_bReg10CounterDecremented = true;
-
-            if (m_iVCounter < max_height)
-                ScanLine(m_iVCounter);
-
-            if (m_iVCounter < (max_height + 1))
+            m_iVdpRegister10Counter--;
+            if (m_iVdpRegister10Counter < 0)
             {
-                m_iVdpRegister10Counter--;
-                if (m_iVdpRegister10Counter < 0)
-                {
-                    m_iVdpRegister10Counter = m_VdpRegister[10];
-                    if (IsSetBit(m_VdpRegister[0], 4))
-                        m_pProcessor->RequestINT(true);
-                }
-            }
-            else
                 m_iVdpRegister10Counter = m_VdpRegister[10];
-        }
-
-        if (m_iCycleCounter >= (m_iCyclesPerLine - m_iHBlankDurationCycles))
-        {
-            m_bReg10CounterDecremented = false;
-            m_iCycleCounter -= (m_iCyclesPerLine - m_iHBlankDurationCycles);
-            m_bDuringHBlank = true;
-
-            if (m_iVCounter == max_height)
-            {
-                m_VdpStatus = SetBit(m_VdpStatus, 7);
-                m_bVBlankInterruptRequested = true;
-                m_iVBlankInterruptCyclesLeft = 16;
+                if (IsSetBit(m_VdpRegister[0], 4))
+                    m_pProcessor->RequestINT(true);
             }
         }
+        else
+            m_iVdpRegister10Counter = m_VdpRegister[10];
+    }
+    
+    ///// VCOUNT /////
+    if (!m_bVCounterIncremented && (m_iCycleCounter >= 212))  //  212
+    {
+        m_bVCounterIncremented = true;
+        m_iVCounter++;
+        if (m_iVCounter >= m_iLinesPerFrame)
+        {
+            m_ScrollY = m_VdpRegister[9];   // latch scroll Y
+            m_iVCounter = 0;
+        }
+    }
+    
+    ///// FLAG VINT /////
+    if (!m_bVIntFlagSet && (m_iCycleCounter >= 213))  //  212
+    {
+        m_bVIntFlagSet = true;
+        if (m_iRenderLine == max_height)
+            m_VdpStatus = SetBit(m_VdpStatus, 7);
+    }
+    
+    ///// RENDER LINE /////
+    if (!m_bScanlineRendered && (m_iCycleCounter >= 226))  // 226
+    {
+        m_bScanlineRendered = true;
+        if (m_iRenderLine < max_height)
+        {
+            ScanLine(m_iRenderLine);         
+        }
+        else if (m_iRenderLine == max_height)
+        {
+            return_vblank = true;
+            if (!m_bExtendedMode224)
+                FillPadding();
+        }    
+        m_iRenderLine++;
+        m_iRenderLine %= m_iLinesPerFrame;
+    }
+    
+    ///// END OF LINE /////
+    if (m_iCycleCounter >= m_iCyclesPerLine)
+    {
+        m_iCycleCounter -= m_iCyclesPerLine;
+        m_bVIntReached = false;
+        m_bHIntReached = false;
+        m_bVCounterIncremented = false;
+        m_bScrollXLatched = false;
+        m_bVIntFlagSet = false;
+        m_bScanlineRendered = false;
     }
 
     return return_vblank;
+}
+
+void Video::LatchHCounter()
+{
+    m_iHCounter = kVdpHCounter[(m_iCycleCounter + 0 /*+ (16 * 11) + 8*/) % 228];
 }
 
 u8 Video::GetVCounter()
@@ -245,7 +270,6 @@ u8 Video::GetVCounter()
 
 u8 Video::GetHCounter()
 {
-    // Not implemented
     return m_iHCounter;
 }
 
@@ -264,7 +288,6 @@ u8 Video::GetStatusFlags()
     u8 ret = m_VdpStatus | 0x1F;
     m_bFirstByteInSequence = true;
     m_VdpStatus = 0x00;
-    m_bVBlankInterruptRequested = false;
     m_pProcessor->RequestINT(false);
     return ret;
 }
@@ -325,7 +348,7 @@ void Video::WriteControl(u8 control)
                 }
                 else if (reg > 10)
                 {
-                    Log("--> ** Attempting to write on VDP REG %d: %X", reg, m_VdpLatch);
+                    Log("--> ** Attempting to write on VDP REG %d: %X", reg, control);
                 }
                 break;
             }
@@ -368,10 +391,10 @@ void Video::RenderBG(int line)
 {
     int scy = line;
     int scy_256 = (m_bExtendedMode224 ? scy : (scy + 16)) << 8;
-    int origin_x = m_VdpRegister[8];
+    int origin_x = m_ScrollX;
     if ((line < 16) && IsSetBit(m_VdpRegister[0], 6))
         origin_x = 0;
-    int origin_y = m_ScrollV;
+    int origin_y = m_ScrollY;
 
     u16 map_address = (m_VdpRegister[2] & (m_bExtendedMode224 ? 0x0C : 0x0E)) << 10;
     int map_y = scy + origin_y;
@@ -476,7 +499,7 @@ void Video::RenderSprites(int line)
             break;
         }
     }
-
+    
     for (int sprite = max_sprite; sprite >= 0; sprite--)
     {
         int sprite_y = m_pVdpVRAM[sprite_table_address + sprite] + 1;

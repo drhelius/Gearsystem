@@ -381,6 +381,8 @@ void GearsystemCore::Reset()
     m_pSegaMemoryRule->Reset();
     m_pCodemastersMemoryRule->Reset();
     m_pRomOnlyMemoryRule->Reset();
+    m_pGameGearIOPorts->Reset();
+    m_pSmsIOPorts->Reset();
     m_bPaused = false;
 }
 

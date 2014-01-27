@@ -30,10 +30,17 @@ GameGearIOPorts::GameGearIOPorts(Audio* pAudio, Video* pVideo, Input* pInput, Ca
     m_pInput = pInput;
     m_pCartridge = pCartridge;
     m_Port3F = 0;
+    m_Port3F_HC = 0;
 }
 
 GameGearIOPorts::~GameGearIOPorts()
 {
+}
+
+void GameGearIOPorts::Reset()
+{
+    m_Port3F = 0;
+    m_Port3F_HC = 0;
 }
 
 u8 GameGearIOPorts::DoInput(u8 port)
@@ -128,6 +135,10 @@ void GameGearIOPorts::DoOutput(u8 port, u8 value)
         }
         else
         {
+            if (((value  & 0x01) && !(m_Port3F_HC & 0x01)) || ((value  & 0x08) && !(m_Port3F_HC & 0x08)))
+                m_pVideo->LatchHCounter();
+            m_Port3F_HC = value & 0x05;
+       
             m_Port3F =  ((value & 0x80) | (value & 0x20) << 1) & 0xC0;
             if (m_pCartridge->GetZone() == Cartridge::CartridgeExportSMS)
                 m_Port3F ^= 0xC0;
