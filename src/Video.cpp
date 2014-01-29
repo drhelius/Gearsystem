@@ -133,7 +133,7 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
     m_iCycleCounter += clockCycles;
     
     ///// VINT /////
-    if (!m_bVIntReached && (m_iCycleCounter >= 210))  // 207
+    if (!m_bVIntReached && (m_iCycleCounter >= 223))  // 207
     {
         m_bVIntReached = true;
         if ((m_iRenderLine == max_height) && (IsSetBit(m_VdpRegister[1], 5)))
@@ -141,14 +141,14 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
     }
     
     ///// XSCROLL /////
-    if (!m_bScrollXLatched && (m_iCycleCounter >= 210))  // 211
+    if (!m_bScrollXLatched && (m_iCycleCounter >= 211))  // 211
     {
         m_bScrollXLatched = true;
         m_ScrollX = m_VdpRegister[8];   // latch scroll X
     }
     
     ///// HINT /////
-    if (!m_bHIntReached && (m_iCycleCounter >= 211))  // HCount 0xF3 desde 216 funciona Vcount
+    if (!m_bHIntReached && (m_iCycleCounter >= 224))  // HCount 0xF3 desde 216 funciona Vcount
     {
         m_bHIntReached = true;
         if (m_iRenderLine < (max_height + 1))
@@ -178,7 +178,7 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
     }
     
     ///// FLAG VINT /////
-    if (!m_bVIntFlagSet && (m_iCycleCounter >= 213))  //  212
+    if (!m_bVIntFlagSet && (m_iCycleCounter >= 224))  //  212
     {
         m_bVIntFlagSet = true;
         if (m_iRenderLine == max_height)
@@ -186,10 +186,10 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
     }
     
     ///// RENDER LINE /////
-    if (!m_bScanlineRendered && (m_iCycleCounter >= 226))  // 226
+    if (!m_bScanlineRendered && (m_iCycleCounter >= 228))  // 226
     {
         m_bScanlineRendered = true;
-        if (m_iRenderLine < max_height)
+        if ((m_iRenderLine < max_height) && IsValidPointer(m_pColorFrameBuffer))
         {
             ScanLine(m_iRenderLine);         
         }
@@ -358,31 +358,28 @@ void Video::WriteControl(u8 control)
 
 void Video::ScanLine(int line)
 {
-    if (IsValidPointer(m_pColorFrameBuffer))
+    if (IsSetBit(m_VdpRegister[1], 6))
     {
-        if (IsSetBit(m_VdpRegister[1], 6))
-        {
-            // DISPLAY ON
-            RenderBG(line);
-            RenderSprites(line);
-        }
-        else
-        {
-            // DISPLAY OFF
-            if (!m_bExtendedMode224)
-                line += 16;
+        // DISPLAY ON
+        RenderBG(line);
+        RenderSprites(line);
+    }
+    else
+    {
+        // DISPLAY OFF
+        if (!m_bExtendedMode224)
+            line += 16;
 
-            int line_256 = line << 8;
+        int line_256 = line << 8;
 
-            for (int scx = 0; scx < 256; scx++)
-            {
-                GS_Color final_color;
-                final_color.red = 0;
-                final_color.green = 0;
-                final_color.blue = 0;
-                final_color.alpha = 0xFF;
-                m_pColorFrameBuffer[line_256 + scx] = final_color;
-            }
+        for (int scx = 0; scx < 256; scx++)
+        {
+            GS_Color final_color;
+            final_color.red = 0;
+            final_color.green = 0;
+            final_color.blue = 0;
+            final_color.alpha = 0xFF;
+            m_pColorFrameBuffer[line_256 + scx] = final_color;
         }
     }
 }
