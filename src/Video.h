@@ -73,7 +73,6 @@ private:
     u8 m_ScrollX;
     u8 m_ScrollY;
     bool m_bGameGear;
-    int m_iCyclesPerLine;
     int m_iLinesPerFrame;
     bool m_bPAL;
     bool m_bReg10CounterDecremented;
@@ -82,7 +81,6 @@ private:
     bool m_bVIntReached;
     bool m_bHIntReached;
     bool m_bScrollXLatched;
-    bool m_bScanlineRendered;
     bool m_bVCounterIncremented;
     int m_iRenderLine;
 };

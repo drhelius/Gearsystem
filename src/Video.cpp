@@ -43,7 +43,6 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_ScrollX = 0;
     m_ScrollY = 0;
     m_bGameGear = false;
-    m_iCyclesPerLine = 0;
     m_iLinesPerFrame = 0;
     m_bPAL = false;
     m_bVIntReached = false;
@@ -51,7 +50,6 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_bHIntReached = false;
     m_bScrollXLatched = false;
     m_bVIntFlagSet = false;
-    m_bScanlineRendered = false;
     m_bReg10CounterDecremented = false;
     m_bExtendedMode224 = false;
     m_iRenderLine = 0;
@@ -76,7 +74,6 @@ void Video::Reset(bool bGameGear, bool bPAL)
 {
     m_bGameGear = bGameGear;
     m_bPAL = bPAL;
-    m_iCyclesPerLine = bPAL ? GS_CYCLES_PER_LINE_PAL : GS_CYCLES_PER_LINE_NTSC;
     m_iLinesPerFrame = bPAL ? GS_LINES_PER_FRAME_PAL : GS_LINES_PER_FRAME_NTSC;
     m_bFirstByteInSequence = true;
     m_VdpBuffer = 0;
@@ -117,7 +114,6 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_bHIntReached = false;
     m_bScrollXLatched = false;
     m_bVIntFlagSet = false;
-    m_bScanlineRendered = false;
     m_iCycleCounter = 0;
     m_iVCounter = 0;
     m_iVdpRegister10Counter = m_VdpRegister[10];
@@ -133,7 +129,7 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
     m_iCycleCounter += clockCycles;
     
     ///// VINT /////
-    if (!m_bVIntReached && (m_iCycleCounter >= 223))  // 207
+    if (!m_bVIntReached && (m_iCycleCounter >= 223)) 
     {
         m_bVIntReached = true;
         if ((m_iRenderLine == max_height) && (IsSetBit(m_VdpRegister[1], 5)))
@@ -141,14 +137,14 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
     }
     
     ///// XSCROLL /////
-    if (!m_bScrollXLatched && (m_iCycleCounter >= 211))  // 211
+    if (!m_bScrollXLatched && (m_iCycleCounter >= 211))
     {
         m_bScrollXLatched = true;
         m_ScrollX = m_VdpRegister[8];   // latch scroll X
     }
     
     ///// HINT /////
-    if (!m_bHIntReached && (m_iCycleCounter >= 224))  // HCount 0xF3 desde 216 funciona Vcount
+    if (!m_bHIntReached && (m_iCycleCounter >= 224)) 
     {
         m_bHIntReached = true;
         if (m_iRenderLine < (max_height + 1))
@@ -166,7 +162,7 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
     }
     
     ///// VCOUNT /////
-    if (!m_bVCounterIncremented && (m_iCycleCounter >= 212))  //  212
+    if (!m_bVCounterIncremented && (m_iCycleCounter >= 212)) 
     {
         m_bVCounterIncremented = true;
         m_iVCounter++;
@@ -178,7 +174,7 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
     }
     
     ///// FLAG VINT /////
-    if (!m_bVIntFlagSet && (m_iCycleCounter >= 224))  //  212
+    if (!m_bVIntFlagSet && (m_iCycleCounter >= 224))
     {
         m_bVIntFlagSet = true;
         if (m_iRenderLine == max_height)
@@ -186,9 +182,8 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
     }
     
     ///// RENDER LINE /////
-    if (!m_bScanlineRendered && (m_iCycleCounter >= 228))  // 226
+    if (m_iCycleCounter >= GS_CYCLES_PER_LINE)
     {
-        m_bScanlineRendered = true;
         if ((m_iRenderLine < max_height) && IsValidPointer(m_pColorFrameBuffer))
         {
             ScanLine(m_iRenderLine);         
@@ -201,18 +196,12 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
         }    
         m_iRenderLine++;
         m_iRenderLine %= m_iLinesPerFrame;
-    }
-    
-    ///// END OF LINE /////
-    if (m_iCycleCounter >= m_iCyclesPerLine)
-    {
-        m_iCycleCounter -= m_iCyclesPerLine;
+        m_iCycleCounter -= GS_CYCLES_PER_LINE;
         m_bVIntReached = false;
         m_bHIntReached = false;
         m_bVCounterIncremented = false;
         m_bScrollXLatched = false;
         m_bVIntFlagSet = false;
-        m_bScanlineRendered = false;
     }
 
     return return_vblank;
@@ -220,7 +209,7 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
 
 void Video::LatchHCounter()
 {
-    m_iHCounter = kVdpHCounter[(m_iCycleCounter + 0 /*+ (16 * 11) + 8*/) % 228];
+    m_iHCounter = kVdpHCounter[m_iCycleCounter % 228];
 }
 
 u8 Video::GetVCounter()
