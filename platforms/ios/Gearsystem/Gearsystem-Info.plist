@@ -10,7 +10,7 @@
 			<key>CFBundleTypeIconFiles</key>
 			<array/>
 			<key>CFBundleTypeName</key>
-			<string>Master System / Game Gear ROM<</string>
+			<string>Master System / Game Gear ROM</string>
 			<key>LSItemContentTypes</key>
 			<array>
 				<string>com.geardome.gearsystem.rom</string>
