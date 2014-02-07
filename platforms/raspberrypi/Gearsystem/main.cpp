@@ -155,6 +155,8 @@ void init_sdl(void)
     {
         Log("SDL Error Video: %s", SDL_GetError());
     }
+
+    SDL_ShowCursor(SDL_DISABLE);
 }
 
 void init_ogl(void)
