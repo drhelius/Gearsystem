@@ -21,8 +21,6 @@
 #include "GLFrame.h"
 #include "Emulator.h"
 
-const float kMixFrameAlpha = 0.35f;
-
 RenderThread::RenderThread(GLFrame* pGLFrame) : QThread(), m_pGLFrame(pGLFrame)
 {
     m_bPaused = false;
@@ -38,9 +36,6 @@ RenderThread::RenderThread(GLFrame* pGLFrame) : QThread(), m_pGLFrame(pGLFrame)
 
 RenderThread::~RenderThread()
 {
-    m_pGLFrame->makeCurrent();
-    SafeDeleteArray(m_pFrameBuffer);
-    glDeleteTextures(1, &m_GBTexture);
 }
 
 void RenderThread::ResizeViewport(const QSize &size)
@@ -78,6 +73,7 @@ void RenderThread::SetEmulator(Emulator* pEmulator)
 void RenderThread::run()
 {
     m_pGLFrame->makeCurrent();
+    
     Init();
 
     while (m_bDoRendering)
@@ -96,6 +92,9 @@ void RenderThread::run()
             m_pGLFrame->swapBuffers();
         }
     }
+    
+    SafeDeleteArray(m_pFrameBuffer);
+    glDeleteTextures(1, &m_GBTexture);
 }
 
 void RenderThread::Init()
