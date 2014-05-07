@@ -2,6 +2,7 @@
 dist/
 build/
 private/
+Makefile-variables.mk
 
 # Mac files
 *.DS_Store
