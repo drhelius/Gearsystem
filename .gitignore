@@ -1,15 +1,7 @@
 # Netbeans files
-/dist/
-/build/
-/nbproject/private/
-private.xml
-Makefile-variables.mk
-
-platforms/macosx/Gearsystem/nbproject/private/configurations.xml
-/platforms/linux/Gearsystem/dist/
-/platforms/linux/Gearsystem/build/
-/platforms/linux/Gearsystem/nbproject/private/
-/platforms/raspberry/Gearsystem/nbproject/private/
+dist/
+build/
+private/
 
 # Mac files
 *.DS_Store
@@ -49,10 +41,13 @@ Thumbs.db
 _UpgradeReport_Files/
 _ReSharper.*/
 
-# Gearsystem Memory Dump
-
-output.txt
-
+# Misc files
+*.txt
+*.ini
+*.gen
+*.md
+*.bin
+*.zip
 
 # Qt Ignores
 moc_*.cpp
@@ -61,24 +56,8 @@ qt-Release.mk
 ui_*.h
 .qmake.stash
 
-*.txt
-/platforms/macosx/Gearsystem/build/
-/platforms/macosx/Gearsystem/dist/
-
-platforms/macosx/Gearsystem/gearsystem.ini
-platforms/windows/Gearsystem/gearsystem.ini
-platforms/linux/Gearsystem/gearsystem.ini
-platforms/raspberrypi/Gearsystem/gearsystem.ini
-
+#Xcode
 *.xcuserstate
-
-platforms/ios/Gearsystem.xcodeproj/xcuserdata/*
-
+xcuserdata/
 *.xcexplist
-
 *.xcsettings
-
-*.sms
-*.gg
-
-platforms/macosx/Gearsystem/nbproject/private/launcher.properties
