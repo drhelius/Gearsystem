@@ -413,7 +413,7 @@
 		66DCB33E15F940CC0076F6F6 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0500;
+				LastUpgradeCheck = 0510;
 				ORGANIZATIONNAME = "Ignacio Sánchez Ginés";
 				TargetAttributes = {
 					66DCB34615F940CC0076F6F6 = {
@@ -592,7 +592,7 @@
 				LIBRARY_SEARCH_PATHS = "";
 				LLVM_LTO = NO;
 				LLVM_VECTORIZE_LOOPS = NO;
-				ONLY_ACTIVE_ARCH = NO;
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = armv7;
