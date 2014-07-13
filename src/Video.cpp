@@ -129,7 +129,7 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
     m_iCycleCounter += clockCycles;
     
     ///// VINT /////
-    if (!m_bVIntReached && (m_iCycleCounter >= 223)) 
+    if (!m_bVIntReached && (m_iCycleCounter >= 227)) 
     {
         m_bVIntReached = true;
         if ((m_iRenderLine == (max_height + 1)) && (IsSetBit(m_VdpRegister[1], 5)))
@@ -144,7 +144,7 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
     }
     
     ///// HINT /////
-    if (!m_bHIntReached && (m_iCycleCounter >= 224)) 
+    if (!m_bHIntReached && (m_iCycleCounter >= 228)) 
     {
         m_bHIntReached = true;
         if (m_iRenderLine <= max_height)
@@ -174,7 +174,7 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
     }
     
     ///// FLAG VINT /////
-    if (!m_bVIntFlagSet && (m_iCycleCounter >= 225))
+    if (!m_bVIntFlagSet && (m_iCycleCounter >= 228))
     {
         m_bVIntFlagSet = true;
         if (m_iRenderLine == (max_height + 1))
