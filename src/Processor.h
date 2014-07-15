@@ -72,6 +72,7 @@ private:
     bool m_bNMIRequested;
     bool m_bPrefixedCBOpcode;
     u8 m_PrefixedCBValue;
+    bool m_bInputLastCycle;
 
 private:
     u8 FetchOPCode();

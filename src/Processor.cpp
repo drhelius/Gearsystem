@@ -38,6 +38,7 @@ Processor::Processor(Memory* pMemory)
     m_bNMIRequested = false;
     m_bPrefixedCBOpcode = false;
     m_PrefixedCBValue = 0;
+    m_bInputLastCycle = false;
 }
 
 Processor::~Processor()
@@ -77,6 +78,7 @@ void Processor::Reset()
     m_bNMIRequested = false;
     m_bPrefixedCBOpcode = false;
     m_PrefixedCBValue = 0;
+    m_bInputLastCycle = false;
 }
 
 void Processor::SetIOPOrts(IOPorts* pIOPorts)
@@ -87,33 +89,36 @@ void Processor::SetIOPOrts(IOPorts* pIOPorts)
 unsigned int Processor::Tick()
 {
     m_iTStates = 0;
-
-    if (m_bNMIRequested)
-    {
-        LeaveHalt();
-        m_bNMIRequested = false;
-        m_bIFF1 = false;
-        StackPush(&PC);
-        PC.SetValue(0x0066);
-        m_iTStates += 11;
-        IncreaseR();
-        XY.SetValue(PC.GetValue());
-        return m_iTStates;
-    }
-    else if (m_bIFF1 && m_bINTRequested && !m_bAfterEI)
-    {
-        LeaveHalt();
-        m_bIFF1 = false;
-        m_bIFF2 = false;
-        StackPush(&PC);
-        PC.SetValue(0x0038);
-        m_iTStates += 13;
-        IncreaseR();
-        XY.SetValue(PC.GetValue());
-        return m_iTStates;
-    } 
     
-    m_bAfterEI = false;
+    if (!m_bInputLastCycle)
+    {
+        if (m_bNMIRequested)
+        {
+            LeaveHalt();
+            m_bNMIRequested = false;
+            m_bIFF1 = false;
+            StackPush(&PC);
+            PC.SetValue(0x0066);
+            m_iTStates += 11;
+            IncreaseR();
+            XY.SetValue(PC.GetValue());
+            return m_iTStates;
+        }
+        else if (m_bIFF1 && m_bINTRequested && !m_bAfterEI)
+        {
+            LeaveHalt();
+            m_bIFF1 = false;
+            m_bIFF2 = false;
+            StackPush(&PC);
+            PC.SetValue(0x0038);
+            m_iTStates += 13;
+            IncreaseR();
+            XY.SetValue(PC.GetValue());
+            return m_iTStates;
+        } 
+
+        m_bAfterEI = false;
+    }
         
     ExecuteOPCode();
 
@@ -225,7 +230,8 @@ void Processor::ExecuteOPCode()
         }
         default:
         {
-            IncreaseR();
+            if (!m_bInputLastCycle)
+                IncreaseR();
 
 #ifdef DISASM_GEARSYSTEM
             u16 opcode_address = PC.GetValue() - 1;

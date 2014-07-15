@@ -1422,11 +1422,22 @@ void Processor::OPCode0xDA()
 void Processor::OPCode0xDB()
 {
     // IN A,(n)
-    u8 a = AF.GetHigh();
-    u8 port = m_pMemory->Read(PC.GetValue());
-    PC.Increment();
-    AF.SetHigh(m_pIOPorts->DoInput(port));
-    XY.SetValue((a << 8) | (port + 1));
+    if (m_bInputLastCycle)
+    {
+        u8 a = AF.GetHigh();
+        u8 port = m_pMemory->Read(PC.GetValue());
+        PC.Increment();
+        AF.SetHigh(m_pIOPorts->DoInput(port));
+        XY.SetValue((a << 8) | (port + 1));
+        m_iTStates -= 10;
+        m_bInputLastCycle = false;
+    }
+    else
+    {
+        PC.Decrement();
+        m_iTStates -= 1;
+        m_bInputLastCycle = true;
+    }
 }
 
 void Processor::OPCode0xDC()

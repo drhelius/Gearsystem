@@ -47,7 +47,6 @@ inline void Processor::LeaveHalt()
     {
         m_bHalt = false;
         PC.Increment();
-        m_iTStates -= 4;
     }
 }
 
