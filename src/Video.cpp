@@ -174,7 +174,7 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
     }
     
     ///// FLAG VINT /////
-    if (!m_bVIntFlagSet && (m_iCycleCounter >= 228))
+    if (!m_bVIntFlagSet && (m_iCycleCounter >= 213))
     {
         m_bVIntFlagSet = true;
         if (m_iRenderLine == (max_height + 1))
