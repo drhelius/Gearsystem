@@ -20,7 +20,7 @@ Downloads
 --------
 - Gearsystem 1.2 for Jailbroken iOS: [Cydia](http://modmyi.com/info/gearsystem.d.php). You can open rom files from other apps like Safari or Dropbox.
 - Gearsystem 1.2 for Non-Jailbroken iOS: Use your developer certificate to compile and install it, then you can open rom files from other apps or use [iTunes file sharing](http://support.apple.com/kb/ht4094). 
-- Gearsystem 1.2 for Windows: [Gearsystem-1.2-Windows.zip](http://www.geardome.com/files/gearsystem/Gearsystem-1.2-Windows.zip)
+- Gearsystem 1.2 for Windows: [Gearsystem-1.2-Windows.zip](http://www.geardome.com/files/gearsystem/Gearsystem-1.2-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](http://www.microsoft.com/en-us/download/details.aspx?id=40784))
 - Gearsystem 1.2 for Linux: [Gearsystem-1.2-Linux.tar.gz](http://www.geardome.com/files/gearsystem/Gearsystem-1.0-Linux.tar.gz)
 
 Features
