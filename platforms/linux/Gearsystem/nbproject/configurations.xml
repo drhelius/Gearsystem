@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="90">
+<configurationDescriptor version="94">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Audio" projectFiles="true">
       <itemPath>../../../src/audio/Blip_Buffer.cpp</itemPath>
@@ -121,7 +121,7 @@
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <qt>
-        <modules>core gui opengl</modules>
+        <modules>core gui widgets opengl</modules>
       </qt>
       <compileType>
         <linkerTool>
@@ -320,7 +320,7 @@
       </toolsSet>
       <qt>
         <buildMode>1</buildMode>
-        <modules>core gui opengl</modules>
+        <modules>core gui widgets opengl</modules>
       </qt>
       <compileType>
         <cTool>
