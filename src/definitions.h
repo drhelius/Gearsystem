@@ -34,8 +34,8 @@
 #define DISASM_GEARSYSTEM 1
 #endif
 
-#define GEARSYSTEM_TITLE "Gearsystem 1.2"
-#define GEARSYSTEM_VERSION 1.2
+#define GEARSYSTEM_TITLE "Gearsystem 1.3"
+#define GEARSYSTEM_VERSION 1.3
 
 #ifndef NULL
 #define NULL 0
