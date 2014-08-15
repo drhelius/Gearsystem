@@ -63,12 +63,11 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 - Open the Gearsystem Visual Studio project and build.
 
 ### Mac OS X
-- You need Netbeans 7.3 or later.
-- Install Xcode for the compiler to be available on the command line.
+- You need Qt Creator, included in the Qt 5 SDK.
+- Install Xcode and run <code>xcode-select --install</code> in the terminal for the compiler to be available on the command line.
 - Install the [Qt 5 SDK for Mac OS](http://qt-project.org/downloads).
-- Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development.
-- Open the Gearsystem Netbeans project and build. The project will use <code>clang</code>.
-- Alternatively you can use <code>make -f nbproject/Makefile-Release.mk SUBPROJECTS= .build-conf</code> to build the project.
+- Download [SDL 2](http://www.libsdl.org/download-2.0.php) source code. Then run <code>.configure</code> <code>make</code> <code>sudo make install</code> on the terminal.
+- Open the Gearboy Qt project and build.
 
 ### Linux
 - You need Netbeans 7.3 or later.
