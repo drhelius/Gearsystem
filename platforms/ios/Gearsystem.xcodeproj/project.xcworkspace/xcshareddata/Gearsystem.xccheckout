@@ -10,29 +10,29 @@
 	<string>Gearsystem</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>BD3C9029-2E45-4A0B-95A0-3F061AD3B726</key>
+		<key>CD6524DBA496CA8CBF839F9A105CC732B0B22670</key>
 		<string>https://github.com/drhelius/Gearsystem.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>platforms/ios/Gearsystem.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>BD3C9029-2E45-4A0B-95A0-3F061AD3B726</key>
+		<key>CD6524DBA496CA8CBF839F9A105CC732B0B22670</key>
 		<string>../../../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>https://github.com/drhelius/Gearsystem.git</string>
 	<key>IDESourceControlProjectVersion</key>
-	<integer>110</integer>
+	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>BD3C9029-2E45-4A0B-95A0-3F061AD3B726</string>
+	<string>CD6524DBA496CA8CBF839F9A105CC732B0B22670</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>BD3C9029-2E45-4A0B-95A0-3F061AD3B726</string>
+			<string>CD6524DBA496CA8CBF839F9A105CC732B0B22670</string>
 			<key>IDESourceControlWCCName</key>
 			<string>Gearsystem</string>
 		</dict>
