@@ -113,8 +113,6 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 
 -(void)initGL
 {
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &iOSFrameBuffer);
-    
     glGenTextures(1, &GBTexture);
     
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -132,7 +130,6 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 
 -(void)renderFrame
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, iOSFrameBuffer);
     glBindTexture(GL_TEXTURE_2D, GBTexture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
     [self renderQuadWithViewportWidth:(128 * multiplier) andHeight:(112 * multiplier) andMirrorY:NO];

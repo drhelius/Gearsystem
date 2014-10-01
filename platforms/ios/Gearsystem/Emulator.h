@@ -28,7 +28,6 @@
     GS_Color* theFrameBuffer;
     GS_Color* theTexture;
     EmulatorInput* theInput;
-    GLint iOSFrameBuffer;
     GLuint GBTexture;
 }
 
