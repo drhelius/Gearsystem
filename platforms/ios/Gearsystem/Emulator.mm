@@ -100,7 +100,6 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 
 -(void)draw
 {
-    glViewport(0, 0, 128 * multiplier,112 * multiplier);
     [self renderFrame];
 }
 
@@ -128,8 +127,6 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     [self renderQuadWithViewportWidth:(128 * multiplier) andHeight:(112 * multiplier) andMirrorY:NO];
 }
 
-
-
 -(void)setupTextureWithData: (GLvoid*) data
 {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -147,7 +144,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
         glOrthof(0.0f, kGB_Width, kGB_Height, 0.0f, -1.0f, 1.0f);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    
+    glViewport(0, 0, viewportWidth, viewportHeight);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
