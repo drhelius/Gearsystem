@@ -24,7 +24,6 @@
 @interface Emulator : NSObject
 {
     GearsystemCore* theGearsystemCore;
-    BOOL initialized;
     GS_Color* theFrameBuffer;
     GS_Color* theTexture;
     EmulatorInput* theInput;

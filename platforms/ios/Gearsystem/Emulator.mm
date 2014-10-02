@@ -41,7 +41,6 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
         
         theInput = new EmulatorInput(self);
         theInput->Init();
-        initialized = NO;
         theFrameBuffer = new GS_Color[GS_SMS_WIDTH * GS_SMS_HEIGHT];
         theTexture = new GS_Color[256 * 256];
         
@@ -80,7 +79,6 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 -(void)shutdownGL
 {
     glDeleteTextures(1, &GBTexture);
-    initialized = NO;
 }
 
 -(void)update
@@ -102,12 +100,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 
 -(void)draw
 {
-    if (!initialized)
-    {
-        initialized = YES;
-        [self initGL];     
-    }
-    
+    glViewport(0, 0, 128 * multiplier,112 * multiplier);
     [self renderFrame];
 }
 
@@ -154,7 +147,6 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
         glOrthof(0.0f, kGB_Width, kGB_Height, 0.0f, -1.0f, 1.0f);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glViewport(0, 0, viewportWidth, viewportHeight);
     
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
