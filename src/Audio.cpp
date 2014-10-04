@@ -75,6 +75,8 @@ void Audio::Reset()
     m_pApu->reset();
     m_pBuffer->clear();
     m_Time = 0;
+    m_pSound->stop();
+    m_pSound->start(m_iSampleRate, 2);
 }
 
 void Audio::Enable(bool enabled)

@@ -219,6 +219,11 @@ void GearsystemCore::EnableSound(bool enabled)
     m_pAudio->Enable(enabled);
 }
 
+void GearsystemCore::ResetSound()
+{
+    m_pAudio->Reset();
+}
+
 void GearsystemCore::SetSoundSampleRate(int rate)
 {
     Log("Gearsystem sound sample rate: %d", rate);

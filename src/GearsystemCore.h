@@ -51,6 +51,7 @@ public:
     bool IsPaused();
     void ResetROM();
     void EnableSound(bool enabled);
+    void ResetSound();
     void SetSoundSampleRate(int rate);
     void SaveRam();
     void SaveRam(const char* szPath);
