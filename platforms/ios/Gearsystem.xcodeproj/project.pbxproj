@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		660F501B15F9615800617A2D /* gb~ipad.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 660F501915F9615800617A2D /* gb~ipad.jpg */; };
 		660F501C15F9615800617A2D /* gb@2x~ipad.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 660F501A15F9615800617A2D /* gb@2x~ipad.jpg */; };
+		6630F83119E0020B0030D22A /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6630F83019E0020B0030D22A /* MediaPlayer.framework */; };
 		6648B50016053ECC00E7A377 /* Default-Portrait@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 6648B4F816053ECC00E7A377 /* Default-Portrait@2x~ipad.png */; };
 		6648B50116053ECC00E7A377 /* Default-Portrait~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 6648B4F916053ECC00E7A377 /* Default-Portrait~ipad.png */; };
 		6648B50216053ECC00E7A377 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = 6648B4FA16053ECC00E7A377 /* Default.png */; };
@@ -70,6 +71,7 @@
 /* Begin PBXFileReference section */
 		660F501915F9615800617A2D /* gb~ipad.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = "gb~ipad.jpg"; path = "img/gb~ipad.jpg"; sourceTree = "<group>"; };
 		660F501A15F9615800617A2D /* gb@2x~ipad.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = "gb@2x~ipad.jpg"; path = "img/gb@2x~ipad.jpg"; sourceTree = "<group>"; };
+		6630F83019E0020B0030D22A /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
 		6648B4F816053ECC00E7A377 /* Default-Portrait@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-Portrait@2x~ipad.png"; path = "img/Default-Portrait@2x~ipad.png"; sourceTree = "<group>"; };
 		6648B4F916053ECC00E7A377 /* Default-Portrait~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-Portrait~ipad.png"; path = "img/Default-Portrait~ipad.png"; sourceTree = "<group>"; };
 		6648B4FA16053ECC00E7A377 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Default.png; path = img/Default.png; sourceTree = "<group>"; };
@@ -189,6 +191,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6630F83119E0020B0030D22A /* MediaPlayer.framework in Frameworks */,
 				66A1BB9C1853BE510089461F /* SDL.framework in Frameworks */,
 				66D4BA7F15FABBC500D4937F /* QuartzCore.framework in Frameworks */,
 				66D4BA7D15FABB9100D4937F /* OpenGLES.framework in Frameworks */,
@@ -334,6 +337,7 @@
 		66DCB34A15F940CC0076F6F6 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				6630F83019E0020B0030D22A /* MediaPlayer.framework */,
 				66A1BB9B1853BE510089461F /* SDL.framework */,
 				66D4BA7A15FABB8600D4937F /* AudioToolbox.framework */,
 				66D4BA7815FABB7B00D4937F /* CoreAudio.framework */,
