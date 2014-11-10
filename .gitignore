@@ -66,3 +66,5 @@ qrc_*.cpp
 xcuserdata/
 *.xcexplist
 *.xcsettings
+
+platforms/ios/Gearsystem.xcodeproj/project.xcworkspace/xcshareddata/Gearsystem.xccheckout
