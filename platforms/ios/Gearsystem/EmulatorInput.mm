@@ -65,19 +65,19 @@ void EmulatorInput::Init()
             case 667:
             {
                 // iPhone 6
-                InputManager::Instance().AddCircleRegionEvent(221.0f, 358.0f, 34.0f, m_pInputCallbackButtons, 1, false);
-                InputManager::Instance().AddCircleRegionEvent(280.0f, 358.0f, 34.0f, m_pInputCallbackButtons, 2, false);
-                InputManager::Instance().AddCircleRegionEvent(163.0f, 298.0f, 25.0f, m_pInputCallbackButtons, 3, false);
-                InputManager::Instance().AddCircleRegionEvent(69.0f, 342.0f, 50.0f, m_pInputCallbackController, 0, true);
+                InputManager::Instance().AddCircleRegionEvent(258.0f, 398.0f, 40.0f, m_pInputCallbackButtons, 1, false);
+                InputManager::Instance().AddCircleRegionEvent(325.0f, 398.0f, 40.0f, m_pInputCallbackButtons, 2, false);
+                InputManager::Instance().AddCircleRegionEvent(187.0f, 328.0f, 26.0f, m_pInputCallbackButtons, 3, false);
+                InputManager::Instance().AddCircleRegionEvent(76.0f, 380.0f, 69.0f, m_pInputCallbackController, 0, true);
                 break;
             }
             case 736:
             {
                 // iPhone 6 Plus
-                InputManager::Instance().AddCircleRegionEvent(221.0f, 358.0f, 34.0f, m_pInputCallbackButtons, 1, false);
-                InputManager::Instance().AddCircleRegionEvent(280.0f, 358.0f, 34.0f, m_pInputCallbackButtons, 2, false);
-                InputManager::Instance().AddCircleRegionEvent(163.0f, 298.0f, 25.0f, m_pInputCallbackButtons, 3, false);
-                InputManager::Instance().AddCircleRegionEvent(69.0f, 342.0f, 50.0f, m_pInputCallbackController, 0, true);
+                InputManager::Instance().AddCircleRegionEvent(287.0f, 495.0f, 43.0f, m_pInputCallbackButtons, 1, false);
+                InputManager::Instance().AddCircleRegionEvent(360.0f, 495.0f, 43.0f, m_pInputCallbackButtons, 2, false);
+                InputManager::Instance().AddCircleRegionEvent(211.0f, 415.0f, 27.0f, m_pInputCallbackButtons, 3, false);
+                InputManager::Instance().AddCircleRegionEvent(88.0f, 473.0f, 77.0f, m_pInputCallbackController, 0, true);
                 break;
             }
         }
