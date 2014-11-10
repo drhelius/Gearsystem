@@ -219,9 +219,9 @@ void GearsystemCore::EnableSound(bool enabled)
     m_pAudio->Enable(enabled);
 }
 
-void GearsystemCore::ResetSound()
+void GearsystemCore::ResetSound(bool soft)
 {
-    m_pAudio->Reset();
+    m_pAudio->Reset(soft);
 }
 
 void GearsystemCore::SetSoundSampleRate(int rate)
