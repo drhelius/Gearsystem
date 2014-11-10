@@ -69,12 +69,15 @@ void Audio::Init()
     m_pSound->start(m_iSampleRate, 2);
 }
 
-void Audio::Reset()
+void Audio::Reset(bool soft)
 {
     m_bEnabled = true;
-    m_pApu->reset();
-    m_pBuffer->clear();
-    m_Time = 0;
+    if (!soft)
+    {
+        m_pApu->reset();
+        m_pBuffer->clear();
+        m_Time = 0;
+    }
     m_pSound->stop();
     m_pSound->start(m_iSampleRate, 2);
 }
@@ -102,18 +105,18 @@ void Audio::SetSampleRate(int rate)
 
 void Audio::WriteAudioRegister(u8 value)
 {
-    m_pApu->write_data(m_Time, value);
+    m_pApu->write_data((int)m_Time, value);
 }
 
 void Audio::WriteGGStereoRegister(u8 value)
 {
-    m_pApu->write_ggstereo(m_Time, value);
+    m_pApu->write_ggstereo((int)m_Time, value);
 }
 
 void Audio::EndFrame()
 {
-    m_pApu->end_frame(m_Time);
-    m_pBuffer->end_frame(m_Time);
+    m_pApu->end_frame((int)m_Time);
+    m_pBuffer->end_frame((int)m_Time);
     m_Time = 0;
 
     if (m_pBuffer->samples_avail() >= kSampleBufferSize)
@@ -121,7 +124,7 @@ void Audio::EndFrame()
         long count = m_pBuffer->read_samples(m_pSampleBuffer, kSampleBufferSize);
         if (m_bEnabled)
         {
-            m_pSound->write(m_pSampleBuffer, count);
+            m_pSound->write(m_pSampleBuffer, (int)count);
         }
     }
 }
