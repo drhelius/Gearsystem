@@ -25,9 +25,11 @@
 #include "Memory.h"
 #include "Processor.h"
 #include "Cartridge.h"
+#include "Audio.h"
 #include "Video.h" 
 #include "SixteenBitRegister.h" 
 #include "EightBitRegister.h" 
+#include "MemoryRule.h"
 
 #endif	/* GEARSYSTEM_H */
 

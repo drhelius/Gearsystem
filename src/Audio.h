@@ -22,9 +22,8 @@
 
 #include "definitions.h"
 #include "audio/Multi_Buffer.h"
-
-class Sms_Apu;
-class Sound_Queue;
+#include "audio/Sound_Queue.h"
+#include "audio/Sms_Apu.h"
 
 class Audio
 {

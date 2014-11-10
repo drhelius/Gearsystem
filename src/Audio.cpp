@@ -19,8 +19,6 @@
 
 #include "Audio.h"
 #include "Memory.h"
-#include "audio/Sound_Queue.h"
-#include "audio/Sms_Apu.h"
 
 Audio::Audio()
 {
@@ -43,9 +41,11 @@ Audio::~Audio()
 
 void Audio::Init()
 {
-    if (SDL_Init(SDL_INIT_AUDIO) < 0)
+    int error = SDL_Init(SDL_INIT_AUDIO);
+    
+    if (error < 0)
     {
-        Log("--> ** SDL Audio not initialized");
+        Log("--> ** (%d) SDL Audio not initialized: %s", error, SDL_GetError());
     }
 
     atexit(SDL_Quit);
