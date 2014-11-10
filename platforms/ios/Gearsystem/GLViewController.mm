@@ -63,12 +63,12 @@
         if (h == 667)
         {
             multiplier = 2;
-            view.frame = CGRectMake(31, 15, 128 * multiplier, 112 * multiplier);
+            view.frame = CGRectMake(59, 27, 128 * multiplier, 112 * multiplier);
         }
         else if (h == 736)
         {
-            multiplier = 2;
-            view.frame = CGRectMake(31, 15, 128 * multiplier, 112 * multiplier);
+            multiplier = 3;
+            view.frame = CGRectMake(16, 8, 128 * multiplier, 112 * multiplier);
         }
         else
         {

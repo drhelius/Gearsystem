@@ -55,6 +55,8 @@
 		66AB41DB1A103191006C951A /* GLViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66AB41CF1A103191006C951A /* GLViewController.mm */; };
 		66AB41DD1A103191006C951A /* inputmanager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66AB41D31A103191006C951A /* inputmanager.mm */; };
 		66AB41DE1A103191006C951A /* timer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66AB41D71A103191006C951A /* timer.mm */; };
+		66FCDE3F1A113CF300E7F4F7 /* sms_1206.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 66FCDE3E1A113CF300E7F4F7 /* sms_1206.jpg */; };
+		66FCDE411A11421900E7F4F7 /* sms_2016.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 66FCDE401A11421900E7F4F7 /* sms_2016.jpg */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -180,6 +182,8 @@
 		66AB41D61A103191006C951A /* timer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = timer.h; sourceTree = "<group>"; };
 		66AB41D71A103191006C951A /* timer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = timer.mm; sourceTree = "<group>"; };
 		66AB41D81A103191006C951A /* Vector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Vector.h; sourceTree = "<group>"; };
+		66FCDE3E1A113CF300E7F4F7 /* sms_1206.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = sms_1206.jpg; path = img/sms_1206.jpg; sourceTree = "<group>"; };
+		66FCDE401A11421900E7F4F7 /* sms_2016.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = sms_2016.jpg; path = img/sms_2016.jpg; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -401,6 +405,8 @@
 		66AB413F1A102C48006C951A /* img */ = {
 			isa = PBXGroup;
 			children = (
+				66FCDE401A11421900E7F4F7 /* sms_2016.jpg */,
+				66FCDE3E1A113CF300E7F4F7 /* sms_1206.jpg */,
 				66AB41B71A10312B006C951A /* sms_1008.jpg */,
 				66AB41B91A10312B006C951A /* sms_832.jpg */,
 				66AB41BA1A10312B006C951A /* sms_ipad_1920.jpg */,
@@ -506,11 +512,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				66AB41191A102A95006C951A /* Main.storyboard in Resources */,
+				66FCDE411A11421900E7F4F7 /* sms_2016.jpg in Resources */,
 				66AB41C51A10312B006C951A /* sms_1008.jpg in Resources */,
 				66AB41C81A10312B006C951A /* sms_ipad_1920.jpg in Resources */,
 				66AB411B1A102A95006C951A /* Images.xcassets in Resources */,
 				663EBD051A103B0F00F32DC8 /* GLViewController.xib in Resources */,
 				66AB41C91A10312B006C951A /* sms_ipad_960.jpg in Resources */,
+				66FCDE3F1A113CF300E7F4F7 /* sms_1206.jpg in Resources */,
 				66AB41C71A10312B006C951A /* sms_832.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
