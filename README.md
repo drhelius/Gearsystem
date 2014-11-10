@@ -18,8 +18,8 @@ If you want new features ask for them but don't forget donating, thanks :)
 
 Downloads
 --------
-- Gearsystem 1.2 for Jailbroken iOS: [Cydia](http://modmyi.com/info/gearsystem.d.php). You can open rom files from other apps like Safari or Dropbox.
-- Gearsystem 1.2 for Non-Jailbroken iOS: Use your developer certificate to compile and install it, then you can open rom files from other apps or use [iTunes file sharing](http://support.apple.com/kb/ht4094). 
+- Gearsystem 2.0 for Jailbroken iOS: [Cydia](http://modmyi.com/info/gearsystem.d.php). You can open rom files from other apps like Safari or Dropbox. They can be placed in <code>/var/mobile/Media/ROMs/Gearsystem</code> too. Save files are placed in <code>/var/mobile/Library/Gearsystem</code>
+- Gearsystem 2.0 for Non-Jailbroken iOS: Use your developer certificate to compile and install it, then you can open rom files from other apps or use [iTunes file sharing](http://support.apple.com/kb/ht4094). 
 - Gearsystem 1.2 for Windows: [Gearsystem-1.2-Windows.zip](http://www.geardome.com/files/gearsystem/Gearsystem-1.2-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](http://www.microsoft.com/en-us/download/details.aspx?id=40784))
 - Gearsystem 1.2 for Linux: [Gearsystem-1.2-Linux.tar.gz](http://www.geardome.com/files/gearsystem/Gearsystem-1.0-Linux.tar.gz)
 
@@ -41,14 +41,14 @@ Compiling Instructions
 
 The best way of compiling Gearsystem is by using one of the IDE projects provided for each platform.
 
-For all desktop platforms you will need SDL and Qt Framework SDKs installed and configured. SDL is provided as a framework for iOS project.
+For all desktop platforms you will need SDL and Qt Framework SDKs installed and configured. 
 
 There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt-applications.html).
 
 ### iOS
-- Install Xcode for Mac OS X. You need iOS SDK 5.1 or later.  
-- Open the Gearsystem Xcode project and build.
-- Run it on real hardware using your iOS developer certificate. For jailbroken devices use the jailbreak branch.
+- Install Xcode for Mac OS X. You need iOS SDK 8 or later. 
+- Build the project. 
+- Run it on real hardware using your iOS developer certificate. Be sure to compile it on Release for extra optimizations. For jailbroken devices use the jailbreak branch.
 
 ### Raspberry Pi - Raspbian
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development.
