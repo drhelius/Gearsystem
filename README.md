@@ -39,11 +39,9 @@ Features
 Compiling Instructions
 ----------------------
 
-The best way of compiling Gearsystem is by using one of the IDE projects provided for each platform.
+The best way of compiling Gearboy is by using one of the IDE projects provided for each platform.
 
-For all desktop platforms you will need SDL and Qt Framework SDKs installed and configured. 
-
-There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt-applications.html).
+For all desktop platforms you will need SDL 2 and Qt 5 SDKs installed and configured.
 
 ### iOS
 - Install Xcode for Mac OS X. You need iOS SDK 8 or later. 
