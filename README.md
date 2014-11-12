@@ -52,6 +52,7 @@ For all desktop platforms you will need SDL 2 and Qt 5 SDKs installed and config
 ### Raspberry Pi - Raspbian
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development.
 - Use <code>make</code> to build the project.
+- Sound emulation in the Pi is awfully slow. Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator and over clock your Raspberry as much as you can for the best performance.
  
 ### Windows
 - You need Visual Studio 2010 (Express Edition will do but you won't be able to install the Qt Add-in).
