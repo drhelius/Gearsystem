@@ -48,7 +48,8 @@ There is a nice Netbeans + Qt tutorial [here](http://netbeans.org/kb/docs/cnd/qt
 ### iOS
 - Install Xcode for Mac OS X. You need iOS SDK 8 or later. 
 - Build the project. 
-- Run it on real hardware using your iOS developer certificate. Be sure to compile it on Release for extra optimizations. For jailbroken devices use the jailbreak branch.
+- Run it on real hardware using your iOS developer certificate. Make sure it compiles on Release for extra optimizations.
+- For jailbroken devices use the jailbreak branch.
 
 ### Raspberry Pi - Raspbian
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development.
