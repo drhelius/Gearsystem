@@ -37,7 +37,7 @@
     GLuint GBTexture;
 }
 
-@property (nonatomic) int multiplier;
+@property (nonatomic) float multiplier;
 @property (nonatomic) BOOL retina;
 @property (nonatomic) BOOL iPad;
 
@@ -55,7 +55,7 @@
 - (void)shutdownGL;
 - (void)renderFrame;
 - (void)setupTextureWithData: (GLvoid*) data;
-- (void)renderQuadWithViewportWidth: (int)viewportWidth andHeight: (int)viewportHeight andMirrorY: (BOOL)mirrorY;
+- (void)renderQuadWithViewportWidth: (float)viewportWidth andHeight: (float)viewportHeight andMirrorY: (BOOL)mirrorY;
 - (void)setAudio: (BOOL)enabled;
 - (void)resetAudio;
 
