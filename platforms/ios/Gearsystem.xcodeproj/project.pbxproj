@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		663EBD051A103B0F00F32DC8 /* GLViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 663EBD031A103B0F00F32DC8 /* GLViewController.xib */; };
 		6661D2F01A10B5D4009CFFF5 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6661D2EF1A10B518009CFFF5 /* libSDL2.a */; };
+		666602A31A7ECF0300DEB660 /* texturemanager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 666602A21A7ECF0300DEB660 /* texturemanager.mm */; };
+		666602A91A7ECF1300DEB660 /* scanlines2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 666602A61A7ECF1300DEB660 /* scanlines2x.png */; };
+		666602AA1A7ECF1300DEB660 /* scanlines3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 666602A71A7ECF1300DEB660 /* scanlines3x.png */; };
+		666602AB1A7ECF1300DEB660 /* scanlines4x.png in Resources */ = {isa = PBXBuildFile; fileRef = 666602A81A7ECF1300DEB660 /* scanlines4x.png */; };
 		66AB410D1A102A95006C951A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 66AB410C1A102A95006C951A /* main.m */; };
 		66AB41101A102A95006C951A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66AB410F1A102A95006C951A /* AppDelegate.mm */; };
 		66AB41131A102A95006C951A /* MasterViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66AB41121A102A95006C951A /* MasterViewController.mm */; };
@@ -79,6 +83,12 @@
 /* Begin PBXFileReference section */
 		663EBD041A103B0F00F32DC8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/GLViewController.xib; sourceTree = "<group>"; };
 		6661D2E91A10B518009CFFF5 /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = "dependencies/SDL-2.0.4-9174/Xcode-iOS/SDL/SDL.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		666602A01A7ECF0300DEB660 /* texture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = texture.h; sourceTree = "<group>"; };
+		666602A11A7ECF0300DEB660 /* texturemanager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = texturemanager.h; sourceTree = "<group>"; };
+		666602A21A7ECF0300DEB660 /* texturemanager.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = texturemanager.mm; sourceTree = "<group>"; };
+		666602A61A7ECF1300DEB660 /* scanlines2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = scanlines2x.png; path = img/scanlines2x.png; sourceTree = "<group>"; };
+		666602A71A7ECF1300DEB660 /* scanlines3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = scanlines3x.png; path = img/scanlines3x.png; sourceTree = "<group>"; };
+		666602A81A7ECF1300DEB660 /* scanlines4x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = scanlines4x.png; path = img/scanlines4x.png; sourceTree = "<group>"; };
 		66AB41071A102A95006C951A /* Gearsystem.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Gearsystem.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		66AB410B1A102A95006C951A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		66AB410C1A102A95006C951A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -267,6 +277,9 @@
 				66AB41D31A103191006C951A /* inputmanager.mm */,
 				66AB41D41A103191006C951A /* regions.h */,
 				66AB41D51A103191006C951A /* singleton.h */,
+				666602A01A7ECF0300DEB660 /* texture.h */,
+				666602A11A7ECF0300DEB660 /* texturemanager.h */,
+				666602A21A7ECF0300DEB660 /* texturemanager.mm */,
 				66AB41D61A103191006C951A /* timer.h */,
 				66AB41D71A103191006C951A /* timer.mm */,
 				66AB41D81A103191006C951A /* Vector.h */,
@@ -405,6 +418,9 @@
 		66AB413F1A102C48006C951A /* img */ = {
 			isa = PBXGroup;
 			children = (
+				666602A61A7ECF1300DEB660 /* scanlines2x.png */,
+				666602A71A7ECF1300DEB660 /* scanlines3x.png */,
+				666602A81A7ECF1300DEB660 /* scanlines4x.png */,
 				66FCDE401A11421900E7F4F7 /* sms_2016.jpg */,
 				66FCDE3E1A113CF300E7F4F7 /* sms_1206.jpg */,
 				66AB41B71A10312B006C951A /* sms_1008.jpg */,
@@ -513,8 +529,11 @@
 			files = (
 				66AB41191A102A95006C951A /* Main.storyboard in Resources */,
 				66FCDE411A11421900E7F4F7 /* sms_2016.jpg in Resources */,
+				666602A91A7ECF1300DEB660 /* scanlines2x.png in Resources */,
+				666602AA1A7ECF1300DEB660 /* scanlines3x.png in Resources */,
 				66AB41C51A10312B006C951A /* sms_1008.jpg in Resources */,
 				66AB41C81A10312B006C951A /* sms_ipad_1920.jpg in Resources */,
+				666602AB1A7ECF1300DEB660 /* scanlines4x.png in Resources */,
 				66AB411B1A102A95006C951A /* Images.xcassets in Resources */,
 				663EBD051A103B0F00F32DC8 /* GLViewController.xib in Resources */,
 				66AB41C91A10312B006C951A /* sms_ipad_960.jpg in Resources */,
@@ -554,6 +573,7 @@
 				66AB41DB1A103191006C951A /* GLViewController.mm in Sources */,
 				66AB41921A1030C2006C951A /* opcodes_cb.cpp in Sources */,
 				66AB41DA1A103191006C951A /* EmulatorInput.mm in Sources */,
+				666602A31A7ECF0300DEB660 /* texturemanager.mm in Sources */,
 				66AB41961A1030C2006C951A /* RomOnlyMemoryRule.cpp in Sources */,
 				66AB41131A102A95006C951A /* MasterViewController.mm in Sources */,
 				66AB41A91A1030D4006C951A /* Blip_Buffer.cpp in Sources */,

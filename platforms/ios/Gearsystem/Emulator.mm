@@ -20,6 +20,7 @@
 #import <GLKit/GLKit.h>
 #import "Emulator.h"
 #include "inputmanager.h"
+#include "texturemanager.h"
 
 const float kGB_Width = 256.0f;
 const float kGB_Height = 224.0f;
@@ -42,6 +43,8 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
         SDL_SetMainReady();
 #endif
 #endif
+        
+        //TextureManager::Instance().LoadTexture(<#Texture *pTexture#>, <#bool mipmaps#>)
         
         theGearsystemCore = new GearsystemCore();
         theGearsystemCore->Init();
@@ -77,6 +80,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 -(void)dealloc
 {
     theGearsystemCore->SaveRam();
+    TextureManager::Instance().UnloadAll();
     SafeDeleteArray(theTexture);
     SafeDeleteArray(theFrameBuffer);
     SafeDelete(theGearsystemCore);
