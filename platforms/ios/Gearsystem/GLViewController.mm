@@ -52,6 +52,7 @@
     retina = (scale != 1.0);
     
     float multiplier = 0;
+    int scanlines = 0;
     
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
     {
@@ -62,16 +63,19 @@
         
         if (h == 667)
         {
+            scanlines = 2;
             multiplier = 2.0;
             view.frame = CGRectMake(59, 27, 128 * multiplier, 112 * multiplier);
         }
         else if (h == 736)
         {
+            scanlines = 3;
             multiplier = 3.0;
             view.frame = CGRectMake(16, 8, 128 * multiplier, 112 * multiplier);
         }
         else
         {
+            scanlines = 2;
             multiplier = 2.0;
             view.frame = CGRectMake(31, 15, 128 * multiplier, 112 * multiplier);
         }
@@ -80,6 +84,7 @@
     else
     {
         iPad = YES;
+        scanlines = 4;
         multiplier = 4.0;
         view.frame = CGRectMake(128, 28, 128 * multiplier, 112 * multiplier);
     }
@@ -87,7 +92,7 @@
     self.theEmulator.multiplier = multiplier * scale;
     self.theEmulator.retina = retina;
     self.theEmulator.iPad = iPad;
-
+    self.theEmulator.scanlines = scanlines;
 }
 
 - (void)loadRomWithName: (NSString*) name

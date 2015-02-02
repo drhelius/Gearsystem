@@ -20,7 +20,6 @@
 #import <GLKit/GLKit.h>
 #import "Emulator.h"
 #include "inputmanager.h"
-#include "texturemanager.h"
 
 const float kGB_Width = 256.0f;
 const float kGB_Height = 224.0f;
@@ -43,8 +42,6 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
         SDL_SetMainReady();
 #endif
 #endif
-        
-        //TextureManager::Instance().LoadTexture(<#Texture *pTexture#>, <#bool mipmaps#>)
         
         theGearsystemCore = new GearsystemCore();
         theGearsystemCore->Init();
@@ -80,7 +77,6 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 -(void)dealloc
 {
     theGearsystemCore->SaveRam();
-    TextureManager::Instance().UnloadAll();
     SafeDeleteArray(theTexture);
     SafeDeleteArray(theFrameBuffer);
     SafeDelete(theGearsystemCore);
@@ -89,6 +85,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 
 -(void)shutdownGL
 {
+    TextureManager::Instance().UnloadAll();
     glDeleteTextures(1, &GBTexture);
 }
 
@@ -129,6 +126,22 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, GBTexture);
     [self setupTextureWithData: (GLvoid*) theTexture];
+    
+    switch (_scanlines)
+    {
+        case 2:
+            scanlineTexture = TextureManager::Instance().GetTexture("/scanlines2x");
+            break;
+        case 3:
+            scanlineTexture = TextureManager::Instance().GetTexture("/scanlines3x");
+            break;
+        case 4:
+            scanlineTexture = TextureManager::Instance().GetTexture("/scanlines4x");
+            break;
+        default:
+            scanlineTexture = NULL;
+            break;
+    }
 }
 
 -(void)renderFrame
