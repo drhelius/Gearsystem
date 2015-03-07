@@ -1,6 +1,6 @@
 CFLAGS+=-Wall -Ofast -mfpu=vfp -mfloat-abi=hard -march=armv6zk -mtune=arm1176jzf-s
 
-LDFLAGS+=-L$(SDKSTAGE)/opt/vc/lib/ -lGLESv2 -lEGL -lopenmaxil -lvcos -lvchiq_arm -lrt `sdl2-config --libs`
+LDFLAGS+=-L$(SDKSTAGE)/opt/vc/lib/ -lGLESv2 -lEGL -lopenmaxil -lvcos -lvchiq_arm -lrt -lconfig++ `sdl2-config --libs`
 
 INCLUDES+=-I$(SDKSTAGE)/opt/vc/include/ -I$(SDKSTAGE)/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux  -I../../../src/ -I./
 
@@ -10,7 +10,7 @@ all: $(BIN) $(LIB)
 
 %.o: %.cpp
 	@rm -f $@ 
-	$(CXX) $(CFLAGS) $(INCLUDES) -c $< -o $@ -Wno-deprecated-declarations
+	$(CXX) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 %.bin: $(OBJS)
 	$(CC) -o $@ -Wl,--whole-archive $(OBJS) $(LDFLAGS) -lstdc++ -Wl,--no-whole-archive -rdynamic

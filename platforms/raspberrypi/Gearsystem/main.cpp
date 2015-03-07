@@ -83,11 +83,11 @@ void update(void)
             if (jg_enable)
             {
                 if (keyevent.jbutton.button == jg_1)
-                    theGearsystemCore->KeyPressed(Key_1);
+                    theGearsystemCore->KeyPressed(Joypad_1, Key_1);
                 else if (keyevent.jbutton.button == jg_2)
-                    theGearsystemCore->KeyPressed(Key_2);
+                    theGearsystemCore->KeyPressed(Joypad_1, Key_2);
                 else if (keyevent.jbutton.button == jg_start)
-                    theGearsystemCore->KeyPressed(Key_Start);
+                    theGearsystemCore->KeyPressed(Joypad_1, Key_Start);
             }
             break;
 
@@ -95,11 +95,11 @@ void update(void)
             if (jg_enable)
             {
                 if (keyevent.jbutton.button == jg_1)
-                    theGearsystemCore->KeyReleased(Key_1);
+                    theGearsystemCore->KeyReleased(Joypad_1, Key_1);
                 else if (keyevent.jbutton.button == jg_2)
-                    theGearsystemCore->KeyReleased(Key_2);
+                    theGearsystemCore->KeyReleased(Joypad_1, Key_2);
                 else if (keyevent.jbutton.button == jg_start)
-                    theGearsystemCore->KeyReleased(Key_Start);
+                    theGearsystemCore->KeyReleased(Joypad_1, Key_Start);
             }
             break;
 
@@ -110,26 +110,26 @@ void update(void)
                 {
                     int x_motion = keyevent.jaxis.value * (jg_x_axis_invert ? -1 : 1);
                     if (x_motion < 0)
-                        theGearsystemCore->KeyPressed(Key_Left);
+                        theGearsystemCore->KeyPressed(Joypad_1, Key_Left);
                     else if (x_motion > 0)
-                        theGearsystemCore->KeyPressed(Key_Right);
+                        theGearsystemCore->KeyPressed(Joypad_1, Key_Right);
                     else 
                     {
-                        theGearsystemCore->KeyReleased(Key_Left);
-                        theGearsystemCore->KeyReleased(Key_Right);
+                        theGearsystemCore->KeyReleased(Joypad_1, Key_Left);
+                        theGearsystemCore->KeyReleased(Joypad_1, Key_Right);
                     }
                 }
                 else if(keyevent.jaxis.axis == jg_y_axis)
                 {
                     int y_motion = keyevent.jaxis.value * (jg_y_axis_invert ? -1 : 1);
                     if (y_motion < 0)
-                        theGearsystemCore->KeyPressed(Key_Up);
+                        theGearsystemCore->KeyPressed(Joypad_1, Key_Up);
                     else if (y_motion > 0)
-                        theGearsystemCore->KeyPressed(Key_Down);
+                        theGearsystemCore->KeyPressed(Joypad_1, Key_Down);
                     else 
                     {
-                        theGearsystemCore->KeyReleased(Key_Up);
-                        theGearsystemCore->KeyReleased(Key_Down);
+                        theGearsystemCore->KeyReleased(Joypad_1, Key_Up);
+                        theGearsystemCore->KeyReleased(Joypad_1, Key_Down);
                     }
                 }
             }
@@ -139,19 +139,19 @@ void update(void)
             if (!jg_enable)
             {
                 if (keyevent.key.keysym.sym == kc_keypad_left)
-                    theGearsystemCore->KeyPressed(Key_Left);
+                    theGearsystemCore->KeyPressed(Joypad_1, Key_Left);
                 else if (keyevent.key.keysym.sym == kc_keypad_right)
-                    theGearsystemCore->KeyPressed(Key_Right);
+                    theGearsystemCore->KeyPressed(Joypad_1, Key_Right);
                 else if (keyevent.key.keysym.sym == kc_keypad_up)
-                    theGearsystemCore->KeyPressed(Key_Up);
+                    theGearsystemCore->KeyPressed(Joypad_1, Key_Up);
                 else if (keyevent.key.keysym.sym == kc_keypad_down)
-                    theGearsystemCore->KeyPressed(Key_Down);
+                    theGearsystemCore->KeyPressed(Joypad_1, Key_Down);
                 else if (keyevent.key.keysym.sym == kc_keypad_1)
-                    theGearsystemCore->KeyPressed(Key_1);
+                    theGearsystemCore->KeyPressed(Joypad_1, Key_1);
                 else if (keyevent.key.keysym.sym == kc_keypad_2)
-                    theGearsystemCore->KeyPressed(Key_2);
+                    theGearsystemCore->KeyPressed(Joypad_1, Key_2);
                 else if (keyevent.key.keysym.sym == kc_keypad_start)
-                    theGearsystemCore->KeyPressed(Key_Start);
+                    theGearsystemCore->KeyPressed(Joypad_1, Key_Start);
             }
             if (keyevent.key.keysym.sym == kc_emulator_quit)
                 running = false;
@@ -166,19 +166,19 @@ void update(void)
             if (!jg_enable)
             {
                 if (keyevent.key.keysym.sym == kc_keypad_left)
-                    theGearsystemCore->KeyReleased(Key_Left);
+                    theGearsystemCore->KeyReleased(Joypad_1, Key_Left);
                 else if (keyevent.key.keysym.sym == kc_keypad_right)
-                    theGearsystemCore->KeyReleased(Key_Right);
+                    theGearsystemCore->KeyReleased(Joypad_1, Key_Right);
                 else if (keyevent.key.keysym.sym == kc_keypad_up)
-                    theGearsystemCore->KeyReleased(Key_Up);
+                    theGearsystemCore->KeyReleased(Joypad_1, Key_Up);
                 else if (keyevent.key.keysym.sym == kc_keypad_down)
-                    theGearsystemCore->KeyReleased(Key_Down);
+                    theGearsystemCore->KeyReleased(Joypad_1, Key_Down);
                 else if (keyevent.key.keysym.sym == kc_keypad_1)
-                    theGearsystemCore->KeyReleased(Key_1);
+                    theGearsystemCore->KeyReleased(Joypad_1, Key_1);
                 else if (keyevent.key.keysym.sym == kc_keypad_2)
-                    theGearsystemCore->KeyReleased(Key_2);
+                    theGearsystemCore->KeyReleased(Joypad_1, Key_2);
                 else if (keyevent.key.keysym.sym == kc_keypad_start)
-                    theGearsystemCore->KeyReleased(Key_Start);
+                    theGearsystemCore->KeyReleased(Joypad_1, Key_Start);
             }
             break;
         }
@@ -258,7 +258,7 @@ void init_sdl(void)
             gearsystem.lookupValue("joystick_gamepad_enable", jg_enable);
             gearsystem.lookupValue("joystick_gamepad_1", jg_1);
             gearsystem.lookupValue("joystick_gamepad_2", jg_2);
-            gearsystem.lookupValue("joystick_gamepad_start", jg_start);
+            gearsystem.lookupValue("joystick_gamepad_start_pause", jg_start);
             gearsystem.lookupValue("joystick_gamepad_x_axis", jg_x_axis);
             gearsystem.lookupValue("joystick_gamepad_y_axis", jg_y_axis);
             gearsystem.lookupValue("joystick_gamepad_x_axis_invert", jg_x_axis_invert);
@@ -274,7 +274,6 @@ void init_sdl(void)
             kc_keypad_1 = SDL_GetKeyFromName(keypad_1.c_str());
             kc_keypad_2 = SDL_GetKeyFromName(keypad_2.c_str());
             kc_keypad_start = SDL_GetKeyFromName(keypad_start.c_str());
-            kc_keypad_select = SDL_GetKeyFromName(keypad_select.c_str());
 
             kc_emulator_pause = SDL_GetKeyFromName(emulator_pause.c_str());
             kc_emulator_quit = SDL_GetKeyFromName(emulator_quit.c_str());
@@ -463,7 +462,7 @@ void end(void)
     address.add("joystick_gamepad_enable", Setting::TypeBoolean) = jg_enable;
     address.add("joystick_gamepad_1", Setting::TypeInt) = jg_1;
     address.add("joystick_gamepad_2", Setting::TypeInt) = jg_2;
-    address.add("joystick_gamepad_start", Setting::TypeInt) = jg_start;
+    address.add("joystick_gamepad_start_pause", Setting::TypeInt) = jg_start;
     address.add("joystick_gamepad_x_axis", Setting::TypeInt) = jg_x_axis;
     address.add("joystick_gamepad_y_axis", Setting::TypeInt) = jg_y_axis;
     address.add("joystick_gamepad_x_axis_invert", Setting::TypeBoolean) = jg_x_axis_invert;
