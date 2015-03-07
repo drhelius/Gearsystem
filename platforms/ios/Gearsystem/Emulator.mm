@@ -149,6 +149,29 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     glBindTexture(GL_TEXTURE_2D, GBTexture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
     [self renderQuadWithViewportWidth:(128 * multiplier) andHeight:(112 * multiplier) andMirrorY:NO];
+    
+    glBindTexture(GL_TEXTURE_2D, scanlineTexture->GetID());
+    glEnable(GL_BLEND);
+    switch (_scanlines)
+    {
+        case 2:
+            glColor4f(1.0f, 1.0f, 1.0f, 0.35f);
+            break;
+        case 3:
+            glColor4f(1.0f, 1.0f, 1.0f, 0.0f);
+            break;
+        case 4:
+            glColor4f(1.0f, 1.0f, 1.0f, 0.25f);
+            break;
+        default:
+            scanlineTexture = NULL;
+            break;
+    }
+    
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    [self renderQuadWithViewportWidth:(128 * multiplier) andHeight:(112 * multiplier) andMirrorY:NO];
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glDisable(GL_BLEND);
 }
 
 -(void)setupTextureWithData: (GLvoid*) data
