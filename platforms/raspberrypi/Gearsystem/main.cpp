@@ -23,19 +23,29 @@
 #include <math.h>
 #include <assert.h>
 #include <unistd.h>
+#include <iostream>
+#include <iomanip>
+#include <cstdlib>
 #include <sys/time.h>
 #include <SDL2/SDL.h>
+#include <libconfig.h++>
 #include "bcm_host.h"
 #include "GLES/gl.h"
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #include "gearsystem.h"
 
+using namespace std;
+using namespace libconfig;
+
 bool running = true;
 bool paused = false;
+
 EGLDisplay display;
 EGLSurface surface;
 EGLContext context;
+
+static const char *output_file = "gearsystem.cfg";
 
 const float kGS_Width = 256.0f;
 const float kGS_Height = 224.0f;
@@ -47,6 +57,11 @@ GLshort quadVerts[8];
 GearsystemCore* theGearsystemCore;
 GS_Color* theFrameBuffer;
 GLuint theGSTexture;
+
+SDL_Joystick* game_pad = NULL;
+SDL_Keycode kc_keypad_left, kc_keypad_right, kc_keypad_up, kc_keypad_down, kc_keypad_1, kc_keypad_2, kc_keypad_start, kc_emulator_pause, kc_emulator_quit;
+bool jg_enable, jg_x_axis_invert, jg_y_axis_invert;
+int jg_1, jg_2, jg_start, jg_x_axis, jg_y_axis;
 
 uint32_t screen_width, screen_height;
 
@@ -63,78 +78,112 @@ void update(void)
             case SDL_QUIT:
             running = false;
             break;
-            case SDL_KEYDOWN:
-            switch(keyevent.key.keysym.sym)
+
+            case SDL_JOYBUTTONDOWN:
+            if (jg_enable)
             {
-                case SDLK_LEFT:
-                theGearsystemCore->KeyPressed(Joypad_1, Key_Left);
-                break;
-                case SDLK_RIGHT:
-                theGearsystemCore->KeyPressed(Joypad_1, Key_Right);
-                break;
-                case SDLK_UP:
-                theGearsystemCore->KeyPressed(Joypad_1, Key_Up);
-                break;
-                case SDLK_DOWN:
-                theGearsystemCore->KeyPressed(Joypad_1, Key_Down);
-                break;
-                case SDLK_a:
-                theGearsystemCore->KeyPressed(Joypad_1, Key_1);
-                break;
-                case SDLK_s:
-                theGearsystemCore->KeyPressed(Joypad_1, Key_2);
-                break;
-                case SDLK_p:
-                paused = !paused;
-                theGearsystemCore->Pause(paused);
-                break;
-                case SDLK_SPACE:
-                theGearsystemCore->KeyPressed(Joypad_1, Key_Start);
-                break;
-                case SDLK_RETURN:
-                theGearsystemCore->KeyPressed(Joypad_1, Key_Start);
-                break;
-                case SDLK_ESCAPE:
-                running = false;
-                break;
-                default:
-                break;
+                if (keyevent.jbutton.button == jg_1)
+                    theGearsystemCore->KeyPressed(Key_1);
+                else if (keyevent.jbutton.button == jg_2)
+                    theGearsystemCore->KeyPressed(Key_2);
+                else if (keyevent.jbutton.button == jg_start)
+                    theGearsystemCore->KeyPressed(Key_Start);
             }
             break;
-            case SDL_KEYUP:
-            switch(keyevent.key.keysym.sym)
+
+            case SDL_JOYBUTTONUP:
+            if (jg_enable)
             {
-                case SDLK_LEFT:
-                theGearsystemCore->KeyReleased(Joypad_1, Key_Left);
-                break;
-                case SDLK_RIGHT:
-                theGearsystemCore->KeyReleased(Joypad_1, Key_Right);
-                break;
-                case SDLK_UP:
-                theGearsystemCore->KeyReleased(Joypad_1, Key_Up);
-                break;
-                case SDLK_DOWN:
-                theGearsystemCore->KeyReleased(Joypad_1, Key_Down);
-                break;
-                case SDLK_a:
-                theGearsystemCore->KeyReleased(Joypad_1, Key_1);
-                break;
-                case SDLK_s:
-                theGearsystemCore->KeyReleased(Joypad_1, Key_2);
-                break;
-                case SDLK_SPACE:
-                theGearsystemCore->KeyReleased(Joypad_1, Key_Start);
-                break;
-                case SDLK_RETURN:
-                theGearsystemCore->KeyReleased(Joypad_1, Key_Start);
-                break;
-                default:
-                break;
+                if (keyevent.jbutton.button == jg_1)
+                    theGearsystemCore->KeyReleased(Key_1);
+                else if (keyevent.jbutton.button == jg_2)
+                    theGearsystemCore->KeyReleased(Key_2);
+                else if (keyevent.jbutton.button == jg_start)
+                    theGearsystemCore->KeyReleased(Key_Start);
             }
+            break;
+
+            case SDL_JOYAXISMOTION:  
+            if (jg_enable)
+            {
+                if(keyevent.jaxis.axis == jg_x_axis)
+                {
+                    int x_motion = keyevent.jaxis.value * (jg_x_axis_invert ? -1 : 1);
+                    if (x_motion < 0)
+                        theGearsystemCore->KeyPressed(Key_Left);
+                    else if (x_motion > 0)
+                        theGearsystemCore->KeyPressed(Key_Right);
+                    else 
+                    {
+                        theGearsystemCore->KeyReleased(Key_Left);
+                        theGearsystemCore->KeyReleased(Key_Right);
+                    }
+                }
+                else if(keyevent.jaxis.axis == jg_y_axis)
+                {
+                    int y_motion = keyevent.jaxis.value * (jg_y_axis_invert ? -1 : 1);
+                    if (y_motion < 0)
+                        theGearsystemCore->KeyPressed(Key_Up);
+                    else if (y_motion > 0)
+                        theGearsystemCore->KeyPressed(Key_Down);
+                    else 
+                    {
+                        theGearsystemCore->KeyReleased(Key_Up);
+                        theGearsystemCore->KeyReleased(Key_Down);
+                    }
+                }
+            }
+            break;
+
+            case SDL_KEYDOWN:
+            if (!jg_enable)
+            {
+                if (keyevent.key.keysym.sym == kc_keypad_left)
+                    theGearsystemCore->KeyPressed(Key_Left);
+                else if (keyevent.key.keysym.sym == kc_keypad_right)
+                    theGearsystemCore->KeyPressed(Key_Right);
+                else if (keyevent.key.keysym.sym == kc_keypad_up)
+                    theGearsystemCore->KeyPressed(Key_Up);
+                else if (keyevent.key.keysym.sym == kc_keypad_down)
+                    theGearsystemCore->KeyPressed(Key_Down);
+                else if (keyevent.key.keysym.sym == kc_keypad_1)
+                    theGearsystemCore->KeyPressed(Key_1);
+                else if (keyevent.key.keysym.sym == kc_keypad_2)
+                    theGearsystemCore->KeyPressed(Key_2);
+                else if (keyevent.key.keysym.sym == kc_keypad_start)
+                    theGearsystemCore->KeyPressed(Key_Start);
+            }
+            if (keyevent.key.keysym.sym == kc_emulator_quit)
+                running = false;
+            else if (keyevent.key.keysym.sym == kc_emulator_pause)
+            {
+                paused = !paused;
+                theGearsystemCore->Pause(paused);
+            }
+            break;
+
+            case SDL_KEYUP:
+            if (!jg_enable)
+            {
+                if (keyevent.key.keysym.sym == kc_keypad_left)
+                    theGearsystemCore->KeyReleased(Key_Left);
+                else if (keyevent.key.keysym.sym == kc_keypad_right)
+                    theGearsystemCore->KeyReleased(Key_Right);
+                else if (keyevent.key.keysym.sym == kc_keypad_up)
+                    theGearsystemCore->KeyReleased(Key_Up);
+                else if (keyevent.key.keysym.sym == kc_keypad_down)
+                    theGearsystemCore->KeyReleased(Key_Down);
+                else if (keyevent.key.keysym.sym == kc_keypad_1)
+                    theGearsystemCore->KeyReleased(Key_1);
+                else if (keyevent.key.keysym.sym == kc_keypad_2)
+                    theGearsystemCore->KeyReleased(Key_2);
+                else if (keyevent.key.keysym.sym == kc_keypad_start)
+                    theGearsystemCore->KeyReleased(Key_Start);
+            }
+            break;
         }
     }
 
-    theGearsystemCore->RunToVBlank(NULL); // this is to force 30 FPS
     theGearsystemCore->RunToVBlank(theFrameBuffer);
 
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 224, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theFrameBuffer);
@@ -144,7 +193,7 @@ void update(void)
 
 void init_sdl(void)
 {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)
     {
         Log("SDL Error Init: %s", SDL_GetError());
     }
@@ -157,6 +206,93 @@ void init_sdl(void)
     }
 
     SDL_ShowCursor(SDL_DISABLE);
+
+    game_pad = SDL_JoystickOpen(0);
+        
+    if(game_pad == NULL)
+    {
+        Log("Warning: Unable to open game controller! SDL Error: %s\n", SDL_GetError());
+    }
+
+    kc_keypad_left = SDLK_LEFT;
+    kc_keypad_right = SDLK_RIGHT;
+    kc_keypad_up = SDLK_UP;
+    kc_keypad_down = SDLK_DOWN;
+    kc_keypad_1 = SDLK_a;
+    kc_keypad_2 = SDLK_s;
+    kc_keypad_start = SDLK_RETURN;
+    kc_emulator_pause = SDLK_p;
+    kc_emulator_quit = SDLK_ESCAPE;
+
+    jg_enable = false;
+    jg_x_axis_invert = false;
+    jg_y_axis_invert = false;
+    jg_1 = 2;
+    jg_2 = 1;
+    jg_start = 9;
+    jg_x_axis = 0;
+    jg_y_axis = 1;
+
+    Config cfg;
+
+    try
+    {
+        cfg.readFile(output_file);
+
+        try
+        {
+            const Setting& root = cfg.getRoot();
+            const Setting &gearsystem = root["Gearsystem"];
+
+            string keypad_left, keypad_right, keypad_up, keypad_down, keypad_1, keypad_2, 
+            keypad_start, keypad_select, emulator_pause, emulator_quit;
+            gearsystem.lookupValue("keypad_left", keypad_left);
+            gearsystem.lookupValue("keypad_right", keypad_right);
+            gearsystem.lookupValue("keypad_up", keypad_up);
+            gearsystem.lookupValue("keypad_down", keypad_down);
+            gearsystem.lookupValue("keypad_1", keypad_1);
+            gearsystem.lookupValue("keypad_2", keypad_2);
+            gearsystem.lookupValue("keypad_start_pause", keypad_start);
+            gearsystem.lookupValue("keypad_select", keypad_select);
+
+            gearsystem.lookupValue("joystick_gamepad_enable", jg_enable);
+            gearsystem.lookupValue("joystick_gamepad_1", jg_1);
+            gearsystem.lookupValue("joystick_gamepad_2", jg_2);
+            gearsystem.lookupValue("joystick_gamepad_start", jg_start);
+            gearsystem.lookupValue("joystick_gamepad_x_axis", jg_x_axis);
+            gearsystem.lookupValue("joystick_gamepad_y_axis", jg_y_axis);
+            gearsystem.lookupValue("joystick_gamepad_x_axis_invert", jg_x_axis_invert);
+            gearsystem.lookupValue("joystick_gamepad_y_axis_invert", jg_y_axis_invert);
+
+            gearsystem.lookupValue("emulator_pause", emulator_pause);
+            gearsystem.lookupValue("emulator_quit", emulator_quit);
+
+            kc_keypad_left = SDL_GetKeyFromName(keypad_left.c_str());
+            kc_keypad_right = SDL_GetKeyFromName(keypad_right.c_str());
+            kc_keypad_up = SDL_GetKeyFromName(keypad_up.c_str());
+            kc_keypad_down = SDL_GetKeyFromName(keypad_down.c_str());
+            kc_keypad_1 = SDL_GetKeyFromName(keypad_1.c_str());
+            kc_keypad_2 = SDL_GetKeyFromName(keypad_2.c_str());
+            kc_keypad_start = SDL_GetKeyFromName(keypad_start.c_str());
+            kc_keypad_select = SDL_GetKeyFromName(keypad_select.c_str());
+
+            kc_emulator_pause = SDL_GetKeyFromName(emulator_pause.c_str());
+            kc_emulator_quit = SDL_GetKeyFromName(emulator_quit.c_str());
+        }
+        catch(const SettingNotFoundException &nfex)
+        {
+            std::cerr << "Setting not found" << std::endl;
+        }
+    }
+    catch(const FileIOException &fioex)
+    {
+        Log("I/O error while reading file: %s", output_file);
+    }
+    catch(const ParseException &pex)
+    {
+        std::cerr << "Parse error at " << pex.getFile() << ":" << pex.getLine()
+              << " - " << pex.getError() << std::endl;
+    } 
 }
 
 void init_ogl(void)
@@ -250,7 +386,7 @@ void init_ogl(void)
     result = eglMakeCurrent(display, surface, surface, context);
     assert(EGL_FALSE != result);
 
-    eglSwapInterval(display, 0);
+    eglSwapInterval(display, 1);
 
     glGenTextures(1, &theGSTexture);
 
@@ -311,6 +447,42 @@ void init(void)
 
 void end(void)
 {
+    Config cfg;
+
+    Setting &root = cfg.getRoot();
+    Setting &address = root.add("Gearsystem", Setting::TypeGroup);
+
+    address.add("keypad_left", Setting::TypeString) = SDL_GetKeyName(kc_keypad_left);
+    address.add("keypad_right", Setting::TypeString) = SDL_GetKeyName(kc_keypad_right);
+    address.add("keypad_up", Setting::TypeString) = SDL_GetKeyName(kc_keypad_up);
+    address.add("keypad_down", Setting::TypeString) = SDL_GetKeyName(kc_keypad_down);
+    address.add("keypad_1", Setting::TypeString) = SDL_GetKeyName(kc_keypad_1);
+    address.add("keypad_2", Setting::TypeString) = SDL_GetKeyName(kc_keypad_2);
+    address.add("keypad_start_pause", Setting::TypeString) = SDL_GetKeyName(kc_keypad_start);
+
+    address.add("joystick_gamepad_enable", Setting::TypeBoolean) = jg_enable;
+    address.add("joystick_gamepad_1", Setting::TypeInt) = jg_1;
+    address.add("joystick_gamepad_2", Setting::TypeInt) = jg_2;
+    address.add("joystick_gamepad_start", Setting::TypeInt) = jg_start;
+    address.add("joystick_gamepad_x_axis", Setting::TypeInt) = jg_x_axis;
+    address.add("joystick_gamepad_y_axis", Setting::TypeInt) = jg_y_axis;
+    address.add("joystick_gamepad_x_axis_invert", Setting::TypeBoolean) = jg_x_axis_invert;
+    address.add("joystick_gamepad_y_axis_invert", Setting::TypeBoolean) = jg_y_axis_invert;
+
+    address.add("emulator_pause", Setting::TypeString) = SDL_GetKeyName(kc_emulator_pause);
+    address.add("emulator_quit", Setting::TypeString) = SDL_GetKeyName(kc_emulator_quit);
+
+    try
+    {
+        cfg.writeFile(output_file);
+    }
+    catch(const FileIOException &fioex)
+    {
+        Log("I/O error while writing file: %s", output_file);
+    }
+
+    SDL_JoystickClose(game_pad);
+
     SafeDeleteArray(theFrameBuffer);
     SafeDelete(theGearsystemCore);
     SDL_DestroyWindow(theWindow);
