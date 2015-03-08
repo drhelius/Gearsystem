@@ -64,8 +64,10 @@ cd SDL2-2.0.3 && mkdir build && cd build
 make -j 4
 sudo make install
 ```
+- Install libconfig library dependencies for development: <code>sudo apt-get install libconfig++-dev</code>.
 - Use <code>make -j 4</code> to build the project.
 - Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the best performance.
+- The emulator generates a <code>gearsystem.cfg</code> configuration for you where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
  
 ### Windows
 - You need Visual Studio 2010 (Express Edition will do but you won't be able to install the Qt Add-in).
