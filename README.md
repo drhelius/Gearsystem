@@ -65,7 +65,7 @@ make -j 4
 sudo make install
 ```
 - Install libconfig library dependencies for development: <code>sudo apt-get install libconfig++-dev</code>.
-- Use <code>make -j 4</code> in the <code>platforms/raspberrypi2/Gearboy/</code> folder to build the project.
+- Use <code>make -j 4</code> in the <code>platforms/raspberrypi2/Gearsystem/</code> folder to build the project.
 - Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the best performance.
 - The emulator generates a <code>gearsystem.cfg</code> configuration for you where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
  
