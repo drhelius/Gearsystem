@@ -61,7 +61,7 @@ bool TextureManager::LoadTexture(Texture* pTexture, bool mipmaps)
         pTexture->m_bIsCompressed = true;
 
         fseek(pFile, 0, SEEK_END);
-        int len = ftell(pFile);
+        int len = (int)ftell(pFile);
         fseek(pFile, 0, SEEK_SET);
 
         GLubyte* pBuffer = new GLubyte[len];
@@ -129,7 +129,7 @@ bool TextureManager::LoadTexture(Texture* pTexture, bool mipmaps)
         CGImageRef spriteImage;
         CGContextRef spriteContext;
         GLubyte *spriteData;
-        size_t width, height;
+        int width, height;
 		
 		char pathSize[2048] = {0};
 		
@@ -147,8 +147,8 @@ bool TextureManager::LoadTexture(Texture* pTexture, bool mipmaps)
         if (spriteImage)
         {
             // Get the width and height of the image
-            pTexture->m_iWidth = width = CGImageGetWidth(spriteImage);
-            pTexture->m_iHeight = height = CGImageGetHeight(spriteImage);
+            pTexture->m_iWidth = width = (int)CGImageGetWidth(spriteImage);
+            pTexture->m_iHeight = height = (int)CGImageGetHeight(spriteImage);
             // Texture dimensions must be a power of 2. If you write an application that allows users to supply an image,
             // you'll want to add code that checks the dimensions and takes appropriate action if they are not a power of 2.
 
@@ -229,7 +229,7 @@ bool TextureManager::LoadTexture(Texture* pTexture, bool mipmaps)
             CGImageRef spriteImage;
             CGContextRef spriteContext;
             GLubyte *spriteData;
-            size_t width, height;
+            int width, height;
 
             // Creates a Core Graphics image from an image file
             spriteImage = [UIImage imageNamed : [NSString stringWithCString : "missing_texture.png" encoding : [NSString defaultCStringEncoding]]].CGImage;
@@ -237,8 +237,8 @@ bool TextureManager::LoadTexture(Texture* pTexture, bool mipmaps)
             if (spriteImage)
             {
                 // Get the width and height of the image
-                pTexture->m_iWidth = width = CGImageGetWidth(spriteImage);
-                pTexture->m_iHeight = height = CGImageGetHeight(spriteImage);
+                pTexture->m_iWidth = width = (int)CGImageGetWidth(spriteImage);
+                pTexture->m_iHeight = height = (int)CGImageGetHeight(spriteImage);
                 // Texture dimensions must be a power of 2. If you write an application that allows users to supply an image,
                 // you'll want to add code that checks the dimensions and takes appropriate action if they are not a power of 2.
 
