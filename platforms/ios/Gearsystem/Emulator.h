@@ -42,8 +42,6 @@
 @property (nonatomic) float multiplier;
 @property (nonatomic) BOOL retina;
 @property (nonatomic) BOOL iPad;
-@property (nonatomic) int scanlines;
-
 
 - (void)update;
 - (void)draw;
