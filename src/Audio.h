@@ -50,6 +50,6 @@ private:
     blip_sample_t* m_pSampleBuffer;
 };
 
-const long kSampleBufferSize = 4096;
+const long kSampleBufferSize = 2048;
 
 #endif	/* AUDIO_H */
