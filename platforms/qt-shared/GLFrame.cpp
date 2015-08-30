@@ -61,7 +61,7 @@ bool GLFrame::IsRunningRenderThread()
 
 void GLFrame::resizeEvent(QResizeEvent *evt)
 {
-    m_RenderThread.ResizeViewport(evt->size());
+    m_RenderThread.ResizeViewport(evt->size() * devicePixelRatio());
 }
 
 void GLFrame::paintEvent(QPaintEvent *)
