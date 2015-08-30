@@ -87,6 +87,8 @@ void RenderThread::run()
                 m_bResizeEvent = false;
             }
 
+            m_pGLFrame->makeCurrent();
+
             RenderFrame();
 
             m_pGLFrame->swapBuffers();
