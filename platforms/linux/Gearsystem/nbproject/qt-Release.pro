@@ -1,7 +1,7 @@
 # This file is generated automatically. Do not edit.
 # Use project properties -> Build -> Qt -> Expert -> Custom Definitions.
 TEMPLATE = app
-DESTDIR = dist/Release/GNU-Linux-x86
+DESTDIR = dist/Release/GNU-Linux
 TARGET = Gearsystem
 VERSION = 1.0.0
 CONFIG -= debug_and_release app_bundle lib_bundle
@@ -13,7 +13,7 @@ HEADERS += ../../../src/Audio.h ../../../src/Cartridge.h ../../../src/Codemaster
 FORMS += ../../qt-shared/About.ui ../../qt-shared/InputSettings.ui ../../qt-shared/MainWindow.ui ../../qt-shared/SoundSettings.ui ../../qt-shared/VideoSettings.ui
 RESOURCES +=
 TRANSLATIONS +=
-OBJECTS_DIR = build/Release/GNU-Linux-x86
+OBJECTS_DIR = build/Release/GNU-Linux
 MOC_DIR = 
 RCC_DIR = 
 UI_DIR = 
