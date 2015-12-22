@@ -61,7 +61,7 @@ void InputSettings::SaveKeys()
 
 void InputSettings::RestoreKeys()
 {
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 7; i++)
     {
         m_TempKeys[i].keyCode = m_Keys[i].keyCode;
         strcpy(m_TempKeys[i].text, m_Keys[i].text);
