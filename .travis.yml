@@ -1,2 +1,4 @@
 language: objective-c
 xcode_project: platforms/ios/Gearsystem.xcodeproj
+xcode_scheme: Gearsystem
+osx_image: xcode7.2
