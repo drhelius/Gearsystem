@@ -1,4 +1,6 @@
+#language: objective-c
+#xcode_project: platforms/ios/Gearsystem.xcodeproj
+#xcode_scheme: Gearsystem
+#osx_image: xcode7.2
 language: objective-c
-xcode_project: platforms/ios/Gearsystem.xcodeproj
-xcode_scheme: Gearsystem
-osx_image: xcode7.2
+script: xctool -project platforms/ios/Gearsystem.xcodeproj -scheme Gearsystem build  CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
