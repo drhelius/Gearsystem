@@ -78,6 +78,8 @@ void RenderThread::run()
 
     while (m_bDoRendering)
     {
+        m_pGLFrame->makeCurrent();
+
         if (!m_bPaused)
         {
             m_pEmulator->RunToVBlank(m_pFrameBuffer);
@@ -87,12 +89,10 @@ void RenderThread::run()
                 m_bResizeEvent = false;
             }
 
-            m_pGLFrame->makeCurrent();
-
             RenderFrame();
-
-            m_pGLFrame->swapBuffers();
         }
+
+        m_pGLFrame->swapBuffers();
     }
     
     SafeDeleteArray(m_pFrameBuffer);
