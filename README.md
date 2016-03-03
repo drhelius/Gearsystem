@@ -3,12 +3,9 @@ Gearsystem
 <b>Copyright &copy; 2013 by Ignacio Sanchez</b>
 
 ----------
-
 [![Build Status](https://travis-ci.org/drhelius/Gearsystem.svg?branch=master)](https://travis-ci.org/drhelius/Gearsystem)
 
 Gearsystem is a Sega Master System / Game Gear emulator written in C++ that runs on iOS, Raspberry Pi, Mac, Windows and Linux.
-
-The main focus of this emulator is readability of source code with very high compatibility.
 
 Follow me on Twitter for updates: http://twitter.com/drhelius
 
@@ -16,11 +13,12 @@ Follow me on Twitter for updates: http://twitter.com/drhelius
 
 Downloads
 --------
-- Gearsystem 2.1 for Jailbroken iOS: [Cydia](http://modmyi.com/info/gearsystem.d.php). You can open rom files from other apps like Safari or Dropbox. They can be placed in <code>/var/mobile/Media/ROMs/Gearsystem</code> too. Save files are placed in <code>/var/mobile/Library/Gearsystem</code>
-- Gearsystem 2.1 for Non-Jailbroken iOS: You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094). 
-- Gearsystem 2.2 for Mac OS X: <code>brew install homebrew/games/gearsystem</code>
-- Gearsystem 1.2 for Windows: [Gearsystem-1.2-Windows.zip](http://www.geardome.com/files/gearsystem/Gearsystem-1.2-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](http://www.microsoft.com/en-us/download/details.aspx?id=40784))
-- Gearsystem 1.2 for Linux: [Gearsystem-1.2-Linux.tar.gz](http://www.geardome.com/files/gearsystem/Gearsystem-1.0-Linux.tar.gz)
+- iOS (Jailbreak): [Cydia](http://modmyi.com/info/gearsystem.d.php). You can open rom files from other apps like Safari or Dropbox. They can be placed in <code>/var/mobile/Media/ROMs/Gearsystem</code> too. Save files are placed in <code>/var/mobile/Library/Gearsystem</code>
+- iOS: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094). 
+- Mac OS X: <code>brew install homebrew/games/gearsystem</code>
+- Windows: [Gearsystem-1.2-Windows.zip](http://www.geardome.com/files/gearsystem/Gearsystem-1.2-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](http://www.microsoft.com/en-us/download/details.aspx?id=40784))
+- Linux: [Gearsystem-1.2-Linux.tar.gz](http://www.geardome.com/files/gearsystem/Gearsystem-1.0-Linux.tar.gz)
+- Raspberry Pi: Build Gearsystem from sources. Optimized projects are provided for Raspberry Pi 1 and 2/3.
 
 Features
 --------
