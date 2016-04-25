@@ -114,6 +114,22 @@ void MainWindow::Exit()
     this->close();
 }
 
+void MainWindow::InitalGameBoyLoadROM(const char* szFilePath)
+{
+    if (IsValidPointer(szFilePath))
+    {
+        m_pGLFrame->PauseRenderThread();
+
+        m_pEmulator->LoadRom(szFilePath);
+        m_pUI->actionPause->setChecked(false);
+
+        setFocus();
+        activateWindow();
+
+        m_pGLFrame->ResumeRenderThread();
+    }
+}
+
 void MainWindow::MenuGameBoyLoadROM()
 {
     m_pGLFrame->PauseRenderThread();
