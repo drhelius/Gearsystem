@@ -239,7 +239,7 @@ void init_sdl(void)
             const Setting& root = cfg.getRoot();
             const Setting &gearsystem = root["Gearsystem"];
 
-            string keypad_left, keypad_right, keypad_up, keypad_down, keypad_1, keypad_2, 
+            string keypad_left, keypad_right, keypad_up, keypad_down, keypad_1, keypad_2,
             keypad_start, keypad_select, emulator_pause, emulator_quit;
             gearsystem.lookupValue("keypad_left", keypad_left);
             gearsystem.lookupValue("keypad_right", keypad_right);
@@ -285,7 +285,7 @@ void init_sdl(void)
     {
         std::cerr << "Parse error at " << pex.getFile() << ":" << pex.getLine()
               << " - " << pex.getError() << std::endl;
-    } 
+    }
 }
 
 void init_ogl(void)
@@ -418,6 +418,10 @@ void init_ogl(void)
 
 void init(void)
 {
+    bcm_host_init();
+    init_ogl();
+    init_sdl();
+
     theGearsystemCore = new GearsystemCore();
     theGearsystemCore->Init();
 
@@ -432,10 +436,6 @@ void init(void)
             theFrameBuffer[pixel].alpha = 0xFF;
         }
     }
-
-    bcm_host_init();
-    init_sdl();
-    init_ogl();
 }
 
 void end(void)
