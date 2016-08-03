@@ -26,7 +26,7 @@ Features
 - Multi-Mapper support: SEGA, Codemasters, and ROM only cartridges.
 - External RAM support with save files.
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
-- SMS2 only 224 mode support.
+- Highly accurate VDP emulation including timing and SMS2 only 224 mode support.
 - Internal database for rom detection.
 - Sound emulation using SDL Audio and [Sms_Snd_Emu library](http://slack.net/%7Eant/libs/audio.html#Sms_Snd_Emu).
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
@@ -97,6 +97,10 @@ Zexall Z80 instruction exerciser ([from SMS Power!](http://www.smspower.org/Home
 Gearsystem passes all tests in Zexall, including undocumented instructions and behaviours. 
 
 ![zexall.sms](http://www.geardome.com/files/gearsystem/zexall.png)
+
+SMS VDP Test  ([from SMS Power!](http://www.smspower.org/Homebrew/SMSVDPTest-SMS))
+
+![zexall.sms](http://www.geardome.com/files/gearsystem/vdptest1.png)![zexall.sms](http://www.geardome.com/files/gearsystem/vdptest2.png)![zexall.sms](http://www.geardome.com/files/gearsystem/vdptes3.png)
 
 Screenshots
 -----------
