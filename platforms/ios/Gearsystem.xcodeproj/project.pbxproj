@@ -17,7 +17,6 @@
 		66AB41161A102A95006C951A /* DetailViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66AB41151A102A95006C951A /* DetailViewController.mm */; };
 		66AB41191A102A95006C951A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 66AB41171A102A95006C951A /* Main.storyboard */; };
 		66AB411B1A102A95006C951A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 66AB411A1A102A95006C951A /* Images.xcassets */; };
-		66AB412A1A102A96006C951A /* GearsystemTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 66AB41291A102A96006C951A /* GearsystemTests.m */; };
 		66AB41501A102CE5006C951A /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66AB41471A102CE5006C951A /* AudioToolbox.framework */; };
 		66AB41511A102CE5006C951A /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66AB41481A102CE5006C951A /* CoreGraphics.framework */; };
 		66AB41521A102CE5006C951A /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66AB41491A102CE5006C951A /* CoreMotion.framework */; };
@@ -69,13 +68,6 @@
 			remoteGlobalIDString = FD6526630DE8FCCB002AD96B;
 			remoteInfo = libSDL;
 		};
-		66AB41241A102A96006C951A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 66AB40FF1A102A95006C951A /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 66AB41061A102A95006C951A;
-			remoteInfo = Gearsystem;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -96,9 +88,6 @@
 		66AB41151A102A95006C951A /* DetailViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = DetailViewController.mm; sourceTree = "<group>"; };
 		66AB41181A102A95006C951A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		66AB411A1A102A95006C951A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
-		66AB41231A102A96006C951A /* GearsystemTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GearsystemTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		66AB41281A102A96006C951A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		66AB41291A102A96006C951A /* GearsystemTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GearsystemTests.m; sourceTree = "<group>"; };
 		66AB41471A102CE5006C951A /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		66AB41481A102CE5006C951A /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		66AB41491A102CE5006C951A /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
@@ -210,13 +199,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		66AB41201A102A96006C951A /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -235,7 +217,6 @@
 				66AB413C1A102C0D006C951A /* Core */,
 				66AB413D1A102C16006C951A /* Frameworks */,
 				66AB41091A102A95006C951A /* Gearsystem */,
-				66AB41261A102A96006C951A /* GearsystemTests */,
 				66AB41081A102A95006C951A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -244,7 +225,6 @@
 			isa = PBXGroup;
 			children = (
 				66AB41071A102A95006C951A /* Gearsystem.app */,
-				66AB41231A102A96006C951A /* GearsystemTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -288,23 +268,6 @@
 			children = (
 				66AB410B1A102A95006C951A /* Info.plist */,
 				66AB410C1A102A95006C951A /* main.m */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
-		66AB41261A102A96006C951A /* GearsystemTests */ = {
-			isa = PBXGroup;
-			children = (
-				66AB41291A102A96006C951A /* GearsystemTests.m */,
-				66AB41271A102A96006C951A /* Supporting Files */,
-			);
-			path = GearsystemTests;
-			sourceTree = "<group>";
-		};
-		66AB41271A102A96006C951A /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				66AB41281A102A96006C951A /* Info.plist */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -445,39 +408,17 @@
 			productReference = 66AB41071A102A95006C951A /* Gearsystem.app */;
 			productType = "com.apple.product-type.application";
 		};
-		66AB41221A102A96006C951A /* GearsystemTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 66AB41301A102A96006C951A /* Build configuration list for PBXNativeTarget "GearsystemTests" */;
-			buildPhases = (
-				66AB411F1A102A96006C951A /* Sources */,
-				66AB41201A102A96006C951A /* Frameworks */,
-				66AB41211A102A96006C951A /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				66AB41251A102A96006C951A /* PBXTargetDependency */,
-			);
-			name = GearsystemTests;
-			productName = GearsystemTests;
-			productReference = 66AB41231A102A96006C951A /* GearsystemTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		66AB40FF1A102A95006C951A /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0700;
+				LastUpgradeCheck = 0800;
 				ORGANIZATIONNAME = "Ignacio Sánchez Ginés";
 				TargetAttributes = {
 					66AB41061A102A95006C951A = {
 						CreatedOnToolsVersion = 6.1;
-					};
-					66AB41221A102A96006C951A = {
-						CreatedOnToolsVersion = 6.1;
-						TestTargetID = 66AB41061A102A95006C951A;
 					};
 				};
 			};
@@ -501,7 +442,6 @@
 			projectRoot = "";
 			targets = (
 				66AB41061A102A95006C951A /* Gearsystem */,
-				66AB41221A102A96006C951A /* GearsystemTests */,
 			);
 		};
 /* End PBXProject section */
@@ -531,13 +471,6 @@
 				66AB41C91A10312B006C951A /* sms_ipad_960.jpg in Resources */,
 				66FCDE3F1A113CF300E7F4F7 /* sms_1206.jpg in Resources */,
 				66AB41C71A10312B006C951A /* sms_832.jpg in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		66AB41211A102A96006C951A /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -582,23 +515,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		66AB411F1A102A96006C951A /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				66AB412A1A102A96006C951A /* GearsystemTests.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		66AB41251A102A96006C951A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 66AB41061A102A95006C951A /* Gearsystem */;
-			targetProxy = 66AB41241A102A96006C951A /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		663EBD031A103B0F00F32DC8 /* GLViewController.xib */ = {
@@ -633,8 +550,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -643,6 +562,7 @@
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -676,8 +596,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -685,6 +607,7 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -738,42 +661,6 @@
 			};
 			name = Release;
 		};
-		66AB41311A102A96006C951A /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(SDKROOT)/Developer/Library/Frameworks",
-					"$(inherited)",
-				);
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = GearsystemTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.geardome.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Gearsystem.app/Gearsystem";
-			};
-			name = Debug;
-		};
-		66AB41321A102A96006C951A /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(SDKROOT)/Developer/Library/Frameworks",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = GearsystemTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.geardome.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Gearsystem.app/Gearsystem";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -791,15 +678,6 @@
 			buildConfigurations = (
 				66AB412E1A102A96006C951A /* Debug */,
 				66AB412F1A102A96006C951A /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		66AB41301A102A96006C951A /* Build configuration list for PBXNativeTarget "GearsystemTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				66AB41311A102A96006C951A /* Debug */,
-				66AB41321A102A96006C951A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
