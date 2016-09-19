@@ -17,7 +17,7 @@ Downloads
 - iOS: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094). 
 - Mac OS X: <code>brew install homebrew/games/gearsystem</code>
 - Windows: [Gearsystem-1.2-Windows.zip](http://www.geardome.com/files/gearsystem/Gearsystem-1.2-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](http://www.microsoft.com/en-us/download/details.aspx?id=40784))
-- Linux: [Gearsystem-1.2-Linux.tar.gz](http://www.geardome.com/files/gearsystem/Gearsystem-1.0-Linux.tar.gz)
+- Linux: [Gearsystem-2.2-Linux.tar.gz](http://www.geardome.com/files/gearsystem/Gearsystem-2.2-Linux.tar.gz)
 - Raspberry Pi: Build Gearsystem from sources. Optimized projects are provided for Raspberry Pi 1 and 2/3.
 
 Features
