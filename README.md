@@ -16,19 +16,19 @@ Downloads
 - iOS (Jailbreak): [Cydia](http://modmyi.com/info/gearsystem.d.php). You can open rom files from other apps like Safari or Dropbox. They can be placed in <code>/var/mobile/Media/ROMs/Gearsystem</code> too. Save files are placed in <code>/var/mobile/Library/Gearsystem</code>
 - iOS: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094). 
 - Mac OS X: <code>brew install homebrew/games/gearsystem</code>
-- Windows: [Gearsystem-1.2-Windows.zip](http://www.geardome.com/files/gearsystem/Gearsystem-1.2-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](http://www.microsoft.com/en-us/download/details.aspx?id=40784))
+- Windows: [Gearsystem-2.2-Windows.zip](http://www.geardome.com/files/gearsystem/Gearsystem-2.2-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](http://www.microsoft.com/en-us/download/details.aspx?id=40784))
 - Linux: [Gearsystem-2.2-Linux.tar.gz](http://www.geardome.com/files/gearsystem/Gearsystem-2.2-Linux.tar.gz)
-- Raspberry Pi: Build Gearsystem from sources. Optimized projects are provided for Raspberry Pi 1 and 2/3.
+- Raspberry Pi: Build Gearsystem from sources. Optimized projects are provided for Raspberry Pi 1, 2 and 3.
 
 Features
 --------
-- Highly accurate Z80 core, including undocumented functionality.
+- Highly accurate Z80 core, including undocumented op odes and behaviour.
 - Multi-Mapper support: SEGA, Codemasters, and ROM only cartridges.
 - External RAM support with save files.
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
 - Highly accurate VDP emulation including timing and SMS2 only 224 mode support.
 - Internal database for rom detection.
-- Sound emulation using SDL Audio and [Sms_Snd_Emu library](http://slack.net/%7Eant/libs/audio.html#Sms_Snd_Emu).
+- Audio emulation using SDL Audio and [Sms_Snd_Emu library](http://slack.net/%7Eant/libs/audio.html#Sms_Snd_Emu).
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Compressed rom support (ZIP deflate).
 - Multi platform. Runs on Windows, Linux, Mac OS X, Raspberry Pi and iOS.
