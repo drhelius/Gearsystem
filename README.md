@@ -22,7 +22,7 @@ Downloads
 
 Features
 --------
-- Highly accurate Z80 core, including undocumented op odes and behaviour.
+- Highly accurate Z80 core, including undocumented opcodes and behaviour.
 - Multi-Mapper support: SEGA, Codemasters, and ROM only cartridges.
 - External RAM support with save files.
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
