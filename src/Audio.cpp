@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "Audio.h"
@@ -41,12 +41,28 @@ Audio::~Audio()
 
 void Audio::Init()
 {
-    int error = SDL_Init(SDL_INIT_AUDIO);
-    
-    if (error < 0)
-    {
-        Log("--> ** (%d) SDL Audio not initialized: %s", error, SDL_GetError());
-    }
+	std::string platform = SDL_GetPlatform();
+
+	if (platform == "Linux")
+	{
+	    if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
+		{
+			Log("--> ** Error initalizing audio subsystem: %s", error, SDL_GetError());
+	    }
+
+	    if (SDL_AudioInit("alsa") !=0 )
+		{
+			Log("--> ** Error initalizing audio using ALSA: %s", error, SDL_GetError());
+	    }
+
+	}
+	else
+	{
+	    if(SDL_Init(SDL_INIT_AUDIO) < 0)
+	    {
+			Log("--> ** SDL Audio not initialized: %s", SDL_GetError());
+	    }
+	}
 
     atexit(SDL_Quit);
 
@@ -65,7 +81,7 @@ void Audio::Init()
     m_pBuffer->bass_freq(100);
 
     m_pApu->output(m_pBuffer->center(), m_pBuffer->left(), m_pBuffer->right());
-    
+
     m_pSound->start(m_iSampleRate, 2);
 }
 
