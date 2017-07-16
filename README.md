@@ -77,12 +77,20 @@ sudo make install
 make
 sudo make install
 ```
-- Open the Gearboy Qt project and build.
 
 ### Linux
-- Install dependencies (Ubuntu: <code>sudo apt-get install build-essential qt5-default qttools5-dev-tools freeglut3-dev libsdl2-dev libglew-dev</code>).
-- Move to the <code>platforms/linux/Gearsystem/</code> folder and run <code>qmake -o Makefile Gearsystem.pro && make</code> to build the project.
-- In Ubuntu I had to <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the sound to work properly.
+- Ubuntu or Debian:
+``` shell
+sudo apt-get install build-essential qt5-default qttools5-dev-tools freeglut3-dev libsdl2-dev libglew-dev
+cd platforms/linux/Gearsystem
+qmake Gearsystme.pro && make
+```
+- Fedora:
+``` shell
+sudo dnf install qt5-devel freeglut-devel SDL2-devel glew-devel
+cd platforms/linux/Gearsystem
+qmake-qt5 Gearsystem.pro && make
+```
 
 Accuracy Tests
 --------------
