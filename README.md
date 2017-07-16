@@ -14,7 +14,7 @@ Follow me on Twitter for updates: http://twitter.com/drhelius
 Downloads
 --------
 - iOS (Jailbreak): [Cydia](http://modmyi.com/info/gearsystem.d.php). You can open rom files from other apps like Safari or Dropbox. They can be placed in <code>/var/mobile/Media/ROMs/Gearsystem</code> too. Save files are placed in <code>/var/mobile/Library/Gearsystem</code>
-- iOS: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094). 
+- iOS: Build Gearsystem with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094). 
 - Mac OS X: <code>brew install gearsystem</code>
 - Windows: [Gearsystem-2.2-Windows.zip](http://www.geardome.com/files/gearsystem/Gearsystem-2.2-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](http://www.microsoft.com/en-us/download/details.aspx?id=40784))
 - Linux: [Gearsystem-2.2-Linux.tar.gz](http://www.geardome.com/files/gearsystem/Gearsystem-2.2-Linux.tar.gz)
