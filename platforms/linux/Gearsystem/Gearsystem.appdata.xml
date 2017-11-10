@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2017 Daniel Moerner <dmoerner@gmail.com> -->
+<component type="desktop">
+  <id>Gearsystem.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPLv3+</project_license>
+  <name>Gearsystem</name>
+  <summary>Master System and Game Gear Emulator</summary>
+  <description>
+    <p>
+      Gearsystem is a Sega Master System and Game Gear emulator written in
+      C++. The emulator prioritizes readable, simple source code and high
+      compatibility across a variety of platforms and architectures.
+    </p>
+  </description>
+  <url type="homepage">https://github.com/drhelius/Gearsystem</url>
+  <update_contact>dmoerner@gmail.com</update_contact>
+</component>
