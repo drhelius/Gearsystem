@@ -93,6 +93,8 @@
 					<string>ROM</string>
 					<string>zip</string>
 					<string>ZIP</string>
+					<string>bin</string>
+					<string>BIN</string>
 				</array>
 			</dict>
 		</dict>
