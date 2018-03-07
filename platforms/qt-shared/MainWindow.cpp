@@ -20,6 +20,7 @@
 #include <QFileDialog>
 #include <QDesktopWidget>
 #include <QSettings>
+#include <QStandardPaths>
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 #include "GLFrame.h"
@@ -34,6 +35,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     qApp->installEventFilter(this);
     m_bFullscreen = false;
     m_iScreenSize = 2;
+    m_iSelectedSlot = 1;
 
     m_bMenuPressed[0] = m_bMenuPressed[1] = m_bMenuPressed[2] = false;
     m_pUI = new Ui::MainWindow();
@@ -58,12 +60,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     QObject::connect(m_pUI->menuDebug, SIGNAL(aboutToHide()), this, SLOT(MenuDebugReleased()));
     QObject::connect(m_pUI->menuSettings, SIGNAL(aboutToShow()), this, SLOT(MenuSettingsPressed()));
     QObject::connect(m_pUI->menuSettings, SIGNAL(aboutToHide()), this, SLOT(MenuSettingsReleased()));
+    QObject::connect(m_pUI->menuHelp, SIGNAL(aboutToShow()), this, SLOT(MenuAboutPressed()));
+    QObject::connect(m_pUI->menuHelp, SIGNAL(aboutToHide()), this, SLOT(MenuAboutReleased()));
 
     m_pUI->actionX_1->setData(1);
     m_pUI->actionX_2->setData(2);
     m_pUI->actionX_3->setData(3);
     m_pUI->actionX_4->setData(4);
     m_pUI->actionX_5->setData(5);
+
+    m_pUI->action1->setData(1);
+    m_pUI->action2->setData(2);
+    m_pUI->action3->setData(3);
+    m_pUI->action4->setData(4);
+    m_pUI->action5->setData(5);
 
     m_pEmulator = new Emulator();
     m_pEmulator->Init();
@@ -120,7 +130,7 @@ void MainWindow::InitalGameBoyLoadROM(const char* szFilePath)
     {
         m_pGLFrame->PauseRenderThread();
 
-        m_pEmulator->LoadRom(szFilePath, true); // todo
+        m_pEmulator->LoadRom(szFilePath, m_pUI->actionSave_RAM_in_ROM_folder->isChecked());
         m_pUI->actionPause->setChecked(false);
 
         setFocus();
@@ -142,7 +152,7 @@ void MainWindow::MenuGameBoyLoadROM()
 
     if (!filename.isNull())
     {
-        m_pEmulator->LoadRom(filename.toUtf8().data(), true); // todo
+        m_pEmulator->LoadRom(filename.toUtf8().data(), m_pUI->actionSave_RAM_in_ROM_folder->isChecked());
         m_pUI->actionPause->setChecked(false);
     }
 
@@ -163,27 +173,28 @@ void MainWindow::MenuGameBoyPause()
 void MainWindow::MenuGameBoyReset()
 {
     m_pUI->actionPause->setChecked(false);
-    m_pEmulator->Reset(true); // todo
+    m_pEmulator->Reset(m_pUI->actionSave_RAM_in_ROM_folder->isChecked());
 }
 
-void MainWindow::MenuGameBoySelectStateSlot()
+void MainWindow::MenuGameBoySelectStateSlot(QAction* action)
 {
+    m_pUI->action1->setChecked(false);
+    m_pUI->action2->setChecked(false);
+    m_pUI->action3->setChecked(false);
+    m_pUI->action4->setChecked(false);
+    m_pUI->action5->setChecked(false);
+    action->setChecked(true);
+    m_iSelectedSlot = action->data().toInt();
 }
 
 void MainWindow::MenuGameBoySaveState()
 {
+    m_pEmulator->SaveState(m_iSelectedSlot);
 }
 
 void MainWindow::MenuGameBoyLoadState()
 {
-}
-
-void MainWindow::MenuGameBoySaveStateAs()
-{
-}
-
-void MainWindow::MenuGameBoyLoadStateFrom()
-{
+    m_pEmulator->LoadState(m_iSelectedSlot);
 }
 
 void MainWindow::MenuSettingsInput()
@@ -254,7 +265,7 @@ void MainWindow::MenuSettingsFullscreen()
     activateWindow();
 }
 
-void MainWindow::MenuSettingsForceDMG()
+void MainWindow::MenuSettingsSaveRAMInROMFolder()
 {
 }
 
@@ -316,9 +327,21 @@ void MainWindow::MenuDebugReleased()
     MenuReleased();
 }
 
+void MainWindow::MenuAboutPressed()
+{
+    m_bMenuPressed[3] = true;
+    m_pGLFrame->PauseRenderThread();
+}
+
+void MainWindow::MenuAboutReleased()
+{
+    m_bMenuPressed[3] = false;
+    MenuReleased();
+}
+
 void MainWindow::MenuReleased()
 {
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 4; i++)
     {
         if (m_bMenuPressed[i])
             return;
@@ -441,6 +464,27 @@ void MainWindow::LoadSettings()
     QSettings settings("gearsystem.ini", QSettings::IniFormat);
 
     settings.beginGroup("Gearsystem");
+    m_iSelectedSlot = settings.value("SavestateSlot", 1).toInt();
+
+    switch (m_iSelectedSlot)
+    {
+        case 1:
+            MenuGameBoySelectStateSlot(m_pUI->action1);
+            break;
+        case 2:
+            MenuGameBoySelectStateSlot(m_pUI->action2);
+            break;
+        case 3:
+            MenuGameBoySelectStateSlot(m_pUI->action3);
+            break;
+        case 4:
+            MenuGameBoySelectStateSlot(m_pUI->action4);
+            break;
+        case 5:
+            MenuGameBoySelectStateSlot(m_pUI->action5);
+            break;
+    }
+
     m_iScreenSize = settings.value("ScreenSize", 2).toInt();
 
     switch (m_iScreenSize)
@@ -466,7 +510,7 @@ void MainWindow::LoadSettings()
 
     MenuSettingsFullscreen();
 
-    m_pUI->actionForce_Game_Boy_DMG->setChecked(settings.value("ForceDMG", false).toBool());
+    m_pUI->actionSave_RAM_in_ROM_folder->setChecked(settings.value("SaveInROMFolder", false).toBool());
     settings.endGroup();
 
     settings.beginGroup("Input");
@@ -485,9 +529,10 @@ void MainWindow::SaveSettings()
     QSettings settings("gearsystem.ini", QSettings::IniFormat);
 
     settings.beginGroup("Gearsystem");
+    settings.setValue("SavestateSlot", m_iSelectedSlot);
     settings.setValue("ScreenSize", m_iScreenSize);
     settings.setValue("FullScreen", m_bFullscreen);
-    settings.setValue("ForceDMG", m_pUI->actionForce_Game_Boy_DMG->isChecked());
+    settings.setValue("SaveInROMFolder", m_pUI->actionSave_RAM_in_ROM_folder->isChecked());
     settings.endGroup();
 
     settings.beginGroup("Input");

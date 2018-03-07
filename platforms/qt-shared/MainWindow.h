@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef MAINWINDOW_H
@@ -53,17 +53,15 @@ public slots:
     void MenuGameBoyLoadROM();
     void MenuGameBoyPause();
     void MenuGameBoyReset();
-    void MenuGameBoySelectStateSlot();
+    void MenuGameBoySelectStateSlot(QAction* action);
     void MenuGameBoySaveState();
     void MenuGameBoyLoadState();
-    void MenuGameBoySaveStateAs();
-    void MenuGameBoyLoadStateFrom();
     void MenuSettingsInput();
     void MenuSettingsVideo();
     void MenuSettingsSound();
     void MenuSettingsWindowSize(QAction* action);
     void MenuSettingsFullscreen();
-    void MenuSettingsForceDMG();
+    void MenuSettingsSaveRAMInROMFolder();
     void MenuDebugDisassembler();
     void MenuDebugOAM();
     void MenuDebugMap();
@@ -75,6 +73,8 @@ public slots:
     void MenuSettingsReleased();
     void MenuDebugPressed();
     void MenuDebugReleased();
+    void MenuAboutPressed();
+    void MenuAboutReleased();
 
 protected:
     void closeEvent(QCloseEvent *evt);
@@ -91,9 +91,10 @@ private:
     Ui::MainWindow *m_pUI;
     GLFrame *m_pGLFrame;
     Emulator* m_pEmulator;
-    bool m_bMenuPressed[3];
+    bool m_bMenuPressed[4];
     int m_iScreenSize;
     bool m_bFullscreen;
+    int m_iSelectedSlot;
     QShortcut* m_pExitShortcut;
     InputSettings* m_pInputSettings;
     SoundSettings* m_pSoundSettings;

@@ -39,7 +39,7 @@
      <x>0</x>
      <y>0</y>
      <width>342</width>
-     <height>25</height>
+     <height>30</height>
     </rect>
    </property>
    <property name="sizePolicy">
@@ -68,6 +68,8 @@
     <addaction name="separator"/>
     <addaction name="menuWindow_Size"/>
     <addaction name="actionFullscreen"/>
+    <addaction name="separator"/>
+    <addaction name="actionSave_RAM_in_ROM_folder"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -105,9 +107,6 @@
     <addaction name="menuSelect_State_Slot"/>
     <addaction name="actionSave_State"/>
     <addaction name="actionLoad_State"/>
-    <addaction name="separator"/>
-    <addaction name="actionSave_State_as"/>
-    <addaction name="actionLad_State_from"/>
    </widget>
    <addaction name="menuGame_Boy"/>
    <addaction name="menuSettings"/>
@@ -309,6 +308,14 @@
     <string>About</string>
    </property>
   </action>
+  <action name="actionSave_RAM_in_ROM_folder">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Save RAM in ROM folder</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -325,6 +332,22 @@
     <hint type="destinationlabel">
      <x>319</x>
      <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSave_RAM_in_ROM_folder</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>MenuSettingsSaveRAMInROMFolder()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>170</x>
+     <y>160</y>
     </hint>
    </hints>
   </connection>
@@ -381,38 +404,6 @@
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>MenuGameBoyLoadState()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>159</x>
-     <y>156</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionSave_State_as</sender>
-   <signal>triggered()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>MenuGameBoySaveStateAs()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>159</x>
-     <y>156</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionLad_State_from</sender>
-   <signal>triggered()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>MenuGameBoyLoadStateFrom()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -585,21 +576,37 @@
    </hints>
   </connection>
   <connection>
-   <sender>menuWindow_Size</sender>
-   <signal>triggered(QAction*)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>MenuSettingsWindowSize(QAction*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>68</x>
-     <y>80</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>170</x>
-     <y>160</y>
-    </hint>
-   </hints>
+    <sender>menuWindow_Size</sender>
+    <signal>triggered(QAction*)</signal>
+    <receiver>MainWindow</receiver>
+    <slot>MenuSettingsWindowSize(QAction*)</slot>
+    <hints>
+     <hint type="sourcelabel">
+      <x>68</x>
+      <y>80</y>
+     </hint>
+     <hint type="destinationlabel">
+      <x>170</x>
+      <y>160</y>
+     </hint>
+    </hints>
   </connection>
+  <connection>
+    <sender>menuSelect_State_Slot</sender>
+    <signal>triggered(QAction*)</signal>
+    <receiver>MainWindow</receiver>
+    <slot>MenuGameBoySelectStateSlot(QAction*)</slot>
+    <hints>
+     <hint type="sourcelabel">
+      <x>68</x>
+      <y>80</y>
+     </hint>
+     <hint type="destinationlabel">
+      <x>170</x>
+      <y>160</y>
+     </hint>
+    </hints>
+   </connection>
  </connections>
  <slots>
   <slot>MenuGameBoyLoadROM()</slot>
@@ -607,15 +614,14 @@
   <slot>MenuGameBoyReset()</slot>
   <slot>MenuGameBoySaveState()</slot>
   <slot>MenuGameBoyLoadState()</slot>
-  <slot>MenuGameBoySelectStateSlot()</slot>
-  <slot>MenuGameBoySaveStateAs()</slot>
-  <slot>MenuGameBoyLoadStateFrom()</slot>
+  <slot>MenuGameBoySelectStateSlot(QAction*)</slot>
   <slot>MenuSettingsInput()</slot>
   <slot>MenuSettingsVideo()</slot>
   <slot>MenuSettingsSound()</slot>
   <slot>MenuSettingsFullscreen()</slot>
   <slot>MenuSettingsForceDMG()</slot>
   <slot>MenuDebugDisassembler()</slot>
+  <slot>MenuSettingsSaveRAMInROMFolder()</slot>
   <slot>MenuDebugOAM()</slot>
   <slot>MenuDebugMap()</slot>
   <slot>MenuDebugPalette()</slot>
