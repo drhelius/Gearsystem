@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -24,7 +24,7 @@ SOURCES += \
     ../../../src/audio/Effects_Buffer.cpp \
     ../../../src/audio/Multi_Buffer.cpp \
     ../../../src/audio/Sms_Apu.cpp \
-    ../../../src/audio/Sound_Queue.cpp \
+    ../../audio-shared/Sound_Queue.cpp \
     ../../../src/Audio.cpp \
     ../../../src/Cartridge.cpp \
     ../../../src/CodemastersMemoryRule.cpp \
@@ -62,7 +62,7 @@ HEADERS  += \
     ../../../src/audio/Multi_Buffer.h \
     ../../../src/audio/Sms_Apu.h \
     ../../../src/audio/Sms_Oscs.h \
-    ../../../src/audio/Sound_Queue.h \
+    ../../audio-shared/Sound_Queue.h \
     ../../../src/Audio.h \
     ../../../src/Cartridge.h \
     ../../../src/CodemastersMemoryRule.h \
