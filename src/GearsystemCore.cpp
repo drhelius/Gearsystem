@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "GearsystemCore.h"
@@ -50,7 +50,7 @@ GearsystemCore::GearsystemCore()
 GearsystemCore::~GearsystemCore()
 {
 #ifdef DEBUG_GEARSYSTEM
-    if (m_pCartridge->IsReady())
+    if (m_pCartridge->IsReady() && (strlen(m_pCartridge->GetFilePath()) > 0))
     {
         Log("Saving Memory Dump...");
 
@@ -82,7 +82,7 @@ GearsystemCore::~GearsystemCore()
 
 void GearsystemCore::Init()
 {
-    Log("-=:: GEARSYSTEM %1.1f ::=-", GEARSYSTEM_VERSION);
+    Log("-=:: GEARSYSTEM %s ::=-", GEARSYSTEM_VERSION);
 
     m_pMemory = new Memory();
     m_pProcessor = new Processor(m_pMemory);
@@ -103,7 +103,7 @@ void GearsystemCore::Init()
     InitMemoryRules();
 }
 
-void GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer)
+void GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount)
 {
     if (!m_bPaused && m_pCartridge->IsReady())
     {
@@ -115,14 +115,14 @@ void GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer)
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
         }
-        m_pAudio->EndFrame();
+        m_pAudio->EndFrame(pSampleBuffer, pSampleCount);
     }
 }
 
 bool GearsystemCore::LoadROM(const char* szFilePath)
 {
 #ifdef DEBUG_GEARSYSTEM
-    if (m_pCartridge->IsReady())
+    if (m_pCartridge->IsReady() && (strlen(m_pCartridge->GetFilePath()) > 0))
     {
         Log("Saving Memory Dump...");
 
@@ -139,8 +139,7 @@ bool GearsystemCore::LoadROM(const char* szFilePath)
     }
 #endif
 
-    bool loaded = m_pCartridge->LoadFromFile(szFilePath);
-    if (loaded)
+    if (m_pCartridge->LoadFromFile(szFilePath))
     {
         Reset();
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
@@ -149,6 +148,25 @@ bool GearsystemCore::LoadROM(const char* szFilePath)
         if (!romTypeOK)
         {
             Log("There was a problem with the cartridge header. File: %s...", szFilePath);
+        }
+
+        return romTypeOK;
+    }
+    else
+        return false;
+}
+
+bool GearsystemCore::LoadROMFromBuffer(const u8* buffer, int size)
+{
+    if (m_pCartridge->LoadFromBuffer(buffer, size))
+    {
+        Reset();
+        m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
+        bool romTypeOK = AddMemoryRules();
+
+        if (!romTypeOK)
+        {
+            Log("There was a problem with the cartridge header.");
         }
 
         return romTypeOK;
@@ -206,22 +224,37 @@ void GearsystemCore::ResetROM()
     }
 }
 
-void GearsystemCore::EnableSound(bool enabled)
+void GearsystemCore::ResetROMPreservingRAM()
 {
-    if (enabled)
+    if (m_pCartridge->IsReady())
     {
-        Log("Gearsystem sound ENABLED");
+        if (m_pMemory->GetCurrentRule()->PersistedRAM())
+        {
+            Log("Resetting preserving RAM...");
+
+            using namespace std;
+            stringstream stream;
+
+            m_pMemory->GetCurrentRule()->SaveRam(stream);
+
+            ResetROM();
+
+            stream.seekg(0, stream.end);
+            s32 size = (s32)stream.tellg();
+            stream.seekg(0, stream.beg);
+
+            m_pMemory->GetCurrentRule()->LoadRam(stream, size);
+        }
+        else
+        {
+            ResetROM();
+        }
     }
-    else
-    {
-        Log("Gearsystem sound DISABLED");
-    }
-    m_pAudio->Enable(enabled);
 }
 
-void GearsystemCore::ResetSound(bool soft)
+void GearsystemCore::ResetSound()
 {
-    m_pAudio->Reset(soft);
+    m_pAudio->Reset();
 }
 
 void GearsystemCore::SetSoundSampleRate(int rate)
@@ -243,24 +276,28 @@ void GearsystemCore::SaveRam(const char* szPath)
 
         using namespace std;
 
-        char path[512];
+        string path = "";
 
         if (IsValidPointer(szPath))
         {
-            strcpy(path, szPath);
-            strcat(path, "/");
-            strcat(path, m_pCartridge->GetFileName());
+            path += szPath;
+            path += "/";
+            path += m_pCartridge->GetFileName();
         }
         else
         {
-            strcpy(path, m_pCartridge->GetFilePath());
+            path = m_pCartridge->GetFilePath();
         }
 
-        strcat(path, ".gearsystem");
+        string::size_type i = path.rfind('.', path.length());
 
-        Log("Save file: %s", path);
+        if (i != string::npos) {
+            path.replace(i + 1, 3, "sav");
+        }
 
-        ofstream file(path, ios::out | ios::binary);
+        Log("Save file: %s", path.c_str());
+
+        ofstream file(path.c_str(), ios::out | ios::binary);
 
         m_pMemory->GetCurrentRule()->SaveRam(file);
 
@@ -275,39 +312,53 @@ void GearsystemCore::LoadRam()
 
 void GearsystemCore::LoadRam(const char* szPath)
 {
-    if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()))
+    if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()) && m_pMemory->GetCurrentRule()->PersistedRAM())
     {
         Log("Loading RAM...");
 
         using namespace std;
 
-        char path[512];
+        string sav_path = "";
 
         if (IsValidPointer(szPath))
         {
-            strcpy(path, szPath);
-            strcat(path, "/");
-            strcat(path, m_pCartridge->GetFileName());
+            sav_path += szPath;
+            sav_path += "/";
+            sav_path += m_pCartridge->GetFileName();
         }
         else
         {
-            strcpy(path, m_pCartridge->GetFilePath());
+            sav_path = m_pCartridge->GetFilePath();
         }
 
-        strcat(path, ".gearsystem");
+        string rom_path = sav_path;
 
-        Log("Opening save file: %s", path);
+        string::size_type i = sav_path.rfind('.', sav_path.length());
 
-        ifstream file(path, ios::in | ios::binary);
+        if (i != string::npos) {
+            sav_path.replace(i + 1, 3, "sav");
+        }
+
+        Log("Opening save file: %s", sav_path.c_str());
+
+        ifstream file;
+
+        file.open(sav_path.c_str(), ios::in | ios::binary);
+
+        // check for old .gearsystem saves
+        if (file.fail())
+        {
+            Log("Save file doesn't exist");
+            string old_sav_file = rom_path + ".gearsystem";
+
+            Log("Opening old save file: %s", old_sav_file.c_str());
+            file.open(old_sav_file.c_str(), ios::in | ios::binary);
+        }
 
         if (!file.fail())
         {
-            char signature[16];
-
-            file.read(signature, 16);
-
             file.seekg(0, file.end);
-            s32 fileSize = (s32) file.tellg();
+            s32 fileSize = (s32)file.tellg();
             file.seekg(0, file.beg);
 
             if (m_pMemory->GetCurrentRule()->LoadRam(file, fileSize))
@@ -326,9 +377,224 @@ void GearsystemCore::LoadRam(const char* szPath)
     }
 }
 
-float GearsystemCore::GetVersion()
+void GearsystemCore::SaveState(int index)
 {
-    return GEARSYSTEM_VERSION;
+    SaveState(NULL, index);
+}
+
+void GearsystemCore::SaveState(const char* szPath, int index)
+{
+    Log("Creating save state...");
+
+    using namespace std;
+
+    size_t size;
+    SaveState(NULL, size);
+
+    u8* buffer = new u8[size];
+    string path = "";
+
+    if (IsValidPointer(szPath))
+    {
+        path += szPath;
+        path += "/";
+        path += m_pCartridge->GetFileName();
+    }
+    else
+    {
+        path = m_pCartridge->GetFilePath();
+    }
+
+    string::size_type i = path.rfind('.', path.length());
+
+    if (i != string::npos) {
+        path.replace(i + 1, 3, "state");
+    }
+
+    std::stringstream sstm;
+    sstm << path << index;
+
+    Log("Save state file: %s", sstm.str().c_str());
+
+    ofstream file(sstm.str().c_str(), ios::out | ios::binary);
+
+    SaveState(file, size);
+
+    Log("Save state file created");
+
+    SafeDeleteArray(buffer);
+}
+
+bool GearsystemCore::SaveState(u8* buffer, size_t& size)
+{
+    bool ret = false;
+
+    if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()))
+    {
+        using namespace std;
+
+        stringstream stream;
+
+        if (SaveState(stream, size))
+            ret = true;
+
+        if (IsValidPointer(buffer))
+        {
+            Log("Saving state...");
+            memcpy(buffer, stream.str().c_str(), size);
+            ret = true;
+        }
+    }
+
+    return ret;
+}
+
+bool GearsystemCore::SaveState(std::ostream& stream, size_t& size)
+{
+    if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()))
+    {
+        Log("Gathering save state data...");
+
+        using namespace std;
+
+// todo
+        //m_pMemory->SaveState(stream);
+        //m_pProcessor->SaveState(stream);
+        //m_pVideo->SaveState(stream);
+        //m_pInput->SaveState(stream);
+        //m_pAudio->SaveState(stream);
+        //m_pMemory->GetCurrentRule()->SaveState(stream);
+
+        size = stream.tellp();
+        size += (sizeof(u32) * 2);
+
+        u32 header_magic = GS_SAVESTATE_MAGIC;
+        u32 header_size = size;
+
+        stream.write(reinterpret_cast<const char*> (&header_magic), sizeof(header_magic));
+        stream.write(reinterpret_cast<const char*> (&header_size), sizeof(header_size));
+
+        return true;
+    }
+
+    return false;
+}
+
+void GearsystemCore::LoadState(int index)
+{
+    LoadState(NULL, index);
+}
+
+void GearsystemCore::LoadState(const char* szPath, int index)
+{
+    Log("Loading save state...");
+
+    using namespace std;
+
+    string sav_path = "";
+
+    if (IsValidPointer(szPath))
+    {
+        sav_path += szPath;
+        sav_path += "/";
+        sav_path += m_pCartridge->GetFileName();
+    }
+    else
+    {
+        sav_path = m_pCartridge->GetFilePath();
+    }
+
+    string rom_path = sav_path;
+
+    string::size_type i = sav_path.rfind('.', sav_path.length());
+
+    if (i != string::npos) {
+        sav_path.replace(i + 1, 3, "state");
+    }
+
+    std::stringstream sstm;
+    sstm << sav_path << index;
+
+    Log("Opening save file: %s", sstm.str().c_str());
+
+    ifstream file;
+
+    file.open(sstm.str().c_str(), ios::in | ios::binary);
+
+    if (!file.fail())
+    {
+        if (LoadState(file))
+        {
+            Log("Save state loaded");
+        }
+    }
+    else
+    {
+        Log("Save state file doesn't exist");
+    }
+}
+
+bool GearsystemCore::LoadState(const u8* buffer, size_t size)
+{
+    if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()) && (size > 0) && IsValidPointer(buffer))
+    {
+        Log("Gathering load state data...");
+
+        using namespace std;
+
+        stringstream stream;
+
+        stream.write(reinterpret_cast<const char*> (buffer), size);
+
+        return LoadState(stream);
+    }
+
+    return false;
+}
+
+bool GearsystemCore::LoadState(std::istream& stream)
+{
+    if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()))
+    {
+        using namespace std;
+
+        u32 header_magic = 0;
+        u32 header_size = 0;
+
+        stream.seekg(0, ios::end);
+        size_t size = stream.tellg();
+        stream.seekg(0, ios::beg);
+
+        stream.seekg(-2 * (sizeof(u32)), ios::end);
+        stream.read(reinterpret_cast<char*> (&header_magic), sizeof(header_magic));
+        stream.read(reinterpret_cast<char*> (&header_size), sizeof(header_size));
+        stream.seekg(0, ios::beg);
+
+        if ((header_magic == GS_SAVESTATE_MAGIC) && (header_size == size))
+        {
+            Log("Loading state...");
+// todo
+            //m_pMemory->LoadState(stream);
+            //m_pProcessor->LoadState(stream);
+            //m_pVideo->LoadState(stream);
+            //m_pInput->LoadState(stream);
+            //m_pAudio->LoadState(stream);
+            //m_pMemory->GetCurrentRule()->LoadState(stream);
+
+            return true;
+        }
+        else
+        {
+            Log("Invalid save state size or header");
+        }
+    }
+
+    return false;
+}
+
+void GearsystemCore::SetRamModificationCallback(RamChangedCallback callback)
+{
+    m_pRamChangedCallback = callback;
 }
 
 void GearsystemCore::InitMemoryRules()
@@ -390,4 +656,3 @@ void GearsystemCore::Reset()
     m_pSmsIOPorts->Reset();
     m_bPaused = false;
 }
-

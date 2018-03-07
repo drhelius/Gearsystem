@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef EMULATOR_H
@@ -22,6 +22,7 @@
 
 #include <QMutex>
 #include "../../../src/gearsystem.h"
+#include "../../../platforms/audio-shared/Sound_Queue.h"
 
 class Emulator
 {
@@ -30,21 +31,28 @@ public:
     ~Emulator();
     void Init();
     void RunToVBlank(GS_Color* pFrameBuffer);
-    void LoadRom(const char* szFilePath);
+    void LoadRom(const char* szFilePath, bool saveInROMFolder);
     void KeyPressed(GS_Joypads joypad, GS_Keys key);
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
     void Pause();
     void Resume();
     bool IsPaused();
-    void Reset();
+    void Reset(bool saveInROMFolder);
     void MemoryDump();
     void SetSoundSettings(bool enabled, int rate);
+    void SaveState(int index);
+    void LoadState(int index);
+
+private:
     void SaveRam();
+    void LoadRam();
 
 private:
     GearsystemCore* m_pGearsystemCore;
+    Sound_Queue* m_pSoundQueue;
     QMutex m_Mutex;
+    bool m_bAudioEnabled;
+    bool m_bSaveInROMFolder;
 };
 
 #endif	/* EMULATOR_H */
-

@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef DEFINITIONS_H
@@ -27,15 +27,16 @@
 #include <stdint.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
-//#define DEBUG_GEARSYSTEM 1
+#define DEBUG_GEARSYSTEM 1
 
 #ifdef DEBUG_GEARSYSTEM
 #define DISASM_GEARSYSTEM 1
 #endif
 
-#define GEARSYSTEM_TITLE "Gearsystem 2.2"
-#define GEARSYSTEM_VERSION 2.2
+#define GEARSYSTEM_TITLE "Gearsystem 2.3.0"
+#define GEARSYSTEM_VERSION "2.3.0"
 
 #ifndef NULL
 #define NULL 0
@@ -51,6 +52,12 @@
 #define InitPointer(pointer) ((pointer) = NULL)
 #define IsValidPointer(pointer) ((pointer) != NULL)
 
+#if defined(MSB_FIRST) || defined(__BIG_ENDIAN__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+#define IS_BIG_ENDIAN
+#else
+#define IS_LITTLE_ENDIAN
+#endif
+
 typedef uint8_t u8;
 typedef int8_t s8;
 typedef uint16_t u16;
@@ -59,6 +66,8 @@ typedef uint32_t u32;
 typedef int32_t s32;
 typedef uint64_t u64;
 typedef int64_t s64;
+
+typedef void (*RamChangedCallback) (void);
 
 #define FLAG_CARRY 0x01
 #define FLAG_NEGATIVE 0x02
@@ -90,12 +99,30 @@ typedef int64_t s64;
 #define GS_LINES_PER_FRAME_PAL 313
 #define GS_FRAMES_PER_SECOND_PAL 50
 
+#define GS_AUDIO_BUFFER_SIZE 4096
+
+#define GS_SAVESTATE_MAGIC 0x28011983
+
 struct GS_Color
 {
+#if defined(__LIBRETRO__)
+    #if defined(IS_LITTLE_ENDIAN)
+    u8 blue;
+    u8 green;
+    u8 red;
+    u8 alpha;
+    #elif defined(IS_BIG_ENDIAN)
+    u8 alpha;
+    u8 red;
+    u8 green;
+    u8 blue;
+    #endif
+#else
     u8 red;
     u8 green;
     u8 blue;
     u8 alpha;
+#endif
 };
 
 enum GS_Keys
@@ -126,7 +153,7 @@ enum GS_System
 #ifdef DEBUG_GEARSYSTEM
 #define Log(msg, ...) (Log_func(msg, ##__VA_ARGS__))
 #else
-#define Log(msg, ...)  
+#define Log(msg, ...)
 #endif
 
 inline void Log_func(const char* const msg, ...)
@@ -165,4 +192,3 @@ inline u8 FlipBit(const u8 value, const u8 bit)
 }
 
 #endif	/* DEFINITIONS_H */
-

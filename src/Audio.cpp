@@ -22,12 +22,10 @@
 
 Audio::Audio()
 {
-    m_bEnabled = true;
-    m_Time = 0;
+    m_ElapsedCycles = 0;
     m_iSampleRate = 44100;
     InitPointer(m_pApu);
     InitPointer(m_pBuffer);
-    InitPointer(m_pSound);
     InitPointer(m_pSampleBuffer);
 }
 
@@ -35,42 +33,15 @@ Audio::~Audio()
 {
     SafeDelete(m_pApu);
     SafeDelete(m_pBuffer);
-    SafeDelete(m_pSound);
     SafeDeleteArray(m_pSampleBuffer);
 }
 
 void Audio::Init()
 {
-	std::string platform = SDL_GetPlatform();
-
-	if (platform == "Linux")
-	{
-	    if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
-		{
-			Log("--> ** Error initalizing audio subsystem: %s", error, SDL_GetError());
-	    }
-
-	    if (SDL_AudioInit("alsa") !=0 )
-		{
-			Log("--> ** Error initalizing audio using ALSA: %s", error, SDL_GetError());
-	    }
-
-	}
-	else
-	{
-	    if(SDL_Init(SDL_INIT_AUDIO) < 0)
-	    {
-			Log("--> ** SDL Audio not initialized: %s", SDL_GetError());
-	    }
-	}
-
-    atexit(SDL_Quit);
-
-    m_pSampleBuffer = new blip_sample_t[kSampleBufferSize];
+    m_pSampleBuffer = new blip_sample_t[GS_AUDIO_BUFFER_SIZE];
 
     m_pApu = new Sms_Apu();
     m_pBuffer = new Stereo_Buffer();
-    m_pSound = new Sound_Queue();
 
     // Clock rate for NTSC is 3579545, 3559545 to avoid sttutering at 60hz
     // Clock rate for PAL is 3546893
@@ -81,31 +52,13 @@ void Audio::Init()
     m_pBuffer->bass_freq(100);
 
     m_pApu->output(m_pBuffer->center(), m_pBuffer->left(), m_pBuffer->right());
-
-    m_pSound->start(m_iSampleRate, 2);
 }
 
-void Audio::Reset(bool soft)
+void Audio::Reset()
 {
-    m_bEnabled = true;
-    if (!soft)
-    {
-        m_pApu->reset();
-        m_pBuffer->clear();
-        m_Time = 0;
-    }
-    m_pSound->stop();
-    m_pSound->start(m_iSampleRate, 2);
-}
-
-void Audio::Enable(bool enabled)
-{
-    m_bEnabled = enabled;
-}
-
-bool Audio::IsEnabled() const
-{
-    return m_bEnabled;
+    m_pApu->reset();
+    m_pBuffer->clear();
+    m_ElapsedCycles = 0;
 }
 
 void Audio::SetSampleRate(int rate)
@@ -114,38 +67,35 @@ void Audio::SetSampleRate(int rate)
     {
         m_iSampleRate = rate;
         m_pBuffer->set_sample_rate(m_iSampleRate);
-        m_pSound->stop();
-        m_pSound->start(m_iSampleRate, 2);
     }
 }
 
-void Audio::WriteAudioRegister(u8 value)
+void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
 {
-    m_pApu->write_data((int)m_Time, value);
-}
+    m_pApu->end_frame(m_ElapsedCycles);
+    m_pBuffer->end_frame(m_ElapsedCycles);
 
-void Audio::WriteGGStereoRegister(u8 value)
-{
-    m_pApu->write_ggstereo((int)m_Time, value);
-}
+    int count = static_cast<int>(m_pBuffer->read_samples(m_pSampleBuffer, GS_AUDIO_BUFFER_SIZE));
 
-void Audio::EndFrame()
-{
-    m_pApu->end_frame((int)m_Time);
-    m_pBuffer->end_frame((int)m_Time);
-    m_Time = 0;
-
-    if (m_pBuffer->samples_avail() >= kSampleBufferSize)
+    if (IsValidPointer(pSampleBuffer) && IsValidPointer(pSampleCount))
     {
-        long count = m_pBuffer->read_samples(m_pSampleBuffer, kSampleBufferSize);
-        if (m_bEnabled)
+        *pSampleCount = count;
+
+        for (int i=0; i<count; i++)
         {
-            m_pSound->write(m_pSampleBuffer, (int)count);
+            pSampleBuffer[i] = m_pSampleBuffer[i];
         }
     }
+
+    m_ElapsedCycles = 0;
 }
 
-void Audio::Tick(unsigned int clockCycles)
+void Audio::SaveState(std::ostream& stream)
 {
-    m_Time += clockCycles;
+
+}
+
+void Audio::LoadState(std::istream& stream)
+{
+
 }

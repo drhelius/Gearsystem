@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include <QFileDialog>
@@ -44,7 +44,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     this->addAction(m_pUI->actionPause);
     this->addAction(m_pUI->actionSave_State);
     this->addAction(m_pUI->actionLoad_State);
-    
+
     this->setWindowTitle(GEARSYSTEM_TITLE);
 
     m_pExitShortcut = new QShortcut(QKeySequence(Qt::Key_Escape), this);
@@ -120,7 +120,7 @@ void MainWindow::InitalGameBoyLoadROM(const char* szFilePath)
     {
         m_pGLFrame->PauseRenderThread();
 
-        m_pEmulator->LoadRom(szFilePath);
+        m_pEmulator->LoadRom(szFilePath, true); // todo
         m_pUI->actionPause->setChecked(false);
 
         setFocus();
@@ -142,7 +142,7 @@ void MainWindow::MenuGameBoyLoadROM()
 
     if (!filename.isNull())
     {
-        m_pEmulator->LoadRom(filename.toUtf8().data());
+        m_pEmulator->LoadRom(filename.toUtf8().data(), true); // todo
         m_pUI->actionPause->setChecked(false);
     }
 
@@ -163,7 +163,7 @@ void MainWindow::MenuGameBoyPause()
 void MainWindow::MenuGameBoyReset()
 {
     m_pUI->actionPause->setChecked(false);
-    m_pEmulator->Reset();
+    m_pEmulator->Reset(true); // todo
 }
 
 void MainWindow::MenuGameBoySelectStateSlot()
@@ -499,7 +499,4 @@ void MainWindow::SaveSettings()
     settings.beginGroup("Sound");
     m_pSoundSettings->SaveSettings(settings);
     settings.endGroup();
-
-    m_pEmulator->SaveRam();
 }
-

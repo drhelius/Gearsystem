@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef AUDIO_H
@@ -22,7 +22,6 @@
 
 #include "definitions.h"
 #include "audio/Multi_Buffer.h"
-#include "audio/Sound_Queue.h"
 #include "audio/Sms_Apu.h"
 
 class Audio
@@ -31,25 +30,37 @@ public:
     Audio();
     ~Audio();
     void Init();
-    void Reset(bool soft = false);
-    void Enable(bool enabled);
-    bool IsEnabled() const;
+    void Reset();
     void SetSampleRate(int rate);
     void WriteAudioRegister(u8 value);
     void WriteGGStereoRegister(u8 value);
-    void EndFrame();
     void Tick(unsigned int clockCycles);
+    void EndFrame(s16* pSampleBuffer, int* pSampleCount);
+    void SaveState(std::ostream& stream);
+    void LoadState(std::istream& stream);
 
 private:
-    bool m_bEnabled;
     Sms_Apu* m_pApu;
     Stereo_Buffer* m_pBuffer;
-    long m_Time;
-    Sound_Queue* m_pSound;
+    int m_ElapsedCycles;
     int m_iSampleRate;
     blip_sample_t* m_pSampleBuffer;
 };
 
-const long kSampleBufferSize = 2048;
+inline void Audio::Tick(unsigned int clockCycles)
+{
+    m_ElapsedCycles += clockCycles;
+}
+
+inline void Audio::WriteAudioRegister(u8 value)
+{
+    m_pApu->write_data(m_ElapsedCycles, value);
+}
+
+inline void Audio::WriteGGStereoRegister(u8 value)
+{
+    m_pApu->write_ggstereo(m_ElapsedCycles, value);
+}
+
 
 #endif	/* AUDIO_H */

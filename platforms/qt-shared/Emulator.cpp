@@ -13,19 +13,25 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
+#include <QStandardPaths>
 #include "Emulator.h"
 
 Emulator::Emulator()
 {
     InitPointer(m_pGearsystemCore);
+    InitPointer(m_pSoundQueue);
+    m_bAudioEnabled = true;
+    m_bSaveInROMFolder = false;
 }
 
 Emulator::~Emulator()
 {
+    SaveRam();
+    SafeDelete(m_pSoundQueue);
     SafeDelete(m_pGearsystemCore);
 }
 
@@ -33,21 +39,35 @@ void Emulator::Init()
 {
     m_pGearsystemCore = new GearsystemCore();
     m_pGearsystemCore->Init();
+
+    m_pSoundQueue = new Sound_Queue();
+    m_pSoundQueue->start(44100, 2);
 }
 
-void Emulator::LoadRom(const char* szFilePath)
+void Emulator::LoadRom(const char* szFilePath, bool saveInROMFolder)
 {
     m_Mutex.lock();
-    m_pGearsystemCore->SaveRam();
+    m_bSaveInROMFolder = saveInROMFolder;
+    SaveRam();
     m_pGearsystemCore->LoadROM(szFilePath);
-    m_pGearsystemCore->LoadRam();
+    LoadRam();
     m_Mutex.unlock();
 }
 
 void Emulator::RunToVBlank(GS_Color* pFrameBuffer)
 {
     m_Mutex.lock();
-    m_pGearsystemCore->RunToVBlank(pFrameBuffer);
+
+    s16 sampleBufer[GS_AUDIO_BUFFER_SIZE];
+    int sampleCount = 0;
+
+    m_pGearsystemCore->RunToVBlank(pFrameBuffer, sampleBufer, &sampleCount);
+
+    if (m_bAudioEnabled && (sampleCount > 0))
+    {
+        m_pSoundQueue->write(sampleBufer, sampleCount);
+    }
+
     m_Mutex.unlock();
 }
 
@@ -69,6 +89,7 @@ void Emulator::Pause()
 {
     m_Mutex.lock();
     m_pGearsystemCore->Pause(true);
+    m_bAudioEnabled = false;
     m_Mutex.unlock();
 }
 
@@ -76,6 +97,7 @@ void Emulator::Resume()
 {
     m_Mutex.lock();
     m_pGearsystemCore->Pause(false);
+    m_bAudioEnabled = true;
     m_Mutex.unlock();
 }
 
@@ -87,12 +109,13 @@ bool Emulator::IsPaused()
     return paused;
 }
 
-void Emulator::Reset()
+void Emulator::Reset(bool saveInROMFolder)
 {
     m_Mutex.lock();
-    m_pGearsystemCore->SaveRam();
+    m_bSaveInROMFolder = saveInROMFolder;
+    SaveRam();
     m_pGearsystemCore->ResetROM();
-    m_pGearsystemCore->LoadRam();
+    LoadRam();
     m_Mutex.unlock();
 }
 
@@ -106,14 +129,39 @@ void Emulator::MemoryDump()
 void Emulator::SetSoundSettings(bool enabled, int rate)
 {
     m_Mutex.lock();
-    m_pGearsystemCore->EnableSound(enabled);
+    m_bAudioEnabled = enabled;
     m_pGearsystemCore->SetSoundSampleRate(rate);
+    m_pSoundQueue->stop();
+    m_pSoundQueue->start(rate, 2);
     m_Mutex.unlock();
 }
 
 void Emulator::SaveRam()
 {
+    if (m_bSaveInROMFolder)
+        m_pGearsystemCore->SaveRam();
+    else
+        m_pGearsystemCore->SaveRam(QStandardPaths::writableLocation(QStandardPaths::DataLocation).toStdString().c_str());
+}
+
+void Emulator::LoadRam()
+{
+    if (m_bSaveInROMFolder)
+        m_pGearsystemCore->LoadRam();
+    else
+        m_pGearsystemCore->LoadRam(QStandardPaths::writableLocation(QStandardPaths::DataLocation).toStdString().c_str());
+}
+
+void Emulator::SaveState(int index)
+{
     m_Mutex.lock();
-    m_pGearsystemCore->SaveRam();
+    m_pGearsystemCore->SaveState(index);
+    m_Mutex.unlock();
+}
+
+void Emulator::LoadState(int index)
+{
+    m_Mutex.lock();
+    m_pGearsystemCore->LoadState(index);
     m_Mutex.unlock();
 }
