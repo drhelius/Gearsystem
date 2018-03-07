@@ -10,8 +10,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include <stdio.h>
@@ -31,6 +31,7 @@
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #include "gearsystem.h"
+#include "../../platforms/audio-shared/Sound_Queue.h"
 
 using namespace std;
 using namespace libconfig;
@@ -52,8 +53,12 @@ const GLfloat kQuadTex[8] = { 0, 0, kGS_TexWidth, 0, kGS_TexWidth, kGS_TexHeight
 GLshort quadVerts[8];
 
 GearsystemCore* theGearsystemCore;
+Sound_Queue* theSoundQueue;
 GS_Color* theFrameBuffer;
 GLuint theGSTexture;
+s16 theSampleBufffer[GS_AUDIO_BUFFER_SIZE];
+
+bool audioEnabled = true;
 
 SDL_Joystick* game_pad = NULL;
 SDL_Keycode kc_keypad_left, kc_keypad_right, kc_keypad_up, kc_keypad_down, kc_keypad_1, kc_keypad_2, kc_keypad_start, kc_emulator_pause, kc_emulator_quit;
@@ -177,7 +182,14 @@ void update(void)
         }
     }
 
-    theGearsystemCore->RunToVBlank(theFrameBuffer);
+    int sampleCount = 0;
+
+    theGearsystemCore->RunToVBlank(theFrameBuffer, theSampleBufffer, &sampleCount);
+
+    if (audioEnabled && (sampleCount > 0))
+    {
+        theSoundQueue->write(theSampleBufffer, sampleCount);
+    }
 
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 224, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theFrameBuffer);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -422,6 +434,9 @@ void init(void)
     theGearsystemCore = new GearsystemCore();
     theGearsystemCore->Init();
 
+    theSoundQueue = new Sound_Queue();
+    theSoundQueue->start(44100, 2);
+
     theFrameBuffer = new GS_Color[GS_SMS_WIDTH * GS_SMS_HEIGHT];
 
     for (int y = 0; y < GS_SMS_HEIGHT; ++y)
@@ -473,6 +488,7 @@ void end(void)
     SDL_JoystickClose(game_pad);
 
     SafeDeleteArray(theFrameBuffer);
+    SafeDelete(theSoundQueue);
     SafeDelete(theGearsystemCore);
     SDL_DestroyWindow(theWindow);
     SDL_Quit();
@@ -496,7 +512,7 @@ int main(int argc, char** argv)
         {
             if (strcmp("-nosound", argv[i]) == 0)
             {
-                theGearsystemCore->EnableSound(false);
+                audioEnabled = false;
             }
             else
             {
