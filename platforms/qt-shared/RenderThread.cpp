@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "RenderThread.h"
@@ -38,10 +38,10 @@ RenderThread::~RenderThread()
 {
 }
 
-void RenderThread::ResizeViewport(const QSize &size)
+void RenderThread::ResizeViewport(const QSize &size, int pixel_ratio)
 {
-    m_iWidth = size.width();
-    m_iHeight = size.height();
+    m_iWidth = size.width() * pixel_ratio;
+    m_iHeight = size.height() * pixel_ratio;
     m_bResizeEvent = true;
 }
 
@@ -73,28 +73,35 @@ void RenderThread::SetEmulator(Emulator* pEmulator)
 void RenderThread::run()
 {
     m_pGLFrame->makeCurrent();
-    
+
     Init();
 
     while (m_bDoRendering)
     {
-        m_pGLFrame->makeCurrent();
-
-        if (!m_bPaused)
+        if (m_pGLFrame->parentWidget()->window()->isVisible())
         {
-            m_pEmulator->RunToVBlank(m_pFrameBuffer);
+            m_pGLFrame->makeCurrent();
 
-            if (m_bResizeEvent)
+            if (m_bPaused)
             {
-                m_bResizeEvent = false;
+                msleep(200);
+            }
+            else
+            {
+                m_pEmulator->RunToVBlank(m_pFrameBuffer);
+
+                if (m_bResizeEvent)
+                {
+                    m_bResizeEvent = false;
+                }
+
+                RenderFrame();
             }
 
-            RenderFrame();
+            m_pGLFrame->swapBuffers();
         }
-
-        m_pGLFrame->swapBuffers();
     }
-    
+
     SafeDeleteArray(m_pFrameBuffer);
     glDeleteTextures(1, &m_GBTexture);
 }
@@ -186,4 +193,3 @@ void RenderThread::SetBilinearFiletering(bool enabled)
 {
     m_bFiltering = enabled;
 }
-

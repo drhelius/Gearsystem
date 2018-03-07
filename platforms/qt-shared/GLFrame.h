@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef MYGLFRAME_H
@@ -47,6 +47,7 @@ protected:
     void closeEvent(QCloseEvent *evt);
     void resizeEvent(QResizeEvent *evt);
     void paintEvent(QPaintEvent *);
+    void resizeGL(int width, int height);
 
 private:
     RenderThread m_RenderThread;

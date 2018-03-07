@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "GLFrame.h"
@@ -61,7 +61,12 @@ bool GLFrame::IsRunningRenderThread()
 
 void GLFrame::resizeEvent(QResizeEvent *evt)
 {
-    m_RenderThread.ResizeViewport(evt->size() * devicePixelRatio());
+    m_RenderThread.ResizeViewport(evt->size(), this->devicePixelRatio());
+}
+
+void GLFrame::resizeGL(int width, int height)
+{
+    m_RenderThread.ResizeViewport(QSize(width, height), 1/*this->devicePixelRatio()*/);
 }
 
 void GLFrame::paintEvent(QPaintEvent *)
@@ -79,4 +84,3 @@ void GLFrame::SetBilinearFiletering(bool enabled)
 {
     m_RenderThread.SetBilinearFiletering(enabled);
 }
-

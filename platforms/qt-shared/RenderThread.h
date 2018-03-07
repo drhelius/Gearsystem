@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef MYRENDERTHREAD_H
@@ -40,7 +40,7 @@ class RenderThread : public QThread
 public:
     explicit RenderThread(GLFrame *pGLFrame = 0);
     virtual ~RenderThread();
-    void ResizeViewport(const QSize &size);
+    void ResizeViewport(const QSize &size, int pixel_ratio);
     void run();
     void Stop();
     void Pause();
