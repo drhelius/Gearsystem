@@ -42,6 +42,8 @@
     GLuint GBTexture;
     Texture* scanlineTexture;
     BOOL audioEnabled;
+    BOOL saveStatePending;
+    BOOL loadStatePending;
 }
 
 @property (nonatomic) float multiplier;
@@ -67,5 +69,7 @@
 - (void)renderQuadWithViewportWidth: (float)viewportWidth andHeight: (float)viewportHeight andMirrorY: (BOOL)mirrorY;
 - (void)setAudio: (BOOL)enabled;
 - (void)resetAudio;
+- (void)saveState;
+- (void)loadState;
 
 @end
