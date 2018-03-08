@@ -271,7 +271,7 @@
     <CustomBuild Include="..\..\qt-shared\SoundSettings.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
-    <ClInclude Include="..\..\..\src\audio\Sound_Queue.h">
+    <ClInclude Include="..\..\audio-shared\Sound_Queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\Video.h">
