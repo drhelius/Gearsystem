@@ -17,8 +17,8 @@
  *
  */
 
-#import <MediaPlayer/MediaPlayer.h>
 #import "GLViewController.h"
+#import <MediaPlayer/MediaPlayer.h>
 
 @interface GLViewController ()
 
@@ -44,7 +44,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
+
     self.paused = YES;
     
     self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(step)];
@@ -53,6 +53,7 @@
     float scale =[[UIScreen mainScreen] nativeScale];
     GLKView *view = (GLKView *)self.view;
     
+    self.theEmulator.glview = view;
     BOOL retina, iPad;
     retina = (scale != 1.0);
     

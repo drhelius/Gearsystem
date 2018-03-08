@@ -104,7 +104,7 @@ bool TextureManager::LoadTexture(Texture* pTexture, bool mipmaps)
             SafeDeleteArray(pBuffer);
             return false;
         }
-
+        
         SafeDeleteArray(pBuffer);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

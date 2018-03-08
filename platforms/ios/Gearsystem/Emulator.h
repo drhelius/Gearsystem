@@ -18,6 +18,7 @@
  */
 
 #import <Foundation/Foundation.h>
+#import <GLKit/GLKit.h>
 
 #ifdef __APPLE__
 #if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
@@ -26,22 +27,28 @@
 #endif
 
 #import "../../../src/gearsystem.h"
+#import "../../../platforms/audio-shared/Sound_Queue.h"
 #import "EmulatorInput.h"
 #include "texturemanager.h"
 
 @interface Emulator : NSObject
 {
     GearsystemCore* theGearsystemCore;
+    Sound_Queue* theSoundQueue;
+    s16 theSampleBufffer[AUDIO_BUFFER_SIZE];
     GS_Color* theFrameBuffer;
     GS_Color* theTexture;
     EmulatorInput* theInput;
     GLuint GBTexture;
     Texture* scanlineTexture;
+    BOOL audioEnabled;
 }
 
 @property (nonatomic) float multiplier;
 @property (nonatomic) BOOL retina;
 @property (nonatomic) BOOL iPad;
+@property (nonatomic) GLKView* glview;
+
 
 - (void)update;
 - (void)draw;

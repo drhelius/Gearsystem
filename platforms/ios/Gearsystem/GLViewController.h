@@ -27,9 +27,9 @@
 @property (strong, nonatomic) Emulator* theEmulator;
 @property (strong, nonatomic) CADisplayLink* displayLink;
 
-- (void)loadRomWithName: (NSString*) path;
-- (void)releaseContext;
-- (void)acquireContext;
+- (void) loadRomWithName: (NSString*) path;
+- (void) releaseContext;
+- (void) acquireContext;
 - (void) step;
 
 @end

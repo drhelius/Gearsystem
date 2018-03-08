@@ -6,12 +6,12 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * any later version.
- 
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- 
+
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/
  *
@@ -19,6 +19,7 @@
 
 #import <GLKit/GLKit.h>
 #import "Emulator.h"
+#include <SDL2/SDL.h>
 #include "inputmanager.h"
 
 const float kGB_Width = 256.0f;
@@ -45,6 +46,11 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
         
         theGearsystemCore = new GearsystemCore();
         theGearsystemCore->Init();
+
+        theSoundQueue = new Sound_Queue();
+        theSoundQueue->start(44100, 2);
+
+        audioEnabled = YES;
         
         theInput = new EmulatorInput(self);
         theInput->Init();
@@ -60,7 +66,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
                 theFrameBuffer[pixel].alpha = 0xFF;
             }
         }
-        
+
         for (int y = 0; y < 256; ++y)
         {
             for (int x = 0; x < 256; ++x)
@@ -79,6 +85,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     theGearsystemCore->SaveRam();
     SafeDeleteArray(theTexture);
     SafeDeleteArray(theFrameBuffer);
+    SafeDelete(theSoundQueue);
     SafeDelete(theGearsystemCore);
     [self shutdownGL];
 }
@@ -92,9 +99,16 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 -(void)update
 {
     InputManager::Instance().Update();
-    
-    theGearsystemCore->RunToVBlank(theFrameBuffer);
-    
+
+    int sampleCount = 0;
+
+    theGearsystemCore->RunToVBlank(theFrameBuffer, theSampleBufffer, &sampleCount);
+
+    if (audioEnabled && (sampleCount > 0))
+    {
+        theSoundQueue->write(theSampleBufffer, sampleCount);
+    }
+
     for (int y = 0; y < GS_SMS_HEIGHT; ++y)
     {
         int y_256 = y * 256;
@@ -114,15 +128,15 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 -(void)initGL
 {
     glGenTextures(1, &GBTexture);
-    
+
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    
+
     glVertexPointer(3, GL_FLOAT, 0, box);
     glTexCoordPointer(2, GL_FLOAT, 0, tex);
-    
+
     glClearColor(0.0, 0.0, 0.0, 0.0);
-    
+
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, GBTexture);
     [self setupTextureWithData: (GLvoid*) theTexture];
@@ -189,11 +203,13 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 -(void)pause
 {
     theGearsystemCore->Pause(true);
+    audioEnabled = NO;
 }
 
 -(void)resume
 {
     theGearsystemCore->Pause(false);
+    audioEnabled = YES;
 }
 
 -(BOOL)paused
@@ -215,12 +231,13 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 
 - (void)setAudio: (BOOL)enabled
 {
-    theGearsystemCore->EnableSound(enabled);
+    audioEnabled = enabled;
 }
 
 - (void)resetAudio
 {
-    theGearsystemCore->ResetSound(true);
+    theSoundQueue->stop();
+    theSoundQueue->start(44100, 2);
 }
 
 @end
