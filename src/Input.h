@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef INPUT_H
@@ -37,6 +37,8 @@ public:
     u8 GetPortDC();
     u8 GetPortDD();
     u8 GetPort00();
+    void SaveState(std::ostream& stream);
+    void LoadState(std::istream& stream);
 
 private:
     void Update();
@@ -53,4 +55,3 @@ private:
 };
 
 #endif	/* INPUT_H */
-

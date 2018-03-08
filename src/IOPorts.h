@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef IOPORTS_H
@@ -30,7 +30,8 @@ public:
     virtual void Reset() = 0;
     virtual u8 DoInput(u8 port) = 0;
     virtual void DoOutput(u8 port, u8 value) = 0;
+    virtual void SaveState(std::ostream& stream) = 0;
+    virtual void LoadState(std::istream& stream) = 0;
 };
 
 #endif	/* IOPORTS_H */
-

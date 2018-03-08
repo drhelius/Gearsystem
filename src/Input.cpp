@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "Input.h"
@@ -99,6 +99,30 @@ u8 Input::GetPort00()
 void Input::Update()
 {
     m_IOPortDC = (m_Joypad1 & 0x3F) + ((m_Joypad2 << 6) & 0xC0);
-    m_IOPortDD = ((m_Joypad2 >> 2) & 0x0F) | 0xF0;    
+    m_IOPortDD = ((m_Joypad2 >> 2) & 0x0F) | 0xF0;
     m_IOPort00 = (IsSetBit(m_Joypad1, Key_Start) ? 0x80 : 0) & 0x80;
+}
+
+void Input::SaveState(std::ostream& stream)
+{
+    using namespace std;
+
+    stream.write(reinterpret_cast<const char*> (&m_Joypad1), sizeof(m_Joypad1));
+    stream.write(reinterpret_cast<const char*> (&m_Joypad2), sizeof(m_Joypad2));
+    stream.write(reinterpret_cast<const char*> (&m_IOPortDC), sizeof(m_IOPortDC));
+    stream.write(reinterpret_cast<const char*> (&m_IOPortDD), sizeof(m_IOPortDD));
+    stream.write(reinterpret_cast<const char*> (&m_IOPort00), sizeof(m_IOPort00));
+    stream.write(reinterpret_cast<const char*> (&m_iInputCycles), sizeof(m_iInputCycles));
+}
+
+void Input::LoadState(std::istream& stream)
+{
+    using namespace std;
+
+    stream.read(reinterpret_cast<char*> (&m_Joypad1), sizeof(m_Joypad1));
+    stream.read(reinterpret_cast<char*> (&m_Joypad2), sizeof(m_Joypad2));
+    stream.read(reinterpret_cast<char*> (&m_IOPortDC), sizeof(m_IOPortDC));
+    stream.read(reinterpret_cast<char*> (&m_IOPortDD), sizeof(m_IOPortDD));
+    stream.read(reinterpret_cast<char*> (&m_IOPort00), sizeof(m_IOPort00));
+    stream.read(reinterpret_cast<char*> (&m_iInputCycles), sizeof(m_iInputCycles));
 }

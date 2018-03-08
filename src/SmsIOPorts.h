@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef SMSIOPORTS_H
@@ -35,6 +35,8 @@ public:
     void Reset();
     virtual u8 DoInput(u8 port);
     virtual void DoOutput(u8 port, u8 value);
+    virtual void SaveState(std::ostream& stream);
+    virtual void LoadState(std::istream& stream);
 private:
     Audio* m_pAudio;
     Video* m_pVideo;
@@ -45,4 +47,3 @@ private:
 };
 
 #endif	/* SMSIOPORTS_H */
-

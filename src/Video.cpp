@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "Video.h"
@@ -125,26 +125,26 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
     int max_height = m_bExtendedMode224 ? 224 : 192;
     bool return_vblank = false;
     m_pColorFrameBuffer = pColorFrameBuffer;
-    
+
     m_iCycleCounter += clockCycles;
-    
+
     ///// VINT /////
-    if (!m_bVIntReached && (m_iCycleCounter >= 222)) 
+    if (!m_bVIntReached && (m_iCycleCounter >= 222))
     {
         m_bVIntReached = true;
         if ((m_iRenderLine == (max_height + 1)) && (IsSetBit(m_VdpRegister[1], 5)))
             m_pProcessor->RequestINT(true);
     }
-    
+
     ///// XSCROLL /////
     if (!m_bScrollXLatched && (m_iCycleCounter >= 211))
     {
         m_bScrollXLatched = true;
         m_ScrollX = m_VdpRegister[8];   // latch scroll X
     }
-    
+
     ///// HINT /////
-    if (!m_bHIntReached && (m_iCycleCounter >= 224)) 
+    if (!m_bHIntReached && (m_iCycleCounter >= 224))
     {
         m_bHIntReached = true;
         if (m_iRenderLine <= max_height)
@@ -160,9 +160,9 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
         else
             m_iVdpRegister10Counter = m_VdpRegister[10];
     }
-    
+
     ///// VCOUNT /////
-    if (!m_bVCounterIncremented && (m_iCycleCounter >= 222)) 
+    if (!m_bVCounterIncremented && (m_iCycleCounter >= 222))
     {
         m_bVCounterIncremented = true;
         m_iVCounter++;
@@ -172,7 +172,7 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
             m_iVCounter = 0;
         }
     }
-    
+
     ///// FLAG VINT /////
     if (!m_bVIntFlagSet && (m_iCycleCounter >= 222))
     {
@@ -180,20 +180,20 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
         if (m_iRenderLine == (max_height + 1))
             m_VdpStatus = SetBit(m_VdpStatus, 7);
     }
-    
+
     ///// RENDER LINE /////
     if (m_iCycleCounter >= GS_CYCLES_PER_LINE)
     {
         if ((m_iRenderLine < max_height) && IsValidPointer(m_pColorFrameBuffer))
         {
-            ScanLine(m_iRenderLine);         
+            ScanLine(m_iRenderLine);
         }
         else if (m_iRenderLine == max_height)
         {
             return_vblank = true;
             if (!m_bExtendedMode224)
                 FillPadding();
-        }    
+        }
         m_iRenderLine++;
         m_iRenderLine %= m_iLinesPerFrame;
         m_iCycleCounter -= GS_CYCLES_PER_LINE;
@@ -485,7 +485,7 @@ void Video::RenderSprites(int line)
             break;
         }
     }
-    
+
     for (int sprite = max_sprite; sprite >= 0; sprite--)
     {
         int sprite_y = m_pVdpVRAM[sprite_table_address + sprite] + 1;
@@ -589,3 +589,62 @@ void Video::FillPadding()
     }
 }
 
+void Video::SaveState(std::ostream& stream)
+{
+    using namespace std;
+
+    stream.write(reinterpret_cast<const char*> (m_pInfoBuffer), GS_SMS_WIDTH * GS_SMS_HEIGHT);
+    stream.write(reinterpret_cast<const char*> (m_pVdpVRAM), 0x4000);
+    stream.write(reinterpret_cast<const char*> (m_pVdpCRAM), 0x40);
+    stream.write(reinterpret_cast<const char*> (&m_bFirstByteInSequence), sizeof(m_bFirstByteInSequence));
+    stream.write(reinterpret_cast<const char*> (m_VdpRegister), sizeof(m_VdpRegister));
+    stream.write(reinterpret_cast<const char*> (&m_VdpCode), sizeof(m_VdpCode));
+    stream.write(reinterpret_cast<const char*> (&m_VdpBuffer), sizeof(m_VdpBuffer));
+    stream.write(reinterpret_cast<const char*> (&m_VdpAddress), sizeof(m_VdpAddress));
+    stream.write(reinterpret_cast<const char*> (&m_iVCounter), sizeof(m_iVCounter));
+    stream.write(reinterpret_cast<const char*> (&m_iHCounter), sizeof(m_iHCounter));
+    stream.write(reinterpret_cast<const char*> (&m_iCycleCounter), sizeof(m_iCycleCounter));
+    stream.write(reinterpret_cast<const char*> (&m_VdpStatus), sizeof(m_VdpStatus));
+    stream.write(reinterpret_cast<const char*> (&m_iVdpRegister10Counter), sizeof(m_iVdpRegister10Counter));
+    stream.write(reinterpret_cast<const char*> (&m_ScrollX), sizeof(m_ScrollX));
+    stream.write(reinterpret_cast<const char*> (&m_ScrollY), sizeof(m_ScrollY));
+    stream.write(reinterpret_cast<const char*> (&m_iLinesPerFrame), sizeof(m_iLinesPerFrame));
+    stream.write(reinterpret_cast<const char*> (&m_bReg10CounterDecremented), sizeof(m_bReg10CounterDecremented));
+    stream.write(reinterpret_cast<const char*> (&m_bExtendedMode224), sizeof(m_bExtendedMode224));
+    stream.write(reinterpret_cast<const char*> (&m_bVIntFlagSet), sizeof(m_bVIntFlagSet));
+    stream.write(reinterpret_cast<const char*> (&m_bVIntReached), sizeof(m_bVIntReached));
+    stream.write(reinterpret_cast<const char*> (&m_bHIntReached), sizeof(m_bHIntReached));
+    stream.write(reinterpret_cast<const char*> (&m_bScrollXLatched), sizeof(m_bScrollXLatched));
+    stream.write(reinterpret_cast<const char*> (&m_bVCounterIncremented), sizeof(m_bVCounterIncremented));
+    stream.write(reinterpret_cast<const char*> (&m_iRenderLine), sizeof(m_iRenderLine));
+}
+
+void Video::LoadState(std::istream& stream)
+{
+    using namespace std;
+
+    stream.read(reinterpret_cast<char*> (m_pInfoBuffer), GS_SMS_WIDTH * GS_SMS_HEIGHT);
+    stream.read(reinterpret_cast<char*> (m_pVdpVRAM), 0x4000);
+    stream.read(reinterpret_cast<char*> (m_pVdpCRAM), 0x40);
+    stream.read(reinterpret_cast<char*> (&m_bFirstByteInSequence), sizeof(m_bFirstByteInSequence));
+    stream.read(reinterpret_cast<char*> (m_VdpRegister), sizeof(m_VdpRegister));
+    stream.read(reinterpret_cast<char*> (&m_VdpCode), sizeof(m_VdpCode));
+    stream.read(reinterpret_cast<char*> (&m_VdpBuffer), sizeof(m_VdpBuffer));
+    stream.read(reinterpret_cast<char*> (&m_VdpAddress), sizeof(m_VdpAddress));
+    stream.read(reinterpret_cast<char*> (&m_iVCounter), sizeof(m_iVCounter));
+    stream.read(reinterpret_cast<char*> (&m_iHCounter), sizeof(m_iHCounter));
+    stream.read(reinterpret_cast<char*> (&m_iCycleCounter), sizeof(m_iCycleCounter));
+    stream.read(reinterpret_cast<char*> (&m_VdpStatus), sizeof(m_VdpStatus));
+    stream.read(reinterpret_cast<char*> (&m_iVdpRegister10Counter), sizeof(m_iVdpRegister10Counter));
+    stream.read(reinterpret_cast<char*> (&m_ScrollX), sizeof(m_ScrollX));
+    stream.read(reinterpret_cast<char*> (&m_ScrollY), sizeof(m_ScrollY));
+    stream.read(reinterpret_cast<char*> (&m_iLinesPerFrame), sizeof(m_iLinesPerFrame));
+    stream.read(reinterpret_cast<char*> (&m_bReg10CounterDecremented), sizeof(m_bReg10CounterDecremented));
+    stream.read(reinterpret_cast<char*> (&m_bExtendedMode224), sizeof(m_bExtendedMode224));
+    stream.read(reinterpret_cast<char*> (&m_bVIntFlagSet), sizeof(m_bVIntFlagSet));
+    stream.read(reinterpret_cast<char*> (&m_bVIntReached), sizeof(m_bVIntReached));
+    stream.read(reinterpret_cast<char*> (&m_bHIntReached), sizeof(m_bHIntReached));
+    stream.read(reinterpret_cast<char*> (&m_bScrollXLatched), sizeof(m_bScrollXLatched));
+    stream.read(reinterpret_cast<char*> (&m_bVCounterIncremented), sizeof(m_bVCounterIncremented));
+    stream.read(reinterpret_cast<char*> (&m_iRenderLine), sizeof(m_iRenderLine));
+}

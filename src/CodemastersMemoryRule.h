@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef CODEMASTERSMEMORYRULE_H
@@ -30,6 +30,8 @@ public:
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);
     virtual void Reset();
+    virtual void SaveState(std::ostream& stream);
+    virtual void LoadState(std::istream& stream);
 
 private:
     int m_iMapperSlot[3];
@@ -37,4 +39,3 @@ private:
 };
 
 #endif	/* CODEMASTERSMEMORYRULE_H */
-

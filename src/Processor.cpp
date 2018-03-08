@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "Processor.h"
@@ -86,10 +86,15 @@ void Processor::SetIOPOrts(IOPorts* pIOPorts)
     m_pIOPorts = pIOPorts;
 }
 
+IOPorts* Processor::GetIOPOrts()
+{
+    return m_pIOPorts;
+}
+
 unsigned int Processor::Tick()
 {
     m_iTStates = 0;
-    
+
     if (!m_bInputLastCycle)
     {
         if (m_bNMIRequested)
@@ -115,11 +120,11 @@ unsigned int Processor::Tick()
             IncreaseR();
             XY.SetValue(PC.GetValue());
             return m_iTStates;
-        } 
+        }
 
         m_bAfterEI = false;
     }
-        
+
     ExecuteOPCode();
 
     return m_iTStates;
@@ -138,7 +143,7 @@ void Processor::RequestNMI()
 void Processor::ExecuteOPCode()
 {
     u8 opcode = FetchOPCode();
-    
+
     switch (opcode)
     {
         case 0xDD:
@@ -160,9 +165,9 @@ void Processor::ExecuteOPCode()
         {
             m_CurrentPrefix = 0x00;
             break;
-        } 
+        }
     }
-    
+
     switch (opcode)
     {
         case 0xCB:
@@ -174,15 +179,15 @@ void Processor::ExecuteOPCode()
                 m_bPrefixedCBOpcode = true;
                 m_PrefixedCBValue = m_pMemory->Read(PC.GetValue());
                 PC.Increment();
-            } 
+            }
             else
                 IncreaseR();
-                    
+
             opcode = FetchOPCode();
 
 #ifdef DISASM_GEARSYSTEM
             u16 opcode_address = PC.GetValue() - 1;
-            
+
             if (!m_pMemory->IsDisassembled(opcode_address))
             {
                 if (m_CurrentPrefix == 0xDD)
@@ -203,7 +208,7 @@ void Processor::ExecuteOPCode()
             }
             else
                 m_iTStates += kOPCodeCBTStates[opcode];
-            
+
             break;
         }
         case 0xED:
@@ -213,10 +218,10 @@ void Processor::ExecuteOPCode()
 
             m_CurrentPrefix = 0x00;
             opcode = FetchOPCode();
-            
+
 #ifdef DISASM_GEARSYSTEM
             u16 opcode_address = PC.GetValue() - 1;
-            
+
             if (!m_pMemory->IsDisassembled(opcode_address))
             {
                 m_pMemory->Disassemble(opcode_address, kOPCodeEDNames[opcode]);
@@ -235,7 +240,7 @@ void Processor::ExecuteOPCode()
 
 #ifdef DISASM_GEARSYSTEM
             u16 opcode_address = PC.GetValue() - 1;
-            
+
             if (!m_pMemory->IsDisassembled(opcode_address))
             {
                 if (m_CurrentPrefix == 0xDD)
@@ -300,6 +305,111 @@ void Processor::UndocumentedOPCode()
 
     Log("--> ** UNDOCUMENTED OP Code (%X) at $%.4X -- %s", opcode, opcode_address, kOPCodeNames[opcode]);
 #endif
+}
+
+void Processor::SaveState(std::ostream& stream)
+{
+    using namespace std;
+
+    u16 af = AF.GetValue();
+    u16 bc = BC.GetValue();
+    u16 de = DE.GetValue();
+    u16 hl = HL.GetValue();
+    u16 af2 = AF2.GetValue();
+    u16 bc2 = BC2.GetValue();
+    u16 de2 = DE2.GetValue();
+    u16 hl2 = HL2.GetValue();
+    u16 sp = SP.GetValue();
+    u16 pc = PC.GetValue();
+    u16 ix = IX.GetValue();
+    u16 iy = IY.GetValue();
+    u16 xy = XY.GetValue();
+    u8 i = I.GetValue();
+    u8 r = R.GetValue();
+
+    stream.write(reinterpret_cast<const char*> (&af), sizeof(af));
+    stream.write(reinterpret_cast<const char*> (&bc), sizeof(bc));
+    stream.write(reinterpret_cast<const char*> (&de), sizeof(de));
+    stream.write(reinterpret_cast<const char*> (&hl), sizeof(hl));
+    stream.write(reinterpret_cast<const char*> (&af2), sizeof(af2));
+    stream.write(reinterpret_cast<const char*> (&bc2), sizeof(bc2));
+    stream.write(reinterpret_cast<const char*> (&de2), sizeof(de2));
+    stream.write(reinterpret_cast<const char*> (&hl2), sizeof(hl2));
+    stream.write(reinterpret_cast<const char*> (&sp), sizeof(sp));
+    stream.write(reinterpret_cast<const char*> (&pc), sizeof(pc));
+    stream.write(reinterpret_cast<const char*> (&ix), sizeof(ix));
+    stream.write(reinterpret_cast<const char*> (&iy), sizeof(iy));
+    stream.write(reinterpret_cast<const char*> (&xy), sizeof(xy));
+    stream.write(reinterpret_cast<const char*> (&i), sizeof(i));
+    stream.write(reinterpret_cast<const char*> (&r), sizeof(r));
+
+    stream.write(reinterpret_cast<const char*> (&m_bIFF1), sizeof(m_bIFF1));
+    stream.write(reinterpret_cast<const char*> (&m_bIFF2), sizeof(m_bIFF2));
+    stream.write(reinterpret_cast<const char*> (&m_bHalt), sizeof(m_bHalt));
+    stream.write(reinterpret_cast<const char*> (&m_bBranchTaken), sizeof(m_bBranchTaken));
+    stream.write(reinterpret_cast<const char*> (&m_iTStates), sizeof(m_iTStates));
+    stream.write(reinterpret_cast<const char*> (&m_bAfterEI), sizeof(m_bAfterEI));
+    stream.write(reinterpret_cast<const char*> (&m_iInterruptMode), sizeof(m_iInterruptMode));
+    stream.write(reinterpret_cast<const char*> (&m_CurrentPrefix), sizeof(m_CurrentPrefix));
+    stream.write(reinterpret_cast<const char*> (&m_bINTRequested), sizeof(m_bINTRequested));
+    stream.write(reinterpret_cast<const char*> (&m_bNMIRequested), sizeof(m_bNMIRequested));
+    stream.write(reinterpret_cast<const char*> (&m_bPrefixedCBOpcode), sizeof(m_bPrefixedCBOpcode));
+    stream.write(reinterpret_cast<const char*> (&m_PrefixedCBValue), sizeof(m_PrefixedCBValue));
+    stream.write(reinterpret_cast<const char*> (&m_bInputLastCycle), sizeof(m_bInputLastCycle));
+}
+
+void Processor::LoadState(std::istream& stream)
+{
+    using namespace std;
+
+    u16 af, bc, de, hl, af2, bc2, de2, hl2, sp, pc, ix, iy, xy;
+    u8 i, r;
+
+    stream.read(reinterpret_cast<char*> (&af), sizeof(af));
+    stream.read(reinterpret_cast<char*> (&bc), sizeof(bc));
+    stream.read(reinterpret_cast<char*> (&de), sizeof(de));
+    stream.read(reinterpret_cast<char*> (&hl), sizeof(hl));
+    stream.read(reinterpret_cast<char*> (&af2), sizeof(af2));
+    stream.read(reinterpret_cast<char*> (&bc2), sizeof(bc2));
+    stream.read(reinterpret_cast<char*> (&de2), sizeof(de2));
+    stream.read(reinterpret_cast<char*> (&hl2), sizeof(hl2));
+    stream.read(reinterpret_cast<char*> (&sp), sizeof(sp));
+    stream.read(reinterpret_cast<char*> (&pc), sizeof(pc));
+    stream.read(reinterpret_cast<char*> (&ix), sizeof(ix));
+    stream.read(reinterpret_cast<char*> (&iy), sizeof(iy));
+    stream.read(reinterpret_cast<char*> (&xy), sizeof(xy));
+    stream.read(reinterpret_cast<char*> (&i), sizeof(i));
+    stream.read(reinterpret_cast<char*> (&r), sizeof(r));
+
+    AF.SetValue(af);
+    BC.SetValue(bc);
+    DE.SetValue(de);
+    HL.SetValue(hl);
+    AF2.SetValue(af2);
+    BC2.SetValue(bc2);
+    DE2.SetValue(de2);
+    HL2.SetValue(hl2);
+    SP.SetValue(sp);
+    PC.SetValue(pc);
+    IX.SetValue(ix);
+    IY.SetValue(iy);
+    XY.SetValue(xy);
+    I.SetValue(i);
+    R.SetValue(r);
+
+    stream.read(reinterpret_cast<char*> (&m_bIFF1), sizeof(m_bIFF1));
+    stream.read(reinterpret_cast<char*> (&m_bIFF2), sizeof(m_bIFF2));
+    stream.read(reinterpret_cast<char*> (&m_bHalt), sizeof(m_bHalt));
+    stream.read(reinterpret_cast<char*> (&m_bBranchTaken), sizeof(m_bBranchTaken));
+    stream.read(reinterpret_cast<char*> (&m_iTStates), sizeof(m_iTStates));
+    stream.read(reinterpret_cast<char*> (&m_bAfterEI), sizeof(m_bAfterEI));
+    stream.read(reinterpret_cast<char*> (&m_iInterruptMode), sizeof(m_iInterruptMode));
+    stream.read(reinterpret_cast<char*> (&m_CurrentPrefix), sizeof(m_CurrentPrefix));
+    stream.read(reinterpret_cast<char*> (&m_bINTRequested), sizeof(m_bINTRequested));
+    stream.read(reinterpret_cast<char*> (&m_bNMIRequested), sizeof(m_bNMIRequested));
+    stream.read(reinterpret_cast<char*> (&m_bPrefixedCBOpcode), sizeof(m_bPrefixedCBOpcode));
+    stream.read(reinterpret_cast<char*> (&m_PrefixedCBValue), sizeof(m_PrefixedCBValue));
+    stream.read(reinterpret_cast<char*> (&m_bInputLastCycle), sizeof(m_bInputLastCycle));
 }
 
 void Processor::InitOPCodeFunctors()
@@ -961,4 +1071,3 @@ void Processor::InitOPCodeFunctors()
         m_OPCodesED[i] = &Processor::InvalidOPCode;
     }
 }
-

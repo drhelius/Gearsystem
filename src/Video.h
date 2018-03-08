@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef VIDEO_H
@@ -45,6 +45,8 @@ public:
     void WriteData(u8 data);
     void WriteControl(u8 control);
     void LatchHCounter();
+    void SaveState(std::ostream& stream);
+    void LoadState(std::istream& stream);
 
 private:
     void ScanLine(int line);
@@ -114,7 +116,7 @@ inline GS_Color Video::ConvertTo8BitColor(int palette_color)
 }
 
 const u8 kVdpHCounter[228] = {
-      
+
   0x00,0x01,0x02,0x02,0x03,0x04,0x05,0x05,0x06,0x07,0x08,0x08,0x09,0x0A,0x0B,0x0B,
   0x0C,0x0D,0x0E,0x0E,0x0F,0x10,0x11,0x11,0x12,0x13,0x14,0x14,0x15,0x16,0x17,0x17,
   0x18,0x19,0x1A,0x1A,0x1B,0x1C,0x1D,0x1D,0x1E,0x1F,0x20,0x20,0x21,0x22,0x23,0x23,
@@ -133,4 +135,3 @@ const u8 kVdpHCounter[228] = {
 };
 
 #endif	/* VIDEO_H */
-

@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef MEMORY_H
@@ -41,6 +41,8 @@ public:
     bool IsDisassembled(u16 address);
     void LoadSlotsFromROM(u8* pTheROM, int size);
     void MemoryDump(const char* szFilePath);
+    void SaveState(std::ostream& stream);
+    void LoadState(std::istream& stream);
 
 private:
 
@@ -58,4 +60,3 @@ private:
 #include "Memory_inline.h"
 
 #endif	/* MEMORY_H */
-

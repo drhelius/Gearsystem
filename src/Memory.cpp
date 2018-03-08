@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include <iostream>
@@ -105,4 +105,18 @@ void Memory::MemoryDump(const char* szFilePath)
 
         myfile.close();
     }
+}
+
+void Memory::SaveState(std::ostream& stream)
+{
+    using namespace std;
+
+    stream.write(reinterpret_cast<const char*> (m_pMap), 0x10000);
+}
+
+void Memory::LoadState(std::istream& stream)
+{
+    using namespace std;
+
+    stream.read(reinterpret_cast<char*> (m_pMap), 0x10000);
 }

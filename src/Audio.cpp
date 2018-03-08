@@ -92,10 +92,20 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
 
 void Audio::SaveState(std::ostream& stream)
 {
+    using namespace std;
+
+    stream.write(reinterpret_cast<const char*> (&m_ElapsedCycles), sizeof(m_ElapsedCycles));
+    stream.write(reinterpret_cast<const char*> (m_pSampleBuffer), sizeof(blip_sample_t) * GS_AUDIO_BUFFER_SIZE);
 
 }
 
 void Audio::LoadState(std::istream& stream)
 {
+    using namespace std;
 
+    stream.read(reinterpret_cast<char*> (&m_ElapsedCycles), sizeof(m_ElapsedCycles));
+    stream.read(reinterpret_cast<char*> (m_pSampleBuffer), sizeof(blip_sample_t) * GS_AUDIO_BUFFER_SIZE);
+
+    m_pApu->reset();
+    m_pBuffer->clear();
 }

@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef PROCESSOR_H
@@ -37,6 +37,9 @@ public:
     void RequestINT(bool assert);
     void RequestNMI();
     void SetIOPOrts(IOPorts* pIOPorts);
+    IOPorts* GetIOPOrts();
+    void SaveState(std::ostream& stream);
+    void LoadState(std::istream& stream);
 
 private:
     typedef void (Processor::*OPCptr) (void);
@@ -794,4 +797,3 @@ const bool kZ80ParityTable[256] = {
 #include "Processor_inline.h"
 
 #endif	/* PROCESSOR_H */
-

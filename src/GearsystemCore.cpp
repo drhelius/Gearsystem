@@ -457,13 +457,13 @@ bool GearsystemCore::SaveState(std::ostream& stream, size_t& size)
 
         using namespace std;
 
-// todo
-        //m_pMemory->SaveState(stream);
-        //m_pProcessor->SaveState(stream);
-        //m_pVideo->SaveState(stream);
-        //m_pInput->SaveState(stream);
-        //m_pAudio->SaveState(stream);
-        //m_pMemory->GetCurrentRule()->SaveState(stream);
+        m_pMemory->SaveState(stream);
+        m_pProcessor->SaveState(stream);
+        m_pAudio->SaveState(stream);
+        m_pVideo->SaveState(stream);
+        m_pInput->SaveState(stream);
+        m_pMemory->GetCurrentRule()->SaveState(stream);
+        m_pProcessor->GetIOPOrts()->SaveState(stream);
 
         size = static_cast<size_t>(stream.tellp());
         size += (sizeof(u32) * 2);
@@ -570,16 +570,19 @@ bool GearsystemCore::LoadState(std::istream& stream)
         stream.read(reinterpret_cast<char*> (&header_size), sizeof(header_size));
         stream.seekg(0, ios::beg);
 
+        Log("header_size: %d size: %d", header_size, size);
+
         if ((header_magic == GS_SAVESTATE_MAGIC) && (header_size == size))
         {
             Log("Loading state...");
-// todo
-            //m_pMemory->LoadState(stream);
-            //m_pProcessor->LoadState(stream);
-            //m_pVideo->LoadState(stream);
-            //m_pInput->LoadState(stream);
-            //m_pAudio->LoadState(stream);
-            //m_pMemory->GetCurrentRule()->LoadState(stream);
+
+            m_pMemory->LoadState(stream);
+            m_pProcessor->LoadState(stream);
+            m_pAudio->LoadState(stream);
+            m_pVideo->LoadState(stream);
+            m_pInput->LoadState(stream);
+            m_pMemory->GetCurrentRule()->LoadState(stream);
+            m_pProcessor->GetIOPOrts()->LoadState(stream);
 
             return true;
         }

@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "CodemastersMemoryRule.h"
@@ -112,3 +112,18 @@ void CodemastersMemoryRule::Reset()
     m_iMapperSlotAddress[2] = m_iMapperSlot[2] * 0x4000;
 }
 
+void CodemastersMemoryRule::SaveState(std::ostream& stream)
+{
+    using namespace std;
+
+    stream.write(reinterpret_cast<const char*> (m_iMapperSlot), sizeof(m_iMapperSlot));
+    stream.write(reinterpret_cast<const char*> (m_iMapperSlotAddress), sizeof(m_iMapperSlotAddress));
+}
+
+void CodemastersMemoryRule::LoadState(std::istream& stream)
+{
+    using namespace std;
+
+    stream.read(reinterpret_cast<char*> (m_iMapperSlot), sizeof(m_iMapperSlot));
+    stream.read(reinterpret_cast<char*> (m_iMapperSlotAddress), sizeof(m_iMapperSlotAddress));
+}
