@@ -35,7 +35,7 @@
 {
     GearsystemCore* theGearsystemCore;
     Sound_Queue* theSoundQueue;
-    s16 theSampleBufffer[AUDIO_BUFFER_SIZE];
+    s16 theSampleBufffer[GS_AUDIO_BUFFER_SIZE];
     GS_Color* theFrameBuffer;
     GS_Color* theTexture;
     EmulatorInput* theInput;

@@ -46,7 +46,6 @@
 		66AB41AA1A1030D4006C951A /* Effects_Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66AB41A01A1030D4006C951A /* Effects_Buffer.cpp */; };
 		66AB41AB1A1030D4006C951A /* Multi_Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66AB41A21A1030D4006C951A /* Multi_Buffer.cpp */; };
 		66AB41AC1A1030D4006C951A /* Sms_Apu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66AB41A41A1030D4006C951A /* Sms_Apu.cpp */; };
-		66AB41AD1A1030D4006C951A /* Sound_Queue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66AB41A71A1030D4006C951A /* Sound_Queue.cpp */; };
 		66AB41C51A10312B006C951A /* sms_1008.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 66AB41B71A10312B006C951A /* sms_1008.jpg */; };
 		66AB41C71A10312B006C951A /* sms_832.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 66AB41B91A10312B006C951A /* sms_832.jpg */; };
 		66AB41C81A10312B006C951A /* sms_ipad_1920.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 66AB41BA1A10312B006C951A /* sms_ipad_1920.jpg */; };
@@ -56,6 +55,7 @@
 		66AB41DB1A103191006C951A /* GLViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66AB41CF1A103191006C951A /* GLViewController.mm */; };
 		66AB41DD1A103191006C951A /* inputmanager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66AB41D31A103191006C951A /* inputmanager.mm */; };
 		66AB41DE1A103191006C951A /* timer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66AB41D71A103191006C951A /* timer.mm */; };
+		66D7D0DC20516FEA0059268B /* Sound_Queue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66D7D0DA20516FEA0059268B /* Sound_Queue.cpp */; };
 		66FCDE3F1A113CF300E7F4F7 /* sms_1206.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 66FCDE3E1A113CF300E7F4F7 /* sms_1206.jpg */; };
 		66FCDE411A11421900E7F4F7 /* sms_2016.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 66FCDE401A11421900E7F4F7 /* sms_2016.jpg */; };
 /* End PBXBuildFile section */
@@ -157,8 +157,6 @@
 		66AB41A41A1030D4006C951A /* Sms_Apu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sms_Apu.cpp; path = ../../src/audio/Sms_Apu.cpp; sourceTree = "<group>"; };
 		66AB41A51A1030D4006C951A /* Sms_Apu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sms_Apu.h; path = ../../src/audio/Sms_Apu.h; sourceTree = "<group>"; };
 		66AB41A61A1030D4006C951A /* Sms_Oscs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sms_Oscs.h; path = ../../src/audio/Sms_Oscs.h; sourceTree = "<group>"; };
-		66AB41A71A1030D4006C951A /* Sound_Queue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound_Queue.cpp; path = ../../src/audio/Sound_Queue.cpp; sourceTree = "<group>"; };
-		66AB41A81A1030D4006C951A /* Sound_Queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sound_Queue.h; path = ../../src/audio/Sound_Queue.h; sourceTree = "<group>"; };
 		66AB41B71A10312B006C951A /* sms_1008.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = sms_1008.jpg; path = img/sms_1008.jpg; sourceTree = "<group>"; };
 		66AB41B91A10312B006C951A /* sms_832.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = sms_832.jpg; path = img/sms_832.jpg; sourceTree = "<group>"; };
 		66AB41BA1A10312B006C951A /* sms_ipad_1920.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = sms_ipad_1920.jpg; path = img/sms_ipad_1920.jpg; sourceTree = "<group>"; };
@@ -177,6 +175,8 @@
 		66AB41D61A103191006C951A /* timer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = timer.h; sourceTree = "<group>"; };
 		66AB41D71A103191006C951A /* timer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = timer.mm; sourceTree = "<group>"; };
 		66AB41D81A103191006C951A /* Vector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Vector.h; sourceTree = "<group>"; };
+		66D7D0DA20516FEA0059268B /* Sound_Queue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound_Queue.cpp; path = "../audio-shared/Sound_Queue.cpp"; sourceTree = "<group>"; };
+		66D7D0DB20516FEA0059268B /* Sound_Queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sound_Queue.h; path = "../audio-shared/Sound_Queue.h"; sourceTree = "<group>"; };
 		66FCDE3E1A113CF300E7F4F7 /* sms_1206.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = sms_1206.jpg; path = img/sms_1206.jpg; sourceTree = "<group>"; };
 		66FCDE401A11421900E7F4F7 /* sms_2016.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = sms_2016.jpg; path = img/sms_2016.jpg; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -275,6 +275,8 @@
 		66AB413B1A102C08006C951A /* Audio */ = {
 			isa = PBXGroup;
 			children = (
+				66D7D0DA20516FEA0059268B /* Sound_Queue.cpp */,
+				66D7D0DB20516FEA0059268B /* Sound_Queue.h */,
 				66AB419A1A1030D4006C951A /* blargg_common.h */,
 				66AB419B1A1030D4006C951A /* blargg_config.h */,
 				66AB419C1A1030D4006C951A /* blargg_source.h */,
@@ -288,8 +290,6 @@
 				66AB41A41A1030D4006C951A /* Sms_Apu.cpp */,
 				66AB41A51A1030D4006C951A /* Sms_Apu.h */,
 				66AB41A61A1030D4006C951A /* Sms_Oscs.h */,
-				66AB41A71A1030D4006C951A /* Sound_Queue.cpp */,
-				66AB41A81A1030D4006C951A /* Sound_Queue.h */,
 			);
 			name = Audio;
 			sourceTree = "<group>";
@@ -483,6 +483,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				66D7D0DC20516FEA0059268B /* Sound_Queue.cpp in Sources */,
 				66AB418E1A1030C2006C951A /* GearsystemCore.cpp in Sources */,
 				66AB418C1A1030C2006C951A /* CodemastersMemoryRule.cpp in Sources */,
 				66AB41101A102A95006C951A /* AppDelegate.mm in Sources */,
@@ -495,7 +496,6 @@
 				66AB41DE1A103191006C951A /* timer.mm in Sources */,
 				66AB418F1A1030C2006C951A /* Input.cpp in Sources */,
 				66AB41981A1030C2006C951A /* SmsIOPorts.cpp in Sources */,
-				66AB41AD1A1030D4006C951A /* Sound_Queue.cpp in Sources */,
 				66AB41931A1030C2006C951A /* opcodes_ed.cpp in Sources */,
 				66AB41DB1A103191006C951A /* GLViewController.mm in Sources */,
 				66AB41921A1030C2006C951A /* opcodes_cb.cpp in Sources */,
