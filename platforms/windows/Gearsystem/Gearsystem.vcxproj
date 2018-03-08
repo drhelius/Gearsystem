@@ -159,7 +159,7 @@
     <ClCompile Include="..\..\..\src\SmsIOPorts.cpp" />
     <ClCompile Include="..\..\..\src\audio\Sms_Apu.cpp" />
     <ClCompile Include="..\..\qt-shared\SoundSettings.cpp" />
-    <ClCompile Include="..\..\..\src\audio\Sound_Queue.cpp" />
+    <ClCompile Include="..\..\audio-shared\Sound_Queue.cpp" />
     <ClCompile Include="..\..\..\src\Video.cpp" />
     <ClCompile Include="..\..\qt-shared\VideoSettings.cpp" />
     <ClCompile Include="..\..\qt-shared\main.cpp" />
