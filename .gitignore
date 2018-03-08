@@ -5,6 +5,7 @@ private/
 
 # Mac files
 *.DS_Store
+*.dylib
 
 # Visual Studio files
 ipch/
@@ -13,6 +14,7 @@ ipch/
 *.[Cc]ache
 *.obj
 *.o
+*.dll
 *.exe
 *.exp
 *.pdb
@@ -51,6 +53,9 @@ desktop.ini
 *.bin
 *.zip
 *.gearsystem
+*.so
+*.sav
+*.state
 
 # Qt Ignores
 moc_*.cpp
@@ -66,4 +71,4 @@ xcuserdata/
 *.xcexplist
 *.xcsettings
 
-platforms/ios/Gearsystem.xcodeproj/project.xcworkspace/xcshareddata/Gearsystem.xccheckout
+*.xccheckout

@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include <string>
@@ -216,7 +216,7 @@ bool Cartridge::LoadFromFile(const char* path)
             filename = pathstr;
         }
     }
-    
+
     strcpy(m_szFileName, filename.c_str());
 
     ifstream file(path, ios::in | ios::binary | ios::ate);
@@ -273,6 +273,7 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
 {
     if (IsValidPointer(buffer))
     {
+        Log("Loading from buffer... Size: %d", size);
         // Some ROMs have 512 Byte File Headers
         if ((size % 1024) == 512)
         {
@@ -286,13 +287,15 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
             Log("Invalid size found. %d bytes", size);
             return false;
         }
-            
+
         m_iROMSize = size;
         m_pROM = new u8[m_iROMSize];
         memcpy(m_pROM, buffer, m_iROMSize);
-        
+
+        m_bReady = true;
+
         u32 crc = CalculateCRC32(0, m_pROM, m_iROMSize);
-        
+
         return GatherMetadata(crc);
     }
     else
@@ -314,7 +317,7 @@ bool Cartridge::TestValidROM(u16 location)
 {
     if (location + 0x10 > m_iROMSize)
         return false;
-    
+
     char tmrsega[9] = {0};
     tmrsega[8] = 0;
 
@@ -322,7 +325,7 @@ bool Cartridge::TestValidROM(u16 location)
     {
         tmrsega[i] = m_pROM[location + i];
     }
-    
+
     return (strcmp(tmrsega, "TMR SEGA") == 0);
 }
 
@@ -330,7 +333,7 @@ bool Cartridge::GatherMetadata(u32 crc)
 {
     u16 headerLocation = 0x7FF0;
     m_bValidROM = true;
-    
+
     if (!TestValidROM(headerLocation))
     {
         headerLocation = 0x1FF0;
@@ -343,7 +346,7 @@ bool Cartridge::GatherMetadata(u32 crc)
             }
         }
     }
-    
+
     if (m_bValidROM)
     {
         Log("ROM is Valid. Header found at: %X", headerLocation);
@@ -352,9 +355,9 @@ bool Cartridge::GatherMetadata(u32 crc)
     {
         Log("ROM is NOT Valid. No header found");
     }
-    
+
     u8 zone = (m_pROM[headerLocation + 0x0F] >> 4) & 0x0F;
-    
+
     switch (zone)
     {
         case 3:
@@ -402,7 +405,7 @@ bool Cartridge::GatherMetadata(u32 crc)
 
     Log("ROM Size: %d KB", m_iROMSize / 1024);
     Log("ROM Bank Count: %d", m_iROMBankCount);
-    
+
     if (m_iROMSize <= 0xC000)
     {
         // size <= 48KB
@@ -412,9 +415,9 @@ bool Cartridge::GatherMetadata(u32 crc)
     {
         m_Type = Cartridge::CartridgeSegaMapper;
     }
-    
+
     GetInfoFromDB(crc);
-    
+
     switch (m_Type)
     {
         case Cartridge::CartridgeRomOnlyMapper:
@@ -433,7 +436,7 @@ bool Cartridge::GatherMetadata(u32 crc)
             Log("ERROR with cartridge type!!");
             break;
     }
-    
+
     if (m_bGameGear)
     {
         Log("Game Gear cartridge identified");
@@ -446,32 +449,32 @@ void Cartridge::GetInfoFromDB(u32 crc)
 {
     int i = 0;
     bool found = false;
-    
+
     while(!found && (kGameDatabase[i].title != 0))
     {
         u32 db_crc = kGameDatabase[i].crc;
-        
+
         if (db_crc == crc)
         {
             found = true;
-            
+
             Log("ROM found in database: %s. CRC: %X", kGameDatabase[i].title, crc);
-            
+
             if (kGameDatabase[i].mapper == GS_DB_CODEMASTERS_MAPPER)
                 m_Type = Cartridge::CartridgeCodemastersMapper;
-            
+
             if (kGameDatabase[i].sms_mode)
             {
                 Log("Forcing Master System mode");
                 m_bGameGear = false;
             }
-            
+
             if (kGameDatabase[i].pal)
             {
                 Log("PAL cartridge: Running at 50Hz");
                 m_bPAL = true;
             }
-            
+
             if (kGameDatabase[i].no_battery)
             {
                 Log("Cartridge with SRAM but no battery");
@@ -481,10 +484,9 @@ void Cartridge::GetInfoFromDB(u32 crc)
         else
             i++;
     }
-    
+
     if (!found)
     {
         Log("ROM not found in database. CRC: %X", crc);
-    }     
+    }
 }
-
