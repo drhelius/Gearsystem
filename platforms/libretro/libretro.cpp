@@ -310,22 +310,17 @@ size_t retro_serialize_size(void)
 {
     size_t size;
     core->SaveState(NULL, size);
-    Log("retro_serialize_size %d", size);
     return size;
 }
 
 bool retro_serialize(void *data, size_t size)
 {
-    core->SaveState(reinterpret_cast<u8*>(data), size);
-    Log("retro_serialize %d", size);
-    return true;
+    return core->SaveState(reinterpret_cast<u8*>(data), size);
 }
 
 bool retro_unserialize(const void *data, size_t size)
 {
-    core->LoadState(reinterpret_cast<const u8*>(data), size);
-    Log("retro_unserialize %d", size);
-    return true;
+    return core->LoadState(reinterpret_cast<const u8*>(data), size);
 }
 
 void *retro_get_memory_data(unsigned id)
