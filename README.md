@@ -14,7 +14,7 @@ Follow me on Twitter for updates: http://twitter.com/drhelius
 Downloads
 --------
 - iOS (Jailbreak): [Cydia](http://modmyi.com/info/gearsystem.d.php). You can open rom files from other apps like Safari or Dropbox. They can be placed in <code>/var/mobile/Media/ROMs/Gearsystem</code> too. Save files are placed in <code>/var/mobile/Library/Gearsystem</code>
-- iOS: Build Gearsystem with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094). 
+- iOS: Build Gearsystem with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094).
 - Mac OS X: <code>brew install gearsystem</code>
 - Windows: [Gearsystem-2.2-Windows.zip](http://www.geardome.com/files/gearsystem/Gearsystem-2.2-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](http://www.microsoft.com/en-us/download/details.aspx?id=40784))
 - Linux: [Gearsystem-2.2-Linux.tar.gz](http://www.geardome.com/files/gearsystem/Gearsystem-2.2-Linux.tar.gz)
@@ -29,6 +29,8 @@ Features
 - Highly accurate VDP emulation including timing and SMS2 only 224 mode support.
 - Internal database for rom detection.
 - Audio emulation using SDL Audio and [Sms_Snd_Emu library](http://slack.net/%7Eant/libs/audio.html#Sms_Snd_Emu).
+- Saves battery powered RAM cartridges to file.
+- Save states.
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Compressed rom support (ZIP deflate).
 - Multi platform. Runs on Windows, Linux, Mac OS X, Raspberry Pi and iOS.
@@ -37,8 +39,8 @@ Build Instructions
 ----------------------
 
 ### iOS
-- Install Xcode for Mac OS X. You need iOS SDK 8 or later. 
-- Build the project. 
+- Install Xcode for Mac OS X. You need iOS SDK 8 or later.
+- Build the project.
 - Run it on real hardware using your iOS developer certificate. Make sure it compiles on Release for extra optimizations.
 - For jailbroken devices use the jailbreak branch.
 
@@ -60,7 +62,7 @@ sudo make install
 - Use <code>make -j 4</code> in the <code>platforms/raspberrypi3/Gearsystem/</code> folder to build the project.
 - Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the best performance.
 - The emulator generates a <code>gearsystem.cfg</code> configuration for you where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
- 
+
 ### Windows
 - You need Visual Studio 2015.
 - Install the [Qt 5 Open Source SDK for Windows](https://www.qt.io/download/).
@@ -97,7 +99,7 @@ Accuracy Tests
 
 Zexall Z80 instruction exerciser ([from SMS Power!](http://www.smspower.org/Homebrew/ZEXALL-SMS))
 
-Gearsystem passes all tests in Zexall, including undocumented instructions and behaviours. 
+Gearsystem passes all tests in Zexall, including undocumented instructions and behaviours.
 
 ![zexall.sms](http://www.geardome.com/files/gearsystem/zexall.png)
 
