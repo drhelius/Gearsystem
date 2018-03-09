@@ -42,16 +42,8 @@ u8 CodemastersMemoryRule::PerformRead(u16 address)
     }
     else if (address < 0x8000)
     {
-        // ROM page 1
-        /*if (m_bRAMBankActive[0] && (address >= 0x6000))
-        {
-            return m_pRAMBanks[address - 0x6000];
-        }
-        else*/
-        {
-            u8* pROM = m_pCartridge->GetROM();
-            return pROM[(address - 0x4000) + m_iMapperSlotAddress[1]];
-        }
+        u8* pROM = m_pCartridge->GetROM();
+        return pROM[(address - 0x4000) + m_iMapperSlotAddress[1]];
     }
     else if (address < 0xC000)
     {
@@ -153,6 +145,8 @@ void CodemastersMemoryRule::SaveState(std::ostream& stream)
 
     stream.write(reinterpret_cast<const char*> (m_iMapperSlot), sizeof(m_iMapperSlot));
     stream.write(reinterpret_cast<const char*> (m_iMapperSlotAddress), sizeof(m_iMapperSlotAddress));
+    stream.write(reinterpret_cast<const char*> (m_pCartRAM), 0x2000);
+    stream.write(reinterpret_cast<const char*> (&m_bRAMBankActive), sizeof(m_bRAMBankActive));
 }
 
 void CodemastersMemoryRule::LoadState(std::istream& stream)
@@ -161,4 +155,6 @@ void CodemastersMemoryRule::LoadState(std::istream& stream)
 
     stream.read(reinterpret_cast<char*> (m_iMapperSlot), sizeof(m_iMapperSlot));
     stream.read(reinterpret_cast<char*> (m_iMapperSlotAddress), sizeof(m_iMapperSlotAddress));
+    stream.read(reinterpret_cast<char*> (m_pCartRAM), 0x2000);
+    stream.read(reinterpret_cast<char*> (&m_bRAMBankActive), sizeof(m_bRAMBankActive));
 }

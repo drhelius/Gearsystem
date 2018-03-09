@@ -108,10 +108,10 @@ void SegaMemoryRule::PerformWrite(u16 address, u8 value)
         {
             case 0xFFFC:
             {
-                m_bRAMEnabled = IsSetBit(value, 3);
                 m_RAMBankStartAddress = IsSetBit(value, 2) ? 0x4000 : 0x0000;
+                m_bRAMEnabled = IsSetBit(value, 3);
                 if (m_bRAMEnabled && !m_pCartridge->HasRAMWithoutBattery())
-                    m_bPersistRAM = true;
+                    m_iPersistRAM = 1;
                 break;
             }
             case 0xFFFD:
@@ -134,13 +134,16 @@ void SegaMemoryRule::PerformWrite(u16 address, u8 value)
             }
         }
     }
+
+    if (m_iPersistRAM < 0)
+        m_iPersistRAM = 0;
 }
 
 void SegaMemoryRule::Reset()
 {
     m_RAMBankStartAddress = 0;
     m_bRAMEnabled = false;
-    m_bPersistRAM = false;
+    m_iPersistRAM = -1;
 
     for (int i = 0; i < 3; i++)
     {
@@ -186,17 +189,23 @@ bool SegaMemoryRule::LoadRam(std::istream & file, s32 fileSize)
 
 bool SegaMemoryRule::PersistedRAM()
 {
-    return m_bPersistRAM;
+    return (m_iPersistRAM == 1);
 }
 
 size_t SegaMemoryRule::GetRamSize()
 {
-    return m_bPersistRAM ? 0x8000 : 0;
+    if (m_iPersistRAM == 0)
+        return 0;
+    else
+        return 0x8000;
 }
 
 u8* SegaMemoryRule::GetRamBanks()
 {
-    return m_bPersistRAM ? m_pRAMBanks : NULL;
+    if (m_iPersistRAM == 0)
+        return NULL;
+    else
+        return m_pRAMBanks;
 }
 
 u8* SegaMemoryRule::GetPage(int index)
@@ -223,7 +232,7 @@ void SegaMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (m_iMapperSlotAddress), sizeof(m_iMapperSlotAddress));
     stream.write(reinterpret_cast<const char*> (&m_RAMBankStartAddress), sizeof(m_RAMBankStartAddress));
     stream.write(reinterpret_cast<const char*> (&m_bRAMEnabled), sizeof(m_bRAMEnabled));
-    stream.write(reinterpret_cast<const char*> (&m_bPersistRAM), sizeof(m_bPersistRAM));
+    stream.write(reinterpret_cast<const char*> (&m_iPersistRAM), sizeof(m_iPersistRAM));
 }
 
 void SegaMemoryRule::LoadState(std::istream& stream)
@@ -235,5 +244,5 @@ void SegaMemoryRule::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (m_iMapperSlotAddress), sizeof(m_iMapperSlotAddress));
     stream.read(reinterpret_cast<char*> (&m_RAMBankStartAddress), sizeof(m_RAMBankStartAddress));
     stream.read(reinterpret_cast<char*> (&m_bRAMEnabled), sizeof(m_bRAMEnabled));
-    stream.read(reinterpret_cast<char*> (&m_bPersistRAM), sizeof(m_bPersistRAM));
+    stream.read(reinterpret_cast<char*> (&m_iPersistRAM), sizeof(m_iPersistRAM));
 }

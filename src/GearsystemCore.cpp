@@ -312,7 +312,7 @@ void GearsystemCore::LoadRam()
 
 void GearsystemCore::LoadRam(const char* szPath)
 {
-    if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()) && m_pMemory->GetCurrentRule()->PersistedRAM())
+    if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
         Log("Loading RAM...");
 

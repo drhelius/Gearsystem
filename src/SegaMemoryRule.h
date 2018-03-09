@@ -45,7 +45,7 @@ private:
     u8* m_pRAMBanks;
     u16 m_RAMBankStartAddress;
     bool m_bRAMEnabled;
-    bool m_bPersistRAM;
+    int m_iPersistRAM;
 };
 
 #endif	/* SEGAMEMORYRULE_H */
