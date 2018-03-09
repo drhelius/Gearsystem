@@ -141,9 +141,6 @@ void retro_set_environment(retro_environment_t cb)
     };
 
     cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
-
-    // todo
-    //environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void *)vars);
 }
 
 void retro_set_audio_sample(retro_audio_sample_t cb)
@@ -264,49 +261,31 @@ bool retro_load_game(const struct retro_game_info *info)
 
     snprintf(retro_game_path, sizeof(retro_game_path), "%s", info->path);
 
-    struct retro_memory_descriptor descs[8];
-
+    struct retro_memory_descriptor descs[4];
     memset(descs, 0, sizeof(descs));
 
-/* todo
-    // IE
-    descs[0].ptr   = core->GetMemory()->GetMemoryMap() + 0xFFFF;
-    descs[0].start = 0xFFFF;
-    descs[0].len   = 1;
-    // HRAM
-    descs[1].ptr   = core->GetMemory()->GetMemoryMap() + 0xFF80;
-    descs[1].start = 0xFF80;
-    descs[1].len   = 0x0080;
-    // RAM
-    descs[2].ptr   = core->GetMemory()->GetMemoryMap() + 0xC000; // todo: fix GBC
-    descs[2].start = 0xC000;
-    descs[2].len   = 0x2000;
-    // CART RAM
-    descs[3].ptr   = core->GetMemory()->GetCurrentRule()->GetCurrentRamBank();
-    descs[3].start = 0xA000;
-    descs[3].len   = 0x2000;
-    // VRAM
-    descs[4].ptr   = core->GetMemory()->GetMemoryMap() + 0x8000; // todo: fix GBC
-    descs[4].start = 0x8000;
-    descs[4].len   = 0x2000;
+    // SYSTEM RAM
+    descs[0].ptr   = core->GetMemory()->GetMemoryMap() + 0xC000;
+    descs[0].start = 0xC000;
+    descs[0].len   = 0x2000;
     // ROM bank 0
-    descs[5].ptr   = core->GetMemory()->GetCurrentRule()->GetRomBank0();
-    descs[5].start = 0x0000;
-    descs[5].len   = 0x4000;
-    // ROM bank x
-    descs[6].ptr   = core->GetMemory()->GetCurrentRule()->GetCurrentRomBank1();
-    descs[6].start = 0x4000;
-    descs[6].len   = 0x4000;
-    // OAM
-    descs[7].ptr   = core->GetMemory()->GetMemoryMap() + 0xFE00;
-    descs[7].start = 0xFE00;
-    descs[7].len   = 0x00A0;
+    descs[1].ptr   = core->GetMemory()->GetCurrentRule()->GetPage(0);
+    descs[1].start = 0x0000;
+    descs[1].len   = 0x4000;
+    // ROM bank 1
+    descs[2].ptr   = core->GetMemory()->GetCurrentRule()->GetPage(1);
+    descs[2].start = 0x4000;
+    descs[2].len   = 0x4000;
+    // ROM bank 2 or CART RAM
+    descs[3].ptr   = core->GetMemory()->GetCurrentRule()->GetPage(2);
+    descs[3].start = 0x8000;
+    descs[3].len   = 0x4000;
 
     struct retro_memory_map mmaps;
     mmaps.descriptors = descs;
     mmaps.num_descriptors = sizeof(descs) / sizeof(descs[0]);
     environ_cb(RETRO_ENVIRONMENT_SET_MEMORY_MAPS, &mmaps);
-*/
+
     bool achievements = true;
     environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS, &achievements);
 
@@ -351,32 +330,26 @@ bool retro_unserialize(const void *data, size_t size)
 
 void *retro_get_memory_data(unsigned id)
 {
-    /* todo
     switch (id)
     {
         case RETRO_MEMORY_SAVE_RAM:
             return core->GetMemory()->GetCurrentRule()->GetRamBanks();
-        case RETRO_MEMORY_RTC:
-            return core->GetMemory()->GetCurrentRule()->GetRTCMemory();
         case RETRO_MEMORY_SYSTEM_RAM:
-            return core->IsCGB() ? core->GetMemory()->GetCGBRAM() : core->GetMemory()->GetMemoryMap() + 0xC000;
-    }*/
+            return core->GetMemory()->GetMemoryMap() + 0xC000;
+    }
 
     return NULL;
 }
 
 size_t retro_get_memory_size(unsigned id)
 {
-    /* todo
     switch (id)
     {
         case RETRO_MEMORY_SAVE_RAM:
            return core->GetMemory()->GetCurrentRule()->GetRamSize();
-        case RETRO_MEMORY_RTC:
-           return core->GetMemory()->GetCurrentRule()->GetRTCSize();
         case RETRO_MEMORY_SYSTEM_RAM:
-           return core->IsCGB() ? 0x8000 : 0x2000;
-    }*/
+           return 0x2000;
+    }
 
     return 0;
 }

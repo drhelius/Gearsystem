@@ -23,11 +23,13 @@
 
 CodemastersMemoryRule::CodemastersMemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
 {
+    m_pCartRAM = new u8[0x2000];
     Reset();
 }
 
 CodemastersMemoryRule::~CodemastersMemoryRule()
 {
+    SafeDeleteArray(m_pCartRAM);
 }
 
 u8 CodemastersMemoryRule::PerformRead(u16 address)
@@ -41,14 +43,28 @@ u8 CodemastersMemoryRule::PerformRead(u16 address)
     else if (address < 0x8000)
     {
         // ROM page 1
-        u8* pROM = m_pCartridge->GetROM();
-        return pROM[(address - 0x4000) + m_iMapperSlotAddress[1]];
+        /*if (m_bRAMBankActive[0] && (address >= 0x6000))
+        {
+            return m_pRAMBanks[address - 0x6000];
+        }
+        else*/
+        {
+            u8* pROM = m_pCartridge->GetROM();
+            return pROM[(address - 0x4000) + m_iMapperSlotAddress[1]];
+        }
     }
     else if (address < 0xC000)
     {
         // ROM page 2
-        u8* pROM = m_pCartridge->GetROM();
-        return pROM[(address - 0x8000) + m_iMapperSlotAddress[2]];
+        if (m_bRAMBankActive && (address >= 0xA000))
+        {
+            return m_pCartRAM[address - 0xA000];
+        }
+        else
+        {
+            u8* pROM = m_pCartridge->GetROM();
+            return pROM[(address - 0x8000) + m_iMapperSlotAddress[2]];
+        }
     }
     else
     {
@@ -72,6 +88,7 @@ void CodemastersMemoryRule::PerformWrite(u16 address, u8 value)
             }
             case 0x4000:
             {
+                m_bRAMBankActive = ((value & 0x80) != 0) && m_pCartridge->HasRAMWithoutBattery();
                 m_iMapperSlot[1] = value & (m_pCartridge->GetROMBankCount() - 1);
                 m_iMapperSlotAddress[1] = m_iMapperSlot[1] * 0x4000;
                 break;
@@ -84,7 +101,16 @@ void CodemastersMemoryRule::PerformWrite(u16 address, u8 value)
             }
             default:
             {
-                Log("--> ** Attempting to write on ROM address $%X %X", address, value);
+                if (!m_pCartridge->HasRAMWithoutBattery())
+                    Log("--> ** Attempting to write on ROM address $%X %X", address, value);
+            }
+        }
+
+        if (m_pCartridge->HasRAMWithoutBattery())
+        {
+            if ((address >= 0xA000) && (address < 0xC000) && m_bRAMBankActive)
+            {
+                m_pCartRAM[address - 0xA000] = value;
             }
         }
     }
@@ -110,6 +136,15 @@ void CodemastersMemoryRule::Reset()
     m_iMapperSlotAddress[1] = m_iMapperSlot[1] * 0x4000;
     m_iMapperSlot[2] = 0;
     m_iMapperSlotAddress[2] = m_iMapperSlot[2] * 0x4000;
+    m_bRAMBankActive = false;
+}
+
+u8* CodemastersMemoryRule::GetPage(int index)
+{
+    if ((index >= 0) && (index < 3))
+        return m_pMemory->GetMemoryMap() + (0x4000 * index);
+    else
+        return NULL;
 }
 
 void CodemastersMemoryRule::SaveState(std::ostream& stream)

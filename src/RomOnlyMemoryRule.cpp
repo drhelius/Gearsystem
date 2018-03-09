@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #include "RomOnlyMemoryRule.h"
@@ -58,4 +58,12 @@ void RomOnlyMemoryRule::PerformWrite(u16 address, u8 value)
 
 void RomOnlyMemoryRule::Reset()
 {
+}
+
+u8* RomOnlyMemoryRule::GetPage(int index)
+{
+    if ((index >= 0) && (index < 3))
+        return m_pMemory->GetMemoryMap() + (0x4000 * index);
+    else
+        return NULL;
 }

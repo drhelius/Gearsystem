@@ -189,6 +189,33 @@ bool SegaMemoryRule::PersistedRAM()
     return m_bPersistRAM;
 }
 
+size_t SegaMemoryRule::GetRamSize()
+{
+    return m_bPersistRAM ? 0x8000 : 0;
+}
+
+u8* SegaMemoryRule::GetRamBanks()
+{
+    return m_bPersistRAM ? m_pRAMBanks : NULL;
+}
+
+u8* SegaMemoryRule::GetPage(int index)
+{
+    switch (index)
+    {
+        case 0:
+        case 1:
+            return m_pCartridge->GetROM() + m_iMapperSlotAddress[index];
+        case 2:
+            if (m_bRAMEnabled)
+                return m_pRAMBanks + m_RAMBankStartAddress;
+            else
+                return m_pCartridge->GetROM() + m_iMapperSlotAddress[index];
+        default:
+            return NULL;
+    }
+}
+
 void SegaMemoryRule::SaveState(std::ostream& stream)
 {
     stream.write(reinterpret_cast<const char*> (m_pRAMBanks), 0x8000);

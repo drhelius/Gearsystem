@@ -48,7 +48,26 @@ void MemoryRule::SetRamChangedCallback(RamChangedCallback callback)
 
 bool MemoryRule::PersistedRAM()
 {
+    Log("MemoryRule::PersistedRAM not implemented");
     return false;
+}
+
+size_t MemoryRule::GetRamSize()
+{
+    Log("MemoryRule::GetRamSize not implemented");
+    return 0;
+}
+
+u8* MemoryRule::GetRamBanks()
+{
+    Log("MemoryRule::GetRamBanks not implemented");
+    return NULL;
+}
+
+u8* MemoryRule::GetPage(int)
+{
+    Log("MemoryRule::GetPage not implemented");
+    return NULL;
 }
 
 void MemoryRule::SaveState(std::ostream&)

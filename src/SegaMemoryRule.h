@@ -33,6 +33,9 @@ public:
     virtual void SaveRam(std::ostream &file);
     virtual bool LoadRam(std::istream &file, s32 fileSize);
     virtual bool PersistedRAM();
+    virtual size_t GetRamSize();
+    virtual u8* GetRamBanks();
+    virtual u8* GetPage(int index);
     virtual void SaveState(std::ostream& stream);
     virtual void LoadState(std::istream& stream);
 

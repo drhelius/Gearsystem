@@ -30,12 +30,15 @@ public:
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);
     virtual void Reset();
+    virtual u8* GetPage(int index);
     virtual void SaveState(std::ostream& stream);
     virtual void LoadState(std::istream& stream);
 
 private:
     int m_iMapperSlot[3];
     int m_iMapperSlotAddress[3];
+    u8* m_pCartRAM;
+    bool m_bRAMBankActive;
 };
 
 #endif	/* CODEMASTERSMEMORYRULE_H */
