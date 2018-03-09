@@ -1,8 +1,6 @@
 /*
- * Gearboy - Nintendo Game Boy Emulator
- * Copyright (C) 2012  Ignacio Sanchez
- * Copyright (C) 2017  Andrés Suárez
- * Copyright (C) 2017  Brad Parker
+ * Gearsystem - Sega Master System / Game Gear Emulator
+ * Copyright (C) 2013  Ignacio Sanchez
 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -260,31 +258,6 @@ bool retro_load_game(const struct retro_game_info *info)
     }
 
     snprintf(retro_game_path, sizeof(retro_game_path), "%s", info->path);
-
-    struct retro_memory_descriptor descs[4];
-    memset(descs, 0, sizeof(descs));
-
-    // SYSTEM RAM
-    descs[0].ptr   = core->GetMemory()->GetMemoryMap() + 0xC000;
-    descs[0].start = 0xC000;
-    descs[0].len   = 0x2000;
-    // ROM bank 0
-    descs[1].ptr   = core->GetMemory()->GetCurrentRule()->GetPage(0);
-    descs[1].start = 0x0000;
-    descs[1].len   = 0x4000;
-    // ROM bank 1
-    descs[2].ptr   = core->GetMemory()->GetCurrentRule()->GetPage(1);
-    descs[2].start = 0x4000;
-    descs[2].len   = 0x4000;
-    // ROM bank 2 or CART RAM
-    descs[3].ptr   = core->GetMemory()->GetCurrentRule()->GetPage(2);
-    descs[3].start = 0x8000;
-    descs[3].len   = 0x4000;
-
-    struct retro_memory_map mmaps;
-    mmaps.descriptors = descs;
-    mmaps.num_descriptors = sizeof(descs) / sizeof(descs[0]);
-    environ_cb(RETRO_ENVIRONMENT_SET_MEMORY_MAPS, &mmaps);
 
     bool achievements = true;
     environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS, &achievements);
