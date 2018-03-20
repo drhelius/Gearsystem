@@ -17,6 +17,7 @@
  *
  */
 
+#include <algorithm>
 #include "Processor.h"
 #include "opcode_timing.h"
 #include "opcode_names.h"
@@ -39,6 +40,7 @@ Processor::Processor(Memory* pMemory)
     m_bPrefixedCBOpcode = false;
     m_PrefixedCBValue = 0;
     m_bInputLastCycle = false;
+    m_ProActionReplayList.clear();
 }
 
 Processor::~Processor()
@@ -119,6 +121,7 @@ unsigned int Processor::Tick()
             m_iTStates += 13;
             IncreaseR();
             XY.SetValue(PC.GetValue());
+            UpdateProActionReplay();
             return m_iTStates;
         }
 
@@ -410,6 +413,37 @@ void Processor::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_bPrefixedCBOpcode), sizeof(m_bPrefixedCBOpcode));
     stream.read(reinterpret_cast<char*> (&m_PrefixedCBValue), sizeof(m_PrefixedCBValue));
     stream.read(reinterpret_cast<char*> (&m_bInputLastCycle), sizeof(m_bInputLastCycle));
+}
+
+void Processor::SetProActionReplayCheat(const char* szCheat)
+{
+    std::string code(szCheat);
+    std::transform(code.begin(), code.end(), code.begin(), ::toupper);
+
+    if (code.length() == 9)
+    {
+        ProActionReplayCode par;
+
+        par.value = (AsHex(code[7]) << 4 | AsHex(code[8])) & 0xFF;
+        par.address = ((AsHex(code[2]) << 12) | (AsHex(code[3]) << 8) | (AsHex(code[5]) << 4) | AsHex(code[6])) & 0xFFFF;
+
+        m_ProActionReplayList.push_back(par);
+    }
+}
+
+void Processor::ClearProActionReplayCheats()
+{
+    m_ProActionReplayList.clear();
+}
+
+void Processor::UpdateProActionReplay()
+{
+    std::list<ProActionReplayCode>::iterator it;
+
+    for (it = m_ProActionReplayList.begin(); it != m_ProActionReplayList.end(); it++)
+    {
+        m_pMemory->Write(it->address, it->value);
+    }
 }
 
 void Processor::InitOPCodeFunctors()

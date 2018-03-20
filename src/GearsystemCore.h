@@ -44,6 +44,7 @@ public:
     void RunToVBlank(GS_Color* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount);
     bool LoadROM(const char* szFilePath);
     bool LoadROMFromBuffer(const u8* buffer, int size);
+    bool GetRuntimeInfo(GS_RuntimeInfo& runtime_info);
     void KeyPressed(GS_Joypads joypad, GS_Keys key);
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
     void Pause(bool paused);
@@ -64,6 +65,8 @@ public:
     void LoadState(const char* szPath, int index);
     bool LoadState(const u8* buffer, size_t size);
     bool LoadState(std::istream& stream);
+    void SetCheat(const char* szCheat);
+    void ClearCheats();
     void SetRamModificationCallback(RamChangedCallback callback);
     Memory* GetMemory();
     Cartridge* GetCartridge();
