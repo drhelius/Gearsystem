@@ -33,7 +33,7 @@ Features
 - Save states.
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Compressed rom support (ZIP deflate).
-- Game Genie and GameShark cheat support.
+- Game Genie and Pro Action Replay cheat support.
 - Multi platform. Runs on Windows, Linux, Mac OS X, Raspberry Pi, iOS and as a libretro core (RetroArch).
 
 Build Instructions
