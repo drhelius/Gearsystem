@@ -63,6 +63,7 @@ void Cartridge::Reset()
     m_bGameGear = false;
     m_bPAL = false;
     m_bRAMWithoutBattery = false;
+    m_GameGenieList.clear();
 }
 
 bool Cartridge::IsGameGear() const
@@ -489,4 +490,53 @@ void Cartridge::GetInfoFromDB(u32 crc)
     {
         Log("ROM not found in database. CRC: %X", crc);
     }
+}
+
+void Cartridge::SetGameGenieCheat(const char* szCheat)
+{
+    std::string code(szCheat);
+    std::transform(code.begin(), code.end(), code.begin(), ::toupper);
+
+    if (m_bReady && (code.length() > 6) && ((code[3] < '0') || ((code[3] > '9') && (code[3] < 'A'))))
+    {
+        u8 new_value = (AsHex(code[0]) << 4 | AsHex(code[1])) & 0xFF;
+        u16 cheat_address = (AsHex(code[2]) << 8 | AsHex(code[4]) << 4 | AsHex(code[5]) | (AsHex(code[6]) ^ 0xF) << 12) & 0xFFFF;
+        bool avoid_compare = true;
+        u8 compare_value = 0;
+
+        if ((code.length() == 11) && ((code[7] < '0') || ((code[7] > '9') && (code[7] < 'A'))))
+        {
+            compare_value = (AsHex(code[8]) << 4 | AsHex(code[10])) ^ 0xFF;
+            compare_value = ((compare_value >> 2 | compare_value << 6) ^ 0x45) & 0xFF;
+            avoid_compare = false;
+        }
+
+        for (int bank = 0; bank < GetROMBankCount(); bank++)
+        {
+            int bank_address = (bank * 0x4000) + (cheat_address & 0x3FFF);
+
+            if (avoid_compare || (m_pROM[bank_address] == compare_value))
+            {
+                GameGenieCode undo_data;
+                undo_data.address = bank_address;
+                undo_data.old_value = m_pROM[bank_address];
+
+                m_pROM[bank_address] = new_value;
+
+                m_GameGenieList.push_back(undo_data);
+            }
+        }
+    }
+}
+
+void Cartridge::ClearGameGenieCheats()
+{
+    std::list<GameGenieCode>::iterator it;
+
+    for (it = m_GameGenieList.begin(); it != m_GameGenieList.end(); it++)
+    {
+        m_pROM[it->address] = it->old_value;
+    }
+
+    m_GameGenieList.clear();
 }

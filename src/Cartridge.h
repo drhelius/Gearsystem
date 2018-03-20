@@ -13,13 +13,14 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #ifndef CARTRIDGE_H
 #define	CARTRIDGE_H
 
+#include <list>
 #include "definitions.h"
 
 class Cartridge
@@ -62,6 +63,8 @@ public:
     u8* GetROM() const;
     bool LoadFromFile(const char* path);
     bool LoadFromBuffer(const u8* buffer, int size);
+    void SetGameGenieCheat(const char* szCheat);
+    void ClearGameGenieCheats();
 
 private:
     unsigned int Pow2Ceil(u16 n);
@@ -83,6 +86,14 @@ private:
     bool m_bGameGear;
     bool m_bPAL;
     bool m_bRAMWithoutBattery;
+
+    struct GameGenieCode
+    {
+        int address;
+        u8 old_value;
+    };
+
+    std::list<GameGenieCode> m_GameGenieList;
 };
 
 #endif	/* CARTRIDGE_H */

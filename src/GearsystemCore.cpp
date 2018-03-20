@@ -175,6 +175,19 @@ bool GearsystemCore::LoadROMFromBuffer(const u8* buffer, int size)
         return false;
 }
 
+bool GearsystemCore::GetRuntimeInfo(GS_RuntimeInfo& runtime_info)
+{
+    if (m_pCartridge->IsReady())
+    {
+        runtime_info.screen_width = 0;
+        runtime_info.screen_height = 0;
+        runtime_info.region = m_pCartridge->IsPAL() ? Region_PAL : Region_NTSC;
+        return true;
+    }
+
+    return false;
+}
+
 Memory* GearsystemCore::GetMemory()
 {
     return m_pMemory;
@@ -593,6 +606,26 @@ bool GearsystemCore::LoadState(std::istream& stream)
     }
 
     return false;
+}
+
+void GearsystemCore::SetCheat(const char* szCheat)
+{
+    std::string s = szCheat;
+    if ((s.length() == 7) || (s.length() == 11))
+    {
+        m_pCartridge->SetGameGenieCheat(szCheat);
+        m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
+    }
+    else
+    {
+
+    }
+}
+
+void GearsystemCore::ClearCheats()
+{
+    m_pCartridge->ClearGameGenieCheats();
+    m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
 }
 
 void GearsystemCore::SetRamModificationCallback(RamChangedCallback callback)

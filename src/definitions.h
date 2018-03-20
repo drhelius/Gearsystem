@@ -29,14 +29,14 @@
 #include <fstream>
 #include <sstream>
 
-#define DEBUG_GEARSYSTEM 1
+//#define DEBUG_GEARSYSTEM 1
 
 #ifdef DEBUG_GEARSYSTEM
 #define DISASM_GEARSYSTEM 1
 #endif
 
-#define GEARSYSTEM_TITLE "Gearsystem 2.3.0"
-#define GEARSYSTEM_VERSION "2.3.0"
+#define GEARSYSTEM_TITLE "Gearsystem 2.4.0"
+#define GEARSYSTEM_VERSION "2.4.0"
 
 #ifndef NULL
 #define NULL 0
@@ -146,6 +146,19 @@ enum GS_System
     System_GG
 };
 
+enum GS_Region
+{
+    Region_NTSC,
+    Region_PAL
+};
+
+struct GS_RuntimeInfo
+{
+    int screen_width;
+    int screen_height;
+    GS_Region region;
+};
+
 #ifdef DEBUG_GEARSYSTEM
 #define Log(msg, ...) (Log_func(msg, ##__VA_ARGS__))
 #else
@@ -185,6 +198,11 @@ inline bool IsSetBit(const u8 value, const u8 bit)
 inline u8 FlipBit(const u8 value, const u8 bit)
 {
     return value ^ (0x01 << bit);
+}
+
+inline int AsHex(const char c)
+{
+   return c >= 'A' ? c - 'A' + 0xA : c - '0';
 }
 
 #endif	/* DEFINITIONS_H */
