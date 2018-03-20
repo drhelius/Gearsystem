@@ -618,13 +618,14 @@ void GearsystemCore::SetCheat(const char* szCheat)
     }
     else
     {
-
+        m_pProcessor->SetProActionReplayCheat(szCheat);
     }
 }
 
 void GearsystemCore::ClearCheats()
 {
     m_pCartridge->ClearGameGenieCheats();
+    m_pProcessor->ClearProActionReplayCheats();
     m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
 }
 

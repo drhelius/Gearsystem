@@ -20,6 +20,7 @@
 #ifndef PROCESSOR_H
 #define	PROCESSOR_H
 
+#include <list>
 #include "definitions.h"
 #include "SixteenBitRegister.h"
 #include "Memory.h"
@@ -40,6 +41,8 @@ public:
     IOPorts* GetIOPOrts();
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
+    void SetProActionReplayCheat(const char* szCheat);
+    void ClearProActionReplayCheats();
 
 private:
     typedef void (Processor::*OPCptr) (void);
@@ -77,6 +80,13 @@ private:
     u8 m_PrefixedCBValue;
     bool m_bInputLastCycle;
 
+    struct ProActionReplayCode
+    {
+        u16 address;
+        u8 value;
+    };
+    std::list<ProActionReplayCode> m_ProActionReplayList;
+
 private:
     u8 FetchOPCode();
     u16 FetchArg16();
@@ -96,6 +106,7 @@ private:
     void StackPop(SixteenBitRegister* reg);
     void SetInterruptMode(int mode);
     void IncreaseR();
+    void UpdateProActionReplay();
     void InvalidOPCode();
     void UndocumentedOPCode();
     SixteenBitRegister* GetPrefixedRegister();
