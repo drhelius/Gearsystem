@@ -39,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     for (int i=0; i<4;i++)
         m_bMenuPressed[i] = false;
-        
+
     m_pUI = new Ui::MainWindow();
     m_pUI->setupUi(this);
 
@@ -253,14 +253,14 @@ void MainWindow::MenuSettingsFullscreen()
         int w = qApp->desktop()->size().width();
         int h = qApp->desktop()->size().height();
 
-        int factor = h / GS_SMS_HEIGHT;
+        int factor = h / GS_RESOLUTION_MAX_HEIGHT;
 
-        m_pGLFrame->setMaximumSize(GS_SMS_WIDTH * factor, GS_SMS_HEIGHT * factor);
-        m_pGLFrame->setMinimumSize(GS_SMS_WIDTH * factor, GS_SMS_HEIGHT * factor);
+        m_pGLFrame->setMaximumSize(GS_RESOLUTION_MAX_WIDTH * factor, GS_RESOLUTION_MAX_HEIGHT * factor);
+        m_pGLFrame->setMinimumSize(GS_RESOLUTION_MAX_WIDTH * factor, GS_RESOLUTION_MAX_HEIGHT * factor);
 
-        int move_x = (w - (GS_SMS_WIDTH * factor)) / 2;
-        int move_y = (h - (GS_SMS_HEIGHT * factor)) / 2;
-        m_pGLFrame->setGeometry(move_x, move_y, GS_SMS_WIDTH * factor, GS_SMS_HEIGHT * factor);
+        int move_x = (w - (GS_RESOLUTION_MAX_WIDTH * factor)) / 2;
+        int move_y = (h - (GS_RESOLUTION_MAX_HEIGHT * factor)) / 2;
+        m_pGLFrame->setGeometry(move_x, move_y, GS_RESOLUTION_MAX_WIDTH * factor, GS_RESOLUTION_MAX_HEIGHT * factor);
     }
 
     setFocus();
@@ -428,8 +428,8 @@ void MainWindow::keyReleaseEvent(QKeyEvent* e)
 void MainWindow::ResizeWindow(int factor)
 {
     m_iScreenSize = factor;
-    m_pGLFrame->setMaximumSize(GS_SMS_WIDTH * factor, GS_SMS_HEIGHT * factor);
-    m_pGLFrame->setMinimumSize(GS_SMS_WIDTH * factor, GS_SMS_HEIGHT * factor);
+    m_pGLFrame->setMaximumSize(GS_RESOLUTION_MAX_WIDTH * factor, GS_RESOLUTION_MAX_HEIGHT * factor);
+    m_pGLFrame->setMinimumSize(GS_RESOLUTION_MAX_WIDTH * factor, GS_RESOLUTION_MAX_HEIGHT * factor);
 }
 
 bool MainWindow::eventFilter(QObject * watched, QEvent * event)

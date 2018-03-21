@@ -25,7 +25,7 @@ RenderThread::RenderThread(GLFrame* pGLFrame) : QThread(), m_pGLFrame(pGLFrame)
 {
     m_bPaused = false;
     m_bDoRendering = true;
-    m_pFrameBuffer = new GS_Color[GS_SMS_WIDTH * GS_SMS_HEIGHT];
+    m_pFrameBuffer = new GS_Color[GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT];
     m_iWidth = 0;
     m_iHeight = 0;
     InitPointer(m_pEmulator);
@@ -108,11 +108,11 @@ void RenderThread::run()
 
 void RenderThread::Init()
 {
-    for (int y = 0; y < GS_SMS_HEIGHT; ++y)
+    for (int y = 0; y < GS_RESOLUTION_MAX_HEIGHT; ++y)
     {
-        for (int x = 0; x < GS_SMS_WIDTH; ++x)
+        for (int x = 0; x < GS_RESOLUTION_MAX_WIDTH; ++x)
         {
-            int pixel = (y * GS_SMS_WIDTH) + x;
+            int pixel = (y * GS_RESOLUTION_MAX_WIDTH) + x;
             m_pFrameBuffer[pixel].red = m_pFrameBuffer[pixel].green =
                     m_pFrameBuffer[pixel].blue = 0x00;
             m_pFrameBuffer[pixel].alpha = 0xFF;
@@ -138,7 +138,7 @@ void RenderThread::Init()
 
 void RenderThread::SetupTexture(GLvoid* data)
 {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, GS_SMS_WIDTH, GS_SMS_HEIGHT, 0,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, GS_RESOLUTION_MAX_WIDTH, GS_RESOLUTION_MAX_HEIGHT, 0,
             GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) data);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -151,7 +151,7 @@ void RenderThread::RenderFrame()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, m_GBTexture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GS_SMS_WIDTH, GS_SMS_HEIGHT,
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GS_RESOLUTION_MAX_WIDTH, GS_RESOLUTION_MAX_HEIGHT,
             GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
     if (m_bFiltering)
     {
