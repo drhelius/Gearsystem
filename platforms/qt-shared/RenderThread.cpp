@@ -30,8 +30,8 @@ RenderThread::RenderThread(GLFrame* pGLFrame) : QThread(), m_pGLFrame(pGLFrame)
     m_iHeight = 0;
     InitPointer(m_pEmulator);
     m_bFiltering = false;
-    m_bResizeEvent = false;
-    m_GBTexture = 0;
+    for (int i=0; i<3; i++)
+        m_GBTexture[i] = 0;
 }
 
 RenderThread::~RenderThread()
@@ -42,7 +42,6 @@ void RenderThread::ResizeViewport(const QSize &size, int pixel_ratio)
 {
     m_iWidth = size.width() * pixel_ratio;
     m_iHeight = size.height() * pixel_ratio;
-    m_bResizeEvent = true;
 }
 
 void RenderThread::Stop()
@@ -89,12 +88,6 @@ void RenderThread::run()
             else
             {
                 m_pEmulator->RunToVBlank(m_pFrameBuffer);
-
-                if (m_bResizeEvent)
-                {
-                    m_bResizeEvent = false;
-                }
-
                 RenderFrame();
             }
 
@@ -103,7 +96,7 @@ void RenderThread::run()
     }
 
     SafeDeleteArray(m_pFrameBuffer);
-    glDeleteTextures(1, &m_GBTexture);
+    glDeleteTextures(3, m_GBTexture);
 }
 
 void RenderThread::Init()
@@ -129,29 +122,44 @@ void RenderThread::Init()
     Log("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 #endif
 
-    glGenTextures(1, &m_GBTexture);
-
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, m_GBTexture);
     SetupTexture((GLvoid*) m_pFrameBuffer);
 }
 
 void RenderThread::SetupTexture(GLvoid* data)
 {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, GS_RESOLUTION_MAX_WIDTH, GS_RESOLUTION_MAX_HEIGHT, 0,
-            GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) data);
+    glGenTextures(3, m_GBTexture);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glEnable(GL_TEXTURE_2D);
+
+    glBindTexture(GL_TEXTURE_2D, m_GBTexture[0]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, GS_RESOLUTION_GG_WIDTH, GS_RESOLUTION_GG_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) data);
+    glBindTexture(GL_TEXTURE_2D, m_GBTexture[1]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, GS_RESOLUTION_SMS_WIDTH, GS_RESOLUTION_SMS_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) data);
+    glBindTexture(GL_TEXTURE_2D, m_GBTexture[2]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, GS_RESOLUTION_SMS_WIDTH, GS_RESOLUTION_SMS_HEIGHT_EXTENDED, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) data);
 }
 
 void RenderThread::RenderFrame()
 {
+    GS_RuntimeInfo runtime_info;
+    m_pEmulator->GetRuntimeInfo(runtime_info);
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, m_GBTexture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GS_RESOLUTION_MAX_WIDTH, GS_RESOLUTION_MAX_HEIGHT,
+    switch (runtime_info.screen_height)
+    {
+        case GS_RESOLUTION_GG_HEIGHT:
+            glBindTexture(GL_TEXTURE_2D, m_GBTexture[0]);
+            break;
+        case GS_RESOLUTION_SMS_HEIGHT:
+            glBindTexture(GL_TEXTURE_2D, m_GBTexture[1]);
+            break;
+        case GS_RESOLUTION_SMS_HEIGHT_EXTENDED:
+            glBindTexture(GL_TEXTURE_2D, m_GBTexture[2]);
+            break;
+
+    }
+
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, runtime_info.screen_width, runtime_info.screen_height,
             GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) m_pFrameBuffer);
     if (m_bFiltering)
     {

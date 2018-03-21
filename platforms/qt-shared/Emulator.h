@@ -42,6 +42,7 @@ public:
     void SetSoundSettings(bool enabled, int rate);
     void SaveState(int index);
     void LoadState(int index);
+    void GetRuntimeInfo(GS_RuntimeInfo& runtime_info);
 
 private:
     void SaveRam();
@@ -53,6 +54,7 @@ private:
     QMutex m_Mutex;
     bool m_bAudioEnabled;
     bool m_bSaveInROMFolder;
+    GS_RuntimeInfo m_Runtime_info;
 };
 
 #endif	/* EMULATOR_H */

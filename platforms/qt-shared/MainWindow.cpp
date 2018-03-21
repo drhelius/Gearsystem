@@ -160,6 +160,7 @@ void MainWindow::MenuGameBoyLoadROM()
 
     setFocus();
     activateWindow();
+    ResizeWindow(m_iScreenSize);
 
     m_pGLFrame->ResumeRenderThread();
 }
@@ -243,6 +244,12 @@ void MainWindow::MenuSettingsFullscreen()
     {
         m_bFullscreen = true;
 
+        GS_RuntimeInfo runtime_info;
+        m_pEmulator->GetRuntimeInfo(runtime_info);
+
+        //m_pGLFrame->setMaximumSize(runtime_info.screen_width * factor, runtime_info.screen_height * factor);
+        //m_pGLFrame->setMinimumSize(runtime_info.screen_width * factor, runtime_info.screen_height * factor);
+
         this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
         this->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
         this->setMinimumSize(0, 0);
@@ -253,14 +260,14 @@ void MainWindow::MenuSettingsFullscreen()
         int w = qApp->desktop()->size().width();
         int h = qApp->desktop()->size().height();
 
-        int factor = h / GS_RESOLUTION_MAX_HEIGHT;
+        int factor = h / runtime_info.screen_height;
 
-        m_pGLFrame->setMaximumSize(GS_RESOLUTION_MAX_WIDTH * factor, GS_RESOLUTION_MAX_HEIGHT * factor);
-        m_pGLFrame->setMinimumSize(GS_RESOLUTION_MAX_WIDTH * factor, GS_RESOLUTION_MAX_HEIGHT * factor);
+        m_pGLFrame->setMaximumSize(runtime_info.screen_width * factor, runtime_info.screen_height * factor);
+        m_pGLFrame->setMinimumSize(runtime_info.screen_width * factor, runtime_info.screen_height * factor);
 
-        int move_x = (w - (GS_RESOLUTION_MAX_WIDTH * factor)) / 2;
-        int move_y = (h - (GS_RESOLUTION_MAX_HEIGHT * factor)) / 2;
-        m_pGLFrame->setGeometry(move_x, move_y, GS_RESOLUTION_MAX_WIDTH * factor, GS_RESOLUTION_MAX_HEIGHT * factor);
+        int move_x = (w - (runtime_info.screen_width * factor)) / 2;
+        int move_y = (h - (runtime_info.screen_height * factor)) / 2;
+        m_pGLFrame->setGeometry(move_x, move_y, runtime_info.screen_width * factor, runtime_info.screen_height * factor);
     }
 
     setFocus();
@@ -427,9 +434,11 @@ void MainWindow::keyReleaseEvent(QKeyEvent* e)
 
 void MainWindow::ResizeWindow(int factor)
 {
-    m_iScreenSize = factor;
-    m_pGLFrame->setMaximumSize(GS_RESOLUTION_MAX_WIDTH * factor, GS_RESOLUTION_MAX_HEIGHT * factor);
-    m_pGLFrame->setMinimumSize(GS_RESOLUTION_MAX_WIDTH * factor, GS_RESOLUTION_MAX_HEIGHT * factor);
+    GS_RuntimeInfo runtime_info;
+    m_pEmulator->GetRuntimeInfo(runtime_info);
+
+    m_pGLFrame->setMaximumSize(runtime_info.screen_width * factor, runtime_info.screen_height * factor);
+    m_pGLFrame->setMinimumSize(runtime_info.screen_width * factor, runtime_info.screen_height * factor);
 }
 
 bool MainWindow::eventFilter(QObject * watched, QEvent * event)

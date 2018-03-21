@@ -64,9 +64,9 @@ void GLFrame::resizeEvent(QResizeEvent *evt)
     m_RenderThread.ResizeViewport(evt->size(), this->devicePixelRatio());
 }
 
-void GLFrame::resizeGL(int width, int height)
+void GLFrame::resizeGL(int, int)
 {
-    m_RenderThread.ResizeViewport(QSize(width, height), 1/*this->devicePixelRatio()*/);
+    //m_RenderThread.ResizeViewport(QSize(width, height), 1/*this->devicePixelRatio()*/);
 }
 
 void GLFrame::paintEvent(QPaintEvent *)

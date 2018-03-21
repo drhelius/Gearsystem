@@ -62,8 +62,7 @@ private:
     Emulator* m_pEmulator;
     GS_Color* m_pFrameBuffer;
     bool m_bFiltering;
-    bool m_bResizeEvent;
-    GLuint m_GBTexture;
+    GLuint m_GBTexture[3];
 };
 
 #endif // MYRENDERTHREAD_H

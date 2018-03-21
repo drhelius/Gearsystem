@@ -42,6 +42,9 @@ void Emulator::Init()
 
     m_pSoundQueue = new Sound_Queue();
     m_pSoundQueue->start(44100, 2);
+
+    m_Runtime_info.screen_width = GS_RESOLUTION_MAX_WIDTH;
+    m_Runtime_info.screen_height = GS_RESOLUTION_MAX_HEIGHT;
 }
 
 void Emulator::LoadRom(const char* szFilePath, bool saveInROMFolder)
@@ -51,6 +54,7 @@ void Emulator::LoadRom(const char* szFilePath, bool saveInROMFolder)
     SaveRam();
     m_pGearsystemCore->LoadROM(szFilePath);
     LoadRam();
+    m_pGearsystemCore->GetRuntimeInfo(m_Runtime_info);
     m_Mutex.unlock();
 }
 
@@ -67,6 +71,8 @@ void Emulator::RunToVBlank(GS_Color* pFrameBuffer)
     {
         m_pSoundQueue->write(sampleBufer, sampleCount);
     }
+
+    m_pGearsystemCore->GetRuntimeInfo(m_Runtime_info);
 
     m_Mutex.unlock();
 }
@@ -164,4 +170,11 @@ void Emulator::LoadState(int index)
     m_Mutex.lock();
     m_pGearsystemCore->LoadState(index);
     m_Mutex.unlock();
+}
+
+void Emulator::GetRuntimeInfo(GS_RuntimeInfo& runtime_info)
+{
+    runtime_info.region = m_Runtime_info.region;
+    runtime_info.screen_width = m_Runtime_info.screen_width;
+    runtime_info.screen_height = m_Runtime_info.screen_height;
 }
