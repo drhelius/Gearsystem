@@ -41,6 +41,8 @@ static char retro_game_path[4096];
 
 static s16 audio_buf[GS_AUDIO_BUFFER_SIZE];
 static int audio_sample_count;
+static int current_screen_width = 0;
+static int current_screen_height = 0;
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 {
@@ -67,7 +69,7 @@ void retro_init(void)
     core = new GearsystemCore();
     core->Init();
 
-    frame_buf = new GS_Color[GS_SMS_WIDTH * GS_SMS_HEIGHT];
+    frame_buf = new GS_Color[GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT];
 
     audio_sample_count = 0;
 }
@@ -105,13 +107,18 @@ static retro_input_state_t input_state_cb;
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-    float aspect                = (float)GS_SMS_WIDTH/GS_SMS_HEIGHT;
-    info->geometry.base_width   = GS_SMS_WIDTH;
-    info->geometry.base_height  = GS_SMS_HEIGHT;
-    info->geometry.max_width    = GS_SMS_WIDTH;
-    info->geometry.max_height   = GS_SMS_HEIGHT;
-    info->geometry.aspect_ratio = aspect;
-    info->timing.fps            = 60;
+    GS_RuntimeInfo runtime_info;
+    core->GetRuntimeInfo(runtime_info);
+
+    current_screen_width = runtime_info.screen_width;
+    current_screen_height = runtime_info.screen_height;
+
+    info->geometry.base_width   = runtime_info.screen_width;
+    info->geometry.base_height  = runtime_info.screen_height;
+    info->geometry.max_width    = runtime_info.screen_width;
+    info->geometry.max_height   = runtime_info.screen_height;
+    info->geometry.aspect_ratio = 0.0;
+    info->timing.fps            = runtime_info.region == Region_NTSC ? 60 : 50;
     info->timing.sample_rate    = 44100.0f;
 }
 
@@ -217,7 +224,25 @@ void retro_run(void)
 
     core->RunToVBlank(frame_buf, audio_buf, &audio_sample_count);
 
-    video_cb((uint8_t*)frame_buf, GS_SMS_WIDTH, GS_SMS_HEIGHT, GS_SMS_WIDTH * sizeof(GS_Color));
+    GS_RuntimeInfo runtime_info;
+    core->GetRuntimeInfo(runtime_info);
+
+    if ((runtime_info.screen_width != current_screen_width) || (runtime_info.screen_height != current_screen_height))
+    {
+        current_screen_width = runtime_info.screen_width;
+        current_screen_height = runtime_info.screen_height;
+
+        retro_system_av_info info;
+        info.geometry.base_width   = runtime_info.screen_width;
+        info.geometry.base_height  = runtime_info.screen_height;
+        info.geometry.max_width    = runtime_info.screen_width;
+        info.geometry.max_height   = runtime_info.screen_height;
+        info.geometry.aspect_ratio = 0.0;
+
+        environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &info.geometry);
+    }
+
+    video_cb((uint8_t*)frame_buf, runtime_info.screen_width, runtime_info.screen_height, runtime_info.screen_width * sizeof(GS_Color));
 
     if (audio_sample_count > 0)
         audio_batch_cb(audio_buf, audio_sample_count / 2);

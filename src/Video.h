@@ -42,6 +42,7 @@ public:
     u8 GetHCounter();
     u8 GetDataPort();
     u8 GetStatusFlags();
+    bool IsExtendedMode224();
     void WriteData(u8 data);
     void WriteControl(u8 control);
     void LatchHCounter();
@@ -53,7 +54,6 @@ private:
     void RenderBG(int line);
     void RenderSprites(int line);
     GS_Color ConvertTo8BitColor(int palette_color);
-    void FillPadding();
 
 private:
     Memory* m_pMemory;
@@ -85,6 +85,7 @@ private:
     bool m_bScrollXLatched;
     bool m_bVCounterIncremented;
     int m_iRenderLine;
+    int m_iScreenWidth;
 };
 
 inline GS_Color Video::ConvertTo8BitColor(int palette_color)

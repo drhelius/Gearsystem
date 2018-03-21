@@ -179,8 +179,8 @@ bool GearsystemCore::GetRuntimeInfo(GS_RuntimeInfo& runtime_info)
 {
     if (m_pCartridge->IsReady())
     {
-        runtime_info.screen_width = 0;
-        runtime_info.screen_height = 0;
+        runtime_info.screen_width = m_pCartridge->IsGameGear() ? GS_RESOLUTION_GG_WIDTH : GS_RESOLUTION_SMS_WIDTH;
+        runtime_info.screen_height = m_pCartridge->IsGameGear() ? GS_RESOLUTION_GG_HEIGHT : (m_pVideo->IsExtendedMode224() ? GS_RESOLUTION_SMS_HEIGHT_EXTENDED : GS_RESOLUTION_SMS_HEIGHT);
         runtime_info.region = m_pCartridge->IsPAL() ? Region_PAL : Region_NTSC;
         return true;
     }
