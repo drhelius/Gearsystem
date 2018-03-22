@@ -31,7 +31,7 @@
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #include "gearsystem.h"
-#include "../../platforms/audio-shared/Sound_Queue.h"
+#include "../../audio-shared/Sound_Queue.h"
 
 using namespace std;
 using namespace libconfig;
