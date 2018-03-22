@@ -95,7 +95,7 @@ else ifeq ($(platform), ps3)
    CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
    CXX = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-g++.exe
    AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
-   CXXFLAGS += -DMINIZ_NO_TIME -Wall
+   CXXFLAGS += -DMINIZ_NO_TIME -DMINIZ_NO_STDIO -Wall
 STATIC_LINKING = 1
 # OSX
 else ifneq (,$(findstring osx,$(platform)))
@@ -137,8 +137,9 @@ else ifeq ($(platform), emscripten)
 else ifeq ($(platform), vita)
    TARGET := $(TARGET_NAME)_vita.a
    CC = arm-vita-eabi-gcc
+   CXX = arm-vita-eabi-g++
    AR = arm-vita-eabi-ar
-   CXXFLAGS += -Wl,-q -Wall
+   CXXFLAGS += -Wl,-q -Wall -DMINIZ_NO_TIME -mword-relocations -fno-optimize-sibling-calls
 	STATIC_LINKING = 1
 # CTR(3DS)
 else ifeq ($(platform), ctr)
