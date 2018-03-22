@@ -69,17 +69,17 @@
         if (h == 667)
         {
             multiplier = 2.0;
-            view.frame = CGRectMake(59, 27, 128 * multiplier, 112 * multiplier);
+            view.frame = CGRectMake(59, 67, 128 * multiplier, 92 * multiplier);
         }
         else if (h == 736)
         {
             multiplier = 3.0;
-            view.frame = CGRectMake(16, 8, 128 * multiplier, 112 * multiplier);
+            view.frame = CGRectMake(16, 68, 128 * multiplier, 92 * multiplier);
         }
         else
         {
             multiplier = 2.0;
-            view.frame = CGRectMake(31, 15, 128 * multiplier, 112 * multiplier);
+            view.frame = CGRectMake(31, 55, 128 * multiplier, 92 * multiplier);
         }
 
     }
@@ -87,7 +87,7 @@
     {
         iPad = YES;
         multiplier = 4.0;
-        view.frame = CGRectMake(128, 28, 128 * multiplier, 112 * multiplier);
+        view.frame = CGRectMake(128, 108, 128 * multiplier, 92 * multiplier);
     }
     
     self.theEmulator.multiplier = multiplier * scale;

@@ -22,21 +22,16 @@
 #include <SDL2/SDL.h>
 #include "inputmanager.h"
 
-const float kGB_Width = 256.0f;
-const float kGB_Height = 224.0f;
-const float kGB_TexWidth = kGB_Width / 256.0f;
-const float kGB_TexHeight = kGB_Height / 256.0f;
-const GLfloat box[] = {0.0f, kGB_Height, 1.0f, kGB_Width,kGB_Height, 1.0f, 0.0f, 0.0f, 1.0f, kGB_Width, 0.0f, 1.0f};
-const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0.0f, kGB_TexWidth, 0.0f};
-
 @implementation Emulator
 
-@synthesize multiplier, retina, iPad;
+@synthesize multiplier, retina, iPad, theGearsystemCore;
 
 -(id)init
 {
     if (self = [super init])
     {
+        scr_w = 256;
+        scr_h = 192;
         saveStatePending = NO;
         loadStatePending = NO;
         
@@ -56,14 +51,14 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
         
         theInput = new EmulatorInput(self);
         theInput->Init();
-        theFrameBuffer = new GS_Color[GS_SMS_WIDTH * GS_SMS_HEIGHT];
+        theFrameBuffer = new GS_Color[GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT];
         theTexture = new GS_Color[256 * 256];
         
-        for (int y = 0; y < GS_SMS_HEIGHT; ++y)
+        for (int y = 0; y < GS_RESOLUTION_MAX_HEIGHT; ++y)
         {
-            for (int x = 0; x < GS_SMS_WIDTH; ++x)
+            for (int x = 0; x < GS_RESOLUTION_MAX_WIDTH; ++x)
             {
-                int pixel = (y * GS_SMS_WIDTH) + x;
+                int pixel = (y * GS_RESOLUTION_MAX_WIDTH) + x;
                 theFrameBuffer[pixel].red = theFrameBuffer[pixel].green = theFrameBuffer[pixel].blue = 0x00;
                 theFrameBuffer[pixel].alpha = 0xFF;
             }
@@ -116,17 +111,24 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     int sampleCount = 0;
 
     theGearsystemCore->RunToVBlank(theFrameBuffer, theSampleBufffer, &sampleCount);
+    
+    GS_RuntimeInfo runtime_info;
+    if (theGearsystemCore->GetRuntimeInfo(runtime_info))
+    {
+        scr_w = runtime_info.screen_width;
+        scr_h = runtime_info.screen_height;
+    }
 
     if (audioEnabled && (sampleCount > 0))
     {
         theSoundQueue->write(theSampleBufffer, sampleCount);
     }
 
-    for (int y = 0; y < GS_SMS_HEIGHT; ++y)
+    for (int y = 0; y < scr_h; ++y)
     {
         int y_256 = y * 256;
-        int y_gb_width = y * GS_SMS_WIDTH;
-        for (int x = 0; x < GS_SMS_WIDTH; ++x)
+        int y_gb_width = y * scr_w;
+        for (int x = 0; x < scr_w; ++x)
         {
             theTexture[y_256 + x] = theFrameBuffer[y_gb_width + x];
         }
@@ -145,8 +147,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-    glVertexPointer(3, GL_FLOAT, 0, box);
-    glTexCoordPointer(2, GL_FLOAT, 0, tex);
+    
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
 
@@ -161,7 +162,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 {
     glBindTexture(GL_TEXTURE_2D, GBTexture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
-    [self renderQuadWithViewportWidth:(128 * multiplier) andHeight:(112 * multiplier) andMirrorY:NO];
+    [self renderQuadWithViewportWidth:(scr_w) andHeight:(scr_h) andMirrorY:NO];
     
     if (IsValidPointer(scanlineTexture))
     {
@@ -169,7 +170,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
         glEnable(GL_BLEND);
         glColor4f(1.0f, 1.0f, 1.0f, 0.35f);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        [self renderQuadWithViewportWidth:(128 * multiplier) andHeight:(112 * multiplier) andMirrorY:NO];
+        [self renderQuadWithViewportWidth:(scr_w) andHeight:(scr_h) andMirrorY:NO];
         glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
         glDisable(GL_BLEND);
     }
@@ -184,6 +185,16 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
 
 -(void)renderQuadWithViewportWidth: (float)viewportWidth andHeight: (float)viewportHeight andMirrorY: (BOOL) mirrorY
 {
+    float kGB_Width = viewportWidth;
+    float kGB_Height = viewportHeight;
+    float kGB_TexWidth = kGB_Width / 256.0f;
+    float kGB_TexHeight = kGB_Height / 256.0f;
+    GLfloat box[] = {0.0f, kGB_Height, 1.0f, kGB_Width,kGB_Height, 1.0f, 0.0f, 0.0f, 1.0f, kGB_Width, 0.0f, 1.0f};
+    GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0.0f, kGB_TexWidth, 0.0f};
+    
+    glVertexPointer(3, GL_FLOAT, 0, box);
+    glTexCoordPointer(2, GL_FLOAT, 0, tex);
+    
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     if (mirrorY)
@@ -192,7 +203,7 @@ const GLfloat tex[] = {0.0f, kGB_TexHeight, kGB_TexWidth, kGB_TexHeight, 0.0f, 0
         glOrthof(0.0f, kGB_Width, kGB_Height, 0.0f, -1.0f, 1.0f);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glViewport(0, 0, viewportWidth, viewportHeight);
+    glViewport(0, 0, 128 * multiplier, 92 * multiplier);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 

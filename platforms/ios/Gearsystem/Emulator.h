@@ -33,7 +33,6 @@
 
 @interface Emulator : NSObject
 {
-    GearsystemCore* theGearsystemCore;
     Sound_Queue* theSoundQueue;
     s16 theSampleBufffer[GS_AUDIO_BUFFER_SIZE];
     GS_Color* theFrameBuffer;
@@ -44,13 +43,15 @@
     BOOL audioEnabled;
     BOOL saveStatePending;
     BOOL loadStatePending;
+    int scr_w;
+    int scr_h;
 }
 
 @property (nonatomic) float multiplier;
 @property (nonatomic) BOOL retina;
 @property (nonatomic) BOOL iPad;
 @property (nonatomic) GLKView* glview;
-
+@property (nonatomic) GearsystemCore* theGearsystemCore;
 
 - (void)update;
 - (void)draw;
