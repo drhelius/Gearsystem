@@ -45,18 +45,15 @@ EGLContext context;
 
 static const char *output_file = "gearsystem.cfg";
 
-const float kGS_Width = 256.0f;
-const float kGS_Height = 224.0f;
-const float kGS_TexWidth = 1.0f;
-const float kGS_TexHeight = kGS_Height / 256.0f;
-const GLfloat kQuadTex[8] = { 0, 0, kGS_TexWidth, 0, kGS_TexWidth, kGS_TexHeight, 0, kGS_TexHeight};
-GLshort quadVerts[8];
-
 GearsystemCore* theGearsystemCore;
 Sound_Queue* theSoundQueue;
 GS_Color* theFrameBuffer;
 GLuint theGSTexture;
 s16 theSampleBufffer[GS_AUDIO_BUFFER_SIZE];
+
+
+GLfloat kQuadTex[8];
+GLshort quadVerts[8];
 
 bool audioEnabled = true;
 
@@ -64,6 +61,7 @@ SDL_Joystick* game_pad = NULL;
 SDL_Keycode kc_keypad_left, kc_keypad_right, kc_keypad_up, kc_keypad_down, kc_keypad_1, kc_keypad_2, kc_keypad_start, kc_emulator_pause, kc_emulator_quit;
 bool jg_x_axis_invert, jg_y_axis_invert;
 int jg_1, jg_2, jg_start, jg_x_axis, jg_y_axis;
+int scr_w, scr_h;
 
 uint32_t screen_width, screen_height;
 
@@ -191,7 +189,17 @@ void update(void)
         theSoundQueue->write(theSampleBufffer, sampleCount);
     }
 
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 224, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theFrameBuffer);
+    scr_w = 256;
+    scr_h = 192;
+
+    GS_RuntimeInfo runtime_info;
+    if (theGearsystemCore->GetRuntimeInfo(runtime_info))
+    {
+	scr_w = runtime_info.screen_width;
+	scr_h = runtime_info.screen_height;
+    }
+
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, scr_w, scr_h, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theFrameBuffer);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     eglSwapBuffers(display, surface);
 }
@@ -299,6 +307,20 @@ void init_sdl(void)
 
 void init_ogl(void)
 {
+
+    float kGS_Width = scr_w;
+    float kGS_Height = scr_h;
+    float kGS_TexWidth = kGS_Width / 256.0f;
+    float kGS_TexHeight = kGS_Height / 256.0f;
+    kQuadTex[0] = 0; 
+    kQuadTex[1] = 0;
+    kQuadTex[2] = kGS_TexWidth;
+    kQuadTex[3] = 0;
+    kQuadTex[4] = kGS_TexWidth;
+    kQuadTex[5] = kGS_TexHeight;
+    kQuadTex[6] = 0;
+    kQuadTex[7] = kGS_TexHeight;
+
     int32_t success = 0;
     EGLBoolean result;
     EGLint num_config;
@@ -344,14 +366,14 @@ void init_ogl(void)
     success = graphics_get_display_size(0 /* LCD */, &screen_width, &screen_height);
     assert( success >= 0 );
 
-    int32_t zoom = screen_width / GS_SMS_WIDTH;
-    int32_t zoom2 = screen_height / GS_SMS_HEIGHT;
+    int32_t zoom = screen_width / scr_w;
+    int32_t zoom2 = screen_height / scr_h;
 
     if (zoom2 < zoom)
         zoom = zoom2;
 
-    int32_t display_width = GS_SMS_WIDTH * zoom;
-    int32_t display_height = GS_SMS_HEIGHT * zoom;
+    int32_t display_width = scr_w * zoom;
+    int32_t display_height = scr_h * zoom;
     int32_t display_offset_x = (screen_width / 2) - (display_width / 2);
     int32_t display_offset_y = (screen_height / 2) - (display_height / 2);
 
@@ -425,11 +447,7 @@ void init_ogl(void)
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void init(void)
-{
-    bcm_host_init();
-    init_ogl();
-    init_sdl();
+void init(void){
 
     theGearsystemCore = new GearsystemCore();
     theGearsystemCore->Init();
@@ -437,13 +455,13 @@ void init(void)
     theSoundQueue = new Sound_Queue();
     theSoundQueue->start(44100, 2);
 
-    theFrameBuffer = new GS_Color[GS_SMS_WIDTH * GS_SMS_HEIGHT];
+    theFrameBuffer = new GS_Color[GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT];
 
-    for (int y = 0; y < GS_SMS_HEIGHT; ++y)
+    for (int y = 0; y < GS_RESOLUTION_MAX_HEIGHT; ++y)
     {
-        for (int x = 0; x < GS_SMS_WIDTH; ++x)
+        for (int x = 0; x < GS_RESOLUTION_MAX_WIDTH; ++x)
         {
-            int pixel = (y * GS_SMS_WIDTH) + x;
+            int pixel = (y * GS_RESOLUTION_MAX_WIDTH) + x;
             theFrameBuffer[pixel].red = theFrameBuffer[pixel].green = theFrameBuffer[pixel].blue = 0x00;
             theFrameBuffer[pixel].alpha = 0xFF;
         }
@@ -525,7 +543,21 @@ int main(int argc, char** argv)
 
     if (theGearsystemCore->LoadROM(argv[1]))
     {
-        theGearsystemCore->LoadRam();
+        scr_w = 256;
+        scr_h = 192;
+
+        GS_RuntimeInfo runtime_info;
+        if (theGearsystemCore->GetRuntimeInfo(runtime_info))
+        {
+	    scr_w = runtime_info.screen_width;
+	    scr_h = runtime_info.screen_height;
+        }
+
+        bcm_host_init();
+        init_ogl();
+        init_sdl();
+
+	theGearsystemCore->LoadRam();
 
         while (running)
         {
