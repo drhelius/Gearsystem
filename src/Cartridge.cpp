@@ -495,9 +495,8 @@ void Cartridge::GetInfoFromDB(u32 crc)
 void Cartridge::SetGameGenieCheat(const char* szCheat)
 {
     std::string code(szCheat);
-    auto to_upper = [] (char ch) { return std::use_facet<std::ctype<char>>(std::locale()).toupper(ch); };
-    std::transform(code.begin(), code.end(), code.begin(), to_upper);
-
+    for (std::string::iterator p = code.begin(); code.end() != p; ++p)
+        *p = toupper(*p);
 
     if (m_bReady && (code.length() > 6) && ((code[3] < '0') || ((code[3] > '9') && (code[3] < 'A'))))
     {

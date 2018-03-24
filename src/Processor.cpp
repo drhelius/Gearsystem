@@ -418,8 +418,8 @@ void Processor::LoadState(std::istream& stream)
 void Processor::SetProActionReplayCheat(const char* szCheat)
 {
     std::string code(szCheat);
-    auto to_upper = [] (char ch) { return std::use_facet<std::ctype<char>>(std::locale()).toupper(ch); };
-    std::transform(code.begin(), code.end(), code.begin(), to_upper);
+    for (std::string::iterator p = code.begin(); code.end() != p; ++p)
+        *p = toupper(*p);
 
     if (code.length() == 9)
     {
