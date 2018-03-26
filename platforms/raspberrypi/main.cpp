@@ -31,7 +31,7 @@
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #include "gearsystem.h"
-#include "../../audio-shared/Sound_Queue.h"
+#include "../audio-shared/Sound_Queue.h"
 
 using namespace std;
 using namespace libconfig;
@@ -312,7 +312,7 @@ void init_ogl(void)
     float kGS_Height = scr_h;
     float kGS_TexWidth = kGS_Width / 256.0f;
     float kGS_TexHeight = kGS_Height / 256.0f;
-    kQuadTex[0] = 0; 
+    kQuadTex[0] = 0;
     kQuadTex[1] = 0;
     kQuadTex[2] = kGS_TexWidth;
     kQuadTex[3] = 0;
