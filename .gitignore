@@ -72,3 +72,6 @@ xcuserdata/
 *.xcsettings
 
 *.xccheckout
+
+#rpi
+platforms/raspberry*/**/gearsystem
