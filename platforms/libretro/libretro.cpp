@@ -177,34 +177,37 @@ static void update_input(void)
 {
     input_poll_cb();
 
-    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
-        core->KeyPressed(Joypad_1, Key_Up);
-    else
-        core->KeyReleased(Joypad_1,Key_Up);
-    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))
-        core->KeyPressed(Joypad_1, Key_Down);
-    else
-        core->KeyReleased(Joypad_1, Key_Down);
-    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT))
-        core->KeyPressed(Joypad_1, Key_Left);
-    else
-        core->KeyReleased(Joypad_1, Key_Left);
-    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT))
-        core->KeyPressed(Joypad_1, Key_Right);
-    else
-        core->KeyReleased(Joypad_1, Key_Right);
-    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B))
-        core->KeyPressed(Joypad_1, Key_1);
-    else
-        core->KeyReleased(Joypad_1, Key_1);
-    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A))
-        core->KeyPressed(Joypad_1, Key_2);
-    else
-        core->KeyReleased(Joypad_1, Key_2);
-    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START))
-        core->KeyPressed(Joypad_1, Key_Start);
-    else
-        core->KeyReleased(Joypad_1, Key_Start);
+    for (int player=0; player<2; player++)
+    {
+        if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
+            core->KeyPressed(static_cast<GS_Joypads>(player), Key_Up);
+        else
+            core->KeyReleased(static_cast<GS_Joypads>(player), Key_Up);
+        if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))
+            core->KeyPressed(static_cast<GS_Joypads>(player), Key_Down);
+        else
+            core->KeyReleased(static_cast<GS_Joypads>(player), Key_Down);
+        if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT))
+            core->KeyPressed(static_cast<GS_Joypads>(player), Key_Left);
+        else
+            core->KeyReleased(static_cast<GS_Joypads>(player), Key_Left);
+        if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT))
+            core->KeyPressed(static_cast<GS_Joypads>(player), Key_Right);
+        else
+            core->KeyReleased(static_cast<GS_Joypads>(player), Key_Right);
+        if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B))
+            core->KeyPressed(static_cast<GS_Joypads>(player), Key_1);
+        else
+            core->KeyReleased(static_cast<GS_Joypads>(player), Key_1);
+        if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A))
+            core->KeyPressed(static_cast<GS_Joypads>(player), Key_2);
+        else
+            core->KeyReleased(static_cast<GS_Joypads>(player), Key_2);
+        if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START))
+            core->KeyPressed(static_cast<GS_Joypads>(player), Key_Start);
+        else
+            core->KeyReleased(static_cast<GS_Joypads>(player), Key_Start);
+    }
 }
 
 static void check_variables(void)

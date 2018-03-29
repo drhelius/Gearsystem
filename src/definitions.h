@@ -139,8 +139,8 @@ enum GS_Keys
 
 enum GS_Joypads
 {
-    Joypad_1,
-    Joypad_2
+    Joypad_1 = 0,
+    Joypad_2 = 1
 };
 
 enum GS_System
