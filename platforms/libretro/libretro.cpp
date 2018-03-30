@@ -32,17 +32,18 @@
 
 #include "../../src/gearsystem.h"
 
-GS_Color *frame_buf;
-
 static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;
 static char retro_base_directory[4096];
 static char retro_game_path[4096];
 
 static s16 audio_buf[GS_AUDIO_BUFFER_SIZE];
-static int audio_sample_count;
+static int audio_sample_count = 0;
 static int current_screen_width = 0;
 static int current_screen_height = 0;
+
+GearsystemCore* core;
+GS_Color *frame_buf;
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 {
@@ -52,8 +53,6 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
     vfprintf(stderr, fmt, va);
     va_end(va);
 }
-
-GearsystemCore* core;
 
 static retro_environment_t environ_cb;
 
@@ -117,9 +116,9 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
     info->geometry.base_height  = runtime_info.screen_height;
     info->geometry.max_width    = runtime_info.screen_width;
     info->geometry.max_height   = runtime_info.screen_height;
-    info->geometry.aspect_ratio = 0.0;
-    info->timing.fps            = runtime_info.region == Region_NTSC ? 60 : 50;
-    info->timing.sample_rate    = 44100.0f;
+    info->geometry.aspect_ratio = 0.0f;
+    info->timing.fps            = runtime_info.region == Region_NTSC ? 60.0 : 50.0;
+    info->timing.sample_rate    = 44100.0;
 }
 
 void retro_set_environment(retro_environment_t cb)
@@ -309,7 +308,7 @@ bool retro_load_game_special(unsigned type, const struct retro_game_info *info, 
 
 size_t retro_serialize_size(void)
 {
-    size_t size;
+    size_t size = 0;
     core->SaveState(NULL, size);
     return size;
 }
@@ -342,9 +341,9 @@ size_t retro_get_memory_size(unsigned id)
     switch (id)
     {
         case RETRO_MEMORY_SAVE_RAM:
-           return core->GetMemory()->GetCurrentRule()->GetRamSize();
+            return core->GetMemory()->GetCurrentRule()->GetRamSize();
         case RETRO_MEMORY_SYSTEM_RAM:
-           return 0x2000;
+            return 0x2000;
     }
 
     return 0;

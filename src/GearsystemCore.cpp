@@ -185,6 +185,10 @@ bool GearsystemCore::GetRuntimeInfo(GS_RuntimeInfo& runtime_info)
         return true;
     }
 
+    runtime_info.screen_width = GS_RESOLUTION_MAX_WIDTH;
+    runtime_info.screen_height = GS_RESOLUTION_MAX_HEIGHT;
+    runtime_info.region = Region_NTSC;
+
     return false;
 }
 
