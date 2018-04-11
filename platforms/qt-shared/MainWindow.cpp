@@ -472,7 +472,7 @@ bool MainWindow::event(QEvent *ev)
 
 void MainWindow::LoadSettings()
 {
-    QSettings settings("gearsystem.ini", QSettings::IniFormat);
+    QSettings settings(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + "/gearsystem.ini", QSettings::IniFormat);
 
     settings.beginGroup("Gearsystem");
     m_iSelectedSlot = settings.value("SavestateSlot", 1).toInt();
@@ -537,7 +537,7 @@ void MainWindow::LoadSettings()
 
 void MainWindow::SaveSettings()
 {
-    QSettings settings("gearsystem.ini", QSettings::IniFormat);
+    QSettings settings(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + "/gearsystem.ini", QSettings::IniFormat);
 
     settings.beginGroup("Gearsystem");
     settings.setValue("SavestateSlot", m_iSelectedSlot);
