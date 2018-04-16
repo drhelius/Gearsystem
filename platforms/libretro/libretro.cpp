@@ -41,6 +41,7 @@ static s16 audio_buf[GS_AUDIO_BUFFER_SIZE];
 static int audio_sample_count = 0;
 static int current_screen_width = 0;
 static int current_screen_height = 0;
+static bool allow_up_down = false;
 
 GearsystemCore* core;
 GS_Color *frame_buf;
@@ -53,6 +54,11 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
     vfprintf(stderr, fmt, va);
     va_end(va);
 }
+
+static const struct retro_variable vars[] = {
+    { "gearsystem_up_down_allowed", "Allow Up+Down / Left+Right; Disabled|Enabled" },
+    { NULL }
+};
 
 static retro_environment_t environ_cb;
 
@@ -145,6 +151,8 @@ void retro_set_environment(retro_environment_t cb)
     };
 
     cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
+
+    environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void *)vars);
 }
 
 void retro_set_audio_sample(retro_audio_sample_t cb)
@@ -179,21 +187,34 @@ static void update_input(void)
     for (int player=0; player<2; player++)
     {
         if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
-            core->KeyPressed(static_cast<GS_Joypads>(player), Key_Up);
+        {
+            if (allow_up_down || !input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))
+                core->KeyPressed(static_cast<GS_Joypads>(player), Key_Up);
+        }
         else
             core->KeyReleased(static_cast<GS_Joypads>(player), Key_Up);
         if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))
-            core->KeyPressed(static_cast<GS_Joypads>(player), Key_Down);
+        {
+            if (allow_up_down || !input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
+                core->KeyPressed(static_cast<GS_Joypads>(player), Key_Down);
+        }
         else
             core->KeyReleased(static_cast<GS_Joypads>(player), Key_Down);
         if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT))
-            core->KeyPressed(static_cast<GS_Joypads>(player), Key_Left);
+        {
+            if (allow_up_down || !input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT))
+                core->KeyPressed(static_cast<GS_Joypads>(player), Key_Left);
+        }
         else
             core->KeyReleased(static_cast<GS_Joypads>(player), Key_Left);
         if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT))
-            core->KeyPressed(static_cast<GS_Joypads>(player), Key_Right);
+        {
+            if (allow_up_down || !input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT))
+                core->KeyPressed(static_cast<GS_Joypads>(player), Key_Right);
+        }
         else
             core->KeyReleased(static_cast<GS_Joypads>(player), Key_Right);
+
         if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B))
             core->KeyPressed(static_cast<GS_Joypads>(player), Key_1);
         else
@@ -211,7 +232,18 @@ static void update_input(void)
 
 static void check_variables(void)
 {
+    struct retro_variable var = {0};
 
+    var.key = "gearsystem_up_down_allowed";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Enabled") == 0)
+            allow_up_down = true;
+        else
+            allow_up_down = false;
+    }
 }
 
 void retro_run(void)
