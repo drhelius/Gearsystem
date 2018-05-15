@@ -1,0 +1,14 @@
+[Libretro]
+Type=Emulator
+Version=1.0
+Name=Gearsystem
+Module=gearsystem_libretro.so
+LibretroVersion=1
+Authors=Ignacio Sanchez Gines;
+License=GPL-3.0+;
+
+[Platform:GameGear]
+MimeType=application/x-gamegear-rom;
+
+[Platform:MasterSystem]
+MimeType=application/x-sms-rom;
