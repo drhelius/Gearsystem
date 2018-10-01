@@ -75,3 +75,7 @@ xcuserdata/
 
 #rpi
 platforms/raspberry*/**/gearsystem
+
+#Switch
+*.a
+*.d
