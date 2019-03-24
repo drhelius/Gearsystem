@@ -64,6 +64,7 @@ qt-Release.mk
 ui_*.h
 .qmake.stash
 qrc_*.cpp
+Gearsystem.pro.user.*
 
 #Xcode
 *.xcuserstate
