@@ -95,6 +95,7 @@ qmake Gearsystem.pro && make
 sudo dnf install @development-tools gcc-c++ qt5-devel freeglut-devel SDL2-devel glew-devel
 cd platforms/linux/Gearsystem
 qmake-qt5 Gearsystem.pro && make
+```
 
 Accuracy Tests
 --------------
