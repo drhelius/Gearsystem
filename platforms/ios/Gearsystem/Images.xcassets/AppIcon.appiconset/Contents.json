@@ -128,6 +128,12 @@
       "idiom" : "ipad",
       "filename" : "sms_icon_167.png",
       "scale" : "2x"
+    },
+    {
+      "size" : "1024x1024",
+      "idiom" : "ios-marketing",
+      "filename" : "sms_icon_1024.jpg",
+      "scale" : "1x"
     }
   ],
   "info" : {

@@ -27,6 +27,7 @@
 #include <GL/glew.h>
 #endif
 #include <QThread>
+#include <QElapsedTimer>
 #include "../../src/gearsystem.h"
 
 class Emulator;
@@ -63,6 +64,7 @@ private:
     GS_Color* m_pFrameBuffer;
     bool m_bFiltering;
     GLuint m_GBTexture[3];
+    QElapsedTimer m_Timer;
 };
 
 #endif // MYRENDERTHREAD_H
