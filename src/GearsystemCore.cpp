@@ -82,7 +82,7 @@ GearsystemCore::~GearsystemCore()
 
 void GearsystemCore::Init()
 {
-    Log("-=:: GEARSYSTEM %s ::=-", GEARSYSTEM_VERSION);
+    Log("--== GEARSYSTEM %s by Ignacio Sanchez ==--", GEARSYSTEM_VERSION);
 
     m_pMemory = new Memory();
     m_pProcessor = new Processor(m_pMemory);
@@ -457,7 +457,7 @@ bool GearsystemCore::SaveState(u8* buffer, size_t& size)
 
         if (IsValidPointer(buffer))
         {
-            Log("Saving state...");
+            Log("Saving state to buffer [%d bytes]...", size);
             memcpy(buffer, stream.str().c_str(), size);
             ret = true;
         }
@@ -490,6 +490,8 @@ bool GearsystemCore::SaveState(std::ostream& stream, size_t& size)
 
         stream.write(reinterpret_cast<const char*> (&header_magic), sizeof(header_magic));
         stream.write(reinterpret_cast<const char*> (&header_size), sizeof(header_size));
+
+        Log("Save state size: %d", static_cast<size_t>(stream.tellp()));
 
         return true;
     }
@@ -555,7 +557,7 @@ bool GearsystemCore::LoadState(const u8* buffer, size_t size)
 {
     if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()) && (size > 0) && IsValidPointer(buffer))
     {
-        Log("Gathering load state data...");
+        Log("Gathering load state data [%d bytes]...", size);
 
         using namespace std;
 
@@ -582,14 +584,17 @@ bool GearsystemCore::LoadState(std::istream& stream)
         size_t size = static_cast<size_t>(stream.tellg());
         stream.seekg(0, ios::beg);
 
-        stream.seekg(-2 * (sizeof(u32)), ios::end);
+        Log("Load state stream size: %d", size);
+
+        stream.seekg(size - (2 * sizeof(u32)), ios::beg);
         stream.read(reinterpret_cast<char*> (&header_magic), sizeof(header_magic));
         stream.read(reinterpret_cast<char*> (&header_size), sizeof(header_size));
         stream.seekg(0, ios::beg);
 
-        Log("header_size: %d size: %d", header_size, size);
+        Log("Load state magic: 0x%08x", header_magic);
+        Log("Load state size: %d", header_size);
 
-        if ((header_magic == GS_SAVESTATE_MAGIC) && (header_size == size))
+        if ((header_size == size) && (header_magic == GS_SAVESTATE_MAGIC))
         {
             Log("Loading state...");
 

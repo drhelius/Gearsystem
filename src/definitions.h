@@ -165,6 +165,10 @@ struct GS_RuntimeInfo
 };
 
 #ifdef DEBUG_GEARSYSTEM
+#ifdef __ANDROID__
+        #include <android/log.h>
+        #define printf(...) __android_log_print(ANDROID_LOG_DEBUG, "GEARBOY", __VA_ARGS__);
+    #endif
 #define Log(msg, ...) (Log_func(msg, ##__VA_ARGS__))
 #else
 #define Log(msg, ...)
