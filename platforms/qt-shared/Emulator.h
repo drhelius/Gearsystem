@@ -37,6 +37,7 @@ public:
     void Pause();
     void Resume();
     bool IsPaused();
+    bool IsAudioEnabled();
     void Reset(bool saveInROMFolder);
     void MemoryDump();
     void SetSoundSettings(bool enabled, int rate);

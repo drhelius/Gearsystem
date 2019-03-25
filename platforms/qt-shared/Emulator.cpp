@@ -115,6 +115,11 @@ bool Emulator::IsPaused()
     return paused;
 }
 
+bool Emulator::IsAudioEnabled()
+{
+    return m_bAudioEnabled;
+}
+
 void Emulator::Reset(bool saveInROMFolder)
 {
     m_Mutex.lock();

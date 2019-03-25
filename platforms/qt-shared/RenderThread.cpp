@@ -75,6 +75,8 @@ void RenderThread::run()
 
     Init();
 
+    m_Timer.restart();
+
     while (m_bDoRendering)
     {
         if (m_pGLFrame->parentWidget()->window()->isVisible())
@@ -89,6 +91,18 @@ void RenderThread::run()
             {
                 m_pEmulator->RunToVBlank(m_pFrameBuffer);
                 RenderFrame();
+            }
+
+            if (!m_pEmulator->IsAudioEnabled())
+            {
+                qint64 elapsed = m_Timer.nsecsElapsed();
+
+                if (elapsed < 16000000)
+                {
+                    usleep((16000000 - elapsed) / 1000);
+                }
+
+                m_Timer.restart();
             }
 
             m_pGLFrame->swapBuffers();
