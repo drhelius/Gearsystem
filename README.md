@@ -16,8 +16,8 @@ Downloads
 - **iOS (Jailbreak)**: [Cydia](http://modmyi.com/info/gearsystem.d.php). You can open rom files from other apps like Safari or Dropbox. They can be placed in <code>/var/mobile/Media/ROMs/GAMEBOY</code> too. Save files are placed in <code>/var/mobile/Library/Gearsystem</code>
 - **iOS**: Build Gearsystem with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094).
 - **Mac OS X**: <code>brew install gearsystem</code>
-- **Windows**: [Gearsystem-2.5.0-Windows.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-2.5.0/Gearsystem-2.5.0-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572))
-- **Linux**: [earsystem-2.5.0-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-2.5.0/Gearsystem-2.5.0-Linux.tar.xz)
+- **Windows**: [Gearsystem-2.5.1-Windows.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-2.5.1/Gearsystem-2.5.0-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572))
+- **Linux**: [earsystem-2.5.1-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-2.5.1/Gearsystem-2.5.0-Linux.tar.xz)
 - **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearsystem/).
 - **Raspberry Pi**: Build Gearsystem from sources. Optimized projects are provided for Raspberry Pi 1, 2 and 3.
 
