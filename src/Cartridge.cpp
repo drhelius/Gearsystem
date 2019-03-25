@@ -349,16 +349,20 @@ bool Cartridge::GatherMetadata(u32 crc)
         }
     }
 
+    u8 zone = 0;
+
     if (m_bValidROM)
     {
         Log("ROM is Valid. Header found at: %X", headerLocation);
+
+        zone = (m_pROM[headerLocation + 0x0F] >> 4) & 0x0F;
     }
     else
     {
         Log("ROM is NOT Valid. No header found");
-    }
 
-    u8 zone = (m_pROM[headerLocation + 0x0F] >> 4) & 0x0F;
+        zone = 3;
+    }
 
     switch (zone)
     {
