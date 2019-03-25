@@ -70,7 +70,6 @@ sudo make install
 - Install the [Qt 5 Open Source SDK for Windows](https://www.qt.io/download/).
 - Install the [QtVisualStudioTools Extension](https://marketplace.visualstudio.com/items?itemName=TheQtCompany.QtVisualStudioTools-19123) and point it to the Qt SDK.
 - Open the Gearsystem Visual Studio solution <code>platforms/windows/Gearsystem/Gearsystem.sln</code> and build.
-- You may want to use the <code>platforms/windows/Gearsystem/Gearsystem.pro</code> project file with Qt Creator instead.
 
 ### Mac OS X
 - You need Qt Creator, included in the Qt 5 SDK.
