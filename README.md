@@ -5,7 +5,7 @@ Gearsystem
 ----------
 [![Build Status](https://travis-ci.org/drhelius/Gearsystem.svg?branch=master)](https://travis-ci.org/drhelius/Gearsystem)
 
-Gearsystem is a Sega Master System / Game Gear emulator written in C++ that runs on iOS, Raspberry Pi, Mac, Windows and Linux.
+Gearsystem is a Sega Master System / Game Gear emulator written in C++ that runs on iOS, Raspberry Pi, Mac, Windows, Linux and RetroArch.
 
 Follow me on Twitter for updates: http://twitter.com/drhelius
 
@@ -13,12 +13,13 @@ Follow me on Twitter for updates: http://twitter.com/drhelius
 
 Downloads
 --------
-- iOS (Jailbreak): [Cydia](http://modmyi.com/info/gearsystem.d.php). You can open rom files from other apps like Safari or Dropbox. They can be placed in <code>/var/mobile/Media/ROMs/Gearsystem</code> too. Save files are placed in <code>/var/mobile/Library/Gearsystem</code>
-- iOS: Build Gearsystem with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094).
-- Mac OS X: <code>brew install gearsystem</code>
-- Windows: [Gearsystem-2.2-Windows.zip](http://www.geardome.com/files/gearsystem/Gearsystem-2.2-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](http://www.microsoft.com/en-us/download/details.aspx?id=40784))
-- Linux: [Gearsystem-2.2-Linux.tar.gz](http://www.geardome.com/files/gearsystem/Gearsystem-2.2-Linux.tar.gz)
-- Raspberry Pi: Build Gearsystem from sources. Optimized projects are provided for Raspberry Pi 1, 2 and 3.
+- **iOS (Jailbreak)**: [Cydia](http://modmyi.com/info/gearsystem.d.php). You can open rom files from other apps like Safari or Dropbox. They can be placed in <code>/var/mobile/Media/ROMs/GAMEBOY</code> too. Save files are placed in <code>/var/mobile/Library/Gearsystem</code>
+- **iOS**: Build Gearsystem with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094).
+- **Mac OS X**: <code>brew install gearsystem</code>
+- **Windows**: [Gearsystem-2.2-Windows.zip](http://www.geardome.com/files/gearsystem/Gearsystem-2.2-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572))
+- **Linux**: [Gearsystem-2.2-Linux.tar.gz](http://www.geardome.com/files/gearsystem/Gearsystem-2.2-Linux.tar.gz)
+- **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearsystem/).
+- **Raspberry Pi**: Build Gearsystem from sources. Optimized projects are provided for Raspberry Pi 1, 2 and 3.
 
 Features
 --------
@@ -41,9 +42,9 @@ Build Instructions
 
 ### iOS
 - Install Xcode for Mac OS X. You need iOS SDK 8 or later.
-- Build the project.
-- Run it on real hardware using your iOS developer certificate. Make sure it compiles on Release for extra optimizations.
-- For jailbroken devices use the jailbreak branch.
+- Build the project <code>platforms/ios/Gearsystem.xcodeproj</code>
+- Run it on real hardware using your iOS developer certificate. Make sure it builds on Release for better performance.
+- For jailbroken devices use the <code>jailbreak</code> branch.
 
 ### Raspberry Pi 2 & 3 - Raspbian
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development:
@@ -52,48 +53,49 @@ sudo apt-get update
 sudo apt-get upgrade
 sudo apt-get install build-essential libfreeimage-dev libopenal-dev libpango1.0-dev libsndfile-dev libudev-dev libasound2-dev libjpeg-dev libtiff5-dev libwebp-dev automake
 cd ~
-wget https://www.libsdl.org/release/SDL2-2.0.8.tar.gz
-tar zxvf SDL2-2.0.8.tar.gz
-cd SDL2-2.0.8 && mkdir build && cd build
+wget https://www.libsdl.org/release/SDL2-2.0.9.tar.gz
+tar zxvf SDL2-2.0.9.tar.gz
+cd SDL2-2.0.9 && mkdir build && cd build
 ../configure --disable-pulseaudio --disable-esd --disable-video-mir --disable-video-wayland --disable-video-x11 --disable-video-opengl --host=armv7l-raspberry-linux-gnueabihf
 make -j 4
 sudo make install
 ```
 - Install libconfig library dependencies for development: <code>sudo apt-get install libconfig++-dev</code>.
-- Use <code>make -j 4</code> in the <code>platforms/raspberrypi3/Gearsystem/</code> folder to build the project.
+- Use <code>make -j 4</code> in the <code>platforms/raspberrypi3/x64/</code> folder to build the project.
 - Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the best performance.
 - Gearsystem generates a <code>gearsystem.cfg</code> configuration file where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
 ### Windows
-- You need Visual Studio 2015.
+- You need Visual Studio 2017 or later.
 - Install the [Qt 5 Open Source SDK for Windows](https://www.qt.io/download/).
-- Install the [QtPackage Extension](https://visualstudiogallery.msdn.microsoft.com/c89ff880-8509-47a4-a262-e4fa07168408) and point it to the Qt SDK.
-- Open the Gearsystem Visual Studio project and build.
+- Install the [QtVisualStudioTools Extension](https://marketplace.visualstudio.com/items?itemName=TheQtCompany.QtVisualStudioTools-19123) and point it to the Qt SDK.
+- Open the Gearsystem Visual Studio solution <code>platforms/windows/Gearsystem/Gearsystem.sln</code> and build.
+- You may want to use the <code>platforms/windows/Gearsystem/Gearsystem.pro</code> project file with Qt Creator instead.
 
 ### Mac OS X
 - You need Qt Creator, included in the Qt 5 SDK.
 - Install Xcode and run <code>xcode-select --install</code> in the terminal for the compiler to be available on the command line.
-- Install the [Qt 5 SDK for Mac OS](http://qt-project.org/downloads).
+- Install the [Qt 5 SDK for Mac OS](https://www.qt.io/download/).
 - Download [SDL 2](http://www.libsdl.org/download-2.0.php) source code. Then run this commands:
 ``` shell
 ./configure
 make
 sudo make install
 ```
+- Open the <code>platforms/macosx/Gearsystem/Gearsystempro</code> project file with Qt Creator and build.
 
 ### Linux
 - Ubuntu / Debian:
 ``` shell
 sudo apt-get install build-essential qt5-default qttools5-dev-tools freeglut3-dev libsdl2-dev libglew-dev
 cd platforms/linux/Gearsystem
-qmake Gearsystme.pro && make
+qmake Gearsystem.pro && make
 ```
 - Fedora:
 ``` shell
-sudo dnf install qt5-devel freeglut-devel SDL2-devel glew-devel
+sudo dnf install @development-tools gcc-c++ qt5-devel freeglut-devel SDL2-devel glew-devel
 cd platforms/linux/Gearsystem
 qmake-qt5 Gearsystem.pro && make
-```
 
 Accuracy Tests
 --------------
