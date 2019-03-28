@@ -81,7 +81,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     m_pEmulator->Init();
 
     QGLFormat f;
-    f.setSwapInterval(1);
+    f.setSwapInterval(0);
     QGLFormat::setDefaultFormat(f);
 
     m_pGLFrame = new GLFrame();
