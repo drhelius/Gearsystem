@@ -79,7 +79,7 @@ sudo make install
 make
 sudo make install
 ```
-- Open the <code>platforms/macosx/Gearsystem/Gearsystempro</code> project file with Qt Creator and build.
+- Open the <code>platforms/macosx/Gearsystem/Gearsystem.pro</code> project file with Qt Creator and build.
 
 ### Linux
 - Ubuntu / Debian:
