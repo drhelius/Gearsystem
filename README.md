@@ -13,7 +13,6 @@ Follow me on Twitter for updates: http://twitter.com/drhelius
 
 Downloads
 --------
-- **iOS (Jailbreak)**: [Cydia](http://modmyi.com/info/gearsystem.d.php). You can open rom files from other apps like Safari or Dropbox. They can be placed in <code>/var/mobile/Media/ROMs/GAMEBOY</code> too. Save files are placed in <code>/var/mobile/Library/Gearsystem</code>
 - **iOS**: Build Gearsystem with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094).
 - **Mac OS X**: <code>brew install gearsystem</code>
 - **Windows**: [Gearsystem-2.5.1-Windows.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-2.5.1/Gearsystem-2.5.0-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572))
@@ -44,7 +43,6 @@ Build Instructions
 - Install Xcode for Mac OS X. You need iOS SDK 8 or later.
 - Build the project <code>platforms/ios/Gearsystem.xcodeproj</code>
 - Run it on real hardware using your iOS developer certificate. Make sure it builds on Release for better performance.
-- For jailbroken devices use the <code>jailbreak</code> branch.
 
 ### Raspberry Pi 2 & 3 - Raspbian
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development:
