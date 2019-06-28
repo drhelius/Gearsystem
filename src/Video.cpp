@@ -629,7 +629,7 @@ void Video::RenderSpritesSG1000(int line)
         }
     }
 
-    for (int sprite = max_sprite; sprite >= 0; sprite--)
+    for (int sprite = 0; sprite <= max_sprite; sprite++)
     {
         int sprite_attribute_offset = sprite_attribute_addr + (sprite << 2);
         int sprite_y = (m_pVdpVRAM[sprite_attribute_offset] + 1) & 0xFF;
@@ -640,17 +640,17 @@ void Video::RenderSpritesSG1000(int line)
         if ((sprite_y > line) || ((sprite_y + sprite_size) <= line))
             continue;
 
-        int sprite_color = m_pVdpVRAM[sprite_attribute_offset + 3] & 0x0F;
-        if (sprite_color == 0x00)
-            continue;
-
         sprite_count++;
         if (!SetBit(m_VdpStatus, 6) && (sprite_count > 4))
         {
             m_VdpStatus = SetBit(m_VdpStatus, 6);
             m_VdpStatus = (m_VdpStatus & 0xE0) | sprite;
-            //break;
         }
+
+        int sprite_color = m_pVdpVRAM[sprite_attribute_offset + 3] & 0x0F;
+
+        if (sprite_color == 0)
+            continue;
 
         int sprite_shift = (m_pVdpVRAM[sprite_attribute_offset + 3] & 0x80) ? 32 : 0;
         int sprite_x = m_pVdpVRAM[sprite_attribute_offset + 1] - sprite_shift;
@@ -680,8 +680,11 @@ void Video::RenderSpritesSG1000(int line)
             else
                 sprite_pixel = IsSetBit(m_pVdpVRAM[sprite_line_addr + 16], 15 - tile_x_adjusted);
 
-            if (sprite_pixel)
+            if (sprite_pixel && (sprite_count < 5) && ((m_pInfoBuffer[pixel] & 0x08) == 0))
+            {
                 m_pColorFrameBuffer[pixel] = kSG1000_palette[sprite_color];
+                m_pInfoBuffer[pixel] |= 0x08;
+            }
 
             if ((m_pInfoBuffer[pixel] & 0x04) != 0)
                 sprite_collision = true;
