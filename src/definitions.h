@@ -35,8 +35,8 @@
 #define DISASM_GEARSYSTEM 1
 #endif
 
-#define GEARSYSTEM_TITLE "Gearsystem 2.5.1"
-#define GEARSYSTEM_VERSION "2.5.1"
+#define GEARSYSTEM_TITLE "Gearsystem 2.6.0"
+#define GEARSYSTEM_VERSION "2.6.0"
 
 #ifndef NULL
 #define NULL 0
@@ -185,6 +185,7 @@ inline void Log_func(const char* const msg, ...)
     va_end(args);
 
     printf("%d: %s\n", count, szBuf);
+    fflush(stdout);
 
     count++;
 }
