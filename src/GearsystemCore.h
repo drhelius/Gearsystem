@@ -71,6 +71,7 @@ public:
     void SetRamModificationCallback(RamChangedCallback callback);
     Memory* GetMemory();
     Cartridge* GetCartridge();
+    void SetSG1000Palette(GS_Color* pSG1000Palette);
 
 private:
     void InitMemoryRules();

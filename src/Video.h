@@ -48,6 +48,7 @@ public:
     void LatchHCounter();
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
+    void SetSG1000Palette(GS_Color* pSG1000Palette);
 
 private:
     void ScanLine(int line);
@@ -90,6 +91,7 @@ private:
     int m_iScreenWidth;
     bool m_bSG1000;
     int m_iSG1000Mode;
+    GS_Color* m_pSG1000Palette;
 };
 
 inline GS_Color Video::ConvertTo8BitColor(int palette_color)

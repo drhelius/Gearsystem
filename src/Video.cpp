@@ -56,6 +56,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iScreenWidth = 0;
     m_bSG1000 = false;
     m_iSG1000Mode = 0;
+    m_pSG1000Palette = const_cast<GS_Color*>(&kSG1000_palette[0]);
 }
 
 Video::~Video()
@@ -126,6 +127,11 @@ void Video::Reset(bool bGameGear, bool bPAL)
 
     m_bSG1000 = false;
     m_iSG1000Mode = 0;
+}
+
+void Video::SetSG1000Palette(GS_Color* pSG1000Palette)
+{
+    m_pSG1000Palette = pSG1000Palette;
 }
 
 bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
@@ -625,7 +631,7 @@ void Video::RenderBackgroundSG1000(int line)
 
         int final_color = IsSetBit(pattern_line, 7 - tile_x_offset) ? fg_color : bg_color;
 
-        m_pColorFrameBuffer[pixel] = kSG1000_palette[(final_color > 0) ? final_color : backdrop_color];
+        m_pColorFrameBuffer[pixel] = m_pSG1000Palette[(final_color > 0) ? final_color : backdrop_color];
         m_pInfoBuffer[pixel] = 0x00;
     }
 }
@@ -708,7 +714,7 @@ void Video::RenderSpritesSG1000(int line)
 
             if (sprite_pixel && (sprite_count < 5) && ((m_pInfoBuffer[pixel] & 0x08) == 0))
             {
-                m_pColorFrameBuffer[pixel] = kSG1000_palette[sprite_color];
+                m_pColorFrameBuffer[pixel] = m_pSG1000Palette[sprite_color];
                 m_pInfoBuffer[pixel] |= 0x08;
             }
 

@@ -205,6 +205,11 @@ Cartridge* GearsystemCore::GetCartridge()
     return m_pCartridge;
 }
 
+void GearsystemCore::SetSG1000Palette(GS_Color* pSG1000Palette)
+{
+    m_pVideo->SetSG1000Palette(pSG1000Palette);
+}
+
 void GearsystemCore::KeyPressed(GS_Joypads joypad, GS_Keys key)
 {
     m_pInput->KeyPressed(joypad, key);
