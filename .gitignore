@@ -8,6 +8,7 @@ private/
 *.dylib
 
 # Visual Studio files
+.vs
 ipch/
 [Oo]bj
 [Bb]in
