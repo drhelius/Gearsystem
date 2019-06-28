@@ -59,7 +59,7 @@ make -j 4
 sudo make install
 ```
 - Install libconfig library dependencies for development: <code>sudo apt-get install libconfig++-dev</code>.
-- Use <code>make -j 4</code> in the proper folder for your Raspberry Pi version:
+- Run <code>make -j 4</code> in the proper folder for your Raspberry Pi version:
     - <code>platforms/raspberrypi/</code>
     - <code>platforms/raspberrypi2/</code>
     - <code>platforms/raspberrypi3/x86/</code>
