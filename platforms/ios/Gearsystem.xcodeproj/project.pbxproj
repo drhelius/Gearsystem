@@ -55,6 +55,7 @@
 		66AB41DB1A103191006C951A /* GLViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66AB41CF1A103191006C951A /* GLViewController.mm */; };
 		66AB41DD1A103191006C951A /* inputmanager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66AB41D31A103191006C951A /* inputmanager.mm */; };
 		66AB41DE1A103191006C951A /* timer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66AB41D71A103191006C951A /* timer.mm */; };
+		66C4835D22C6CA8E00615DFE /* SG1000MemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66C4835C22C6CA8E00615DFE /* SG1000MemoryRule.cpp */; };
 		66D7D0DC20516FEA0059268B /* Sound_Queue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66D7D0DA20516FEA0059268B /* Sound_Queue.cpp */; };
 		66FCDE3F1A113CF300E7F4F7 /* sms_1206.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 66FCDE3E1A113CF300E7F4F7 /* sms_1206.jpg */; };
 		66FCDE411A11421900E7F4F7 /* sms_2016.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 66FCDE401A11421900E7F4F7 /* sms_2016.jpg */; };
@@ -175,6 +176,8 @@
 		66AB41D61A103191006C951A /* timer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = timer.h; sourceTree = "<group>"; };
 		66AB41D71A103191006C951A /* timer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = timer.mm; sourceTree = "<group>"; };
 		66AB41D81A103191006C951A /* Vector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Vector.h; sourceTree = "<group>"; };
+		66C4835922C6CA8D00615DFE /* SG1000MemoryRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SG1000MemoryRule.h; path = ../../src/SG1000MemoryRule.h; sourceTree = "<group>"; };
+		66C4835C22C6CA8E00615DFE /* SG1000MemoryRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SG1000MemoryRule.cpp; path = ../../src/SG1000MemoryRule.cpp; sourceTree = "<group>"; };
 		66D7D0DA20516FEA0059268B /* Sound_Queue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound_Queue.cpp; path = "../audio-shared/Sound_Queue.cpp"; sourceTree = "<group>"; };
 		66D7D0DB20516FEA0059268B /* Sound_Queue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sound_Queue.h; path = "../audio-shared/Sound_Queue.h"; sourceTree = "<group>"; };
 		66FCDE3E1A113CF300E7F4F7 /* sms_1206.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = sms_1206.jpg; path = img/sms_1206.jpg; sourceTree = "<group>"; };
@@ -339,6 +342,8 @@
 				66AB41821A1030C2006C951A /* RomOnlyMemoryRule.h */,
 				66AB41831A1030C2006C951A /* SegaMemoryRule.cpp */,
 				66AB41841A1030C2006C951A /* SegaMemoryRule.h */,
+				66C4835C22C6CA8E00615DFE /* SG1000MemoryRule.cpp */,
+				66C4835922C6CA8D00615DFE /* SG1000MemoryRule.h */,
 				66AB41851A1030C2006C951A /* SixteenBitRegister.h */,
 				66AB41861A1030C2006C951A /* SmsIOPorts.cpp */,
 				66AB41871A1030C2006C951A /* SmsIOPorts.h */,
@@ -500,6 +505,7 @@
 				66AB41DB1A103191006C951A /* GLViewController.mm in Sources */,
 				66AB41921A1030C2006C951A /* opcodes_cb.cpp in Sources */,
 				66AB41DA1A103191006C951A /* EmulatorInput.mm in Sources */,
+				66C4835D22C6CA8E00615DFE /* SG1000MemoryRule.cpp in Sources */,
 				666602A31A7ECF0300DEB660 /* texturemanager.mm in Sources */,
 				66AB41961A1030C2006C951A /* RomOnlyMemoryRule.cpp in Sources */,
 				66AB41131A102A95006C951A /* MasterViewController.mm in Sources */,
