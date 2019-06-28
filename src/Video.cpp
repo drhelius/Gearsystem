@@ -55,6 +55,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iRenderLine = 0;
     m_iScreenWidth = 0;
     m_bSG1000 = false;
+    m_iSG1000Mode = 0;
 }
 
 Video::~Video()
@@ -124,6 +125,7 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_iScreenWidth = m_bGameGear ? GS_RESOLUTION_GG_WIDTH : GS_RESOLUTION_SMS_WIDTH;
 
     m_bSG1000 = false;
+    m_iSG1000Mode = 0;
 }
 
 bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
@@ -346,9 +348,9 @@ void Video::WriteControl(u8 control)
                 if (reg < 2)
                 {
                     m_bExtendedMode224 = ((m_VdpRegister[0] & 0x06) == 0x06) && ((m_VdpRegister[1] & 0x18) == 0x10);
-                    m_bSG1000 = ((m_VdpRegister[0] & 0x06) == 0x02) && ((m_VdpRegister[1] & 0x18) == 0x00);
 
-                    //Log("--> ** Video mode R0: $%X R1: $%X", m_VdpRegister[0] & 0x06, m_VdpRegister[1] & 0x18);
+                    m_iSG1000Mode = ((m_VdpRegister[0] & 0x06) << 8) | (m_VdpRegister[1] & 0x18);
+                    m_bSG1000 = (m_iSG1000Mode == 0x0200) || (m_iSG1000Mode == 0x0000) ;
                 }
                 else if (reg > 10)
                 {
@@ -571,8 +573,20 @@ void Video::RenderBackgroundSG1000(int line)
     int line_width = line * m_iScreenWidth;
 
     int name_table_addr = (m_VdpRegister[2] & 0x0F) << 10;
-    int pattern_table_addr = (m_VdpRegister[4] & 0x04) << 11;
-    int color_table_addr = (m_VdpRegister[3] & 0x80) << 6;
+    int pattern_table_addr = 0;
+    int color_table_addr = 0;
+
+    if (m_iSG1000Mode == 0x200)
+    {
+        pattern_table_addr = (m_VdpRegister[4] & 0x04) << 11;
+        color_table_addr = (m_VdpRegister[3] & 0x80) << 6;
+    }
+    else
+    {
+        pattern_table_addr = (m_VdpRegister[4] & 0x07) << 11;
+        color_table_addr = m_VdpRegister[3] << 6;
+    }
+
     int region = (m_VdpRegister[4] & 0x03) << 8;
     int backdrop_color = m_VdpRegister[7] & 0x0F;
 
@@ -588,11 +602,21 @@ void Video::RenderBackgroundSG1000(int line)
 
         int name_tile_addr = name_table_addr + tile_number;
 
-        int name_tile = m_pVdpVRAM[name_tile_addr] | (region & 0x300 & tile_number);
+        int name_tile = 0;
+
+        if (m_iSG1000Mode == 0x200)
+            name_tile = m_pVdpVRAM[name_tile_addr] | (region & 0x300 & tile_number);
+        else
+            name_tile = m_pVdpVRAM[name_tile_addr];
 
         u8 pattern_line = m_pVdpVRAM[pattern_table_addr + (name_tile << 3) + tile_y_offset];
 
-        u8 color_line = m_pVdpVRAM[color_table_addr + (name_tile << 3) + tile_y_offset];
+        u8 color_line = 0;
+
+        if (m_iSG1000Mode == 0x200)
+            color_line = m_pVdpVRAM[color_table_addr + (name_tile << 3) + tile_y_offset];
+        else
+            color_line = m_pVdpVRAM[color_table_addr + (name_tile >> 3)];
 
         int bg_color = color_line & 0x0F;
         int fg_color = color_line >> 4;
@@ -659,6 +683,8 @@ void Video::RenderSpritesSG1000(int line)
             continue;
 
         int sprite_tile = m_pVdpVRAM[sprite_attribute_offset + 2];
+        sprite_tile &= IsSetBit(m_VdpRegister[1], 1) ? 0xFC : 0xFF;
+
         int sprite_line_addr = sprite_pattern_addr + (sprite_tile << 3) + ((line - sprite_y ) >> (sprite_zoom ? 1 : 0));
 
         for (int tile_x = 0; tile_x < sprite_size; tile_x++)

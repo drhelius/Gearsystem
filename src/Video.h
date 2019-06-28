@@ -89,6 +89,7 @@ private:
     int m_iRenderLine;
     int m_iScreenWidth;
     bool m_bSG1000;
+    int m_iSG1000Mode;
 };
 
 inline GS_Color Video::ConvertTo8BitColor(int palette_color)
