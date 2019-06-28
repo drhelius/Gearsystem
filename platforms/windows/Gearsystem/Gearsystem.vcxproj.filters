@@ -179,6 +179,9 @@
     <ClCompile Include="Release\moc_VideoSettings.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\SG1000MemoryRule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\qt-shared\About.h">
@@ -361,6 +364,9 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_VideoSettings.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\SG1000MemoryRule.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

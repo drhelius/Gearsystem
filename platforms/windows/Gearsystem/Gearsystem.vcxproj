@@ -137,6 +137,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\src\SG1000MemoryRule.cpp" />
     <ClCompile Include="..\..\qt-shared\About.cpp" />
     <ClCompile Include="..\..\..\src\Audio.cpp" />
     <ClCompile Include="..\..\..\src\audio\Blip_Buffer.cpp" />
@@ -172,6 +173,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\src\SG1000MemoryRule.h" />
     <ClInclude Include="GeneratedFiles\ui_About.h" />
     <ClInclude Include="GeneratedFiles\ui_InputSettings.h" />
     <ClInclude Include="GeneratedFiles\ui_MainWindow.h" />
