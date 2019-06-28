@@ -28,7 +28,7 @@ Features
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
 - Highly accurate VDP emulation including timing and SMS2 only 224 mode support.
 - Internal database for rom detection.
-- Audio emulation using SDL Audio and [Sms_Snd_Emu library](http://slack.net/%7Eant/libs/audio.html#Sms_Snd_Emu).
+- Audio emulation using SDL Audio and [Sms_Snd_Emu library](http://blargg.8bitalley.com/libs/audio.html#Sms_Snd_Emu).
 - Saves battery powered RAM cartridges to file.
 - Save states.
 - Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
