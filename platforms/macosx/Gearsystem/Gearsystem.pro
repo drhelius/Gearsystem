@@ -21,7 +21,8 @@ LIBS += -stdlib=libc++ -L/usr/local/lib -lSDL2
 QMAKE_CXXFLAGS += -stdlib=libc++
 QMAKE_CXXFLAGS += -std=c++11
 
-SOURCES += \
+SOURCES +=
+    ../../../src/SG1000MemoryRule.cpp \
     ../../../src/audio/Blip_Buffer.cpp \
     ../../../src/audio/Effects_Buffer.cpp \
     ../../../src/audio/Multi_Buffer.cpp \
@@ -55,6 +56,7 @@ SOURCES += \
     ../../qt-shared/VideoSettings.cpp
 
 HEADERS  += \
+    ../../../src/SG1000MemoryRule.h \
     ../../../src/audio/blargg_common.h \
     ../../../src/audio/blargg_config.h \
     ../../../src/audio/blargg_source.h \
