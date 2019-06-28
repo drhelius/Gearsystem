@@ -110,7 +110,7 @@ void retro_get_system_info(struct retro_system_info *info)
     info->library_name     = "Gearsystem";
     info->library_version  = GEARSYSTEM_VERSION;
     info->need_fullpath    = false;
-    info->valid_extensions = "sms|gg|bin|rom";
+    info->valid_extensions = "sms|gg|sg|bin|rom";
 }
 
 static retro_video_refresh_t video_cb;

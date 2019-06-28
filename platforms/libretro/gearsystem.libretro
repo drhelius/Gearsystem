@@ -1,6 +1,6 @@
 [Libretro]
 Type=Emulator
-Version=1.0
+Version=2.6.0
 Name=Gearsystem
 Module=gearsystem_libretro.so
 LibretroVersion=1
