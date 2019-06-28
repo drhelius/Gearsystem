@@ -54,6 +54,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_bExtendedMode224 = false;
     m_iRenderLine = 0;
     m_iScreenWidth = 0;
+    m_bSG1000 = false;
 }
 
 Video::~Video()
@@ -121,6 +122,8 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_iRenderLine = 0;
 
     m_iScreenWidth = m_bGameGear ? GS_RESOLUTION_GG_WIDTH : GS_RESOLUTION_SMS_WIDTH;
+
+    m_bSG1000 = false;
 }
 
 bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
@@ -156,7 +159,7 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
             if (m_iVdpRegister10Counter < 0)
             {
                 m_iVdpRegister10Counter = m_VdpRegister[10];
-                if (IsSetBit(m_VdpRegister[0], 4))
+                if (!m_bSG1000 && IsSetBit(m_VdpRegister[0], 4))
                     m_pProcessor->RequestINT(true);
             }
         }
@@ -275,7 +278,7 @@ u8 Video::GetDataPort()
 
 u8 Video::GetStatusFlags()
 {
-    u8 ret = m_VdpStatus | 0x1F;
+    u8 ret = m_VdpStatus | (m_bSG1000 ? 0 : 0x1F);
     m_bFirstByteInSequence = true;
     m_VdpStatus = 0x00;
     m_pProcessor->RequestINT(false);
@@ -323,6 +326,9 @@ void Video::WriteControl(u8 control)
         m_VdpCode = (control >> 6) & 0x03;
         m_VdpAddress = (m_VdpAddress & 0x00FF) | ((control & 0x3F) << 8);
 
+        if (m_bSG1000 && (m_VdpCode == VDP_WRITE_CRAM_OPERATION))
+            Log("--> ** SG-1000 Attempting to write on CRAM");
+
         switch (m_VdpCode)
         {
             case VDP_READ_VRAM_OPERATION:
@@ -334,12 +340,15 @@ void Video::WriteControl(u8 control)
             }
             case VDP_WRITE_REG_OPERATION:
             {
-                u8 reg = control & 0x0F;
+                u8 reg = control & (m_bSG1000 ? 0x07 : 0x0F);
                 m_VdpRegister[reg] = (m_VdpAddress & 0x00FF);
 
                 if (reg < 2)
                 {
                     m_bExtendedMode224 = ((m_VdpRegister[0] & 0x06) == 0x06) && ((m_VdpRegister[1] & 0x18) == 0x10);
+                    m_bSG1000 = ((m_VdpRegister[0] & 0x06) == 0x02) && ((m_VdpRegister[1] & 0x18) == 0x00);
+
+                    //Log("--> ** Video mode R0: $%X R1: $%X", m_VdpRegister[0] & 0x06, m_VdpRegister[1] & 0x18);
                 }
                 else if (reg > 10)
                 {
@@ -356,8 +365,16 @@ void Video::ScanLine(int line)
     if (IsSetBit(m_VdpRegister[1], 6))
     {
         // DISPLAY ON
-        RenderBG(line);
-        RenderSprites(line);
+        if (m_bSG1000)
+        {
+            RenderBackgroundSG1000(line);
+            RenderSpritesSG1000(line);
+        }
+        else
+        {
+            RenderBackgroundSMSGG(line);
+            RenderSpritesSMSGG(line);
+        }
     }
     else
     {
@@ -376,7 +393,7 @@ void Video::ScanLine(int line)
     }
 }
 
-void Video::RenderBG(int line)
+void Video::RenderBackgroundSMSGG(int line)
 {
     if (m_bGameGear && ((line < GS_RESOLUTION_GG_Y_OFFSET) || (line >= (GS_RESOLUTION_GG_Y_OFFSET + GS_RESOLUTION_GG_HEIGHT))))
         return;
@@ -461,7 +478,7 @@ void Video::RenderBG(int line)
     }
 }
 
-void Video::RenderSprites(int line)
+void Video::RenderSpritesSMSGG(int line)
 {
     if (m_bGameGear && ((line < GS_RESOLUTION_GG_Y_OFFSET) || (line >= (GS_RESOLUTION_GG_Y_OFFSET + GS_RESOLUTION_GG_HEIGHT))))
         return;
@@ -493,7 +510,7 @@ void Video::RenderSprites(int line)
 
     for (int sprite = max_sprite; sprite >= 0; sprite--)
     {
-        int sprite_y = m_pVdpVRAM[sprite_table_address + sprite] + 1;
+        u8 sprite_y = m_pVdpVRAM[sprite_table_address + sprite] + 1;
         if ((sprite_y > line) || ((sprite_y + sprite_height) <= line))
             continue;
 
@@ -537,6 +554,134 @@ void Video::RenderSprites(int line)
             palette_color += 16;
 
             m_pColorFrameBuffer[pixel] = ConvertTo8BitColor(palette_color);
+
+            if ((m_pInfoBuffer[pixel] & 0x04) != 0)
+                sprite_collision = true;
+            else
+                m_pInfoBuffer[pixel] |= 0x04;
+        }
+    }
+
+    if (sprite_collision)
+        m_VdpStatus = SetBit(m_VdpStatus, 5);
+}
+
+void Video::RenderBackgroundSG1000(int line)
+{
+    int line_width = line * m_iScreenWidth;
+
+    int name_table_addr = (m_VdpRegister[2] & 0x0F) << 10;
+    int pattern_table_addr = (m_VdpRegister[4] & 0x04) << 11;
+    int color_table_addr = (m_VdpRegister[3] & 0x80) << 6;
+    int region = (m_VdpRegister[4] & 0x03) << 8;
+    int backdrop_color = m_VdpRegister[7] & 0x0F;
+
+    int tile_y = line >> 3;
+    int tile_y_offset = line & 7;
+
+    for (int scx = 0; scx < m_iScreenWidth; scx++)
+    {
+        int tile_x = scx >> 3;
+        int tile_x_offset = scx & 7;
+
+        int tile_number = ((tile_y << 5) + tile_x);
+
+        int name_tile_addr = name_table_addr + tile_number;
+
+        int name_tile = m_pVdpVRAM[name_tile_addr] | (region & 0x300 & tile_number);
+
+        u8 pattern_line = m_pVdpVRAM[pattern_table_addr + (name_tile << 3) + tile_y_offset];
+
+        u8 color_line = m_pVdpVRAM[color_table_addr + (name_tile << 3) + tile_y_offset];
+
+        int bg_color = color_line & 0x0F;
+        int fg_color = color_line >> 4;
+
+        int pixel = line_width + scx;
+
+        int final_color = IsSetBit(pattern_line, 7 - tile_x_offset) ? fg_color : bg_color;
+
+        m_pColorFrameBuffer[pixel] = kSG1000_palette[(final_color > 0) ? final_color : backdrop_color];
+        m_pInfoBuffer[pixel] = 0x00;
+    }
+}
+
+void Video::RenderSpritesSG1000(int line)
+{
+    int sprite_collision = false;
+    int sprite_count = 0;
+    int line_width = line * m_iScreenWidth;
+    int sprite_size = IsSetBit(m_VdpRegister[1], 1) ? 16 : 8;
+    bool sprite_zoom = IsSetBit(m_VdpRegister[1], 0);
+    if (sprite_zoom)
+        sprite_size *= 2;
+    u16 sprite_attribute_addr = (m_VdpRegister[5] & 0x7F) << 7;
+    u16 sprite_pattern_addr = (m_VdpRegister[6] & 0x07) << 11;
+
+    int max_sprite = 31;
+
+    for (int sprite = 0; sprite <= max_sprite; sprite++)
+    {
+        if (m_pVdpVRAM[sprite_attribute_addr + (sprite << 2)] == 0xD0)
+        {
+            max_sprite = sprite - 1;
+            break;
+        }
+    }
+
+    for (int sprite = max_sprite; sprite >= 0; sprite--)
+    {
+        int sprite_attribute_offset = sprite_attribute_addr + (sprite << 2);
+        int sprite_y = (m_pVdpVRAM[sprite_attribute_offset] + 1) & 0xFF;
+
+        if (sprite_y >= 0xE0)
+            sprite_y = -(0x100 - sprite_y);
+
+        if ((sprite_y > line) || ((sprite_y + sprite_size) <= line))
+            continue;
+
+        int sprite_color = m_pVdpVRAM[sprite_attribute_offset + 3] & 0x0F;
+        if (sprite_color == 0x00)
+            continue;
+
+        sprite_count++;
+        if (!SetBit(m_VdpStatus, 6) && (sprite_count > 4))
+        {
+            m_VdpStatus = SetBit(m_VdpStatus, 6);
+            m_VdpStatus = (m_VdpStatus & 0xE0) | sprite;
+            //break;
+        }
+
+        int sprite_shift = (m_pVdpVRAM[sprite_attribute_offset + 3] & 0x80) ? 32 : 0;
+        int sprite_x = m_pVdpVRAM[sprite_attribute_offset + 1] - sprite_shift;
+
+        if (sprite_x >= GS_RESOLUTION_MAX_WIDTH)
+            continue;
+
+        int sprite_tile = m_pVdpVRAM[sprite_attribute_offset + 2];
+        int sprite_line_addr = sprite_pattern_addr + (sprite_tile << 3) + ((line - sprite_y ) >> (sprite_zoom ? 1 : 0));
+
+        for (int tile_x = 0; tile_x < sprite_size; tile_x++)
+        {
+            int sprite_pixel_x = sprite_x + tile_x;
+            if (sprite_pixel_x >= m_iScreenWidth)
+                break;
+            if (sprite_pixel_x < 0)
+                continue;
+
+            int pixel = line_width + sprite_pixel_x;
+
+            bool sprite_pixel = false;
+
+            int tile_x_adjusted = tile_x >> (sprite_zoom ? 1 : 0);
+
+            if (tile_x_adjusted < 8)
+                sprite_pixel = IsSetBit(m_pVdpVRAM[sprite_line_addr], 7 - tile_x_adjusted);
+            else
+                sprite_pixel = IsSetBit(m_pVdpVRAM[sprite_line_addr + 16], 15 - tile_x_adjusted);
+
+            if (sprite_pixel)
+                m_pColorFrameBuffer[pixel] = kSG1000_palette[sprite_color];
 
             if ((m_pInfoBuffer[pixel] & 0x04) != 0)
                 sprite_collision = true;

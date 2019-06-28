@@ -77,6 +77,11 @@ bool Memory::IsDisassembled(u16 address)
     return m_pDisassembledMap[address].szDisString[0] != 0;
 }
 
+char* Memory::GetDisassembled(u16 address)
+{
+    return m_pDisassembledMap[address].szDisString;
+}
+
 void Memory::LoadSlotsFromROM(u8* pTheROM, int size)
 {
     // loads the first 48KB only (bank 0, 1 and 2)

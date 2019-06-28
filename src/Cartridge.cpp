@@ -36,6 +36,7 @@ Cartridge::Cartridge()
     m_szFileName[0] = 0;
     m_iROMBankCount = 0;
     m_bGameGear = false;
+    m_bSG1000 = false;
     m_bPAL = false;
     m_bRAMWithoutBattery = false;
 }
@@ -62,6 +63,7 @@ void Cartridge::Reset()
     m_szFileName[0] = 0;
     m_iROMBankCount = 0;
     m_bGameGear = false;
+    m_bSG1000 = false;
     m_bPAL = false;
     m_bRAMWithoutBattery = false;
     m_GameGenieList.clear();
@@ -70,6 +72,11 @@ void Cartridge::Reset()
 bool Cartridge::IsGameGear() const
 {
     return m_bGameGear;
+}
+
+bool Cartridge::IsSG1000() const
+{
+    return m_bSG1000;
 }
 
 bool Cartridge::IsPAL() const
@@ -162,9 +169,10 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
         transform(fn.begin(), fn.end(), fn.begin(), (int(*)(int)) tolower);
         string extension = fn.substr(fn.find_last_of(".") + 1);
 
-        if ((extension == "sms") || (extension == "gg"))
+        if ((extension == "sms") || (extension == "gg") || (extension == "sg"))
         {
             m_bGameGear = (extension == "gg");
+            m_bSG1000 = (extension == "sg");
 
             void *p;
             size_t uncomp_size;
@@ -243,6 +251,7 @@ bool Cartridge::LoadFromFile(const char* path)
         else
         {
             m_bGameGear = (extension == "gg");
+            m_bSG1000= (extension == "sg");
             m_bReady = LoadFromBuffer(reinterpret_cast<u8*> (memblock), size);
         }
 
@@ -435,6 +444,9 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeCodemastersMapper:
             Log("Codemasters mapper found");
             break;
+        case Cartridge::CartridgeSG1000Mapper:
+            Log("SG-1000 mapper found");
+            break;
         case Cartridge::CartridgeNotSupported:
             Log("Cartridge not supported!!");
             break;
@@ -446,6 +458,11 @@ bool Cartridge::GatherMetadata(u32 crc)
     if (m_bGameGear)
     {
         Log("Game Gear cartridge identified");
+    }
+
+    if (m_bSG1000)
+    {
+        Log("SG-1000 cartridge identified");
     }
 
     return (m_Type != CartridgeNotSupported);
@@ -468,6 +485,11 @@ void Cartridge::GetInfoFromDB(u32 crc)
 
             if (kGameDatabase[i].mapper == GS_DB_CODEMASTERS_MAPPER)
                 m_Type = Cartridge::CartridgeCodemastersMapper;
+            else if (kGameDatabase[i].mapper == GS_DB_SG1000_MAPPER)
+            {
+                m_bSG1000 = true;
+                m_Type = Cartridge::CartridgeSG1000Mapper;
+            }
 
             if (kGameDatabase[i].sms_mode)
             {

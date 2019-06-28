@@ -28,6 +28,7 @@
 #include "SegaMemoryRule.h"
 #include "CodemastersMemoryRule.h"
 #include "RomOnlyMemoryRule.h"
+#include "SG1000MemoryRule.h"
 #include "SmsIOPorts.h"
 #include "GameGearIOPorts.h"
 
@@ -41,6 +42,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pCartridge);
     InitPointer(m_pSegaMemoryRule);
     InitPointer(m_pCodemastersMemoryRule);
+    InitPointer(m_pSG1000MemoryRule);
     InitPointer(m_pRomOnlyMemoryRule);
     InitPointer(m_pSmsIOPorts);
     InitPointer(m_pGameGearIOPorts);
@@ -71,6 +73,7 @@ GearsystemCore::~GearsystemCore()
     SafeDelete(m_pSmsIOPorts);
     SafeDelete(m_pRomOnlyMemoryRule);
     SafeDelete(m_pCodemastersMemoryRule);
+    SafeDelete(m_pSG1000MemoryRule);
     SafeDelete(m_pSegaMemoryRule);
     SafeDelete(m_pCartridge);
     SafeDelete(m_pInput);
@@ -645,6 +648,7 @@ void GearsystemCore::SetRamModificationCallback(RamChangedCallback callback)
 
 void GearsystemCore::InitMemoryRules()
 {
+    m_pSG1000MemoryRule = new SG1000MemoryRule(m_pMemory, m_pCartridge);
     m_pCodemastersMemoryRule = new CodemastersMemoryRule(m_pMemory, m_pCartridge);
     m_pSegaMemoryRule = new SegaMemoryRule(m_pMemory, m_pCartridge);
     m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pMemory, m_pCartridge);
@@ -667,6 +671,9 @@ bool GearsystemCore::AddMemoryRules()
         case Cartridge::CartridgeCodemastersMapper:
             m_pMemory->SetCurrentRule(m_pCodemastersMemoryRule);
             break;
+        case Cartridge::CartridgeSG1000Mapper:
+            m_pMemory->SetCurrentRule(m_pSG1000MemoryRule);
+            break;
         case Cartridge::CartridgeNotSupported:
             notSupported = true;
             break;
@@ -676,12 +683,12 @@ bool GearsystemCore::AddMemoryRules()
 
     if (m_pCartridge->IsGameGear())
     {
-        Log("Game Gear Mode enabled");
+        Log("Game Gear IO ports enabled");
         m_pProcessor->SetIOPOrts(m_pGameGearIOPorts);
     }
     else
     {
-        Log("Master System Mode enabled");
+        Log("Master System IO ports enabled");
         m_pProcessor->SetIOPOrts(m_pSmsIOPorts);
     }
 
@@ -697,6 +704,7 @@ void GearsystemCore::Reset()
     m_pInput->Reset(m_pCartridge->IsGameGear());
     m_pSegaMemoryRule->Reset();
     m_pCodemastersMemoryRule->Reset();
+    m_pSG1000MemoryRule->Reset();
     m_pRomOnlyMemoryRule->Reset();
     m_pGameGearIOPorts->Reset();
     m_pSmsIOPorts->Reset();

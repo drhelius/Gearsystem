@@ -150,7 +150,7 @@ void MainWindow::MenuGameBoyLoadROM()
             this,
             tr("Load ROM"),
             QDir::currentPath(),
-            tr("Master System / Game Gear ROM files (*.sms *.gg *.zip);;All files (*.*)"));
+            tr("Master System / Game Gear ROM files (*.sms *.gg *.sg *.zip);;All files (*.*)"));
 
     if (!filename.isNull())
     {

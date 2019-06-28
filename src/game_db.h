@@ -22,6 +22,7 @@
 
 #define GS_DB_CODEMASTERS_MAPPER 1
 #define GS_DB_DEFAULT_MAPPER 0
+#define GS_DB_SG1000_MAPPER 2
 
 struct GS_GameDBEntry
 {
@@ -101,6 +102,14 @@ const GS_GameDBEntry kGameDatabase[] =
     {0xB137007A, GS_DB_DEFAULT_MAPPER, false, false, true, "Desert Speedtrap"},
     {0xC2E111AC, GS_DB_DEFAULT_MAPPER, false, false, true, "Desert Speedtrap"},
     {0xEC808026, GS_DB_DEFAULT_MAPPER, false, false, true, "Desert Speedtrap"},
+
+    // SG-1000 with RAM without battery
+    {0x092F29D6, GS_DB_SG1000_MAPPER, false, false, true, "Castle, The"},
+    {0x223397A1, GS_DB_SG1000_MAPPER, false, false, true, "King's Valley"},
+    {0xAF4F14BC, GS_DB_SG1000_MAPPER, false, false, true, "Othello (J)"},
+    {0x1D1A0CA3, GS_DB_SG1000_MAPPER, false, false, true, "Othello (T)"},
+    {0x49E9718B, GS_DB_SG1000_MAPPER, false, false, true, "Safari Hunting (JE)"},
+    {0x6DC51C01, GS_DB_SG1000_MAPPER, false, false, true, "Safari Hunting (T)"},
         
     {0, 0, false, false, false, 0}
 };

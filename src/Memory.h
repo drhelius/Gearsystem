@@ -40,6 +40,7 @@ public:
     void Load(u16 address, u8 value);
     void Disassemble(u16 address, const char* szDisassembled);
     bool IsDisassembled(u16 address);
+    char* GetDisassembled(u16 address);
     void LoadSlotsFromROM(u8* pTheROM, int size);
     void MemoryDump(const char* szFilePath);
     void SaveState(std::ostream& stream);

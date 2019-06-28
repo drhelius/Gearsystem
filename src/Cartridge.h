@@ -31,6 +31,7 @@ public:
         CartridgeRomOnlyMapper,
         CartridgeSegaMapper,
 		CartridgeCodemastersMapper,
+        CartridgeSG1000Mapper,
         CartridgeNotSupported
     };
     enum CartridgeZones
@@ -49,6 +50,7 @@ public:
     void Init();
     void Reset();
     bool IsGameGear() const;
+    bool IsSG1000() const;
     bool IsPAL() const;
     bool IsValidROM() const;
     bool IsReady() const;
@@ -84,6 +86,7 @@ private:
     char m_szFileName[512];
     int m_iROMBankCount;
     bool m_bGameGear;
+    bool m_bSG1000;
     bool m_bPAL;
     bool m_bRAMWithoutBattery;
 

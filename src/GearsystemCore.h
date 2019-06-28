@@ -31,6 +31,7 @@ class Cartridge;
 class SegaMemoryRule;
 class CodemastersMemoryRule;
 class RomOnlyMemoryRule;
+class SG1000MemoryRule;
 class MemoryRule;
 class SmsIOPorts;
 class GameGearIOPorts;
@@ -85,6 +86,7 @@ private:
     Cartridge* m_pCartridge;
     SegaMemoryRule* m_pSegaMemoryRule;
     CodemastersMemoryRule* m_pCodemastersMemoryRule;
+    SG1000MemoryRule* m_pSG1000MemoryRule;
     RomOnlyMemoryRule* m_pRomOnlyMemoryRule;
     SmsIOPorts* m_pSmsIOPorts;
     GameGearIOPorts* m_pGameGearIOPorts;

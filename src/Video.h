@@ -51,8 +51,10 @@ public:
 
 private:
     void ScanLine(int line);
-    void RenderBG(int line);
-    void RenderSprites(int line);
+    void RenderBackgroundSMSGG(int line);
+    void RenderBackgroundSG1000(int line);
+    void RenderSpritesSMSGG(int line);
+    void RenderSpritesSG1000(int line);
     GS_Color ConvertTo8BitColor(int palette_color);
 
 private:
@@ -86,6 +88,7 @@ private:
     bool m_bVCounterIncremented;
     int m_iRenderLine;
     int m_iScreenWidth;
+    bool m_bSG1000;
 };
 
 inline GS_Color Video::ConvertTo8BitColor(int palette_color)
@@ -134,5 +137,9 @@ const u8 kVdpHCounter[228] = {
                            0xE9,0xEA,0xEA,0xEB,0xEC,0xED,0xED,0xEE,0xEF,0xF0,0xF0,
   0xF1,0xF2,0xF3,0xF3,0xF4,0xF5,0xF6,0xF6,0xF7,0xF8,0xF9,0xF9,0xFA,0xFB,0xFC,0xFC,0xFD,0xFE,0xFF,0xFF,
 };
+
+const GS_Color kSG1000_palette[16] = {{0, 0, 0, 0xFF},{0, 0, 0, 0xFF},{33, 200, 66, 0xFF},{94, 220, 120, 0xFF},{84, 85, 237, 0xFF},{125, 118, 252, 0xFF},{212, 82, 77, 0xFF},{66, 235, 245, 0xFF},{252, 85, 84, 0xFF},{255, 121, 120, 0xFF},{212, 193, 84, 0xFF},{230, 206, 128, 0xFF},{33, 176, 59, 0xFF},{201, 91, 186, 0xFF},{204, 204, 204, 0xFF},{0xFF, 0xFF, 0xFF, 0xFF}};
+
+
 
 #endif	/* VIDEO_H */
