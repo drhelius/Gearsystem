@@ -5,7 +5,7 @@ Gearsystem
 ----------
 [![Build Status](https://travis-ci.org/drhelius/Gearsystem.svg?branch=master)](https://travis-ci.org/drhelius/Gearsystem)
 
-Gearsystem is a Sega Master System / Game Gear emulator written in C++ that runs on iOS, Raspberry Pi, Mac, Windows, Linux and RetroArch.
+Gearsystem is a Sega Master System / Game Gear / SG-1000 emulator written in C++ that runs on iOS, Raspberry Pi, Mac, Windows, Linux and RetroArch.
 
 Follow me on Twitter for updates: http://twitter.com/drhelius
 
@@ -18,12 +18,12 @@ Downloads
 - **Windows**: [Gearsystem-2.5.1-Windows.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-2.5.1/Gearsystem-2.5.0-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572))
 - **Linux**: [Gearsystem-2.5.1-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-2.5.1/Gearsystem-2.5.0-Linux.tar.xz)
 - **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearsystem/).
-- **Raspberry Pi**: Build Gearsystem from sources. Optimized projects are provided for Raspberry Pi 1, 2 and 3.
+- **Raspberry Pi**: Build Gearsystem from sources. Optimized projects are provided for Raspberry Pi 1, 2, 3 and 4.
 
 Features
 --------
 - Highly accurate Z80 core, including undocumented opcodes and behaviour like R and [MEMPTR](https://gist.github.com/drhelius/8497817) registers.
-- Multi-Mapper support: SEGA, Codemasters, and ROM only cartridges.
+- Multi-Mapper support: SEGA, Codemasters, SG-1000, and ROM only cartridges.
 - External RAM support with save files.
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
 - Highly accurate VDP emulation including timing and SMS2 only 224 mode support.
@@ -44,7 +44,7 @@ Build Instructions
 - Build the project <code>platforms/ios/Gearsystem.xcodeproj</code>
 - Run it on real hardware using your iOS developer certificate. Make sure it builds on Release for better performance.
 
-### Raspberry Pi 2 & 3 - Raspbian
+### Raspberry Pi - Raspbian
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development:
 ``` shell
 sudo apt-get update
@@ -59,7 +59,12 @@ make -j 4
 sudo make install
 ```
 - Install libconfig library dependencies for development: <code>sudo apt-get install libconfig++-dev</code>.
-- Use <code>make -j 4</code> in the <code>platforms/raspberrypi3/x64/</code> folder to build the project.
+- Use <code>make -j 4</code> in the proper folder for your Raspberry Pi version:
+    - <code>platforms/raspberrypi/</code>
+    - <code>platforms/raspberrypi2/</code>
+    - <code>platforms/raspberrypi3/x86/</code>
+    - <code>platforms/raspberrypi3/x64/</code>
+    - <code>platforms/raspberrypi4/</code>
 - Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the best performance.
 - Gearsystem generates a <code>gearsystem.cfg</code> configuration file where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
