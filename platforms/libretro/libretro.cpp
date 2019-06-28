@@ -60,6 +60,14 @@ static const struct retro_variable vars[] = {
     { NULL }
 };
 
+#if defined(IS_LITTLE_ENDIAN)
+// blue, green, red, alpha
+static GS_Color sg1000_palette[16] = {{0, 0, 0, 0xFF},{0, 0, 0, 0xFF},{66, 200, 33, 0xFF},{120, 220, 94, 0xFF},{237, 85, 84, 0xFF},{252, 118, 125, 0xFF},{77, 82, 212, 0xFF},{245, 235, 66, 0xFF},{84, 85, 252, 0xFF},{120, 121, 255, 0xFF},{84, 193, 212, 0xFF},{128, 206, 230, 0xFF},{59, 176, 33, 0xFF},{186, 91, 201, 0xFF},{204, 204, 204, 0xFF},{0xFF, 0xFF, 0xFF, 0xFF}};
+#elif defined(IS_BIG_ENDIAN)
+// alpha, red, green, blue
+static GS_Color sg1000_palette[16] = {{0xFF, 0, 0, 0},{0xFF, 0, 0, 0},{0xFF, 33, 200, 66},{0xFF, 94, 220, 120},{0xFF, 84, 85, 237},{0xFF, 125, 118, 252},{0xFF, 212, 82, 77},{0xFF, 66, 235, 245},{0xFF, 252, 85, 84},{0xFF, 255, 121, 120},{0xFF, 212, 193, 84},{0xFF, 230, 206, 128},{0xFF, 33, 176, 59},{0xFF, 201, 91, 186},{0xFF, 204, 204, 204},{0xFF, 0xFF, 0xFF, 0xFF}};
+#endif
+
 static retro_environment_t environ_cb;
 
 void retro_init(void)
@@ -73,6 +81,7 @@ void retro_init(void)
 
     core = new GearsystemCore();
     core->Init();
+    core->SetSG1000Palette(sg1000_palette);
 
     frame_buf = new GS_Color[GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT];
 
