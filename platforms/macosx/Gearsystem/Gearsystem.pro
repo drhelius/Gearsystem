@@ -21,7 +21,7 @@ LIBS += -stdlib=libc++ -L/usr/local/lib -lSDL2
 QMAKE_CXXFLAGS += -stdlib=libc++
 QMAKE_CXXFLAGS += -std=c++11
 
-SOURCES +=
+SOURCES += \
     ../../../src/KoreanMemoryRule.cpp \
     ../../../src/SG1000MemoryRule.cpp \
     ../../../src/audio/Blip_Buffer.cpp \
