@@ -11,6 +11,7 @@
 		6661D2F01A10B5D4009CFFF5 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6661D2EF1A10B518009CFFF5 /* libSDL2.a */; };
 		666602A31A7ECF0300DEB660 /* texturemanager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 666602A21A7ECF0300DEB660 /* texturemanager.mm */; };
 		666602A91A7ECF1300DEB660 /* scanlines2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 666602A61A7ECF1300DEB660 /* scanlines2x.png */; };
+		66A7B47C22C82E0F00E7B287 /* KoreanMemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 66A7B47822C82E0F00E7B287 /* KoreanMemoryRule.cpp */; };
 		66AB410D1A102A95006C951A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 66AB410C1A102A95006C951A /* main.m */; };
 		66AB41101A102A95006C951A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66AB410F1A102A95006C951A /* AppDelegate.mm */; };
 		66AB41131A102A95006C951A /* MasterViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 66AB41121A102A95006C951A /* MasterViewController.mm */; };
@@ -78,6 +79,8 @@
 		666602A11A7ECF0300DEB660 /* texturemanager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = texturemanager.h; sourceTree = "<group>"; };
 		666602A21A7ECF0300DEB660 /* texturemanager.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = texturemanager.mm; sourceTree = "<group>"; };
 		666602A61A7ECF1300DEB660 /* scanlines2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = scanlines2x.png; path = img/scanlines2x.png; sourceTree = "<group>"; };
+		66A7B47822C82E0F00E7B287 /* KoreanMemoryRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KoreanMemoryRule.cpp; path = ../../src/KoreanMemoryRule.cpp; sourceTree = "<group>"; };
+		66A7B47B22C82E0F00E7B287 /* KoreanMemoryRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KoreanMemoryRule.h; path = ../../src/KoreanMemoryRule.h; sourceTree = "<group>"; };
 		66AB41071A102A95006C951A /* Gearsystem.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Gearsystem.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		66AB410B1A102A95006C951A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		66AB410C1A102A95006C951A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -300,6 +303,8 @@
 		66AB413C1A102C0D006C951A /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				66A7B47822C82E0F00E7B287 /* KoreanMemoryRule.cpp */,
+				66A7B47B22C82E0F00E7B287 /* KoreanMemoryRule.h */,
 				66AB415B1A1030C1006C951A /* Audio.cpp */,
 				66AB415C1A1030C1006C951A /* Audio.h */,
 				66AB415D1A1030C1006C951A /* Cartridge.cpp */,
@@ -518,6 +523,7 @@
 				66AB41AC1A1030D4006C951A /* Sms_Apu.cpp in Sources */,
 				66AB41901A1030C2006C951A /* Memory.cpp in Sources */,
 				66AB41951A1030C2006C951A /* Processor.cpp in Sources */,
+				66A7B47C22C82E0F00E7B287 /* KoreanMemoryRule.cpp in Sources */,
 				66AB41DD1A103191006C951A /* inputmanager.mm in Sources */,
 				66AB418A1A1030C2006C951A /* Audio.cpp in Sources */,
 			);
