@@ -182,6 +182,9 @@
     <ClCompile Include="..\..\..\src\SG1000MemoryRule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\KoreanMemoryRule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\qt-shared\About.h">
@@ -366,6 +369,9 @@
       <Filter>Generated Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\SG1000MemoryRule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\KoreanMemoryRule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

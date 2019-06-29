@@ -104,14 +104,14 @@ u8* KoreanMemoryRule::GetPage(int index)
 
 void KoreanMemoryRule::SaveState(std::ostream& stream)
 {
-    stream.write(reinterpret_cast<const char*> (m_iMapperSlot2), sizeof(m_iMapperSlot2));
-    stream.write(reinterpret_cast<const char*> (m_iMapperSlot2Address), sizeof(m_iMapperSlot2Address));
+    stream.write(reinterpret_cast<const char*> (&m_iMapperSlot2), sizeof(m_iMapperSlot2));
+    stream.write(reinterpret_cast<const char*> (&m_iMapperSlot2Address), sizeof(m_iMapperSlot2Address));
 }
 
 void KoreanMemoryRule::LoadState(std::istream& stream)
 {
     using namespace std;
 
-    stream.read(reinterpret_cast<char*> (m_iMapperSlot2), sizeof(m_iMapperSlot2));
-    stream.read(reinterpret_cast<char*> (m_iMapperSlot2Address), sizeof(m_iMapperSlot2Address));
+    stream.read(reinterpret_cast<char*> (&m_iMapperSlot2), sizeof(m_iMapperSlot2));
+    stream.read(reinterpret_cast<char*> (&m_iMapperSlot2Address), sizeof(m_iMapperSlot2Address));
 }
