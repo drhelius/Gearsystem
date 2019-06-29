@@ -1,6 +1,6 @@
-GEARSYSTEM_SRC=../../../src
-GEARSYSTEM_AUDIO_SRC=../../audio-shared
-GEARSYSTEM_RPI_SRC=../../raspberrypi
+GEARSYSTEM_SRC=../../src
+GEARSYSTEM_AUDIO_SRC=../audio-shared
+GEARSYSTEM_RPI_SRC=../raspberrypi
 
 include $(GEARSYSTEM_RPI_SRC)/Makefile.common
 
