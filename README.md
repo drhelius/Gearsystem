@@ -123,9 +123,8 @@ Screenshots
 ![Screenshot](http://www.geardome.com/files/gearsystem/09.png)![Screenshot](http://www.geardome.com/files/gearsystem/10.png)
 ![Screenshot](http://www.geardome.com/files/gearsystem/11.png)![Screenshot](http://www.geardome.com/files/gearsystem/12.png)
 ![Screenshot](http://www.geardome.com/files/gearsystem/13.png)![Screenshot](http://www.geardome.com/files/gearsystem/14.png)
-![Screenshot](http://www.geardome.com/files/gearsystem/15.png)![Screenshot](http://www.geardome.com/files/gearsystem/16.png)
-![Screenshot](http://www.geardome.com/files/gearsystem/17.png)![Screenshot](http://www.geardome.com/files/gearsystem/18.png)
-
+<img src="http://www.geardome.com/files/gearsystem/15.png" width="368" height="326"><img src="http://www.geardome.com/files/gearsystem/16.png" width="368" height="326">
+<img src="http://www.geardome.com/files/gearsystem/17.png" width="368" height="326"><img src="http://www.geardome.com/files/gearsystem/18.png" width="368" height="326">
 License
 -------
 
