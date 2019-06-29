@@ -490,6 +490,10 @@ void Cartridge::GetInfoFromDB(u32 crc)
                 m_bSG1000 = true;
                 m_Type = Cartridge::CartridgeSG1000Mapper;
             }
+            else if (kGameDatabase[i].mapper == GS_DB_KOREAN_MAPPER)
+            {
+                m_Type = Cartridge::CartridgeKoreanMapper;
+            }
 
             if (kGameDatabase[i].sms_mode)
             {

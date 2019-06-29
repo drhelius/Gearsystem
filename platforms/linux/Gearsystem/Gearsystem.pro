@@ -20,6 +20,7 @@ LIBS += -L/usr/local/lib -lSDL2 \
 -lGLEW -lGLU -lGL
 
 SOURCES += \
+    ../../../src/KoreanMemoryRule.cpp \
     ../../../src/SG1000MemoryRule.cpp \
     ../../../src/audio/Blip_Buffer.cpp \
     ../../../src/audio/Effects_Buffer.cpp \
@@ -54,6 +55,7 @@ SOURCES += \
     ../../qt-shared/VideoSettings.cpp
 
 HEADERS  += \
+    ../../../src/KoreanMemoryRule.h \
     ../../../src/SG1000MemoryRule.h \
     ../../../src/audio/blargg_common.h \
     ../../../src/audio/blargg_config.h \

@@ -32,6 +32,7 @@ public:
         CartridgeSegaMapper,
 		CartridgeCodemastersMapper,
         CartridgeSG1000Mapper,
+        CartridgeKoreanMapper,
         CartridgeNotSupported
     };
     enum CartridgeZones

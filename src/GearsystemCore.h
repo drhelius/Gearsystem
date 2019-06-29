@@ -32,6 +32,7 @@ class SegaMemoryRule;
 class CodemastersMemoryRule;
 class RomOnlyMemoryRule;
 class SG1000MemoryRule;
+class KoreanMemoryRule;
 class MemoryRule;
 class SmsIOPorts;
 class GameGearIOPorts;
@@ -89,6 +90,7 @@ private:
     CodemastersMemoryRule* m_pCodemastersMemoryRule;
     SG1000MemoryRule* m_pSG1000MemoryRule;
     RomOnlyMemoryRule* m_pRomOnlyMemoryRule;
+    KoreanMemoryRule* m_pKoreanMemoryRule;
     SmsIOPorts* m_pSmsIOPorts;
     GameGearIOPorts* m_pGameGearIOPorts;
     bool m_bPaused;

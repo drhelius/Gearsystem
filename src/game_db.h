@@ -23,6 +23,7 @@
 #define GS_DB_CODEMASTERS_MAPPER 1
 #define GS_DB_DEFAULT_MAPPER 0
 #define GS_DB_SG1000_MAPPER 2
+#define GS_DB_KOREAN_MAPPER 4
 
 struct GS_GameDBEntry
 {
@@ -103,8 +104,13 @@ const GS_GameDBEntry kGameDatabase[] =
     {0xC2E111AC, GS_DB_DEFAULT_MAPPER, false, false, true, "Desert Speedtrap"},
     {0xEC808026, GS_DB_DEFAULT_MAPPER, false, false, true, "Desert Speedtrap"},
 
+    // KOREAN MAPPER
+    {0x89B79E77, GS_DB_KOREAN_MAPPER, false, false, false, "Dallyeora Pigu-Wang (Korean)"},
+    {0x97D03541, GS_DB_KOREAN_MAPPER, false, false, false, "Sangokushi 3 (Korean)"},
+
     // SG-1000 with RAM without battery
-    {0x092F29D6, GS_DB_SG1000_MAPPER, false, false, true, "Castle, The"},
+    {0x092F29D6, GS_DB_SG1000_MAPPER, false, false, true, "Castle, The (J)"},
+    {0x2E366CCF, GS_DB_SG1000_MAPPER, false, false, true, "Castle, The (T)"},
     {0x223397A1, GS_DB_SG1000_MAPPER, false, false, true, "King's Valley"},
     {0xAF4F14BC, GS_DB_SG1000_MAPPER, false, false, true, "Othello (J)"},
     {0x1D1A0CA3, GS_DB_SG1000_MAPPER, false, false, true, "Othello (T)"},
