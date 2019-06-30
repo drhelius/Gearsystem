@@ -28,6 +28,13 @@ int main(int argc, char *argv[])
 #ifdef Q_WS_X11
     XInitThreads();
 #endif
+
+    if((argc)==2 && (strcmp(argv[1], "-v") == 0))
+    {
+        printf("GEARSYSTEM %s by Ignacio Sanchez.\n\n", GEARSYSTEM_VERSION);
+        exit(0);
+    }
+
     QApplication a(argc, argv);
 
     if (argc > 2)
