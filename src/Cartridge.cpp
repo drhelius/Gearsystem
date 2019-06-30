@@ -169,10 +169,10 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
         transform(fn.begin(), fn.end(), fn.begin(), (int(*)(int)) tolower);
         string extension = fn.substr(fn.find_last_of(".") + 1);
 
-        if ((extension == "sms") || (extension == "gg") || (extension == "sg"))
+        if ((extension == "sms") || (extension == "gg") || (extension == "sg") || (extension == "mv"))
         {
             m_bGameGear = (extension == "gg");
-            m_bSG1000 = (extension == "sg");
+            m_bSG1000 = (extension == "sg" || extension == "mv");
 
             void *p;
             size_t uncomp_size;
@@ -251,7 +251,7 @@ bool Cartridge::LoadFromFile(const char* path)
         else
         {
             m_bGameGear = (extension == "gg");
-            m_bSG1000= (extension == "sg");
+            m_bSG1000= (extension == "sg" || extension == "mv");
             m_bReady = LoadFromBuffer(reinterpret_cast<u8*> (memblock), size);
         }
 
