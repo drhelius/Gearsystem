@@ -1,6 +1,6 @@
 display_name = "Sega - MS/GG/SG-1000 (Gearsystem)"
 authors = "Ignacio Sanchez"
-supported_extensions = "sms|gg|sg|bin|rom"
+supported_extensions = "sms|gg|sg|mv|bin|rom"
 corename = "Gearsystem"
 manufacturer = "Sega"
 categories = "Emulator"
