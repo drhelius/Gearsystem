@@ -335,7 +335,9 @@ void Video::WriteControl(u8 control)
         m_VdpAddress = (m_VdpAddress & 0x00FF) | ((control & 0x3F) << 8);
 
         if (m_bSG1000 && (m_VdpCode == VDP_WRITE_CRAM_OPERATION))
+        {
             Log("--> ** SG-1000 Attempting to write on CRAM");
+        }
 
         switch (m_VdpCode)
         {
