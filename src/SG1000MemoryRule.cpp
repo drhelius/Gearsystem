@@ -32,6 +32,11 @@ SG1000MemoryRule::~SG1000MemoryRule()
 
 u8 SG1000MemoryRule::PerformRead(u16 address)
 {
+    if (!m_pCartridge->HasRAMWithoutBattery() && (address >= 0x4000) && (address < 0x8000))
+    {
+        return m_pMemory->Retrieve(address - 0x4000);
+    }
+
     return m_pMemory->Retrieve(address);
 }
 

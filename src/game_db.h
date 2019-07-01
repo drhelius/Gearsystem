@@ -114,8 +114,8 @@ const GS_GameDBEntry kGameDatabase[] =
     {0x223397A1, GS_DB_SG1000_MAPPER, false, false, true, "King's Valley"},
     {0xAF4F14BC, GS_DB_SG1000_MAPPER, false, false, true, "Othello (J)"},
     {0x1D1A0CA3, GS_DB_SG1000_MAPPER, false, false, true, "Othello (T)"},
-    {0x49E9718B, GS_DB_SG1000_MAPPER, false, false, true, "Safari Hunting (JE)"},
-    {0x6DC51C01, GS_DB_SG1000_MAPPER, false, false, true, "Safari Hunting (T)"},
+    {0x49E9718B, GS_DB_SG1000_MAPPER, false, false, false, "Safari Hunting (JE)"},
+    {0x6DC51C01, GS_DB_SG1000_MAPPER, false, false, false, "Safari Hunting (T)"},
         
     {0, 0, false, false, false, 0}
 };
