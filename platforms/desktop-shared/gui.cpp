@@ -295,6 +295,12 @@ static void main_menu(void)
                 ImGui::EndMenu();
             }
 
+            if (ImGui::BeginMenu("Aspect Ratio"))
+            {
+                ImGui::Combo("", &config_video.ratio, "Square Pixels\0Standard (4:3)\0Wide (16:9)\0Fit Window\0\0");
+                ImGui::EndMenu();
+            }
+
             ImGui::Separator();
 
             if (ImGui::MenuItem("Vertical Sync", "", &config_video.sync))
@@ -441,6 +447,29 @@ static void main_window(void)
     int w = ImGui::GetIO().DisplaySize.x;
     int h = ImGui::GetIO().DisplaySize.y - main_menu_height;
 
+    float ratio;
+
+    switch (config_video.ratio)
+    {
+        case 0:
+            ratio = (float)runtime.screen_width / (float)runtime.screen_height;
+            break;
+        case 1:
+            ratio = 4.0f / 3.0f;
+            break;
+        case 2:
+            ratio = 16.0f / 9.0f;
+            break;
+        case 3:
+            ratio = (float)w / (float)h;
+            break;
+        default:
+            ratio = 1.0f;
+    }
+
+    int runtime_w_corrected = config_video.ratio == 3 ? w : runtime.screen_height * ratio;
+    int runtime_h_corrected = config_video.ratio == 3 ? h : runtime.screen_height;
+
     int factor = 0;
 
     if (config_video.scale > 0)
@@ -449,16 +478,16 @@ static void main_window(void)
     }
     else
     {
-        int factor_w = w / runtime.screen_width;
-        int factor_h = h / runtime.screen_height;
+        int factor_w = w / runtime_w_corrected;
+        int factor_h = h / runtime_h_corrected;
         factor = (factor_w < factor_h) ? factor_w : factor_h;
     }
 
-    main_window_width = runtime.screen_width * factor;
-    main_window_height = runtime.screen_height * factor;
+    main_window_width = runtime_w_corrected * factor;
+    main_window_height = runtime_h_corrected * factor;
 
-    int window_x = (w - (runtime.screen_width * factor)) / 2;
-    int window_y = ((h - (runtime.screen_height * factor)) / 2) + main_menu_height;
+    int window_x = (w - (runtime_w_corrected * factor)) / 2;
+    int window_y = ((h - (runtime_h_corrected * factor)) / 2) + main_menu_height;
     
     ImGui::SetNextWindowPos(ImVec2(window_x, window_y));
     ImGui::SetNextWindowSize(ImVec2(main_window_width, main_window_height));
