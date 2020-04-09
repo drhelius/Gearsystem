@@ -469,7 +469,7 @@ static void main_window(void)
 
 static void file_dialog_open_rom(void)
 {
-    if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 400), "*.*,.sms,.gg,.sg,.mv,.rom,.zip", &dialog_in_use))
+    if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 400), "*.*,.sms,.gg,.sg,.mv,.rom,.bin,.zip", &dialog_in_use))
     {
         push_recent_rom(file_dialog.selected_path.c_str());
         load_rom(file_dialog.selected_path.c_str());
