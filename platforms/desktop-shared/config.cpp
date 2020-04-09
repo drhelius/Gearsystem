@@ -178,7 +178,7 @@ static bool read_bool(const char* group, const char* key, bool default_value)
     if(value.empty())
         ret = default_value;
     else
-        std::istringstream() >> std::boolalpha >> ret;
+        std::istringstream(value) >> std::boolalpha >> ret;
 
     Log("Load setting: [%s][%s]=%s", group, key, ret ? "true" : "false");
     return ret;
