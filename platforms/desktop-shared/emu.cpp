@@ -144,6 +144,12 @@ void emu_audio_volume(float volume)
     gearsystem->SetSoundVolume(volume);
 }
 
+void emu_audio_reset(void)
+{
+    sound_queue->stop();
+    sound_queue->start(44100, 2);
+}
+
 bool emu_is_audio_enabled(void)
 {
     return audio_enabled;

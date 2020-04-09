@@ -49,8 +49,9 @@ struct config_Video
     int scale = 0;
     bool fps = false;
     bool bilinear = false;
-    bool mix_frames = true;
+    bool mix_frames = false;
     bool matrix = true;
+    bool sync = true;
 };
 
 struct config_Audio
@@ -65,8 +66,8 @@ struct config_Input
     SDL_Scancode key_right = SDL_SCANCODE_RIGHT;
     SDL_Scancode key_up = SDL_SCANCODE_UP;
     SDL_Scancode key_down = SDL_SCANCODE_DOWN;
-    SDL_Scancode key_1 = SDL_SCANCODE_S;
-    SDL_Scancode key_2 = SDL_SCANCODE_A;
+    SDL_Scancode key_1 = SDL_SCANCODE_A;
+    SDL_Scancode key_2 = SDL_SCANCODE_S;
     SDL_Scancode key_start = SDL_SCANCODE_RETURN;
 
     bool gamepad = true;

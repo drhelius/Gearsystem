@@ -44,6 +44,7 @@ EXTERN bool emu_is_empty(void);
 EXTERN void emu_reset(bool save_in_rom_dir);
 EXTERN void emu_memory_dump(void);
 EXTERN void emu_audio_volume(float volume);
+EXTERN void emu_audio_reset(void);
 EXTERN bool emu_is_audio_enabled(void);
 EXTERN void emu_save_ram(const char* file_path);
 EXTERN void emu_load_ram(const char* file_path, bool save_in_rom_dir);
