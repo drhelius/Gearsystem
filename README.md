@@ -1,59 +1,113 @@
-Gearsystem
-=======
-<b>Copyright &copy; 2013 by Ignacio Sanchez</b>
+# Gearsystem
 
-----------
 [![Build Status](https://travis-ci.org/drhelius/Gearsystem.svg?branch=master)](https://travis-ci.org/drhelius/Gearsystem)
 
-Gearsystem is a Sega Master System / Game Gear / SG-1000 emulator written in C++ that runs on iOS, Raspberry Pi, Mac, Windows, Linux and RetroArch.
+Gearsystem is a cross-platform Sega Master System / Game Gear / SG-1000 emulator written in C++ that runs on iOS, Raspberry Pi, macOS, Windows, Linux and RetroArch.
 
-Follow me on Twitter for updates: http://twitter.com/drhelius
+Please, consider [sponsoring](https://github.com/sponsors/drhelius) and following me on [Twitter](https://twitter.com/drhelius) for updates.
 
 ----------
 
-Downloads
----------
-- **iOS**: Build Gearsystem with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094).
-- **Mac OS X**: <code>brew install gearsystem</code>
-- **Windows**: [Gearsystem-2.6.0-Windows.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-2.6.0/Gearsystem-2.6.0-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572))
-- **Linux**: [Gearsystem-2.6.0-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-2.6.0/Gearsystem-2.6.0-Linux.tar.xz)
-- **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearsystem/).
-- **Raspberry Pi**: Build Gearsystem from sources. Optimized projects are provided for Raspberry Pi 1, 2, 3 and 4.
+## Downloads
 
-Supported Machines
-------------------
+- **Windows**: [Gearsystem-3.0.0-Windows.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.0.0/Gearsystem-3.0.0-Windows.zip)
+  - NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572)
+- **macOS**:
+  - `brew cask install gearsystem`
+  - Or install manually: [Gearsystem-3.0.0-macOS.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.0.0/Gearsystem-3.0.0-macOS.zip)
+- **Linux**: [Gearsystem-3.0.0-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.0.0/Gearsystem-3.0.0-Linux.tar.xz)
+- **iOS**: Build Gearsystem with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use your iCloud Drive.
+- **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearsystem/).
+- **Raspberry Pi**: Build Gearsystem from sources. Optimized projects are provided for Raspberry Pi 1, 2 and 3.
+
+## Supported Machines
+
 - Sega Mark III
 - Sega Master System
 - Sega Game Gear
 - Sega Game 1000 (SG-1000)
 - Othello Multivision
 
-Features
---------
-- Highly accurate Z80 core, including undocumented opcodes and behaviour like R and [MEMPTR](https://gist.github.com/drhelius/8497817) registers.
+## Features
+
+- Accurate Z80 core, including undocumented opcodes and behaviour like R and [MEMPTR](https://gist.github.com/drhelius/8497817) registers.
 - Multi-Mapper support: SEGA, Codemasters, Korean, SG-1000, and ROM only cartridges.
 - External RAM support with save files.
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
-- Highly accurate VDP emulation including timing and SMS2 only 224 mode support.
+- Accurate VDP emulation including timing and SMS2 only 224 mode support.
 - Internal database for rom detection.
 - Audio emulation using SDL Audio and [Sms_Snd_Emu library](http://blargg.8bitalley.com/libs/audio.html#Sms_Snd_Emu).
 - Saves battery powered RAM cartridges to file.
 - Save states.
-- Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
 - Compressed rom support (ZIP deflate).
 - Game Genie and Pro Action Replay cheat support.
-- Multi platform. Runs on Windows, Linux, Mac OS X, Raspberry Pi, iOS and as a libretro core (RetroArch).
+- Supported platforms: Windows, Linux, macOS, Raspberry Pi, iOS and RetroArch (libretro).
 
-Build Instructions
-------------------
+## Build Instructions
+
+### Windows
+
+- You need Microsoft Visual Studio Community 2019 or later.
+- Open the Gearsystem Visual Studio solution `platforms/windows/Gearsystem.sln` and build.
+- You may want to use the `platforms/windows/Makefile` to build the application using MinGW.
+
+### macOS
+
+- Install Xcode and run `xcode-select --install` in the terminal for the compiler to be available on the command line.
+- Run this commands to generate a Mac *app* bundle:
+
+``` shell
+brew install sdl2
+cd platforms/macos
+make dist
+```
+
+### Linux
+
+- Ubuntu / Debian:
+
+``` shell
+sudo apt-get install build-essential libsdl2-dev libglew-dev
+cd platforms/linux
+make
+```
+
+- Fedora:
+
+``` shell
+sudo dnf install @development-tools gcc-c++ SDL2-devel glew-devel
+cd platforms/linux
+make
+```
 
 ### iOS
-- Install Xcode for Mac OS X. You need iOS SDK 8 or later.
-- Build the project <code>platforms/ios/Gearsystem.xcodeproj</code>
-- Run it on real hardware using your iOS developer certificate. Make sure it builds on Release for better performance.
 
-### Raspberry Pi - Raspbian
+- Install Xcode for macOS. You need iOS 13 SDK or later.
+- Build the project `platforms/ios/Gearsystem.xcodeproj`
+- Run it on real hardware using your iOS developer certificate. Make sure it builds on *Release* for better performance.
+
+### Libretro
+
+- Ubuntu / Debian:
+
+``` shell
+sudo apt-get install build-essential
+cd platforms/libretro
+make
+```
+
+- Fedora:
+
+``` shell
+sudo dnf install @development-tools gcc-c++
+cd platforms/libretro
+make
+```
+
+### Raspberry Pi 2 & 3 - Raspbian
+
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development:
+
 ``` shell
 sudo apt-get update
 sudo apt-get upgrade
@@ -66,50 +120,14 @@ cd SDL2-2.0.9 && mkdir build && cd build
 make -j 4
 sudo make install
 ```
-- Install libconfig library dependencies for development: <code>sudo apt-get install libconfig++-dev</code>.
-- Run <code>make -j 4</code> in the proper folder for your Raspberry Pi version:
-    - <code>platforms/raspberrypi/</code>
-    - <code>platforms/raspberrypi2/</code>
-    - <code>platforms/raspberrypi3/x86/</code>
-    - <code>platforms/raspberrypi3/x64/</code>
-    - <code>platforms/raspberrypi4/</code>
-- Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the best performance.
-- Gearsystem generates a <code>gearsystem.cfg</code> configuration file where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
-### Windows
-- You need Visual Studio 2017 or later.
-- Install the [Qt 5 Open Source SDK for Windows](https://www.qt.io/download/).
-- Install the [QtVisualStudioTools Extension](https://marketplace.visualstudio.com/items?itemName=TheQtCompany.QtVisualStudioTools-19123) and point it to the Qt SDK.
-- Open the Gearsystem Visual Studio solution <code>platforms/windows/Gearsystem/Gearsystem.sln</code> and build.
+- Install libconfig library dependencies for development: `sudo apt-get install libconfig++-dev`
+- Use `make -j 4` in the `platforms/raspberrypi3/x64/` folder to build the project.
+- Use `export SDL_AUDIODRIVER=ALSA` before running the emulator for the best performance.
+- Gearsystem generates a `gearsystem.cfg` configuration file where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
-### Mac OS X
-- You need Qt Creator, included in the Qt 5 SDK.
-- Install Xcode and run <code>xcode-select --install</code> in the terminal for the compiler to be available on the command line.
-- Install the [Qt 5 SDK for Mac OS](https://www.qt.io/download/).
-- Download [SDL 2](http://www.libsdl.org/download-2.0.php) source code. Then run this commands:
-``` shell
-./configure
-make
-sudo make install
-```
-- Open the <code>platforms/macosx/Gearsystem/Gearsystem.pro</code> project file with Qt Creator and build.
 
-### Linux
-- Ubuntu / Debian:
-``` shell
-sudo apt-get install build-essential qt5-default qttools5-dev-tools freeglut3-dev libsdl2-dev libglew-dev
-cd platforms/linux/Gearsystem
-qmake Gearsystem.pro && make
-```
-- Fedora:
-``` shell
-sudo dnf install @development-tools gcc-c++ qt5-devel freeglut-devel SDL2-devel glew-devel
-cd platforms/linux/Gearsystem
-qmake-qt5 Gearsystem.pro && make
-```
-
-Accuracy Tests
---------------
+## Accuracy Tests
 
 Zexall Z80 instruction exerciser ([from SMS Power!](http://www.smspower.org/Homebrew/ZEXALL-SMS))
 
@@ -121,8 +139,7 @@ SMS VDP Test  ([from SMS Power!](http://www.smspower.org/Homebrew/SMSVDPTest-SMS
 
 ![vdptest.sms](http://www.geardome.com/files/gearsystem/vdptest5.png)![vdptest.sms](http://www.geardome.com/files/gearsystem/vdptest4.png)![vdptest.sms](http://www.geardome.com/files/gearsystem/vdptest6.png)
 
-Screenshots
------------
+## Screenshots
 
 ![Screenshot](http://www.geardome.com/files/gearsystem/01.png)![Screenshot](http://www.geardome.com/files/gearsystem/02.png)
 ![Screenshot](http://www.geardome.com/files/gearsystem/03.png)![Screenshot](http://www.geardome.com/files/gearsystem/04.png)
@@ -134,22 +151,6 @@ Screenshots
 <img src="http://www.geardome.com/files/gearsystem/15.png" width="368" height="326"><img src="http://www.geardome.com/files/gearsystem/16.png" width="368" height="326">
 <img src="http://www.geardome.com/files/gearsystem/17.png" width="368" height="326"><img src="http://www.geardome.com/files/gearsystem/18.png" width="368" height="326">
 
-License
--------
+## License
 
-<i>Gearsystem - Sega Master System / Game Gear Emulator</i>
-
-<i>Copyright (C) 2013  Ignacio Sanchez</i>
-
-<i>This program is free software: you can redistribute it and/or modify</i>
-<i>it under the terms of the GNU General Public License as published by</i>
-<i>the Free Software Foundation, either version 3 of the License, or</i>
-<i>any later version.</i>
-
-<i>This program is distributed in the hope that it will be useful,</i>
-<i>but WITHOUT ANY WARRANTY; without even the implied warranty of</i>
-<i>MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</i>
-<i>GNU General Public License for more details.</i>
-
-<i>You should have received a copy of the GNU General Public License</i>
-<i>along with this program.  If not, see http://www.gnu.org/licenses/</i>
+Gearsystem is licensed under the GNU General Public License v3.0 License, see [LICENSE](LICENSE) for more information.
