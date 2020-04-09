@@ -1,13 +1,10 @@
-# Netbeans files
-dist/
-build/
-private/
-
 # Mac files
 *.DS_Store
 *.dylib
+*.app/
 
 # Visual Studio files
+.vscode/
 .vs/
 ipch/
 [Oo]bj
@@ -57,7 +54,8 @@ desktop.ini
 *.gearsystem
 *.so
 *.sav
-*.state
+*.tmp
+*.state*
 
 # Qt Ignores
 moc_*.cpp
@@ -73,11 +71,10 @@ Gearsystem.pro.user.*
 xcuserdata/
 *.xcexplist
 *.xcsettings
-
 *.xccheckout
 
-#rpi
-platforms/raspberry*/**/gearsystem
+#binaries
+platforms/**/gearsystem
 
 #Switch
 *.a
