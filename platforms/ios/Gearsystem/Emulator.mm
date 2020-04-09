@@ -60,7 +60,6 @@
             {
                 int pixel = (y * GS_RESOLUTION_MAX_WIDTH) + x;
                 theFrameBuffer[pixel].red = theFrameBuffer[pixel].green = theFrameBuffer[pixel].blue = 0x00;
-                theFrameBuffer[pixel].alpha = 0xFF;
             }
         }
 
@@ -70,7 +69,6 @@
             {
                 int pixel = (y * 256) + x;
                 theTexture[pixel].red = theTexture[pixel].green = theTexture[pixel].blue = 0x00;
-                theTexture[pixel].alpha = 0xFF;
             }
         }
     }
@@ -161,7 +159,7 @@
 -(void)renderFrame
 {
     glBindTexture(GL_TEXTURE_2D, GBTexture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) theTexture);
     [self renderQuadWithViewportWidth:(scr_w) andHeight:(scr_h) andMirrorY:NO];
     
     if (IsValidPointer(scanlineTexture))
@@ -178,7 +176,7 @@
 
 -(void)setupTextureWithData: (GLvoid*) data
 {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 }
