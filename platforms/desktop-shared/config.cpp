@@ -63,7 +63,6 @@ void config_read(void)
 
     config_emulator.save_slot = read_int("Emulator", "SaveSlot");
     config_emulator.start_paused = read_bool("Emulator", "StartPaused");
-    config_emulator.force_dmg = read_bool("Emulator", "ForceDMG");
     config_emulator.save_in_rom_folder = read_bool("Emulator", "SaveInROMFolder");
 
     for (int i = 0; i < config_max_recent_roms; i++)
@@ -77,19 +76,6 @@ void config_read(void)
     config_video.bilinear = read_bool("Video", "Bilinear");
     config_video.mix_frames = read_bool("Video", "MixFrames");
     config_video.matrix = read_bool("Video", "Matrix");
-    config_video.palette = read_int("Video", "Palette");
-    config_video.color[0].red = read_int("Video", "CustomPalette0R");
-    config_video.color[0].green = read_int("Video", "CustomPalette0G");
-    config_video.color[0].blue = read_int("Video", "CustomPalette0B");
-    config_video.color[1].red = read_int("Video", "CustomPalette1R");
-    config_video.color[1].green = read_int("Video", "CustomPalette1G");
-    config_video.color[1].blue = read_int("Video", "CustomPalette1B");
-    config_video.color[2].red = read_int("Video", "CustomPalette2R");
-    config_video.color[2].green = read_int("Video", "CustomPalette2G");
-    config_video.color[2].blue = read_int("Video", "CustomPalette2B");
-    config_video.color[3].red = read_int("Video", "CustomPalette3R");
-    config_video.color[3].green = read_int("Video", "CustomPalette3G");
-    config_video.color[3].blue = read_int("Video", "CustomPalette3B");
     
     config_audio.enable = read_bool("Audio", "Enable");
     config_audio.sync = read_bool("Audio", "Sync");
@@ -98,18 +84,16 @@ void config_read(void)
     config_input.key_right = (SDL_Scancode)read_int("Input", "KeyRight");
     config_input.key_up = (SDL_Scancode)read_int("Input", "KeyUp");
     config_input.key_down = (SDL_Scancode)read_int("Input", "KeyDown");
-    config_input.key_a = (SDL_Scancode)read_int("Input", "KeyA");
-    config_input.key_b = (SDL_Scancode)read_int("Input", "KeyB");
+    config_input.key_1 = (SDL_Scancode)read_int("Input", "Key1");
+    config_input.key_2 = (SDL_Scancode)read_int("Input", "Key2");
     config_input.key_start = (SDL_Scancode)read_int("Input", "KeyStart");
-    config_input.key_select = (SDL_Scancode)read_int("Input", "KeySelect");
 
     config_input.gamepad = read_bool("Input", "Gamepad");
     config_input.gamepad_invert_x_axis = read_bool("Input", "GamepadInvertX");
     config_input.gamepad_invert_y_axis = read_bool("Input", "GamepadInvertY");
-    config_input.gamepad_a = read_int("Input", "GamepadA");
-    config_input.gamepad_b = read_int("Input", "GamepadB");
+    config_input.gamepad_1 = read_int("Input", "Gamepad1");
+    config_input.gamepad_2 = read_int("Input", "Gamepad2");
     config_input.gamepad_start = read_int("Input", "GamepadStart");
-    config_input.gamepad_select = read_int("Input", "GamepadSelect");
     config_input.gamepad_x_axis = read_int("Input", "GamepadX");
     config_input.gamepad_y_axis = read_int("Input", "GamepadY");
 
@@ -122,7 +106,6 @@ void config_write(void)
 
     write_int("Emulator", "SaveSlot", config_emulator.save_slot);
     write_bool("Emulator", "StartPaused", config_emulator.start_paused);
-    write_bool("Emulator", "ForceDMG", config_emulator.force_dmg);
     write_bool("Emulator", "SaveInROMFolder", config_emulator.save_in_rom_folder);
 
     for (int i = 0; i < config_max_recent_roms; i++)
@@ -136,19 +119,6 @@ void config_write(void)
     write_bool("Video", "Bilinear", config_video.bilinear);
     write_bool("Video", "MixFrames", config_video.mix_frames);
     write_bool("Video", "Matrix", config_video.matrix);
-    write_int("Video", "Palette", config_video.palette);
-    write_int("Video", "CustomPalette0R", config_video.color[0].red);
-    write_int("Video", "CustomPalette0G", config_video.color[0].green);
-    write_int("Video", "CustomPalette0B", config_video.color[0].blue);
-    write_int("Video", "CustomPalette1R", config_video.color[1].red);
-    write_int("Video", "CustomPalette1G", config_video.color[1].green);
-    write_int("Video", "CustomPalette1B", config_video.color[1].blue);
-    write_int("Video", "CustomPalette2R", config_video.color[2].red);
-    write_int("Video", "CustomPalette2G", config_video.color[2].green);
-    write_int("Video", "CustomPalette2B", config_video.color[2].blue);
-    write_int("Video", "CustomPalette3R", config_video.color[3].red);
-    write_int("Video", "CustomPalette3G", config_video.color[3].green);
-    write_int("Video", "CustomPalette3B", config_video.color[3].blue);
 
     write_bool("Audio", "Enable", config_audio.enable);
     write_bool("Audio", "Sync", config_audio.sync);
@@ -157,18 +127,16 @@ void config_write(void)
     write_int("Input", "KeyRight", config_input.key_right);
     write_int("Input", "KeyUp", config_input.key_up);
     write_int("Input", "KeyDown", config_input.key_down);
-    write_int("Input", "KeyA", config_input.key_a);
-    write_int("Input", "KeyB", config_input.key_b);
+    write_int("Input", "Key1", config_input.key_1);
+    write_int("Input", "Key2", config_input.key_1);
     write_int("Input", "KeyStart", config_input.key_start);
-    write_int("Input", "KeySelect", config_input.key_select);
 
     write_bool("Input", "Gamepad", config_input.gamepad);
     write_bool("Input", "GamepadInvertX", config_input.gamepad_invert_x_axis);
     write_bool("Input", "GamepadInvertY", config_input.gamepad_invert_y_axis);
-    write_int("Input", "GamepadA", config_input.gamepad_a);
-    write_int("Input", "GamepadB", config_input.gamepad_b);
+    write_int("Input", "Gamepad1", config_input.gamepad_1);
+    write_int("Input", "Gamepad2", config_input.gamepad_2);
     write_int("Input", "GamepadStart", config_input.gamepad_start);
-    write_int("Input", "GamepadSelect", config_input.gamepad_select);
     write_int("Input", "GamepadX", config_input.gamepad_x_axis);
     write_int("Input", "GamepadY", config_input.gamepad_y_axis);
 

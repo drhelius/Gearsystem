@@ -29,12 +29,12 @@
 #include "imgui/imgui_impl_opengl2.h"
 #include "emu.h"
 #include "config.h"
-#include "../../src/gearboy.h"
+#include "../../src/gearsystem.h"
 
 #define RENDERER_IMPORT
 #include "renderer.h"
 
-static uint32_t gameboy_texture;
+static uint32_t system_texture;
 static uint32_t frame_buffer_object;
 static bool first_frame;
 
@@ -69,7 +69,7 @@ void renderer_destroy(void)
 {
     glDeleteFramebuffers(1, &frame_buffer_object); 
     glDeleteTextures(1, &renderer_emu_texture);
-    glDeleteTextures(1, &gameboy_texture);
+    glDeleteTextures(1, &system_texture);
     ImGui_ImplOpenGL2_Shutdown();
 }
 
@@ -115,7 +115,7 @@ static void init_emu(void)
 
     glGenTextures(1, &renderer_emu_texture);
     glBindTexture(GL_TEXTURE_2D, renderer_emu_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, GS_RESOLUTION_MAX_WIDTH, GS_RESOLUTION_MAX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
@@ -123,9 +123,9 @@ static void init_emu(void)
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    glGenTextures(1, &gameboy_texture);  
-    glBindTexture(GL_TEXTURE_2D, gameboy_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, GAMEBOY_WIDTH, GAMEBOY_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_frame_buffer);
+    glGenTextures(1, &system_texture);  
+    glBindTexture(GL_TEXTURE_2D, system_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, GS_RESOLUTION_MAX_WIDTH, GS_RESOLUTION_MAX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_frame_buffer);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 }
@@ -143,7 +143,7 @@ static void render_emu_normal(void)
 
     update_gameboy_texture();
 
-    render_quad(GAMEBOY_WIDTH, GAMEBOY_HEIGHT);
+    render_quad(GS_RESOLUTION_MAX_WIDTH, GS_RESOLUTION_MAX_HEIGHT);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -172,7 +172,7 @@ static void render_emu_mix(void)
 
     update_gameboy_texture();
 
-    render_quad(GAMEBOY_WIDTH, GAMEBOY_HEIGHT);
+    render_quad(GS_RESOLUTION_MAX_WIDTH, GS_RESOLUTION_MAX_HEIGHT);
 
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glDisable(GL_BLEND);
@@ -182,8 +182,8 @@ static void render_emu_mix(void)
 
 static void update_gameboy_texture(void)
 {
-    glBindTexture(GL_TEXTURE_2D, gameboy_texture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GAMEBOY_WIDTH, GAMEBOY_HEIGHT,
+    glBindTexture(GL_TEXTURE_2D, system_texture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GS_RESOLUTION_MAX_WIDTH, GS_RESOLUTION_MAX_HEIGHT,
             GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_frame_buffer);
 }
 

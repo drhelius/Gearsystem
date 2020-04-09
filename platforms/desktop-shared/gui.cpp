@@ -75,8 +75,6 @@ void gui_init(void)
     io.FontGlobalScale /= font_scaling_factor;
 
     io.Fonts->AddFontFromMemoryCompressedTTF(RobotoMedium_compressed_data, RobotoMedium_compressed_size, font_size * font_scaling_factor, NULL, io.Fonts->GetGlyphRangesCyrillic());
-
-    update_palette();
 }
 
 void gui_destroy(void)
@@ -132,13 +130,10 @@ static void main_menu(void)
     bool open_state = false;
     bool save_state = false;
     bool open_about = false;
-
-    for (int i = 0; i < 4; i++)
-        custom_palette[i] = color_int_to_float(config_video.color[i]);
     
     if (ImGui::BeginMainMenuBar())
     {
-        if (ImGui::BeginMenu("Game Boy"))
+        if (ImGui::BeginMenu("Gearsystem"))
         {
             gui_in_use = true;
 
@@ -237,8 +232,6 @@ static void main_menu(void)
             gui_in_use = true;
 
             ImGui::MenuItem("Start Paused", "", &config_emulator.start_paused);
-
-            ImGui::MenuItem("Force DMG Model", "", &config_emulator.force_dmg);
             
             ImGui::MenuItem("Save Files In ROM Folder", "", &config_emulator.save_in_rom_folder);
 
@@ -246,7 +239,7 @@ static void main_menu(void)
             
             if (ImGui::BeginMenu("Cheats"))
             {
-                ImGui::Text("Game Genie or GameShark codes:");
+                ImGui::Text("Game Genie or Pro Action Replay codes:");
 
                 static char cheat_buffer[12] = "";
                 ImGui::PushItemWidth(150);
@@ -273,7 +266,7 @@ static void main_menu(void)
                     if ((it->length() == 7) || (it->length() == 11))
                         ImGui::Text("Game Genie: %s", it->c_str());
                     else
-                        ImGui::Text("GameShark: %s", it->c_str());
+                        ImGui::Text("Pro Action Replay: %s", it->c_str());
                 }
 
                 if (cheat_list.size() > 0)
@@ -309,38 +302,8 @@ static void main_menu(void)
             ImGui::MenuItem("Show FPS", "", &config_video.fps);
             ImGui::MenuItem("Bilinear Filtering", "", &config_video.bilinear);
             ImGui::MenuItem("Screen Ghosting", "", &config_video.mix_frames);
-            //ImGui::MenuItem("Dot Matrix", "", &config_video.matrix, false);
-            
-            ImGui::Separator();
+            //ImGui::MenuItem("Scanlines", "", &config_video.matrix, false);
 
-            if (ImGui::BeginMenu("Palette"))
-            {
-                if (ImGui::Combo("", &config_video.palette, "Original\0Sharp\0Black & White\0Autumn\0Soft\0Slime\0Custom\0\0"))
-                {
-                    update_palette();
-                }
-                ImGui::EndMenu();
-            }
-
-            ImGui::Text("Custom Palette:");
-
-            if (ImGui::ColorEdit4("Color #1", (float*)&custom_palette[0], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
-            {
-                update_palette();
-            }
-            if (ImGui::ColorEdit4("Color #2", (float*)&custom_palette[1], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
-            {
-                update_palette();
-            }
-            if (ImGui::ColorEdit4("Color #3", (float*)&custom_palette[2], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
-            {
-                update_palette();
-            }
-            if (ImGui::ColorEdit4("Color #4", (float*)&custom_palette[3], ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha))
-            {
-                update_palette();
-            }
-            
             ImGui::EndMenu();
         }
 
@@ -354,10 +317,9 @@ static void main_menu(void)
                 keyboard_configuration_item("Right:", &config_input.key_right);
                 keyboard_configuration_item("Up:", &config_input.key_up);
                 keyboard_configuration_item("Down:", &config_input.key_down);
-                keyboard_configuration_item("A:", &config_input.key_a);
-                keyboard_configuration_item("B:", &config_input.key_b);
+                keyboard_configuration_item("1:", &config_input.key_1);
+                keyboard_configuration_item("2:", &config_input.key_2);
                 keyboard_configuration_item("Start:", &config_input.key_start);
-                keyboard_configuration_item("Select:", &config_input.key_select);
 
                 popup_modal_keyboard();                 
                 
@@ -370,10 +332,9 @@ static void main_menu(void)
             
             if (ImGui::BeginMenu("Gamepad Configuration"))
             {
-                gamepad_configuration_item("A:", &config_input.gamepad_a);
-                gamepad_configuration_item("B:", &config_input.gamepad_b);
+                gamepad_configuration_item("1:", &config_input.gamepad_1);
+                gamepad_configuration_item("2:", &config_input.gamepad_2);
                 gamepad_configuration_item("START:", &config_input.gamepad_start);
-                gamepad_configuration_item("SELECT:", &config_input.gamepad_select);
 
                 popup_modal_gamepad();                 
 
@@ -454,9 +415,6 @@ static void main_menu(void)
     file_dialog_save_ram();
     file_dialog_load_state();
     file_dialog_save_state();
-
-    for (int i = 0; i < 4; i++)
-        config_video.color[i] = color_float_to_int(custom_palette[i]);
 }
 
 static void main_window(void)
@@ -472,16 +430,16 @@ static void main_window(void)
     }
     else
     {
-        int factor_w = w / GAMEBOY_WIDTH;
-        int factor_h = h / GAMEBOY_HEIGHT;
+        int factor_w = w / GS_RESOLUTION_MAX_WIDTH;
+        int factor_h = h / GS_RESOLUTION_MAX_HEIGHT;
         factor = (factor_w < factor_h) ? factor_w : factor_h;
     }
 
-    main_window_width = GAMEBOY_WIDTH * factor;
-    main_window_height = GAMEBOY_HEIGHT * factor;
+    main_window_width = GS_RESOLUTION_MAX_WIDTH * factor;
+    main_window_height = GS_RESOLUTION_MAX_HEIGHT * factor;
 
-    int window_x = (w - (GAMEBOY_WIDTH * factor)) / 2;
-    int window_y = ((h - (GAMEBOY_HEIGHT * factor)) / 2) + main_menu_height;
+    int window_x = (w - (GS_RESOLUTION_MAX_WIDTH * factor)) / 2;
+    int window_y = ((h - (GS_RESOLUTION_MAX_HEIGHT * factor)) / 2) + main_menu_height;
     
     ImGui::SetNextWindowPos(ImVec2(window_x, window_y));
     ImGui::SetNextWindowSize(ImVec2(main_window_width, main_window_height));
@@ -511,7 +469,7 @@ static void main_window(void)
 
 static void file_dialog_open_rom(void)
 {
-    if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 400), "*.*,.gb,.gbc,.cgb,.sgb,.dmg,.rom,.zip", &dialog_in_use))
+    if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 400), "*.*,.sms,.gg,.sg,.mv,.rom,.zip", &dialog_in_use))
     {
         push_recent_rom(file_dialog.selected_path.c_str());
         load_rom(file_dialog.selected_path.c_str());
@@ -522,7 +480,7 @@ static void file_dialog_load_ram(void)
 {
     if(file_dialog.showFileDialog("Load RAM From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".sav,*.*", &dialog_in_use))
     {
-        emu_load_ram(file_dialog.selected_path.c_str(), config_emulator.force_dmg, config_emulator.save_in_rom_folder);
+        emu_load_ram(file_dialog.selected_path.c_str(), config_emulator.save_in_rom_folder);
     }
 }
 
@@ -739,7 +697,7 @@ static void load_rom(const char* path)
     {
         emu_pause();
         
-        for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
+        for (int i=0; i < (GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT); i++)
         {
             emu_frame_buffer[i].red = 0;
             emu_frame_buffer[i].green = 0;
@@ -767,7 +725,7 @@ static void menu_reset(void)
     {
         emu_pause();
         
-        for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
+        for (int i=0; i < (GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT); i++)
         {
             emu_frame_buffer[i].red = 0;
             emu_frame_buffer[i].green = 0;

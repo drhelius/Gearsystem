@@ -39,7 +39,6 @@ struct config_Emulator
     bool paused = false;
     int save_slot = 0;
     bool start_paused = false;
-    bool force_dmg = false;
     bool save_in_rom_folder = false;
     bool ffwd = false;
     std::string recent_roms[config_max_recent_roms];
@@ -52,8 +51,6 @@ struct config_Video
     bool bilinear = false;
     bool mix_frames = true;
     bool matrix = true;
-    int palette = 0;
-    GS_Color color[4] = {{0xC4, 0xF0, 0xC2}, {0x5A, 0xB9, 0xA8}, {0x1E, 0x60, 0x6E}, {0x2D, 0x1B, 0x00}};
 };
 
 struct config_Audio
@@ -68,18 +65,16 @@ struct config_Input
     SDL_Scancode key_right = SDL_SCANCODE_RIGHT;
     SDL_Scancode key_up = SDL_SCANCODE_UP;
     SDL_Scancode key_down = SDL_SCANCODE_DOWN;
-    SDL_Scancode key_a = SDL_SCANCODE_S;
-    SDL_Scancode key_b = SDL_SCANCODE_A;
+    SDL_Scancode key_1 = SDL_SCANCODE_S;
+    SDL_Scancode key_2 = SDL_SCANCODE_A;
     SDL_Scancode key_start = SDL_SCANCODE_RETURN;
-    SDL_Scancode key_select = SDL_SCANCODE_SPACE;
 
     bool gamepad = true;
     bool gamepad_invert_x_axis = false;
     bool gamepad_invert_y_axis = false;
-    int gamepad_a = 1;
-    int gamepad_b = 2;
+    int gamepad_1 = 1;
+    int gamepad_2 = 2;
     int gamepad_start = 9;
-    int gamepad_select = 8;
     int gamepad_x_axis = 0;
     int gamepad_y_axis = 1;
 };

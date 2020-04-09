@@ -55,10 +55,11 @@ public:
     void ResetROMPreservingRAM();
     void ResetSound();
     void SetSoundSampleRate(int rate);
+    void SetSoundVolume(float volume);
     void SaveRam();
-    void SaveRam(const char* szPath);
+    void SaveRam(const char* szPath, bool fullPath = false);
     void LoadRam();
-    void LoadRam(const char* szPath);
+    void LoadRam(const char* szPath, bool fullPath = false);
     void SaveState(int index);
     void SaveState(const char* szPath, int index);
     bool SaveState(u8* buffer, size_t& size);

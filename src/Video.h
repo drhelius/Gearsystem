@@ -118,7 +118,6 @@ inline GS_Color Video::ConvertTo8BitColor(int palette_color)
     final_color.red = (r * 255) / highest_value;
     final_color.green = (g * 255) / highest_value;
     final_color.blue = (b * 255) / highest_value;
-    final_color.alpha = 0xFF;
     return final_color;
 }
 
@@ -141,7 +140,7 @@ const u8 kVdpHCounter[228] = {
   0xF1,0xF2,0xF3,0xF3,0xF4,0xF5,0xF6,0xF6,0xF7,0xF8,0xF9,0xF9,0xFA,0xFB,0xFC,0xFC,0xFD,0xFE,0xFF,0xFF,
 };
 
-const GS_Color kSG1000_palette[16] = {{0, 0, 0, 0xFF},{0, 0, 0, 0xFF},{33, 200, 66, 0xFF},{94, 220, 120, 0xFF},{84, 85, 237, 0xFF},{125, 118, 252, 0xFF},{212, 82, 77, 0xFF},{66, 235, 245, 0xFF},{252, 85, 84, 0xFF},{255, 121, 120, 0xFF},{212, 193, 84, 0xFF},{230, 206, 128, 0xFF},{33, 176, 59, 0xFF},{201, 91, 186, 0xFF},{204, 204, 204, 0xFF},{0xFF, 0xFF, 0xFF, 0xFF}};
+const GS_Color kSG1000_palette[16] = {{0, 0, 0},{0, 0, 0},{33, 200, 66},{94, 220, 120},{84, 85, 237},{125, 118, 252},{212, 82, 77},{66, 235, 245},{252, 85, 84},{255, 121, 120},{212, 193, 84},{230, 206, 128},{33, 176, 59},{201, 91, 186},{204, 204, 204},{0xFF, 0xFF, 0xFF}};
 
 
 

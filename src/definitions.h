@@ -40,6 +40,7 @@
 
 #ifndef EMULATOR_BUILD
 #define EMULATOR_BUILD "undefined"
+#endif
 
 #ifndef NULL
 #define NULL 0

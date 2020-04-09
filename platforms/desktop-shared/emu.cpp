@@ -26,28 +26,26 @@
 static GearsystemCore* gearsystem;
 static Sound_Queue* sound_queue;
 static bool save_files_in_rom_dir = false;
-static u16* frame_buffer_565;
 static s16* audio_buffer;
 static char base_save_path[260];
 static bool audio_enabled;
 
 static void save_ram(void);
 static void load_ram(void);
-static void generate_24bit_buffer(void);
 
 void emu_init(const char* save_path)
 {
     strcpy(base_save_path, save_path);
 
-    frame_buffer_565 = new u16[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
-    emu_frame_buffer = new GS_Color[GAMEBOY_WIDTH * GAMEBOY_HEIGHT];
+    int screen_size = GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT;
+
+    emu_frame_buffer = new GS_Color[screen_size];
     
-    for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
+    for (int i=0; i < screen_size; i++)
     {
         emu_frame_buffer[i].red = 0;
         emu_frame_buffer[i].green = 0;
         emu_frame_buffer[i].blue = 0;
-        frame_buffer_565[i] = 0;
     }
 
     gearsystem = new GearsystemCore();
@@ -56,9 +54,9 @@ void emu_init(const char* save_path)
     sound_queue = new Sound_Queue();
     sound_queue->start(44100, 2);
 
-    audio_buffer = new s16[AUDIO_BUFFER_SIZE];
+    audio_buffer = new s16[GS_AUDIO_BUFFER_SIZE];
 
-    for (int i = 0; i < AUDIO_BUFFER_SIZE; i++)
+    for (int i = 0; i < GS_AUDIO_BUFFER_SIZE; i++)
         audio_buffer[i] = 0;
 
     audio_enabled = true;
@@ -88,9 +86,7 @@ void emu_run_to_vblank(void)
     {
         int sampleCount = 0;
 
-        gearsystem->RunToVBlank(frame_buffer_565, audio_buffer, &sampleCount);
-
-        generate_24bit_buffer();
+        gearsystem->RunToVBlank(emu_frame_buffer, audio_buffer, &sampleCount);
 
         if ((sampleCount > 0) && !gearsystem->IsPaused())
         {
@@ -101,12 +97,12 @@ void emu_run_to_vblank(void)
 
 void emu_key_pressed(GS_Keys key)
 {
-    gearsystem->KeyPressed(key);
+    gearsystem->KeyPressed(Joypad_1, key);
 }
 
 void emu_key_released(GS_Keys key)
 {
-    gearsystem->KeyReleased(key);
+    gearsystem->KeyReleased(Joypad_1, key);
 }
 
 void emu_pause(void)
@@ -126,7 +122,7 @@ bool emu_is_paused(void)
 
 bool emu_is_empty(void)
 {
-    return !gearsystem->GetCartridge()->IsLoadedROM();
+    return !gearsystem->GetCartridge()->IsReady();
 }
 
 void emu_reset(bool save_in_rom_dir)
@@ -159,13 +155,13 @@ void emu_save_ram(const char* file_path)
         gearsystem->SaveRam(file_path, true);
 }
 
-void emu_load_ram(const char* file_path, bool force_dmg, bool save_in_rom_dir)
+void emu_load_ram(const char* file_path, bool save_in_rom_dir)
 {
     if (!emu_is_empty())
     {
         save_files_in_rom_dir = save_in_rom_dir;
         save_ram();
-        gearsystem->ResetROM(force_dmg);
+        gearsystem->ResetROM();
         gearsystem->LoadRam(file_path, true);
     }
 }
@@ -218,14 +214,4 @@ static void load_ram(void)
         gearsystem->LoadRam();
     else
         gearsystem->LoadRam(base_save_path);
-}
-
-static void generate_24bit_buffer(void)
-{
-    for (int i=0; i < (GAMEBOY_WIDTH * GAMEBOY_HEIGHT); i++)
-    {
-        emu_frame_buffer[i].red = (((frame_buffer_565[i] >> 11) & 0x1F ) * 255 + 15) / 31;
-        emu_frame_buffer[i].green = (((frame_buffer_565[i] >> 5) & 0x3F ) * 255 + 31) / 63;
-        emu_frame_buffer[i].blue = ((frame_buffer_565[i] & 0x1F ) * 255 + 15) / 31;
-    }
 }

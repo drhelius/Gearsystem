@@ -88,7 +88,7 @@ GearsystemCore::~GearsystemCore()
 
 void GearsystemCore::Init()
 {
-    Log("--== GEARSYSTEM %s by Ignacio Sanchez ==--", GEARSYSTEM_VERSION);
+    Log("--== %s %s by Ignacio Sanchez ==--", GEARSYSTEM_TITLE, GEARSYSTEM_VERSION);
 
     m_pMemory = new Memory();
     m_pProcessor = new Processor(m_pMemory);
@@ -291,12 +291,17 @@ void GearsystemCore::SetSoundSampleRate(int rate)
     m_pAudio->SetSampleRate(rate);
 }
 
+void GearsystemCore::SetSoundVolume(float volume)
+{
+    m_pAudio->SetVolume(volume);
+}
+
 void GearsystemCore::SaveRam()
 {
     SaveRam(NULL);
 }
 
-void GearsystemCore::SaveRam(const char* szPath)
+void GearsystemCore::SaveRam(const char* szPath, bool fullPath)
 {
     if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()) && m_pMemory->GetCurrentRule()->PersistedRAM())
     {
@@ -309,8 +314,12 @@ void GearsystemCore::SaveRam(const char* szPath)
         if (IsValidPointer(szPath))
         {
             path += szPath;
-            path += "/";
-            path += m_pCartridge->GetFileName();
+
+            if (!fullPath)
+            {
+                path += "/";
+                path += m_pCartridge->GetFileName();
+            }
         }
         else
         {
@@ -338,7 +347,7 @@ void GearsystemCore::LoadRam()
     LoadRam(NULL);
 }
 
-void GearsystemCore::LoadRam(const char* szPath)
+void GearsystemCore::LoadRam(const char* szPath, bool fullPath)
 {
     if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
@@ -351,8 +360,12 @@ void GearsystemCore::LoadRam(const char* szPath)
         if (IsValidPointer(szPath))
         {
             sav_path += szPath;
-            sav_path += "/";
-            sav_path += m_pCartridge->GetFileName();
+
+            if (!fullPath)
+            {
+                sav_path += "/";
+                sav_path += m_pCartridge->GetFileName();
+            }
         }
         else
         {
@@ -407,7 +420,11 @@ void GearsystemCore::LoadRam(const char* szPath)
 
 void GearsystemCore::SaveState(int index)
 {
+    Log("Creating save state %d...", index);
+
     SaveState(NULL, index);
+
+    Log("Save state %d created", index);
 }
 
 void GearsystemCore::SaveState(const char* szPath, int index)
@@ -440,7 +457,11 @@ void GearsystemCore::SaveState(const char* szPath, int index)
     }
 
     std::stringstream sstm;
-    sstm << path << index;
+
+    if (index < 0)
+        sstm << szPath;
+    else
+        sstm << path << index;
 
     Log("Save state file: %s", sstm.str().c_str());
 
@@ -448,9 +469,11 @@ void GearsystemCore::SaveState(const char* szPath, int index)
 
     SaveState(file, size);
 
-    Log("Save state file created");
-
     SafeDeleteArray(buffer);
+
+    file.close();
+
+    Log("Save state created");
 }
 
 bool GearsystemCore::SaveState(u8* buffer, size_t& size)
@@ -472,6 +495,10 @@ bool GearsystemCore::SaveState(u8* buffer, size_t& size)
             memcpy(buffer, stream.str().c_str(), size);
             ret = true;
         }
+    }
+    else
+    {
+        Log("Invalid rom or memory rule.");
     }
 
     return ret;
@@ -512,7 +539,11 @@ bool GearsystemCore::SaveState(std::ostream& stream, size_t& size)
 
 void GearsystemCore::LoadState(int index)
 {
+    Log("Loading save state %d...", index);
+
     LoadState(NULL, index);
+
+    Log("State %d file loaded", index);
 }
 
 void GearsystemCore::LoadState(const char* szPath, int index)
@@ -543,7 +574,11 @@ void GearsystemCore::LoadState(const char* szPath, int index)
     }
 
     std::stringstream sstm;
-    sstm << sav_path << index;
+
+    if (index < 0)
+        sstm << szPath;
+    else
+        sstm << sav_path << index;
 
     Log("Opening save file: %s", sstm.str().c_str());
 
@@ -562,6 +597,8 @@ void GearsystemCore::LoadState(const char* szPath, int index)
     {
         Log("Save state file doesn't exist");
     }
+
+    file.close();
 }
 
 bool GearsystemCore::LoadState(const u8* buffer, size_t size)
@@ -578,6 +615,8 @@ bool GearsystemCore::LoadState(const u8* buffer, size_t size)
 
         return LoadState(stream);
     }
+
+    Log("Invalid rom or memory rule.");
 
     return false;
 }
@@ -624,6 +663,10 @@ bool GearsystemCore::LoadState(std::istream& stream)
             Log("Invalid save state size or header");
         }
     }
+    else
+    {
+        Log("Invalid rom or memory rule");
+    }
 
     return false;
 }
@@ -634,7 +677,8 @@ void GearsystemCore::SetCheat(const char* szCheat)
     if ((s.length() == 7) || (s.length() == 11))
     {
         m_pCartridge->SetGameGenieCheat(szCheat);
-        m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
+        if (m_pCartridge->IsReady())
+            m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
     }
     else
     {
