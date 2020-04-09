@@ -71,6 +71,18 @@
 
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
 {
+    return [self openGearsystemURL:url];
+}
+
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
+{
+    return [self openGearsystemURL:url];
+}
+
+#pragma mark - Private Methods
+
+- (BOOL)openGearsystemURL:(NSURL *)url
+{
     if (url != nil && [url isFileURL])
     {
         NSString *documentsDirectory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
