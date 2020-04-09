@@ -87,8 +87,10 @@ void gui_render(void)
 
     gui_in_use = dialog_in_use;
 
+    if (!emu_is_empty())
+        main_window();
+    
     main_menu();
-    main_window();
 
     ImGui::Render();
 }
@@ -289,10 +291,7 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Scale"))
             {
-                if (ImGui::Combo("", &config_video.scale, "Auto\0Zoom X1\0Zoom X2\0Zoom X3\0Zoom X4\0\0"))
-                {
-                    //update_palette();
-                }
+                ImGui::Combo("", &config_video.scale, "Auto\0Zoom X1\0Zoom X2\0Zoom X3\0\0");
                 ImGui::EndMenu();
             }
 
@@ -436,6 +435,9 @@ static void main_menu(void)
 
 static void main_window(void)
 {
+    GS_RuntimeInfo runtime;
+    emu_get_runtime(runtime);
+
     int w = ImGui::GetIO().DisplaySize.x;
     int h = ImGui::GetIO().DisplaySize.y - main_menu_height;
 
@@ -447,16 +449,16 @@ static void main_window(void)
     }
     else
     {
-        int factor_w = w / GS_RESOLUTION_MAX_WIDTH;
-        int factor_h = h / GS_RESOLUTION_MAX_HEIGHT;
+        int factor_w = w / runtime.screen_width;
+        int factor_h = h / runtime.screen_height;
         factor = (factor_w < factor_h) ? factor_w : factor_h;
     }
 
-    main_window_width = GS_RESOLUTION_MAX_WIDTH * factor;
-    main_window_height = GS_RESOLUTION_MAX_HEIGHT * factor;
+    main_window_width = runtime.screen_width * factor;
+    main_window_height = runtime.screen_height * factor;
 
-    int window_x = (w - (GS_RESOLUTION_MAX_WIDTH * factor)) / 2;
-    int window_y = ((h - (GS_RESOLUTION_MAX_HEIGHT * factor)) / 2) + main_menu_height;
+    int window_x = (w - (runtime.screen_width * factor)) / 2;
+    int window_y = ((h - (runtime.screen_height * factor)) / 2) + main_menu_height;
     
     ImGui::SetNextWindowPos(ImVec2(window_x, window_y));
     ImGui::SetNextWindowSize(ImVec2(main_window_width, main_window_height));

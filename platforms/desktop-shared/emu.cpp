@@ -206,6 +206,11 @@ void emu_clear_cheats()
     gearsystem->ClearCheats();
 }
 
+void emu_get_runtime(GS_RuntimeInfo& runtime)
+{
+    gearsystem->GetRuntimeInfo(runtime);
+}
+
 static void save_ram(void)
 {
     if (save_files_in_rom_dir)

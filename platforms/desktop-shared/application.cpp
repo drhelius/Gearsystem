@@ -107,12 +107,12 @@ static int sdl_init(void)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-    sdl_window = SDL_CreateWindow(GEARSYSTEM_TITLE " " GEARSYSTEM_VERSION, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 700, window_flags);
+    sdl_window = SDL_CreateWindow(GEARSYSTEM_TITLE " " GEARSYSTEM_VERSION, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 770, 698, window_flags);
     gl_context = SDL_GL_CreateContext(sdl_window);
     SDL_GL_MakeCurrent(sdl_window, gl_context);
     SDL_GL_SetSwapInterval(0);
 
-    SDL_SetWindowMinimumSize(sdl_window, 644, 602);
+    SDL_SetWindowMinimumSize(sdl_window, 770, 600);
 
     application_gamepad = SDL_JoystickOpen(0);
 

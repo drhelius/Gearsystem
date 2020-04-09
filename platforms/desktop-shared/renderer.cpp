@@ -34,12 +34,17 @@
 #define RENDERER_IMPORT
 #include "renderer.h"
 
-static uint32_t system_texture;
-static uint32_t frame_buffer_object;
+static uint32_t fbo_texture[3];
+static uint32_t system_texture[3];
+static uint32_t current_system_texture;
+static uint32_t frame_buffer_object[3];
+static uint32_t current_fbo;
+static GS_RuntimeInfo current_runtime;
 static bool first_frame;
 
-static void init_gui(void);
-static void init_emu(void);
+static void init_ogl_gui(void);
+static void init_ogl_emu(void);
+static void init_texture(int index, int w, int h);
 static void render_gui(void);
 static void render_emu_normal(void);
 static void render_emu_mix(void);
@@ -59,17 +64,17 @@ void renderer_init(void)
     Log("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
     #endif
 
-    init_gui();
-    init_emu();
+    init_ogl_gui();
+    init_ogl_emu();
 
     first_frame = true;
 }
 
 void renderer_destroy(void)
 {
-    glDeleteFramebuffers(1, &frame_buffer_object); 
-    glDeleteTextures(1, &renderer_emu_texture);
-    glDeleteTextures(1, &system_texture);
+    glDeleteFramebuffers(3, frame_buffer_object); 
+    glDeleteTextures(3, fbo_texture);
+    glDeleteTextures(3, system_texture);
     ImGui_ImplOpenGL2_Shutdown();
 }
 
@@ -80,6 +85,27 @@ void renderer_begin_render(void)
 
 void renderer_render(void)
 {
+    emu_get_runtime(current_runtime);
+
+    int res = 0;
+
+    switch (current_runtime.screen_height)
+    {
+        case GS_RESOLUTION_GG_HEIGHT:
+            res = 0;
+            break;
+        case GS_RESOLUTION_SMS_HEIGHT:
+            res = 1;
+            break;
+        case GS_RESOLUTION_SMS_HEIGHT_EXTENDED:
+            res = 2;
+            break;
+    }
+
+    current_fbo = frame_buffer_object[res];
+    current_system_texture = system_texture[res];
+    renderer_emu_texture = current_system_texture;
+
     if (config_video.mix_frames)
         render_emu_mix();
     else
@@ -101,31 +127,37 @@ void renderer_end_render(void)
 
 }
 
-static void init_gui(void)
+static void init_ogl_gui(void)
 {
     ImGui_ImplOpenGL2_Init();
 }
 
-static void init_emu(void)
+static void init_ogl_emu(void)
 {
     glEnable(GL_TEXTURE_2D);
 
-    glGenFramebuffers(1, &frame_buffer_object);
-    glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_object);
+    glGenFramebuffers(3, frame_buffer_object);
+    glGenTextures(3, fbo_texture);
+    glGenTextures(3, system_texture);  
 
-    glGenTextures(1, &renderer_emu_texture);
-    glBindTexture(GL_TEXTURE_2D, renderer_emu_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, GS_RESOLUTION_MAX_WIDTH, GS_RESOLUTION_MAX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    init_texture(0, GS_RESOLUTION_GG_WIDTH, GS_RESOLUTION_GG_HEIGHT);
+    init_texture(1, GS_RESOLUTION_SMS_WIDTH, GS_RESOLUTION_SMS_HEIGHT);
+    init_texture(2, GS_RESOLUTION_SMS_WIDTH, GS_RESOLUTION_SMS_HEIGHT_EXTENDED);
+}
+
+static void init_texture(int index, int w, int h)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_object[index]);
+    glBindTexture(GL_TEXTURE_2D, fbo_texture[index]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderer_emu_texture, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbo_texture[index], 0);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    glGenTextures(1, &system_texture);  
-    glBindTexture(GL_TEXTURE_2D, system_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, GS_RESOLUTION_MAX_WIDTH, GS_RESOLUTION_MAX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_frame_buffer);
+    glBindTexture(GL_TEXTURE_2D, system_texture[index]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_frame_buffer);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 }
@@ -137,7 +169,7 @@ static void render_gui(void)
 
 static void render_emu_normal(void)
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_object);
+    glBindFramebuffer(GL_FRAMEBUFFER, current_fbo);
 
     glDisable(GL_BLEND);
 
@@ -150,7 +182,7 @@ static void render_emu_normal(void)
 
 static void render_emu_mix(void)
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_object);
+    glBindFramebuffer(GL_FRAMEBUFFER, current_fbo);
 
     float alpha = 0.25f;
 
@@ -182,8 +214,8 @@ static void render_emu_mix(void)
 
 static void update_gameboy_texture(void)
 {
-    glBindTexture(GL_TEXTURE_2D, system_texture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GS_RESOLUTION_MAX_WIDTH, GS_RESOLUTION_MAX_HEIGHT,
+    glBindTexture(GL_TEXTURE_2D, current_system_texture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, current_runtime.screen_width, current_runtime.screen_height,
             GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_frame_buffer);
 }
 
