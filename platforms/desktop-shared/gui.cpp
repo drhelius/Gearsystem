@@ -134,7 +134,7 @@ static void main_menu(void)
     
     if (ImGui::BeginMainMenuBar())
     {
-        if (ImGui::BeginMenu("Gearsystem"))
+        if (ImGui::BeginMenu(GEARSYSTEM_TITLE))
         {
             gui_in_use = true;
 
@@ -220,7 +220,7 @@ static void main_menu(void)
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Quit", "Alt+F4"))
+            if (ImGui::MenuItem("Quit"))
             {
                 application_trigger_quit();
             }
@@ -232,9 +232,37 @@ static void main_menu(void)
         {
             gui_in_use = true;
 
+            if (ImGui::BeginMenu("System"))
+            {
+                ImGui::Combo("", &config_video.ratio, "Auto\0Master System / Mark III\0Game Gear\0SG-1000 / Multivision\0\0");
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Region"))
+            {
+                ImGui::Combo("", &config_video.ratio, "Auto\0Master System Japan\0Master System Export\0Game Gear Japan\0Game Gear Export\0Game Gear International\0\0");
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Mapper"))
+            {
+                ImGui::Combo("", &config_video.ratio, "Auto\0ROM Only\0SEGA\0Codemasters\0Korean\0SG-1000\0\0");
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Refresh Rate"))
+            {
+                ImGui::Combo("", &config_video.ratio, "Auto\0NTSC (60 Hz)\0PAL (50 Hz)\0\0");
+                ImGui::EndMenu();
+            }
+
+            ImGui::Separator();
+
             ImGui::MenuItem("Start Paused", "", &config_emulator.start_paused);
             
             ImGui::MenuItem("Save Files In ROM Folder", "", &config_emulator.save_in_rom_folder);
+
+            ImGui::MenuItem("Show ROM Info", "", &config_emulator.save_in_rom_folder);
 
             ImGui::Separator();
             
@@ -328,30 +356,67 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Keyboard Configuration"))
             {
-                keyboard_configuration_item("Left:", &config_input.key_left);
-                keyboard_configuration_item("Right:", &config_input.key_right);
-                keyboard_configuration_item("Up:", &config_input.key_up);
-                keyboard_configuration_item("Down:", &config_input.key_down);
-                keyboard_configuration_item("1:", &config_input.key_1);
-                keyboard_configuration_item("2:", &config_input.key_2);
-                keyboard_configuration_item("Start:", &config_input.key_start);
+                if (ImGui::BeginMenu("Player 1"))
+                {
+                    keyboard_configuration_item("Left:", &config_input.key_left);
+                    keyboard_configuration_item("Right:", &config_input.key_right);
+                    keyboard_configuration_item("Up:", &config_input.key_up);
+                    keyboard_configuration_item("Down:", &config_input.key_down);
+                    keyboard_configuration_item("1:", &config_input.key_1);
+                    keyboard_configuration_item("2:", &config_input.key_2);
+                    keyboard_configuration_item("Start:", &config_input.key_start);
 
-                popup_modal_keyboard();                 
-                
+                    popup_modal_keyboard();
+
+                    ImGui::EndMenu();
+                }
+
+                if (ImGui::BeginMenu("Player 2"))
+                {
+                    keyboard_configuration_item("Left:", &config_input.key_left);
+                    keyboard_configuration_item("Right:", &config_input.key_right);
+                    keyboard_configuration_item("Up:", &config_input.key_up);
+                    keyboard_configuration_item("Down:", &config_input.key_down);
+                    keyboard_configuration_item("1:", &config_input.key_1);
+                    keyboard_configuration_item("2:", &config_input.key_2);
+                    keyboard_configuration_item("Start:", &config_input.key_start);
+
+                    popup_modal_keyboard();
+
+                    ImGui::EndMenu();
+                }
+
                 ImGui::EndMenu();
             }
 
             ImGui::Separator();
 
-            ImGui::MenuItem("Enable Gamepad", "", &config_input.gamepad);
+            ImGui::MenuItem("Enable Gamepad P1", "", &config_input.gamepad);
+            ImGui::MenuItem("Enable Gamepad P2", "", &config_input.gamepad);
             
             if (ImGui::BeginMenu("Gamepad Configuration"))
             {
-                gamepad_configuration_item("1:", &config_input.gamepad_1);
-                gamepad_configuration_item("2:", &config_input.gamepad_2);
-                gamepad_configuration_item("START:", &config_input.gamepad_start);
+                if (ImGui::BeginMenu("Player 1"))
+                {
+                    gamepad_configuration_item("1:", &config_input.gamepad_1);
+                    gamepad_configuration_item("2:", &config_input.gamepad_2);
+                    gamepad_configuration_item("START:", &config_input.gamepad_start);
 
-                popup_modal_gamepad();                 
+                    popup_modal_gamepad();                 
+
+                    ImGui::EndMenu();
+                }
+
+                if (ImGui::BeginMenu("Player 2"))
+                {
+                    gamepad_configuration_item("1:", &config_input.gamepad_1);
+                    gamepad_configuration_item("2:", &config_input.gamepad_2);
+                    gamepad_configuration_item("START:", &config_input.gamepad_start);
+
+                    popup_modal_gamepad();                 
+
+                    ImGui::EndMenu();
+                }
 
                 ImGui::EndMenu();
             }

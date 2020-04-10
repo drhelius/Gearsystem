@@ -132,7 +132,7 @@ void config_write(void)
     write_int("Input", "KeyUp", config_input.key_up);
     write_int("Input", "KeyDown", config_input.key_down);
     write_int("Input", "Key1", config_input.key_1);
-    write_int("Input", "Key2", config_input.key_1);
+    write_int("Input", "Key2", config_input.key_2);
     write_int("Input", "KeyStart", config_input.key_start);
 
     write_bool("Input", "Gamepad", config_input.gamepad);
