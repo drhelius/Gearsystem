@@ -86,22 +86,39 @@ void config_read(void)
     config_audio.enable = read_bool("Audio", "Enable", true);
     config_audio.sync = read_bool("Audio", "Sync", true);
 
-    config_input.key_left = (SDL_Scancode)read_int("Input", "KeyLeft", SDL_SCANCODE_LEFT);
-    config_input.key_right = (SDL_Scancode)read_int("Input", "KeyRight", SDL_SCANCODE_RIGHT);
-    config_input.key_up = (SDL_Scancode)read_int("Input", "KeyUp", SDL_SCANCODE_UP);
-    config_input.key_down = (SDL_Scancode)read_int("Input", "KeyDown", SDL_SCANCODE_DOWN);
-    config_input.key_1 = (SDL_Scancode)read_int("Input", "Key1", SDL_SCANCODE_A);
-    config_input.key_2 = (SDL_Scancode)read_int("Input", "Key2", SDL_SCANCODE_S);
-    config_input.key_start = (SDL_Scancode)read_int("Input", "KeyStart", SDL_SCANCODE_RETURN);
+    config_input[0].key_left = (SDL_Scancode)read_int("InputA", "KeyLeft", SDL_SCANCODE_LEFT);
+    config_input[0].key_right = (SDL_Scancode)read_int("InputA", "KeyRight", SDL_SCANCODE_RIGHT);
+    config_input[0].key_up = (SDL_Scancode)read_int("InputA", "KeyUp", SDL_SCANCODE_UP);
+    config_input[0].key_down = (SDL_Scancode)read_int("InputA", "KeyDown", SDL_SCANCODE_DOWN);
+    config_input[0].key_1 = (SDL_Scancode)read_int("InputA", "Key1", SDL_SCANCODE_A);
+    config_input[0].key_2 = (SDL_Scancode)read_int("InputA", "Key2", SDL_SCANCODE_S);
+    config_input[0].key_start = (SDL_Scancode)read_int("InputA", "KeyStart", SDL_SCANCODE_RETURN);
 
-    config_input.gamepad = read_bool("Input", "Gamepad", true);
-    config_input.gamepad_invert_x_axis = read_bool("Input", "GamepadInvertX", false);
-    config_input.gamepad_invert_y_axis = read_bool("Input", "GamepadInvertY", false);
-    config_input.gamepad_1 = read_int("Input", "Gamepad1", 1);
-    config_input.gamepad_2 = read_int("Input", "Gamepad2", 2);
-    config_input.gamepad_start = read_int("Input", "GamepadStart", 9);
-    config_input.gamepad_x_axis = read_int("Input", "GamepadX", 0);
-    config_input.gamepad_y_axis = read_int("Input", "GamepadY", 1);
+    config_input[0].gamepad = read_bool("InputA", "Gamepad", true);
+    config_input[0].gamepad_invert_x_axis = read_bool("InputA", "GamepadInvertX", false);
+    config_input[0].gamepad_invert_y_axis = read_bool("InputA", "GamepadInvertY", false);
+    config_input[0].gamepad_1 = read_int("InputA", "Gamepad1", 1);
+    config_input[0].gamepad_2 = read_int("InputA", "Gamepad2", 2);
+    config_input[0].gamepad_start = read_int("InputA", "GamepadStart", 9);
+    config_input[0].gamepad_x_axis = read_int("InputA", "GamepadX", 0);
+    config_input[0].gamepad_y_axis = read_int("InputA", "GamepadY", 1);
+
+    config_input[1].key_left = (SDL_Scancode)read_int("InputB", "KeyLeft", SDL_SCANCODE_J);
+    config_input[1].key_right = (SDL_Scancode)read_int("InputB", "KeyRight", SDL_SCANCODE_L);
+    config_input[1].key_up = (SDL_Scancode)read_int("InputB", "KeyUp", SDL_SCANCODE_I);
+    config_input[1].key_down = (SDL_Scancode)read_int("InputB", "KeyDown", SDL_SCANCODE_K);
+    config_input[1].key_1 = (SDL_Scancode)read_int("InputB", "Key1", SDL_SCANCODE_G);
+    config_input[1].key_2 = (SDL_Scancode)read_int("InputB", "Key2", SDL_SCANCODE_H);
+    config_input[1].key_start = (SDL_Scancode)read_int("InputB", "KeyStart", SDL_SCANCODE_RSHIFT);
+
+    config_input[1].gamepad = read_bool("InputB", "Gamepad", true);
+    config_input[1].gamepad_invert_x_axis = read_bool("InputB", "GamepadInvertX", false);
+    config_input[1].gamepad_invert_y_axis = read_bool("InputB", "GamepadInvertY", false);
+    config_input[1].gamepad_1 = read_int("InputB", "Gamepad1", 1);
+    config_input[1].gamepad_2 = read_int("InputB", "Gamepad2", 2);
+    config_input[1].gamepad_start = read_int("InputB", "GamepadStart", 9);
+    config_input[1].gamepad_x_axis = read_int("InputB", "GamepadX", 0);
+    config_input[1].gamepad_y_axis = read_int("InputB", "GamepadY", 1);
 
     Log("Settings loaded");
 }
@@ -135,22 +152,39 @@ void config_write(void)
     write_bool("Audio", "Enable", config_audio.enable);
     write_bool("Audio", "Sync", config_audio.sync);
 
-    write_int("Input", "KeyLeft", config_input.key_left);
-    write_int("Input", "KeyRight", config_input.key_right);
-    write_int("Input", "KeyUp", config_input.key_up);
-    write_int("Input", "KeyDown", config_input.key_down);
-    write_int("Input", "Key1", config_input.key_1);
-    write_int("Input", "Key2", config_input.key_2);
-    write_int("Input", "KeyStart", config_input.key_start);
+    write_int("InputA", "KeyLeft", config_input[0].key_left);
+    write_int("InputA", "KeyRight", config_input[0].key_right);
+    write_int("InputA", "KeyUp", config_input[0].key_up);
+    write_int("InputA", "KeyDown", config_input[0].key_down);
+    write_int("InputA", "Key1", config_input[0].key_1);
+    write_int("InputA", "Key2", config_input[0].key_2);
+    write_int("InputA", "KeyStart", config_input[0].key_start);
 
-    write_bool("Input", "Gamepad", config_input.gamepad);
-    write_bool("Input", "GamepadInvertX", config_input.gamepad_invert_x_axis);
-    write_bool("Input", "GamepadInvertY", config_input.gamepad_invert_y_axis);
-    write_int("Input", "Gamepad1", config_input.gamepad_1);
-    write_int("Input", "Gamepad2", config_input.gamepad_2);
-    write_int("Input", "GamepadStart", config_input.gamepad_start);
-    write_int("Input", "GamepadX", config_input.gamepad_x_axis);
-    write_int("Input", "GamepadY", config_input.gamepad_y_axis);
+    write_bool("InputA", "Gamepad", config_input[0].gamepad);
+    write_bool("InputA", "GamepadInvertX", config_input[0].gamepad_invert_x_axis);
+    write_bool("InputA", "GamepadInvertY", config_input[0].gamepad_invert_y_axis);
+    write_int("InputA", "Gamepad1", config_input[0].gamepad_1);
+    write_int("InputA", "Gamepad2", config_input[0].gamepad_2);
+    write_int("InputA", "GamepadStart", config_input[0].gamepad_start);
+    write_int("InputA", "GamepadX", config_input[0].gamepad_x_axis);
+    write_int("InputA", "GamepadY", config_input[0].gamepad_y_axis);
+
+    write_int("InputB", "KeyLeft", config_input[1].key_left);
+    write_int("InputB", "KeyRight", config_input[1].key_right);
+    write_int("InputB", "KeyUp", config_input[1].key_up);
+    write_int("InputB", "KeyDown", config_input[1].key_down);
+    write_int("InputB", "Key1", config_input[1].key_1);
+    write_int("InputB", "Key2", config_input[1].key_2);
+    write_int("InputB", "KeyStart", config_input[1].key_start);
+
+    write_bool("InputB", "Gamepad", config_input[1].gamepad);
+    write_bool("InputB", "GamepadInvertX", config_input[1].gamepad_invert_x_axis);
+    write_bool("InputB", "GamepadInvertY", config_input[1].gamepad_invert_y_axis);
+    write_int("InputB", "Gamepad1", config_input[1].gamepad_1);
+    write_int("InputB", "Gamepad2", config_input[1].gamepad_2);
+    write_int("InputB", "GamepadStart", config_input[1].gamepad_start);
+    write_int("InputB", "GamepadX", config_input[1].gamepad_x_axis);
+    write_int("InputB", "GamepadY", config_input[1].gamepad_y_axis);
 
     if (config_ini_file->write(config_ini_data, true))
     {

@@ -51,7 +51,7 @@ static void file_dialog_save_state(void);
 static void keyboard_configuration_item(const char* text, SDL_Scancode* key);
 static void gamepad_configuration_item(const char* text, int* button);
 static void popup_modal_keyboard(void);
-static void popup_modal_gamepad(void);
+static void popup_modal_gamepad(int pad);
 static void popup_modal_about(void);
 static void load_rom(const char* path);
 static void push_recent_rom(std::string path);
@@ -375,13 +375,13 @@ static void main_menu(void)
             {
                 if (ImGui::BeginMenu("Player 1"))
                 {
-                    keyboard_configuration_item("Left:", &config_input.key_left);
-                    keyboard_configuration_item("Right:", &config_input.key_right);
-                    keyboard_configuration_item("Up:", &config_input.key_up);
-                    keyboard_configuration_item("Down:", &config_input.key_down);
-                    keyboard_configuration_item("1:", &config_input.key_1);
-                    keyboard_configuration_item("2:", &config_input.key_2);
-                    keyboard_configuration_item("Start:", &config_input.key_start);
+                    keyboard_configuration_item("Left:", &config_input[0].key_left);
+                    keyboard_configuration_item("Right:", &config_input[0].key_right);
+                    keyboard_configuration_item("Up:", &config_input[0].key_up);
+                    keyboard_configuration_item("Down:", &config_input[0].key_down);
+                    keyboard_configuration_item("1:", &config_input[0].key_1);
+                    keyboard_configuration_item("2:", &config_input[0].key_2);
+                    keyboard_configuration_item("Start:", &config_input[0].key_start);
 
                     popup_modal_keyboard();
 
@@ -390,13 +390,13 @@ static void main_menu(void)
 
                 if (ImGui::BeginMenu("Player 2"))
                 {
-                    keyboard_configuration_item("Left:", &config_input.key_left);
-                    keyboard_configuration_item("Right:", &config_input.key_right);
-                    keyboard_configuration_item("Up:", &config_input.key_up);
-                    keyboard_configuration_item("Down:", &config_input.key_down);
-                    keyboard_configuration_item("1:", &config_input.key_1);
-                    keyboard_configuration_item("2:", &config_input.key_2);
-                    keyboard_configuration_item("Start:", &config_input.key_start);
+                    keyboard_configuration_item("Left:", &config_input[1].key_left);
+                    keyboard_configuration_item("Right:", &config_input[1].key_right);
+                    keyboard_configuration_item("Up:", &config_input[1].key_up);
+                    keyboard_configuration_item("Down:", &config_input[1].key_down);
+                    keyboard_configuration_item("1:", &config_input[1].key_1);
+                    keyboard_configuration_item("2:", &config_input[1].key_2);
+                    keyboard_configuration_item("Start:", &config_input[1].key_start);
 
                     popup_modal_keyboard();
 
@@ -408,29 +408,29 @@ static void main_menu(void)
 
             ImGui::Separator();
 
-            ImGui::MenuItem("Enable Gamepad P1", "", &config_input.gamepad);
-            ImGui::MenuItem("Enable Gamepad P2", "", &config_input.gamepad);
+            ImGui::MenuItem("Enable Gamepad P1", "", &config_input[0].gamepad);
+            ImGui::MenuItem("Enable Gamepad P2", "", &config_input[1].gamepad);
             
             if (ImGui::BeginMenu("Gamepad Configuration"))
             {
                 if (ImGui::BeginMenu("Player 1"))
                 {
-                    gamepad_configuration_item("1:", &config_input.gamepad_1);
-                    gamepad_configuration_item("2:", &config_input.gamepad_2);
-                    gamepad_configuration_item("START:", &config_input.gamepad_start);
+                    gamepad_configuration_item("1:", &config_input[0].gamepad_1);
+                    gamepad_configuration_item("2:", &config_input[0].gamepad_2);
+                    gamepad_configuration_item("START:", &config_input[0].gamepad_start);
 
-                    popup_modal_gamepad();                 
+                    popup_modal_gamepad(0);                 
 
                     ImGui::EndMenu();
                 }
 
                 if (ImGui::BeginMenu("Player 2"))
                 {
-                    gamepad_configuration_item("1:", &config_input.gamepad_1);
-                    gamepad_configuration_item("2:", &config_input.gamepad_2);
-                    gamepad_configuration_item("START:", &config_input.gamepad_start);
+                    gamepad_configuration_item("1:", &config_input[1].gamepad_1);
+                    gamepad_configuration_item("2:", &config_input[1].gamepad_2);
+                    gamepad_configuration_item("START:", &config_input[1].gamepad_start);
 
-                    popup_modal_gamepad();                 
+                    popup_modal_gamepad(1);                 
 
                     ImGui::EndMenu();
                 }
@@ -665,7 +665,7 @@ static void keyboard_configuration_item(const char* text, SDL_Scancode* key)
     char button_label[256];
     sprintf(button_label, "%s##%s", SDL_GetScancodeName(*key), text);
 
-    if (ImGui::Button(button_label, ImVec2(70,0)))
+    if (ImGui::Button(button_label, ImVec2(90,0)))
     {
         configured_key = key;
         ImGui::OpenPopup("Keyboard Configuration");
@@ -719,7 +719,7 @@ static void popup_modal_keyboard(void)
     }
 }
 
-static void popup_modal_gamepad(void)
+static void popup_modal_gamepad(int pad)
 {
     if (ImGui::BeginPopupModal("Gamepad Configuration", NULL, ImGuiWindowFlags_AlwaysAutoResize))
     {
@@ -728,7 +728,7 @@ static void popup_modal_gamepad(void)
 
         for (int i = 0; i < 16; i++)
         {
-            if (SDL_JoystickGetButton(application_gamepad, i))
+            if (SDL_JoystickGetButton(application_gamepad[pad], i))
             {
                 *configured_button = i;
                 ImGui::CloseCurrentPopup();

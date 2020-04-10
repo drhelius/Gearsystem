@@ -28,7 +28,7 @@
     #define EXTERN extern
 #endif
 
-EXTERN SDL_Joystick* application_gamepad;
+EXTERN SDL_Joystick* application_gamepad[2];
 EXTERN float application_display_scale;
 
 EXTERN int application_init(void);

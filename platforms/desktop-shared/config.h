@@ -94,7 +94,7 @@ EXTERN char config_imgui_file_path[260];
 EXTERN config_Emulator config_emulator;
 EXTERN config_Video config_video;
 EXTERN config_Audio config_audio;
-EXTERN config_Input config_input;
+EXTERN config_Input config_input[2];
 
 EXTERN void config_init(void);
 EXTERN void config_destroy(void);

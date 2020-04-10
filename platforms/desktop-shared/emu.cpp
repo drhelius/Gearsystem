@@ -97,14 +97,14 @@ void emu_run_to_vblank(void)
     }
 }
 
-void emu_key_pressed(GS_Keys key)
+void emu_key_pressed(GS_Joypads pad, GS_Keys key)
 {
-    gearsystem->KeyPressed(Joypad_1, key);
+    gearsystem->KeyPressed(pad, key);
 }
 
-void emu_key_released(GS_Keys key)
+void emu_key_released(GS_Joypads pad, GS_Keys key)
 {
-    gearsystem->KeyReleased(Joypad_1, key);
+    gearsystem->KeyReleased(pad, key);
 }
 
 void emu_pause(void)
@@ -223,16 +223,15 @@ void emu_get_info(char* info)
 
         const char* filename = cart->GetFileName();
 
-        const char* gg = cart->IsGameGear() ? "YES" : "NO";
+        const char* system = cart->IsGameGear() ? "Game Gear" : (cart->IsSG1000() ? "SG-1000" : "Master System");
         const char* pal = cart->IsPAL() ? "PAL" : "NTSC";
-        const char* sg1000 = cart->IsSG1000() ? "YES" : "NO";
         const char* checksum = cart->IsValidROM() ? "VALID" : "FAILED";
         const char* battery = gearsystem->GetMemory()->GetCurrentRule()->PersistedRAM() ? "YES" : "NO";
         int rom_banks = cart->GetROMBankCount();
         const char* mapper = get_mapper(cart->GetType());
         const char* zone = get_zone(cart->GetZone());
 
-        sprintf(info, "File Name: %s\nMapper: %s\nZone: %s\nGame Gear: %s\nRegion: %s\nSG-1000: %s\nCartridge Checksum: %s\nROM Banks: %d\nBattery: %s\nScreen Resolution: %dx%d", filename, mapper, zone, gg, pal, sg1000, checksum, rom_banks, battery, runtime.screen_width, runtime.screen_height);
+        sprintf(info, "File Name: %s\nMapper: %s\nRegion: %s\nSystem: %s\nRefresh Rate: %s\nCartridge Checksum: %s\nROM Banks: %d\nBattery: %s\nScreen Resolution: %dx%d", filename, mapper, zone, system, pal, checksum, rom_banks, battery, runtime.screen_width, runtime.screen_height);
     }
     else
     {
