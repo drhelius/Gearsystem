@@ -74,11 +74,11 @@ void emu_destroy(void)
     SafeDeleteArray(emu_frame_buffer);
 }
 
-void emu_load_rom(const char* file_path, bool save_in_rom_dir)
+void emu_load_rom(const char* file_path, bool save_in_rom_dir, Cartridge::ForceConfiguration config)
 {
     save_files_in_rom_dir = save_in_rom_dir;
     save_ram();
-    gearsystem->LoadROM(file_path);
+    gearsystem->LoadROM(file_path, config);
     load_ram();
 }
 
@@ -127,11 +127,11 @@ bool emu_is_empty(void)
     return !gearsystem->GetCartridge()->IsReady();
 }
 
-void emu_reset(bool save_in_rom_dir)
+void emu_reset(bool save_in_rom_dir, Cartridge::ForceConfiguration config)
 {
     save_files_in_rom_dir = save_in_rom_dir;
     save_ram();
-    gearsystem->ResetROM();
+    gearsystem->ResetROM(config);
     load_ram();
 }
 
@@ -163,13 +163,13 @@ void emu_save_ram(const char* file_path)
         gearsystem->SaveRam(file_path, true);
 }
 
-void emu_load_ram(const char* file_path, bool save_in_rom_dir)
+void emu_load_ram(const char* file_path, bool save_in_rom_dir, Cartridge::ForceConfiguration config)
 {
     if (!emu_is_empty())
     {
         save_files_in_rom_dir = save_in_rom_dir;
         save_ram();
-        gearsystem->ResetROM();
+        gearsystem->ResetROM(config);
         gearsystem->LoadRam(file_path, true);
     }
 }

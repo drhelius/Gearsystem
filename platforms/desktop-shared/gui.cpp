@@ -60,7 +60,10 @@ static void menu_pause(void);
 static void menu_ffwd(void);
 static void show_info(void);
 static void show_fps(void);
-static Cartridge::CartridgeTypes get_mbc(int index);
+static Cartridge::CartridgeTypes get_mapper(int index);
+static Cartridge::CartridgeZones get_zone(int index);
+static Cartridge::CartridgeSystem get_system(int index);
+static Cartridge::CartridgeRegions get_region(int index);
 
 void gui_init(void)
 {
@@ -245,7 +248,7 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Region"))
             {
-                ImGui::Combo("", &config_emulator.region, "Auto\0Master System Japan\0Master System Export\0Game Gear Japan\0Game Gear Export\0Game Gear International\0\0");
+                ImGui::Combo("", &config_emulator.zone, "Auto\0Master System Japan\0Master System Export\0Game Gear Japan\0Game Gear Export\0Game Gear International\0\0");
                 ImGui::EndMenu();
             }
 
@@ -257,7 +260,7 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Refresh Rate"))
             {
-                ImGui::Combo("", &config_emulator.refresh_rate, "Auto\0NTSC (60 Hz)\0PAL (50 Hz)\0\0");
+                ImGui::Combo("", &config_emulator.region, "Auto\0NTSC (60 Hz)\0PAL (50 Hz)\0\0");
                 ImGui::EndMenu();
             }
 
@@ -598,7 +601,14 @@ static void file_dialog_load_ram(void)
 {
     if(file_dialog.showFileDialog("Load RAM From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".sav,*.*", &dialog_in_use))
     {
-        emu_load_ram(file_dialog.selected_path.c_str(), config_emulator.save_in_rom_folder);
+        Cartridge::ForceConfiguration config;
+
+        config.system = get_system(config_emulator.system);
+        config.region = get_region(config_emulator.region);
+        config.type = get_mapper(config_emulator.mapper);
+        config.zone = get_zone(config_emulator.zone);
+        
+        emu_load_ram(file_dialog.selected_path.c_str(), config_emulator.save_in_rom_folder, config);
     }
 }
 
@@ -787,8 +797,15 @@ static void popup_modal_about(void)
 
 static void load_rom(const char* path)
 {
+    Cartridge::ForceConfiguration config;
+
+    config.system = get_system(config_emulator.system);
+    config.region = get_region(config_emulator.region);
+    config.type = get_mapper(config_emulator.mapper);
+    config.zone = get_zone(config_emulator.zone);
+
     emu_resume();
-    emu_load_rom(path, config_emulator.save_in_rom_folder);
+    emu_load_rom(path, config_emulator.save_in_rom_folder, config);
     cheat_list.clear();
     emu_clear_cheats();
 
@@ -818,7 +835,15 @@ static void push_recent_rom(std::string path)
 static void menu_reset(void)
 {
     emu_resume();
-    emu_reset(config_emulator.save_in_rom_folder);
+
+    Cartridge::ForceConfiguration config;
+
+    config.system = get_system(config_emulator.system);
+    config.region = get_region(config_emulator.region);
+    config.type = get_mapper(config_emulator.mapper);
+    config.zone = get_zone(config_emulator.zone);
+
+    emu_reset(config_emulator.save_in_rom_folder, config);
 
     if (config_emulator.start_paused)
     {
@@ -896,7 +921,56 @@ static Cartridge::CartridgeTypes get_mapper(int index)
     }
 }
 
-//"Auto\0Master System / Mark III\0Game Gear\0SG-1000 / Multivision\0\0");
-   // "Auto\0Master System Japan\0Master System Export\0Game Gear Japan\0Game Gear Export\0Game Gear International\0\0"
-//   "Auto\0ROM Only\0SEGA\0Codemasters\0Korean\0SG-1000\0\0");
-//"Auto\0NTSC (60 Hz)\0PAL (50 Hz)\0\0");
+static Cartridge::CartridgeZones get_zone(int index)
+{
+    switch (index)
+    {
+        case 0:
+            return Cartridge::CartridgeUnknownZone;
+        case 1:
+            return Cartridge::CartridgeJapanSMS;
+        case 2:
+            return Cartridge::CartridgeExportSMS;
+        case 3:
+            return Cartridge::CartridgeJapanGG;
+        case 4:
+            return Cartridge::CartridgeExportGG;
+        case 5:
+            return Cartridge::CartridgeInternationalGG;
+        default:
+            return Cartridge::CartridgeUnknownZone;
+    }
+}
+
+static Cartridge::CartridgeSystem get_system(int index)
+{
+    switch (index)
+    {
+        case 0:
+            return Cartridge::CartridgeUnknownSystem;
+        case 1:
+            return Cartridge::CartridgeSMS;
+        case 2:
+            return Cartridge::CartridgeGG;
+        case 3:
+            return Cartridge::CartridgeSG1000;
+        default:
+            return Cartridge::CartridgeUnknownSystem;
+    }
+}
+
+static Cartridge::CartridgeRegions get_region(int index)
+{
+    //"Auto\0NTSC (60 Hz)\0PAL (50 Hz)\0\0");
+    switch (index)
+    {
+        case 0:
+            return Cartridge::CartridgeUnknownRegion;
+        case 1:
+            return Cartridge::CartridgeNTSC;
+        case 2:
+            return Cartridge::CartridgePAL;
+        default:
+            return Cartridge::CartridgeUnknownRegion;
+    }
+}

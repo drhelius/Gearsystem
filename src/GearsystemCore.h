@@ -21,13 +21,13 @@
 #define	CORE_H
 
 #include "definitions.h"
+#include "Cartridge.h"
 
 class Memory;
 class Processor;
 class Audio;
 class Video;
 class Input;
-class Cartridge;
 class SegaMemoryRule;
 class CodemastersMemoryRule;
 class RomOnlyMemoryRule;
@@ -44,6 +44,7 @@ public:
     ~GearsystemCore();
     void Init();
     void RunToVBlank(GS_Color* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount);
+    bool LoadROM(const char* szFilePath, Cartridge::ForceConfiguration config);
     bool LoadROM(const char* szFilePath);
     bool LoadROMFromBuffer(const u8* buffer, int size);
     bool GetRuntimeInfo(GS_RuntimeInfo& runtime_info);
@@ -51,6 +52,7 @@ public:
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
     void Pause(bool paused);
     bool IsPaused();
+    void ResetROM(Cartridge::ForceConfiguration config);
     void ResetROM();
     void ResetROMPreservingRAM();
     void ResetSound();

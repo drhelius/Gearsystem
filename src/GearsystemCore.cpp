@@ -125,7 +125,7 @@ void GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer, s16* pSampleBuffer, int
     }
 }
 
-bool GearsystemCore::LoadROM(const char* szFilePath)
+bool GearsystemCore::LoadROM(const char* szFilePath, Cartridge::ForceConfiguration config)
 {
 #ifdef DEBUG_GEARSYSTEM
     if (m_pCartridge->IsReady() && (strlen(m_pCartridge->GetFilePath()) > 0))
@@ -147,6 +147,7 @@ bool GearsystemCore::LoadROM(const char* szFilePath)
 
     if (m_pCartridge->LoadFromFile(szFilePath))
     {
+        m_pCartridge->ForceConfig(config);
         Reset();
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
         bool romTypeOK = AddMemoryRules();
@@ -160,6 +161,17 @@ bool GearsystemCore::LoadROM(const char* szFilePath)
     }
     else
         return false;
+}
+
+bool GearsystemCore::LoadROM(const char* szFilePath)
+{
+    Cartridge::ForceConfiguration config;
+    config.type = Cartridge::CartridgeNotSupported;
+    config.zone = Cartridge::CartridgeUnknownZone;
+    config.region = Cartridge::CartridgeUnknownRegion;
+    config.system = Cartridge::CartridgeUnknownSystem;
+
+    return LoadROM(szFilePath, config);
 }
 
 bool GearsystemCore::LoadROMFromBuffer(const u8* buffer, int size)
@@ -241,15 +253,27 @@ bool GearsystemCore::IsPaused()
     return m_bPaused;
 }
 
-void GearsystemCore::ResetROM()
+void GearsystemCore::ResetROM(Cartridge::ForceConfiguration config)
 {
     if (m_pCartridge->IsReady())
     {
         Log("Gearsystem RESET");
+        m_pCartridge->ForceConfig(config);
         Reset();
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
         AddMemoryRules();
     }
+}
+
+void GearsystemCore::ResetROM()
+{
+    Cartridge::ForceConfiguration config;
+    config.type = Cartridge::CartridgeNotSupported;
+    config.zone = Cartridge::CartridgeUnknownZone;
+    config.region = Cartridge::CartridgeUnknownRegion;
+    config.system = Cartridge::CartridgeUnknownSystem;
+
+    ResetROM(config);
 }
 
 void GearsystemCore::ResetROMPreservingRAM()

@@ -42,9 +42,9 @@ struct config_Emulator
     bool save_in_rom_folder = false;
     bool ffwd = false;
     int system = 0;
-    int region = 0;
+    int zone = 0;
     int mapper = 0;
-    int refresh_rate = 0;
+    int region = 0;
     bool show_info = false;
     std::string recent_roms[config_max_recent_roms];
 };

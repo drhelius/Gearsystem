@@ -35,6 +35,7 @@ public:
         CartridgeKoreanMapper,
         CartridgeNotSupported
     };
+    
     enum CartridgeZones
     {
         CartridgeJapanSMS,
@@ -43,6 +44,29 @@ public:
         CartridgeExportGG,
         CartridgeInternationalGG,
         CartridgeUnknownZone
+    };
+
+    enum CartridgeRegions
+    {
+        CartridgeNTSC,
+        CartridgePAL,
+        CartridgeUnknownRegion
+    };
+
+    enum CartridgeSystem
+    {
+        CartridgeSMS,
+        CartridgeGG,
+        CartridgeSG1000,
+        CartridgeUnknownSystem
+    };
+
+    struct ForceConfiguration
+    {
+        CartridgeTypes type;
+        CartridgeZones zone;
+        CartridgeRegions region;
+        CartridgeSystem system;
     };
 
 public:
@@ -58,7 +82,7 @@ public:
     bool HasRAMWithoutBattery() const;
     CartridgeTypes GetType() const;
     CartridgeZones GetZone() const;
-    void ForzeZone(CartridgeZones zone);
+    void ForceConfig(ForceConfiguration config);
     int GetROMSize() const;
     int GetROMBankCount() const;
     const char* GetFilePath() const;

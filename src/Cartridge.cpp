@@ -108,9 +108,42 @@ Cartridge::CartridgeZones Cartridge::GetZone() const
     return m_Zone;
 }
 
-void Cartridge::ForzeZone(Cartridge::CartridgeZones zone)
+void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
 {
-    m_Zone = zone;
+    u32 crc = CalculateCRC32(0, m_pROM, m_iROMSize);
+    GatherMetadata(crc);
+
+    std::string fn(m_szFileName);
+    std::string extension = fn.substr(fn.find_last_of(".") + 1);
+    m_bGameGear = (extension == "gg");
+    m_bSG1000 = (extension == "sg" || extension == "mv");
+
+    if (config.region == CartridgePAL)
+        m_bPAL = true;
+    else if (config.region == CartridgeNTSC)
+        m_bPAL = false;
+
+    if (config.system == CartridgeSMS)
+    {
+        m_bGameGear = false;
+        m_bSG1000 = false;
+    }
+    else if (config.system == CartridgeGG)
+    {
+        m_bGameGear = true;
+        m_bSG1000 = false;
+    }
+    else if (config.system == CartridgeSG1000)
+    {
+        m_bGameGear = false;
+        m_bSG1000 = true;
+    }
+
+    if (config.type != CartridgeNotSupported)
+        m_Type = config.type;
+
+    if (config.zone != CartridgeUnknownZone)
+        m_Zone = config.zone;
 }
 
 int Cartridge::GetROMSize() const
