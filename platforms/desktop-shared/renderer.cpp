@@ -50,7 +50,7 @@ static void render_emu_normal(void);
 static void render_emu_mix(void);
 static void render_emu_bilinear(void);
 static void render_quad(int viewportWidth, int viewportHeight);
-static void update_gameboy_texture(void);
+static void update_system_texture(void);
 
 void renderer_init(void)
 {
@@ -104,7 +104,7 @@ void renderer_render(void)
 
     current_fbo = frame_buffer_object[res];
     current_system_texture = system_texture[res];
-    renderer_emu_texture = current_system_texture;
+    renderer_emu_texture = fbo_texture[res];
 
     if (config_video.mix_frames)
         render_emu_mix();
@@ -173,9 +173,9 @@ static void render_emu_normal(void)
 
     glDisable(GL_BLEND);
 
-    update_gameboy_texture();
+    update_system_texture();
 
-    render_quad(GS_RESOLUTION_MAX_WIDTH, GS_RESOLUTION_MAX_HEIGHT);
+    render_quad(current_runtime.screen_width, current_runtime.screen_height);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -184,7 +184,7 @@ static void render_emu_mix(void)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, current_fbo);
 
-    float alpha = 0.25f;
+    float alpha = 0.50f;
 
     if (first_frame)
     {
@@ -202,9 +202,9 @@ static void render_emu_mix(void)
     glColor4f(round_color, round_color, round_color, alpha);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    update_gameboy_texture();
+    update_system_texture();
 
-    render_quad(GS_RESOLUTION_MAX_WIDTH, GS_RESOLUTION_MAX_HEIGHT);
+    render_quad(current_runtime.screen_width, current_runtime.screen_height);
 
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glDisable(GL_BLEND);
@@ -212,7 +212,7 @@ static void render_emu_mix(void)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-static void update_gameboy_texture(void)
+static void update_system_texture(void)
 {
     glBindTexture(GL_TEXTURE_2D, current_system_texture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, current_runtime.screen_width, current_runtime.screen_height,
