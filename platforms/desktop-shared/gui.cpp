@@ -260,7 +260,14 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Refresh Rate"))
             {
-                ImGui::Combo("", &config_emulator.region, "Auto\0NTSC (60 Hz)\0PAL (50 Hz)\0\0");
+                if (ImGui::Combo("", &config_emulator.region, "Auto\0NTSC (60 Hz)\0PAL (50 Hz)\0\0"))
+                {
+                    if (config_emulator.region > 0)
+                    {
+                        config_emulator.ffwd = false;
+                        config_audio.sync = true;
+                    }
+                }
                 ImGui::EndMenu();
             }
 
