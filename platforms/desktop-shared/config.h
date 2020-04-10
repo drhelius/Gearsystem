@@ -41,6 +41,11 @@ struct config_Emulator
     bool start_paused = false;
     bool save_in_rom_folder = false;
     bool ffwd = false;
+    int system = 0;
+    int region = 0;
+    int mapper = 0;
+    int refresh_rate = 0;
+    bool show_info = false;
     std::string recent_roms[config_max_recent_roms];
 };
 

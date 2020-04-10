@@ -32,6 +32,8 @@ static bool audio_enabled;
 
 static void save_ram(void);
 static void load_ram(void);
+static const char* get_mapper(Cartridge::CartridgeTypes type);
+static const char* get_zone(Cartridge::CartridgeZones zone);
 
 void emu_init(const char* save_path)
 {
@@ -211,6 +213,33 @@ void emu_get_runtime(GS_RuntimeInfo& runtime)
     gearsystem->GetRuntimeInfo(runtime);
 }
 
+void emu_get_info(char* info)
+{
+    if (!emu_is_empty())
+    {
+        Cartridge* cart = gearsystem->GetCartridge();
+        GS_RuntimeInfo runtime;
+        gearsystem->GetRuntimeInfo(runtime);
+
+        const char* filename = cart->GetFileName();
+
+        const char* gg = cart->IsGameGear() ? "YES" : "NO";
+        const char* pal = cart->IsPAL() ? "PAL" : "NTSC";
+        const char* sg1000 = cart->IsSG1000() ? "YES" : "NO";
+        const char* checksum = cart->IsValidROM() ? "VALID" : "FAILED";
+        const char* battery = gearsystem->GetMemory()->GetCurrentRule()->PersistedRAM() ? "YES" : "NO";
+        int rom_banks = cart->GetROMBankCount();
+        const char* mapper = get_mapper(cart->GetType());
+        const char* zone = get_zone(cart->GetZone());
+
+        sprintf(info, "File Name: %s\nMapper: %s\nZone: %s\nGame Gear: %s\nRegion: %s\nSG-1000: %s\nCartridge Checksum: %s\nROM Banks: %d\nBattery: %s\nScreen Resolution: %dx%d", filename, mapper, zone, gg, pal, sg1000, checksum, rom_banks, battery, runtime.screen_width, runtime.screen_height);
+    }
+    else
+    {
+        sprintf(info, "No data!");
+    }
+}
+
 static void save_ram(void)
 {
     if (save_files_in_rom_dir)
@@ -225,4 +254,60 @@ static void load_ram(void)
         gearsystem->LoadRam();
     else
         gearsystem->LoadRam(base_save_path);
+}
+
+static const char* get_mapper(Cartridge::CartridgeTypes type)
+{
+    switch (type)
+    {
+    case Cartridge::CartridgeRomOnlyMapper:
+        return "ROM Only";
+        break;
+    case Cartridge::CartridgeSegaMapper:
+        return "SEGA";
+        break;
+    case Cartridge::CartridgeCodemastersMapper:
+        return "Codemasters";
+        break;
+    case Cartridge::CartridgeSG1000Mapper:
+        return "SG-1000";
+        break;
+    case Cartridge::CartridgeKoreanMapper:
+        return "Korean";
+        break;
+    case Cartridge::CartridgeNotSupported:
+        return "Not Supported";
+        break;
+    default:
+        return "Undefined";
+        break;
+    }
+}
+
+static const char* get_zone(Cartridge::CartridgeZones zone)
+{
+    switch (zone)
+    {
+    case Cartridge::CartridgeJapanSMS:
+        return "Japan";
+        break;
+    case Cartridge::CartridgeExportSMS:
+        return "Export";
+        break;
+    case Cartridge::CartridgeJapanGG:
+        return "Game Gear Japan";
+        break;
+    case Cartridge::CartridgeExportGG:
+        return "Game Gear Export";
+        break;
+    case Cartridge::CartridgeInternationalGG:
+        return "Game Gear International";
+        break;
+    case Cartridge::CartridgeUnknownZone:
+        return "Unknown";
+        break;
+    default:
+        return "Undefined";
+        break;
+    }
 }

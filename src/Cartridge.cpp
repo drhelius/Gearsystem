@@ -447,6 +447,9 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeSG1000Mapper:
             Log("SG-1000 mapper found");
             break;
+        case Cartridge::CartridgeKoreanMapper:
+            Log("Korean mapper found");
+            break;
         case Cartridge::CartridgeNotSupported:
             Log("Cartridge not supported!!");
             break;

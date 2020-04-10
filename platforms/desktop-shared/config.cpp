@@ -64,6 +64,10 @@ void config_read(void)
     config_emulator.save_slot = read_int("Emulator", "SaveSlot", 0);
     config_emulator.start_paused = read_bool("Emulator", "StartPaused", false);
     config_emulator.save_in_rom_folder = read_bool("Emulator", "SaveInROMFolder", false);
+    config_emulator.system = read_int("Emulator", "System", 0);
+    config_emulator.region = read_int("Emulator", "Region", 0);
+    config_emulator.mapper = read_int("Emulator", "Mapper", 0);
+    config_emulator.refresh_rate = read_int("Emulator", "RefreshRate", 0);
 
     for (int i = 0; i < config_max_recent_roms; i++)
     {
@@ -109,6 +113,10 @@ void config_write(void)
     write_int("Emulator", "SaveSlot", config_emulator.save_slot);
     write_bool("Emulator", "StartPaused", config_emulator.start_paused);
     write_bool("Emulator", "SaveInROMFolder", config_emulator.save_in_rom_folder);
+    write_int("Emulator", "System", config_emulator.system);
+    write_int("Emulator", "Region", config_emulator.region);
+    write_int("Emulator", "Mapper", config_emulator.mapper);
+    write_int("Emulator", "RefreshRate", config_emulator.refresh_rate);
 
     for (int i = 0; i < config_max_recent_roms; i++)
     {

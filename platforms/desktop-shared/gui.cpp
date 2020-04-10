@@ -58,6 +58,9 @@ static void push_recent_rom(std::string path);
 static void menu_reset(void);
 static void menu_pause(void);
 static void menu_ffwd(void);
+static void show_info(void);
+static void show_fps(void);
+static Cartridge::CartridgeTypes get_mbc(int index);
 
 void gui_init(void)
 {
@@ -74,6 +77,8 @@ void gui_init(void)
     io.FontGlobalScale /= font_scaling_factor;
 
     io.Fonts->AddFontFromMemoryCompressedTTF(RobotoMedium_compressed_data, RobotoMedium_compressed_size, font_size * font_scaling_factor, NULL, io.Fonts->GetGlyphRangesCyrillic());
+
+    emu_audio_volume(config_audio.enable ? 1.0f: 0.0f);
 }
 
 void gui_destroy(void)
@@ -234,25 +239,25 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("System"))
             {
-                ImGui::Combo("", &config_video.ratio, "Auto\0Master System / Mark III\0Game Gear\0SG-1000 / Multivision\0\0");
+                ImGui::Combo("", &config_emulator.system, "Auto\0Master System / Mark III\0Game Gear\0SG-1000 / Multivision\0\0");
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Region"))
             {
-                ImGui::Combo("", &config_video.ratio, "Auto\0Master System Japan\0Master System Export\0Game Gear Japan\0Game Gear Export\0Game Gear International\0\0");
+                ImGui::Combo("", &config_emulator.region, "Auto\0Master System Japan\0Master System Export\0Game Gear Japan\0Game Gear Export\0Game Gear International\0\0");
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Mapper"))
             {
-                ImGui::Combo("", &config_video.ratio, "Auto\0ROM Only\0SEGA\0Codemasters\0Korean\0SG-1000\0\0");
+                ImGui::Combo("", &config_emulator.mapper, "Auto\0ROM Only\0SEGA\0Codemasters\0Korean\0SG-1000\0\0");
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Refresh Rate"))
             {
-                ImGui::Combo("", &config_video.ratio, "Auto\0NTSC (60 Hz)\0PAL (50 Hz)\0\0");
+                ImGui::Combo("", &config_emulator.refresh_rate, "Auto\0NTSC (60 Hz)\0PAL (50 Hz)\0\0");
                 ImGui::EndMenu();
             }
 
@@ -261,8 +266,10 @@ static void main_menu(void)
             ImGui::MenuItem("Start Paused", "", &config_emulator.start_paused);
             
             ImGui::MenuItem("Save Files In ROM Folder", "", &config_emulator.save_in_rom_folder);
+            
+            ImGui::Separator();
 
-            ImGui::MenuItem("Show ROM Info", "", &config_emulator.save_in_rom_folder);
+            ImGui::MenuItem("Show ROM Info", "", &config_emulator.show_info);
 
             ImGui::Separator();
             
@@ -566,12 +573,10 @@ static void main_window(void)
     ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(main_window_width,main_window_height));
 
     if (config_video.fps)
-    {
-        ImGui::SetCursorPos(ImVec2(5.0f, 5.0f));
-        ImGui::Text("Frame Rate: %.2f FPS", ImGui::GetIO().Framerate);
-        ImGui::SetCursorPosX(5.0f);
-        ImGui::Text("Frame Time: %.2f ms", 1000.0f / ImGui::GetIO().Framerate);
-    }
+        show_fps();
+
+    if (config_emulator.show_info)
+        show_info();
 
     ImGui::End();
 
@@ -848,3 +853,50 @@ static void menu_ffwd(void)
         emu_audio_reset();
     }
 }
+
+static void show_info(void)
+{
+    if (config_video.fps)
+        ImGui::SetCursorPosX(5.0f);
+    else
+        ImGui::SetCursorPos(ImVec2(5.0f, 5.0f));
+
+    static char info[512];
+
+    emu_get_info(info);
+    ImGui::Text("%s", info);
+}
+
+static void show_fps(void)
+{
+    ImGui::SetCursorPos(ImVec2(5.0f, 5.0f));
+    ImGui::Text("Frame Rate: %.2f FPS", ImGui::GetIO().Framerate);
+    ImGui::SetCursorPosX(5.0f);
+    ImGui::Text("Frame Time: %.2f ms", 1000.0f / ImGui::GetIO().Framerate);
+}
+
+static Cartridge::CartridgeTypes get_mapper(int index)
+{
+    switch (index)
+    {
+        case 0:
+            return Cartridge::CartridgeNotSupported;
+        case 1:
+            return Cartridge::CartridgeRomOnlyMapper;
+        case 2:
+            return Cartridge::CartridgeSegaMapper;
+        case 3:
+            return Cartridge::CartridgeCodemastersMapper;
+        case 4:
+            return Cartridge::CartridgeKoreanMapper;
+        case 5:
+            return Cartridge::CartridgeSG1000Mapper;
+        default:
+            return Cartridge::CartridgeNotSupported;
+    }
+}
+
+//"Auto\0Master System / Mark III\0Game Gear\0SG-1000 / Multivision\0\0");
+   // "Auto\0Master System Japan\0Master System Export\0Game Gear Japan\0Game Gear Export\0Game Gear International\0\0"
+//   "Auto\0ROM Only\0SEGA\0Codemasters\0Korean\0SG-1000\0\0");
+//"Auto\0NTSC (60 Hz)\0PAL (50 Hz)\0\0");
