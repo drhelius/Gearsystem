@@ -397,7 +397,6 @@ void Video::ScanLine(int line)
             final_color.red = 0;
             final_color.green = 0;
             final_color.blue = 0;
-            final_color.alpha = 0xFF;
             m_pColorFrameBuffer[line_width + scx] = final_color;
         }
     }

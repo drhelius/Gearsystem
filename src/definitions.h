@@ -35,8 +35,12 @@
 #define DISASM_GEARSYSTEM 1
 #endif
 
-#define GEARSYSTEM_TITLE "Gearsystem 2.6.0"
-#define GEARSYSTEM_VERSION "2.6.0"
+#define GEARSYSTEM_TITLE "Gearsystem"
+#define GEARSYSTEM_VERSION "3.0.0"
+
+#ifndef EMULATOR_BUILD
+#define EMULATOR_BUILD "undefined"
+#endif
 
 #ifndef NULL
 #define NULL 0
@@ -106,24 +110,17 @@ typedef void (*RamChangedCallback) (void);
 
 struct GS_Color
 {
-#if defined(__LIBRETRO__)
-    #if defined(IS_LITTLE_ENDIAN)
-    u8 blue;
-    u8 green;
-    u8 red;
-    u8 alpha;
-    #elif defined(IS_BIG_ENDIAN)
-    u8 alpha;
     u8 red;
     u8 green;
     u8 blue;
-    #endif
-#else
-    u8 red;
-    u8 green;
-    u8 blue;
-    u8 alpha;
-#endif
+};
+
+enum GS_Color_Format
+{
+    GS_PIXEL_RGB565,
+    GS_PIXEL_RGB555,
+    GS_PIXEL_BGR565,
+    GS_PIXEL_BGR555
 };
 
 enum GS_Keys

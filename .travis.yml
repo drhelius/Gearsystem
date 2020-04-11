@@ -1,25 +1,24 @@
-matrix:
+language: cpp
+jobs:
   include:
-    - os: linux
-      dist: trusty
-      sudo: required
-      language: cpp
-      env: BUILD_TYPE=desktop
-    - os: linux
-      dist: trusty
-      sudo: required
-      language: cpp
-      env: BUILD_TYPE=libretro
-    - os: osx
-      language: cpp
-      env: BUILD_TYPE=ios
+  - os: linux
+    dist: bionic
+    env: BUILD_TYPE=Linux
+  - os: linux
+    dist: bionic
+    env: BUILD_TYPE=Libretro
+  - os: osx
+    env: BUILD_TYPE=iOS
+  - os: osx
+    env: BUILD_TYPE=macOS
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) universe"; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -qq; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y build-essential qt5-default qttools5-dev-tools freeglut3-dev libsdl2-dev libglew-dev; fi
+  - if [[ "$BUILD_TYPE" == "Linux" ]]; then sudo apt-get install -y build-essential libsdl2-dev libglew-dev; fi
+  - if [[ "$BUILD_TYPE" == "macOS" ]]; then brew install sdl2; fi
 
 script:
-  - if [[ "$BUILD_TYPE" == "ios" ]]; then xcodebuild clean build -sdk iphonesimulator -project platforms/ios/Gearsystem.xcodeproj -scheme Gearsystem CODE_SIGNING_REQUIRED=NO; fi
-  - if [[ "$BUILD_TYPE" == "desktop" ]]; then cd platforms/linux/Gearsystem && qmake Gearsystem.pro && make; fi
-  - if [[ "$BUILD_TYPE" == "libretro" ]]; then cd platforms/libretro && make; fi
+  - if [[ "$BUILD_TYPE" == "iOS" ]]; then xcodebuild clean build -sdk iphonesimulator -project platforms/ios/Gearsystem.xcodeproj -scheme Gearsystem CODE_SIGNING_REQUIRED=NO; fi
+  - if [[ "$BUILD_TYPE" == "Linux" ]]; then cd platforms/linux && make; fi
+  - if [[ "$BUILD_TYPE" == "Libretro" ]]; then cd platforms/libretro && make; fi
+  - if [[ "$BUILD_TYPE" == "macOS" ]]; then cd platforms/macos && make; fi

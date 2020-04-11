@@ -5,6 +5,7 @@
 
 #include <assert.h>
 #include <string.h>
+#include <string>
 
 /* Copyright (C) 2005 by Shay Green. Permission is hereby granted, free of
 charge, to any person obtaining a copy of this software module and associated
@@ -35,6 +36,20 @@ Sound_Queue::Sound_Queue()
 	bufs = NULL;
 	free_sem = NULL;
 	sound_open = false;
+	sync_output = true;
+
+	std::string platform = SDL_GetPlatform();
+	if (platform == "Linux")
+	{
+		SDL_InitSubSystem(SDL_INIT_AUDIO);
+		SDL_AudioInit("alsa");
+	}
+	else
+	{
+		SDL_Init(SDL_INIT_AUDIO);
+	}
+
+	atexit(SDL_Quit);
 }
 
 Sound_Queue::~Sound_Queue()
@@ -45,20 +60,23 @@ Sound_Queue::~Sound_Queue()
 const char* Sound_Queue::start( long sample_rate, int chan_count )
 {
 	assert( !bufs ); // can only be initialized once
-	
+
 	write_buf = 0;
 	write_pos = 0;
 	read_buf = 0;
-	
+
 	bufs = new sample_t [(long) buf_size * buf_count];
 	if ( !bufs )
 		return "Out of memory";
 	currently_playing_ = bufs;
-	
+
+	for (long l = 0; l < ((long) buf_size * buf_count); l++)
+		bufs[0] = 0;
+
 	free_sem = SDL_CreateSemaphore( buf_count - 1 );
 	if ( !free_sem )
 		return sdl_error( "Couldn't create semaphore" );
-	
+
 	SDL_AudioSpec as;
 	as.freq = (int)sample_rate;
 	as.format = AUDIO_S16SYS;
@@ -72,7 +90,7 @@ const char* Sound_Queue::start( long sample_rate, int chan_count )
 		return sdl_error( "Couldn't open SDL audio" );
 	SDL_PauseAudio( false );
 	sound_open = true;
-	
+
 	return NULL;
 }
 
@@ -84,13 +102,13 @@ void Sound_Queue::stop()
 		SDL_PauseAudio( true );
 		SDL_CloseAudio();
 	}
-	
+
 	if ( free_sem )
 	{
 		SDL_DestroySemaphore( free_sem );
 		free_sem = NULL;
 	}
-	
+
 	delete [] bufs;
 	bufs = NULL;
 }
@@ -107,36 +125,42 @@ inline Sound_Queue::sample_t* Sound_Queue::buf( int index )
 	return bufs + (long) index * buf_size;
 }
 
-void Sound_Queue::write( const sample_t* in, int count )
+void Sound_Queue::write( const sample_t* in, int count, bool sync )
 {
+	sync_output = sync;
+
 	while ( count )
 	{
 		int n = buf_size - write_pos;
 		if ( n > count )
 			n = count;
-		
+
 		memcpy( buf( write_buf ) + write_pos, in, n * sizeof (sample_t) );
 		in += n;
 		write_pos += n;
 		count -= n;
-		
+
 		if ( write_pos >= buf_size )
 		{
 			write_pos = 0;
 			write_buf = (write_buf + 1) % buf_count;
-			SDL_SemWait( free_sem );
+			
+			if (sync_output)
+				SDL_SemWait( free_sem );
 		}
 	}
 }
 
 void Sound_Queue::fill_buffer( Uint8* out, int count )
 {
-	if ( SDL_SemValue( free_sem ) < buf_count - 1 )
+	if ((SDL_SemValue( free_sem ) < buf_count - 1 ) || !sync_output)
 	{
 		currently_playing_ = buf( read_buf );
 		memcpy( out, buf( read_buf ), count );
 		read_buf = (read_buf + 1) % buf_count;
-		SDL_SemPost( free_sem );
+
+		if (sync_output)
+			SDL_SemPost( free_sem );
 	}
 	else
 	{

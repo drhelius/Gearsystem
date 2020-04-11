@@ -27,6 +27,7 @@ Audio::Audio()
     InitPointer(m_pApu);
     InitPointer(m_pBuffer);
     InitPointer(m_pSampleBuffer);
+    m_bPAL = false;
 }
 
 Audio::~Audio()
@@ -43,9 +44,9 @@ void Audio::Init()
     m_pApu = new Sms_Apu();
     m_pBuffer = new Stereo_Buffer();
 
-    // Clock rate for NTSC is 3579545, 3559545 to avoid sttutering at 60hz
+    // Clock rate for NTSC is 3579545
     // Clock rate for PAL is 3546893
-    m_pBuffer->clock_rate(3559545);
+    m_pBuffer->clock_rate(m_bPAL ? 3546893 : 3579545);
     m_pBuffer->set_sample_rate(m_iSampleRate);
 
     //m_pApu->treble_eq(-15.0);
@@ -54,10 +55,12 @@ void Audio::Init()
     m_pApu->output(m_pBuffer->center(), m_pBuffer->left(), m_pBuffer->right());
 }
 
-void Audio::Reset()
+void Audio::Reset(bool bPAL)
 {
+    m_bPAL = bPAL;
     m_pApu->reset();
     m_pBuffer->clear();
+    m_pBuffer->clock_rate(m_bPAL ? 3546893 : 3579545);
     m_ElapsedCycles = 0;
 }
 
@@ -68,6 +71,11 @@ void Audio::SetSampleRate(int rate)
         m_iSampleRate = rate;
         m_pBuffer->set_sample_rate(m_iSampleRate);
     }
+}
+
+void Audio::SetVolume(float volume)
+{
+    m_pApu->volume(volume);
 }
 
 void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
