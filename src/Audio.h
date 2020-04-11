@@ -30,7 +30,7 @@ public:
     Audio();
     ~Audio();
     void Init();
-    void Reset();
+    void Reset(bool bPAL);
     void SetSampleRate(int rate);
     void SetVolume(float volume);
     void WriteAudioRegister(u8 value);
@@ -46,6 +46,7 @@ private:
     int m_ElapsedCycles;
     int m_iSampleRate;
     blip_sample_t* m_pSampleBuffer;
+    bool m_bPAL;
 };
 
 inline void Audio::Tick(unsigned int clockCycles)
