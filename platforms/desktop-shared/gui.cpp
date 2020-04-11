@@ -48,9 +48,9 @@ static void file_dialog_load_ram(void);
 static void file_dialog_save_ram(void);
 static void file_dialog_load_state(void);
 static void file_dialog_save_state(void);
-static void keyboard_configuration_item(const char* text, SDL_Scancode* key);
-static void gamepad_configuration_item(const char* text, int* button);
-static void popup_modal_keyboard(void);
+static void keyboard_configuration_item(const char* text, SDL_Scancode* key, int player);
+static void gamepad_configuration_item(const char* text, int* button, int player);
+static void popup_modal_keyboard();
 static void popup_modal_gamepad(int pad);
 static void popup_modal_about(void);
 static void load_rom(const char* path);
@@ -375,13 +375,13 @@ static void main_menu(void)
             {
                 if (ImGui::BeginMenu("Player 1"))
                 {
-                    keyboard_configuration_item("Left:", &config_input[0].key_left);
-                    keyboard_configuration_item("Right:", &config_input[0].key_right);
-                    keyboard_configuration_item("Up:", &config_input[0].key_up);
-                    keyboard_configuration_item("Down:", &config_input[0].key_down);
-                    keyboard_configuration_item("1:", &config_input[0].key_1);
-                    keyboard_configuration_item("2:", &config_input[0].key_2);
-                    keyboard_configuration_item("Start:", &config_input[0].key_start);
+                    keyboard_configuration_item("Left:", &config_input[0].key_left, 0);
+                    keyboard_configuration_item("Right:", &config_input[0].key_right, 0);
+                    keyboard_configuration_item("Up:", &config_input[0].key_up, 0);
+                    keyboard_configuration_item("Down:", &config_input[0].key_down, 0);
+                    keyboard_configuration_item("1:", &config_input[0].key_1, 0);
+                    keyboard_configuration_item("2:", &config_input[0].key_2, 0);
+                    keyboard_configuration_item("Start:", &config_input[0].key_start, 0);
 
                     popup_modal_keyboard();
 
@@ -390,13 +390,13 @@ static void main_menu(void)
 
                 if (ImGui::BeginMenu("Player 2"))
                 {
-                    keyboard_configuration_item("Left:", &config_input[1].key_left);
-                    keyboard_configuration_item("Right:", &config_input[1].key_right);
-                    keyboard_configuration_item("Up:", &config_input[1].key_up);
-                    keyboard_configuration_item("Down:", &config_input[1].key_down);
-                    keyboard_configuration_item("1:", &config_input[1].key_1);
-                    keyboard_configuration_item("2:", &config_input[1].key_2);
-                    keyboard_configuration_item("Start:", &config_input[1].key_start);
+                    keyboard_configuration_item("Left:", &config_input[1].key_left, 1);
+                    keyboard_configuration_item("Right:", &config_input[1].key_right, 1);
+                    keyboard_configuration_item("Up:", &config_input[1].key_up, 1);
+                    keyboard_configuration_item("Down:", &config_input[1].key_down, 1);
+                    keyboard_configuration_item("1:", &config_input[1].key_1, 1);
+                    keyboard_configuration_item("2:", &config_input[1].key_2, 1);
+                    keyboard_configuration_item("Start:", &config_input[1].key_start, 1);
 
                     popup_modal_keyboard();
 
@@ -415,9 +415,9 @@ static void main_menu(void)
             {
                 if (ImGui::BeginMenu("Player 1"))
                 {
-                    gamepad_configuration_item("1:", &config_input[0].gamepad_1);
-                    gamepad_configuration_item("2:", &config_input[0].gamepad_2);
-                    gamepad_configuration_item("START:", &config_input[0].gamepad_start);
+                    gamepad_configuration_item("1:", &config_input[0].gamepad_1, 0);
+                    gamepad_configuration_item("2:", &config_input[0].gamepad_2, 0);
+                    gamepad_configuration_item("START:", &config_input[0].gamepad_start, 0);
 
                     popup_modal_gamepad(0);                 
 
@@ -426,9 +426,9 @@ static void main_menu(void)
 
                 if (ImGui::BeginMenu("Player 2"))
                 {
-                    gamepad_configuration_item("1:", &config_input[1].gamepad_1);
-                    gamepad_configuration_item("2:", &config_input[1].gamepad_2);
-                    gamepad_configuration_item("START:", &config_input[1].gamepad_start);
+                    gamepad_configuration_item("1:", &config_input[1].gamepad_1, 1);
+                    gamepad_configuration_item("2:", &config_input[1].gamepad_2, 1);
+                    gamepad_configuration_item("START:", &config_input[1].gamepad_start, 1);
 
                     popup_modal_gamepad(1);                 
 
@@ -657,13 +657,13 @@ static void file_dialog_save_state(void)
     }
 }
 
-static void keyboard_configuration_item(const char* text, SDL_Scancode* key)
+static void keyboard_configuration_item(const char* text, SDL_Scancode* key, int player)
 {
     ImGui::Text("%s", text);
     ImGui::SameLine(70);
 
     char button_label[256];
-    sprintf(button_label, "%s##%s", SDL_GetScancodeName(*key), text);
+    sprintf(button_label, "%s##%s%d", SDL_GetScancodeName(*key), text, player);
 
     if (ImGui::Button(button_label, ImVec2(90,0)))
     {
@@ -672,7 +672,7 @@ static void keyboard_configuration_item(const char* text, SDL_Scancode* key)
     }
 }
 
-static void gamepad_configuration_item(const char* text, int* button)
+static void gamepad_configuration_item(const char* text, int* button, int player)
 {
     ImGui::Text("%s", text);
     ImGui::SameLine(70);
@@ -680,7 +680,7 @@ static void gamepad_configuration_item(const char* text, int* button)
     static const char* gamepad_names[16] = {"0", "A", "B" ,"3", "L", "R", "6", "7", "SELECT", "START", "10", "11", "12", "13", "14", "15"};
 
     char button_label[256];
-    sprintf(button_label, "%s##%s", gamepad_names[*button], text);
+    sprintf(button_label, "%s##%s%d", gamepad_names[*button], text, player);
 
     if (ImGui::Button(button_label, ImVec2(70,0)))
     {
@@ -689,7 +689,7 @@ static void gamepad_configuration_item(const char* text, int* button)
     }
 }
 
-static void popup_modal_keyboard(void)
+static void popup_modal_keyboard()
 {
     if (ImGui::BeginPopupModal("Keyboard Configuration", NULL, ImGuiWindowFlags_AlwaysAutoResize))
     {
