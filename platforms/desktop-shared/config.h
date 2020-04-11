@@ -56,7 +56,7 @@ struct config_Video
     bool fps = false;
     bool bilinear = false;
     bool mix_frames = false;
-    bool matrix = true;
+    bool scanlines = false;
     bool sync = true;
 };
 
