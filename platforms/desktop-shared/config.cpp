@@ -111,7 +111,7 @@ void config_read(void)
     config_video.fps = read_bool("Video", "FPS", false);
     config_video.bilinear = read_bool("Video", "Bilinear", false);
     config_video.mix_frames = read_bool("Video", "MixFrames", false);
-    config_video.matrix = read_bool("Video", "Matrix", true);
+    config_video.scanlines = read_bool("Video", "Scanlines", false);
     config_video.sync = read_bool("Video", "Sync", true);
     
     config_audio.enable = read_bool("Audio", "Enable", true);
@@ -177,7 +177,7 @@ void config_write(void)
     write_bool("Video", "FPS", config_video.fps);
     write_bool("Video", "Bilinear", config_video.bilinear);
     write_bool("Video", "MixFrames", config_video.mix_frames);
-    write_bool("Video", "Matrix", config_video.matrix);
+    write_bool("Video", "Scanlines", config_video.scanlines);
     write_bool("Video", "Sync", config_video.sync);
 
     write_bool("Audio", "Enable", config_audio.enable);
