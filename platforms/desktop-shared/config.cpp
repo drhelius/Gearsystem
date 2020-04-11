@@ -110,8 +110,8 @@ void config_read(void)
     config_video.ratio = read_int("Video", "AspectRatio", 0);
     config_video.fps = read_bool("Video", "FPS", false);
     config_video.bilinear = read_bool("Video", "Bilinear", false);
-    config_video.mix_frames = read_bool("Video", "MixFrames", false);
-    config_video.scanlines = read_bool("Video", "Scanlines", false);
+    config_video.mix_frames = read_bool("Video", "MixFrames", true);
+    config_video.scanlines = read_bool("Video", "Scanlines", true);
     config_video.sync = read_bool("Video", "Sync", true);
     
     config_audio.enable = read_bool("Audio", "Enable", true);

@@ -55,8 +55,8 @@ struct config_Video
     int ratio = 0;
     bool fps = false;
     bool bilinear = false;
-    bool mix_frames = false;
-    bool scanlines = false;
+    bool mix_frames = true;
+    bool scanlines = true;
     bool sync = true;
 };
 
