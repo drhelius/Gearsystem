@@ -289,6 +289,12 @@ static void sdl_events_emu(const SDL_Event* event)
 
             int key = event->key.keysym.scancode;
 
+            if (key == SDL_SCANCODE_ESCAPE)
+            {
+                application_trigger_quit();
+                break;
+            }
+
             for (int i = 0; i < 2; i++)
             {
                 GS_Joypads pad = (i == 0) ? Joypad_1 : Joypad_2;
