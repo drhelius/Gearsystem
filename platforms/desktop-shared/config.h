@@ -68,22 +68,22 @@ struct config_Audio
 
 struct config_Input
 {
-    SDL_Scancode key_left = SDL_SCANCODE_LEFT;
-    SDL_Scancode key_right = SDL_SCANCODE_RIGHT;
-    SDL_Scancode key_up = SDL_SCANCODE_UP;
-    SDL_Scancode key_down = SDL_SCANCODE_DOWN;
-    SDL_Scancode key_1 = SDL_SCANCODE_A;
-    SDL_Scancode key_2 = SDL_SCANCODE_S;
-    SDL_Scancode key_start = SDL_SCANCODE_RETURN;
+    SDL_Scancode key_left;
+    SDL_Scancode key_right;
+    SDL_Scancode key_up;
+    SDL_Scancode key_down;
+    SDL_Scancode key_1;
+    SDL_Scancode key_2;
+    SDL_Scancode key_start;
 
-    bool gamepad = true;
-    bool gamepad_invert_x_axis = false;
-    bool gamepad_invert_y_axis = false;
-    int gamepad_1 = 1;
-    int gamepad_2 = 2;
-    int gamepad_start = 9;
-    int gamepad_x_axis = 0;
-    int gamepad_y_axis = 1;
+    bool gamepad;
+    bool gamepad_invert_x_axis;
+    bool gamepad_invert_y_axis;
+    int gamepad_1;
+    int gamepad_2;
+    int gamepad_start;
+    int gamepad_x_axis;
+    int gamepad_y_axis;
 };
 
 EXTERN mINI::INIFile* config_ini_file;
