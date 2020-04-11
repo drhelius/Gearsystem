@@ -34,13 +34,44 @@ static void write_string(const char* group, const char* key, std::string value);
 
 void config_init(void)
 {
-    config_root_path = SDL_GetPrefPath("Gearsystem", GEARSYSTEM_TITLE);
+    config_root_path = SDL_GetPrefPath("Geardome", GEARSYSTEM_TITLE);
     
     strcpy(config_emu_file_path, config_root_path);
     strcat(config_emu_file_path, "config.ini");
 
     strcpy(config_imgui_file_path, config_root_path);
     strcat(config_imgui_file_path, "imgui.ini");
+
+    config_input[0].key_left = SDL_SCANCODE_LEFT;
+    config_input[0].key_right = SDL_SCANCODE_RIGHT;
+    config_input[0].key_up = SDL_SCANCODE_UP;
+    config_input[0].key_down = SDL_SCANCODE_DOWN;
+    config_input[0].key_1 = SDL_SCANCODE_A;
+    config_input[0].key_2 = SDL_SCANCODE_S;
+    config_input[0].key_start = SDL_SCANCODE_RETURN;
+    config_input[0].gamepad = true;
+    config_input[0].gamepad_invert_x_axis = false;
+    config_input[0].gamepad_invert_y_axis = false;
+    config_input[0].gamepad_1 = 1;
+    config_input[0].gamepad_2 = 2;
+    config_input[0].gamepad_start = 9;
+    config_input[0].gamepad_x_axis = 0;
+    config_input[0].gamepad_y_axis = 1;
+    config_input[1].key_left = SDL_SCANCODE_J;
+    config_input[1].key_right = SDL_SCANCODE_L;
+    config_input[1].key_up = SDL_SCANCODE_I;
+    config_input[1].key_down = SDL_SCANCODE_K;
+    config_input[1].key_1 = SDL_SCANCODE_G;
+    config_input[1].key_2 = SDL_SCANCODE_H;
+    config_input[1].key_start = SDL_SCANCODE_RSHIFT;
+    config_input[1].gamepad = true;
+    config_input[1].gamepad_invert_x_axis = false;
+    config_input[1].gamepad_invert_y_axis = false;
+    config_input[1].gamepad_1 = 1;
+    config_input[1].gamepad_2 = 2;
+    config_input[1].gamepad_start = 9;
+    config_input[1].gamepad_x_axis = 0;
+    config_input[1].gamepad_y_axis = 1;
 
     config_ini_file = new mINI::INIFile(config_emu_file_path);
 }
