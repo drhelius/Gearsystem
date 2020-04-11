@@ -110,13 +110,13 @@ Cartridge::CartridgeZones Cartridge::GetZone() const
 
 void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
 {
-    u32 crc = CalculateCRC32(0, m_pROM, m_iROMSize);
-    GatherMetadata(crc);
-
     std::string fn(m_szFileName);
     std::string extension = fn.substr(fn.find_last_of(".") + 1);
     m_bGameGear = (extension == "gg");
     m_bSG1000 = (extension == "sg" || extension == "mv");
+
+    u32 crc = CalculateCRC32(0, m_pROM, m_iROMSize);
+    GatherMetadata(crc);
 
     if (config.region == CartridgePAL)
         m_bPAL = true;
