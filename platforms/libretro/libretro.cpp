@@ -45,6 +45,7 @@ static bool allow_up_down = false;
 
 GearsystemCore* core;
 GS_Color *frame_buf;
+u16* frame_buf_16bit;
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 {
@@ -84,6 +85,7 @@ void retro_init(void)
     core->SetSG1000Palette(sg1000_palette);
 
     frame_buf = new GS_Color[GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT];
+    frame_buf_16bit = new u16[GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT];
 
     audio_sample_count = 0;
 }
@@ -91,6 +93,7 @@ void retro_init(void)
 void retro_deinit(void)
 {
     SafeDeleteArray(frame_buf);
+    SafeDeleteArray(frame_buf_16bit);
     SafeDelete(core);
 }
 
@@ -266,6 +269,7 @@ void retro_run(void)
     update_input();
 
     core->RunToVBlank(frame_buf, audio_buf, &audio_sample_count);
+    core->Get16BitFrameBuffer(frame_buf, frame_buf_16bit);
 
     GS_RuntimeInfo runtime_info;
     core->GetRuntimeInfo(runtime_info);
@@ -285,7 +289,7 @@ void retro_run(void)
         environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &info.geometry);
     }
 
-    video_cb((uint8_t*)frame_buf, runtime_info.screen_width, runtime_info.screen_height, runtime_info.screen_width * sizeof(GS_Color));
+    video_cb((uint8_t*)frame_buf_16bit, runtime_info.screen_width, runtime_info.screen_height, runtime_info.screen_width * sizeof(u16));
 
     if (audio_sample_count > 0)
         audio_batch_cb(audio_buf, audio_sample_count / 2);
@@ -318,10 +322,10 @@ bool retro_load_game(const struct retro_game_info *info)
 
     environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
 
-    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
+    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
     if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
     {
-        log_cb(RETRO_LOG_INFO, "XRGB8888 is not supported.\n");
+        log_cb(RETRO_LOG_INFO, "RGB565 is not supported.\n");
         return false;
     }
 
