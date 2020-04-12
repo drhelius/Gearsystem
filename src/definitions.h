@@ -115,14 +115,6 @@ struct GS_Color
     u8 blue;
 };
 
-enum GS_Color_Format
-{
-    GS_PIXEL_RGB565,
-    GS_PIXEL_RGB555,
-    GS_PIXEL_BGR565,
-    GS_PIXEL_BGR555
-};
-
 enum GS_Keys
 {
     Key_Up = 0,

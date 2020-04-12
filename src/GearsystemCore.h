@@ -76,6 +76,7 @@ public:
     Memory* GetMemory();
     Cartridge* GetCartridge();
     void SetSG1000Palette(GS_Color* pSG1000Palette);
+    void Get16BitFrameBuffer(GS_Color* pFrameBuffer, u16* p16BitFrameBuffer);
 
 private:
     void InitMemoryRules();

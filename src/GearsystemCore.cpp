@@ -790,3 +790,20 @@ void GearsystemCore::Reset()
     m_pSmsIOPorts->Reset();
     m_bPaused = false;
 }
+
+void GearsystemCore::Get16BitFrameBuffer(GS_Color* pFrameBuffer, u16* p16BitFrameBuffer)
+{
+    if (IsValidPointer(pFrameBuffer) && IsValidPointer(p16BitFrameBuffer))
+    {
+        int pixels = GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT;
+        
+
+        for (int i = 0; i < pixels; i++)
+        {
+            GS_Color p = pFrameBuffer[i];
+
+            p16BitFrameBuffer[i] = 0;
+            p16BitFrameBuffer[i] = ((p.red >> 3) << 11) | ((p.green >> 2) << 5) | (p.blue >> 3);
+        }
+    }
+}
