@@ -375,6 +375,8 @@ bool Cartridge::TestValidROM(u16 location)
 
 bool Cartridge::GatherMetadata(u32 crc)
 {
+    m_bPAL = false;
+
     u16 headerLocation = 0x7FF0;
     m_bValidROM = true;
 
