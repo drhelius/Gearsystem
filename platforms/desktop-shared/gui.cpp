@@ -755,7 +755,14 @@ static void popup_modal_about(void)
         ImGui::Text("By Ignacio Sánchez (twitter.com/drhelius)");
         ImGui::Text("%s is licensed under the GPL-3.0 License, see LICENSE for more information.", GEARSYSTEM_TITLE);
         
-        ImGui::Separator();        
+        ImGui::Separator();
+
+        ImGui::Text("Special thanks to:");
+        ImGui::BeginChild("backers", ImVec2(0, 100), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+        ImGui::Text(" · Michael Mellor (dinglyburrow)");
+        ImGui::EndChild();
+
+        ImGui::Separator();
         
         #ifdef _WIN64
         ImGui::Text("Windows 64 bit build");
