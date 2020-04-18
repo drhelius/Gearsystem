@@ -27,6 +27,8 @@
 
 static int read_int(const char* group, const char* key, int default_value);
 static void write_int(const char* group, const char* key, int integer);
+static float read_float(const char* group, const char* key, float default_value);
+static void write_float(const char* group, const char* key, float value);
 static bool read_bool(const char* group, const char* key, bool default_value);
 static void write_bool(const char* group, const char* key, bool boolean);
 static std::string read_string(const char* group, const char* key);
@@ -92,6 +94,7 @@ void config_read(void)
 
     Log("Loading settings from %s", config_emu_file_path);
 
+    config_emulator.ffwd_speed = read_int("Emulator", "FFWD", 1);
     config_emulator.save_slot = read_int("Emulator", "SaveSlot", 0);
     config_emulator.start_paused = read_bool("Emulator", "StartPaused", false);
     config_emulator.save_in_rom_folder = read_bool("Emulator", "SaveInROMFolder", false);
@@ -111,7 +114,9 @@ void config_read(void)
     config_video.fps = read_bool("Video", "FPS", false);
     config_video.bilinear = read_bool("Video", "Bilinear", false);
     config_video.mix_frames = read_bool("Video", "MixFrames", true);
+    config_video.mix_frames_intensity = read_float("Video", "MixFramesIntensity", 0.30f);
     config_video.scanlines = read_bool("Video", "Scanlines", true);
+    config_video.scanlines_intensity = read_float("Video", "ScanlinesIntensity", 0.40f);
     config_video.sync = read_bool("Video", "Sync", true);
     
     config_audio.enable = read_bool("Audio", "Enable", true);
@@ -158,6 +163,7 @@ void config_write(void)
 {
     Log("Saving settings to %s", config_emu_file_path);
 
+    write_int("Emulator", "FFWD", config_emulator.ffwd_speed);
     write_int("Emulator", "SaveSlot", config_emulator.save_slot);
     write_bool("Emulator", "StartPaused", config_emulator.start_paused);
     write_bool("Emulator", "SaveInROMFolder", config_emulator.save_in_rom_folder);
@@ -177,7 +183,9 @@ void config_write(void)
     write_bool("Video", "FPS", config_video.fps);
     write_bool("Video", "Bilinear", config_video.bilinear);
     write_bool("Video", "MixFrames", config_video.mix_frames);
+    write_float("Video", "MixFramesIntensity", config_video.mix_frames_intensity);
     write_bool("Video", "Scanlines", config_video.scanlines);
+    write_float("Video", "ScanlinesIntensity", config_video.scanlines_intensity);
     write_bool("Video", "Sync", config_video.sync);
 
     write_bool("Audio", "Enable", config_audio.enable);
@@ -243,6 +251,28 @@ static void write_int(const char* group, const char* key, int integer)
     std::string value = std::to_string(integer);
     config_ini_data[group][key] = value;
     Log("Save setting: [%s][%s]=%s", group, key, value.c_str());
+}
+
+static float read_float(const char* group, const char* key, float default_value)
+{
+    float ret = 0.0f;
+
+    std::string value = config_ini_data[group][key];
+
+    if(value.empty())
+        ret = default_value;
+    else
+        ret = strtof(value.c_str(), NULL);
+
+    Log("Load setting: [%s][%s]=%.2f", group, key, ret);
+    return ret;
+}
+
+static void write_float(const char* group, const char* key, float value)
+{
+    std::string value_str = std::to_string(value);
+    config_ini_data[group][key] = value_str;
+    Log("Save setting: [%s][%s]=%s", group, key, value_str.c_str());
 }
 
 static bool read_bool(const char* group, const char* key, bool default_value)

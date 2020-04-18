@@ -180,9 +180,17 @@ static void main_menu(void)
                 menu_pause();
             }
 
+            ImGui::Separator();
+
             if (ImGui::MenuItem("Fast Forward", "Ctrl+F", &config_emulator.ffwd))
             {
                 menu_ffwd();
+            }
+
+            if (ImGui::BeginMenu("Fast Forward Speed"))
+            {
+                ImGui::Combo("##fwd", &config_emulator.ffwd_speed, "X 1.5\0X 2\0X 2.5\0X 3\0Unlimited\0\0");
+                ImGui::EndMenu();
             }
 
             ImGui::Separator();
@@ -213,7 +221,7 @@ static void main_menu(void)
            
             if (ImGui::BeginMenu("Select State Slot"))
             {
-                ImGui::Combo("", &config_emulator.save_slot, "Slot 1\0Slot 2\0Slot 3\0Slot 4\0Slot 5\0\0");
+                ImGui::Combo("##slot", &config_emulator.save_slot, "Slot 1\0Slot 2\0Slot 3\0Slot 4\0Slot 5\0\0");
                 ImGui::EndMenu();
             }
 
@@ -243,25 +251,25 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("System"))
             {
-                ImGui::Combo("", &config_emulator.system, "Auto\0Master System / Mark III\0Game Gear\0SG-1000 / Multivision\0\0");
+                ImGui::Combo("##emu_system", &config_emulator.system, "Auto\0Master System / Mark III\0Game Gear\0SG-1000 / Multivision\0\0");
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Region"))
             {
-                ImGui::Combo("", &config_emulator.zone, "Auto\0Master System Japan\0Master System Export\0Game Gear Japan\0Game Gear Export\0Game Gear International\0\0");
+                ImGui::Combo("##emu_region", &config_emulator.zone, "Auto\0Master System Japan\0Master System Export\0Game Gear Japan\0Game Gear Export\0Game Gear International\0\0");
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Mapper"))
             {
-                ImGui::Combo("", &config_emulator.mapper, "Auto\0ROM Only\0SEGA\0Codemasters\0Korean\0SG-1000\0\0");
+                ImGui::Combo("##emu_mapper", &config_emulator.mapper, "Auto\0ROM Only\0SEGA\0Codemasters\0Korean\0SG-1000\0\0");
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Refresh Rate"))
             {
-                if (ImGui::Combo("", &config_emulator.region, "Auto\0NTSC (60 Hz)\0PAL (50 Hz)\0\0"))
+                if (ImGui::Combo("##emu_rate", &config_emulator.region, "Auto\0NTSC (60 Hz)\0PAL (50 Hz)\0\0"))
                 {
                     if (config_emulator.region > 0)
                     {
@@ -337,13 +345,13 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Scale"))
             {
-                ImGui::Combo("", &config_video.scale, "Auto\0Zoom X1\0Zoom X2\0Zoom X3\0\0");
+                ImGui::Combo("##scale", &config_video.scale, "Auto\0Zoom X1\0Zoom X2\0Zoom X3\0\0");
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Aspect Ratio"))
             {
-                ImGui::Combo("", &config_video.ratio, "Square Pixels\0Standard (4:3)\0Wide (16:9)\0Fit Window\0\0");
+                ImGui::Combo("##ratio", &config_video.ratio, "Square Pixels\0Standard (4:3)\0Wide (16:9)\0Fit Window\0\0");
                 ImGui::EndMenu();
             }
 
@@ -361,9 +369,24 @@ static void main_menu(void)
             }
 
             ImGui::MenuItem("Show FPS", "", &config_video.fps);
+
+            ImGui::Separator();
+
             ImGui::MenuItem("Bilinear Filtering", "", &config_video.bilinear);
-            ImGui::MenuItem("Screen Ghosting", "", &config_video.mix_frames);
-            ImGui::MenuItem("Scanlines", "", &config_video.scanlines);
+
+            if (ImGui::BeginMenu("Screen Ghosting"))
+            {
+                ImGui::MenuItem("Enable Screen Ghosting", "", &config_video.mix_frames);
+                ImGui::SliderFloat("##screen_ghosting", &config_video.mix_frames_intensity, 0.0f, 1.0f, "Intensity = %.2f");
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Scanlines"))
+            {
+                ImGui::MenuItem("Enable Scanlines", "", &config_video.scanlines);
+                ImGui::SliderFloat("##scanlines", &config_video.scanlines_intensity, 0.0f, 1.0f, "Intensity = %.2f");
+                ImGui::EndMenu();
+            }
 
             ImGui::EndMenu();
         }
@@ -446,7 +469,7 @@ static void main_menu(void)
         {
             gui_in_use = true;
 
-            if (ImGui::MenuItem("Enable", "", &config_audio.enable))
+            if (ImGui::MenuItem("Enable Audio", "", &config_audio.enable))
             {
                 emu_audio_volume(config_audio.enable ? 1.0f: 0.0f);
             }

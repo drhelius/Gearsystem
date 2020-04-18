@@ -211,7 +211,7 @@ static void render_emu_mix(void)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, current_fbo);
 
-    float alpha = 0.50f;
+    float alpha = 0.15f + (0.20f * (1.0f - config_video.mix_frames_intensity));
 
     if (first_frame)
     {
@@ -299,7 +299,7 @@ static void render_scanlines(void)
     glBindFramebuffer(GL_FRAMEBUFFER, current_fbo);
     glEnable(GL_BLEND);
 
-    glColor4f(1.0f, 1.0f, 1.0f, 0.35f);
+    glColor4f(1.0f, 1.0f, 1.0f, config_video.scanlines_intensity / 4.0f);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glBindTexture(GL_TEXTURE_2D, scanlines_texture);

@@ -41,6 +41,7 @@ struct config_Emulator
     bool start_paused = false;
     bool save_in_rom_folder = false;
     bool ffwd = false;
+    int ffwd_speed = 1;
     int system = 0;
     int zone = 0;
     int mapper = 0;
@@ -56,7 +57,9 @@ struct config_Video
     bool fps = false;
     bool bilinear = false;
     bool mix_frames = true;
+    float mix_frames_intensity = 0.30f;
     bool scanlines = true;
+    float scanlines_intensity = 0.40f;
     bool sync = true;
 };
 
