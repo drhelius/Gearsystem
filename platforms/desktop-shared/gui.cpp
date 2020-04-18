@@ -25,6 +25,8 @@
 #include "../../src/gearsystem.h"
 #include "renderer.h"
 #include "application.h"
+#include "license.h"
+#include "backers.h"
 
 #define GUI_IMPORT
 #include "gui.h"
@@ -757,10 +759,24 @@ static void popup_modal_about(void)
         
         ImGui::Separator();
 
-        ImGui::Text("Special thanks to:");
-        ImGui::BeginChild("backers", ImVec2(0, 100), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
-        ImGui::Text(" · Michael Mellor (dinglyburrow)");
-        ImGui::EndChild();
+        if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None))
+        {
+            if (ImGui::BeginTabItem("Special thanks to"))
+            {
+                ImGui::BeginChild("backers", ImVec2(0, 100), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+                ImGui::Text("%s", BACKERS_STR);
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("LICENSE"))
+            {
+                ImGui::BeginChild("license", ImVec2(0, 100), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+                ImGui::TextUnformatted(GPL_LICENSE_STR);
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+        }
 
         ImGui::Separator();
         
