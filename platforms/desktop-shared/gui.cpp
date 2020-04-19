@@ -432,29 +432,52 @@ static void main_menu(void)
 
             ImGui::Separator();
 
-            ImGui::MenuItem("Enable Gamepad P1", "", &config_input[0].gamepad);
-            ImGui::MenuItem("Enable Gamepad P2", "", &config_input[1].gamepad);
-            
-            if (ImGui::BeginMenu("Gamepad Configuration"))
+            if (ImGui::BeginMenu("Gamepads"))
             {
                 if (ImGui::BeginMenu("Player 1"))
                 {
-                    gamepad_configuration_item("1:", &config_input[0].gamepad_1, 0);
-                    gamepad_configuration_item("2:", &config_input[0].gamepad_2, 0);
-                    gamepad_configuration_item("START:", &config_input[0].gamepad_start, 0);
+                    ImGui::MenuItem("Enable Gamepad P1", "", &config_input[0].gamepad);
 
-                    popup_modal_gamepad(0);                 
+                    if (ImGui::BeginMenu("Directional Controls"))
+                    {
+                        ImGui::Combo("##directional", &config_input[0].gamepad_directional, "D-pad\0Left Analog Stick\0\0");
+                        ImGui::EndMenu();
+                    }
+
+                    if (ImGui::BeginMenu("Button Configuration"))
+                    {
+                        gamepad_configuration_item("1:", &config_input[0].gamepad_1, 0);
+                        gamepad_configuration_item("2:", &config_input[0].gamepad_2, 0);
+                        gamepad_configuration_item("START:", &config_input[0].gamepad_start, 0);
+
+                        popup_modal_gamepad(0);                 
+
+                        ImGui::EndMenu();
+                    }
 
                     ImGui::EndMenu();
                 }
 
                 if (ImGui::BeginMenu("Player 2"))
                 {
-                    gamepad_configuration_item("1:", &config_input[1].gamepad_1, 1);
-                    gamepad_configuration_item("2:", &config_input[1].gamepad_2, 1);
-                    gamepad_configuration_item("START:", &config_input[1].gamepad_start, 1);
+                    ImGui::MenuItem("Enable Gamepad P2", "", &config_input[1].gamepad);
 
-                    popup_modal_gamepad(1);                 
+                    if (ImGui::BeginMenu("Directional Controls"))
+                    {
+                        ImGui::Combo("##directional", &config_input[1].gamepad_directional, "D-pad\0Left Analog Stick\0\0");
+                        ImGui::EndMenu();
+                    }
+
+                    if (ImGui::BeginMenu("Button Configuration"))
+                    {
+                        gamepad_configuration_item("1:", &config_input[1].gamepad_1, 1);
+                        gamepad_configuration_item("2:", &config_input[1].gamepad_2, 1);
+                        gamepad_configuration_item("START:", &config_input[1].gamepad_start, 1);
+
+                        popup_modal_gamepad(1);                 
+
+                        ImGui::EndMenu();
+                    }
 
                     ImGui::EndMenu();
                 }
@@ -701,7 +724,7 @@ static void gamepad_configuration_item(const char* text, int* button, int player
     ImGui::Text("%s", text);
     ImGui::SameLine(70);
 
-    static const char* gamepad_names[16] = {"0", "A", "B" ,"3", "L", "R", "6", "7", "SELECT", "START", "10", "11", "12", "13", "14", "15"};
+    static const char* gamepad_names[16] = {"A", "B", "X" ,"Y", "BACK", "GUID", "START", "L3", "R3", "L1", "R1", "UP", "DOWN", "LEFT", "RIGHT", "15"};
 
     char button_label[256];
     sprintf(button_label, "%s##%s%d", gamepad_names[*button], text, player);
@@ -750,9 +773,9 @@ static void popup_modal_gamepad(int pad)
         ImGui::Text("Press any button in your gamepad...\n\n");
         ImGui::Separator();
 
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < SDL_CONTROLLER_BUTTON_MAX; i++)
         {
-            if (SDL_JoystickGetButton(application_gamepad[pad], i))
+            if (SDL_GameControllerGetButton(application_gamepad[pad], (SDL_GameControllerButton)i))
             {
                 *configured_button = i;
                 ImGui::CloseCurrentPopup();

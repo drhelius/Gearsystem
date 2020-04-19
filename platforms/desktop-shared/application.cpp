@@ -117,12 +117,26 @@ static int sdl_init(void)
 
     SDL_SetWindowMinimumSize(sdl_window, 770, 600);
 
-    for (int i = 0; i < 2; i++)
-    {
-        application_gamepad[i] = SDL_JoystickOpen(i);
+    int gamepads_found = 0;
 
-        if(!application_gamepad[i])
-            Log("Warning: Unable to open game controller! SDL Error: %s\n", SDL_GetError());
+    for (int i = 0; i < SDL_NumJoysticks(); ++i)
+    {
+        if (SDL_IsGameController(i))
+        {
+            application_gamepad[gamepads_found] = SDL_GameControllerOpen(i);
+            if(!application_gamepad[gamepads_found])
+            {
+                Log("Warning: Unable to open game controller %d! SDL Error: %s\n", gamepads_found, SDL_GetError());
+            }
+            else
+            {
+                Log("Game controller %d correctly detected", i);
+                gamepads_found++;
+
+                if (gamepads_found > 2)
+                    break;
+            }
+        }
     }
 
     int w, h;
@@ -143,8 +157,8 @@ static int sdl_init(void)
 
 static void sdl_destroy(void)
 {
-    SDL_JoystickClose(application_gamepad[0]);
-    SDL_JoystickClose(application_gamepad[1]);
+    SDL_GameControllerClose(application_gamepad[0]);
+    SDL_GameControllerClose(application_gamepad[1]);
     ImGui_ImplSDL2_Shutdown();
     SDL_GL_DeleteContext(gl_context);
     SDL_DestroyWindow(sdl_window);
@@ -196,35 +210,47 @@ static void sdl_events_emu(const SDL_Event* event)
         }
         break;
 
-        case SDL_JOYBUTTONDOWN:
+        case SDL_CONTROLLERBUTTONDOWN:
         {
             for (int i = 0; i < 2; i++)
             {
                 GS_Joypads pad = (i == 0) ? Joypad_1 : Joypad_2;
-                SDL_JoystickID id = SDL_JoystickInstanceID(application_gamepad[i]);
+                SDL_JoystickID id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(application_gamepad[i]));
 
                 if (!config_input[i].gamepad)
                     break;
 
-                if (event->jbutton.which != id)
+                if (event->cbutton.which != id)
                     break;
                 
-                if (event->jbutton.button == config_input[i].gamepad_1)
+                if (event->cbutton.button == config_input[i].gamepad_1)
                     emu_key_pressed(pad, Key_1);
-                else if (event->jbutton.button == config_input[i].gamepad_2)
+                else if (event->cbutton.button == config_input[i].gamepad_2)
                     emu_key_pressed(pad, Key_2);
-                else if (event->jbutton.button == config_input[i].gamepad_start)
+                else if (event->cbutton.button == config_input[i].gamepad_start)
                     emu_key_pressed(pad, Key_Start);
+
+                if (config_input[i].gamepad_directional == 1)
+                    break;
+                
+                if (event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP)
+                    emu_key_pressed(pad, Key_Up);
+                else if (event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN)
+                    emu_key_pressed(pad, Key_Down);
+                else if (event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_LEFT)
+                    emu_key_pressed(pad, Key_Left);
+                else if (event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
+                    emu_key_pressed(pad, Key_Right);
             }
         }
         break;
 
-        case SDL_JOYBUTTONUP:
+        case SDL_CONTROLLERBUTTONUP:
         {
             for (int i = 0; i < 2; i++)
             {
                 GS_Joypads pad = (i == 0) ? Joypad_1 : Joypad_2;
-                SDL_JoystickID id = SDL_JoystickInstanceID(application_gamepad[i]);
+                SDL_JoystickID id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(application_gamepad[i]));
 
                 if (!config_input[i].gamepad)
                     break;
@@ -238,29 +264,47 @@ static void sdl_events_emu(const SDL_Event* event)
                     emu_key_released(pad, Key_2);
                 else if (event->jbutton.button == config_input[i].gamepad_start)
                     emu_key_released(pad, Key_Start);
+
+                if (config_input[i].gamepad_directional == 1)
+                    break;
+                
+                if (event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP)
+                    emu_key_released(pad, Key_Up);
+                else if (event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN)
+                    emu_key_released(pad, Key_Down);
+                else if (event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_LEFT)
+                    emu_key_released(pad, Key_Left);
+                else if (event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
+                    emu_key_released(pad, Key_Right);
             }
         }
         break;
 
-        case SDL_JOYAXISMOTION:
+        case SDL_CONTROLLERAXISMOTION:
         {
             for (int i = 0; i < 2; i++)
             {
                 GS_Joypads pad = (i == 0) ? Joypad_1 : Joypad_2;
-                SDL_JoystickID id = SDL_JoystickInstanceID(application_gamepad[i]);
+                SDL_JoystickID id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(application_gamepad[i]));
 
                 if (!config_input[i].gamepad)
                     break;
 
-                if (event->jbutton.which != id)
+                if (config_input[i].gamepad_directional == 0)
                     break;
+
+                if (event->caxis.which != id)
+                    break;
+
+                const int STICK_DEAD_ZONE = 8000;
                     
-                if(event->jaxis.axis == config_input[i].gamepad_x_axis)
+                if(event->caxis.axis == config_input[i].gamepad_x_axis)
                 {
-                    int x_motion = event->jaxis.value * (config_input[i].gamepad_invert_x_axis ? -1 : 1);
-                    if (x_motion < 0)
+                    int x_motion = event->caxis.value * (config_input[i].gamepad_invert_x_axis ? -1 : 1);
+
+                    if (x_motion < -STICK_DEAD_ZONE)
                         emu_key_pressed(pad, Key_Left);
-                    else if (x_motion > 0)
+                    else if (x_motion > STICK_DEAD_ZONE)
                         emu_key_pressed(pad, Key_Right);
                     else
                     {
@@ -268,12 +312,13 @@ static void sdl_events_emu(const SDL_Event* event)
                         emu_key_released(pad, Key_Right);
                     }
                 }
-                else if(event->jaxis.axis == config_input[i].gamepad_y_axis)
+                else if(event->caxis.axis == config_input[i].gamepad_y_axis)
                 {
-                    int y_motion = event->jaxis.value * (config_input[i].gamepad_invert_y_axis ? -1 : 1);
-                    if (y_motion < 0)
+                    int y_motion = event->caxis.value * (config_input[i].gamepad_invert_y_axis ? -1 : 1);
+
+                    if (y_motion < -STICK_DEAD_ZONE)
                         emu_key_pressed(pad, Key_Up);
-                    else if (y_motion > 0)
+                    else if (y_motion > STICK_DEAD_ZONE)
                         emu_key_pressed(pad, Key_Down);
                     else
                     {

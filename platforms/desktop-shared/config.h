@@ -80,6 +80,7 @@ struct config_Input
     SDL_Scancode key_start;
 
     bool gamepad;
+    int gamepad_directional;
     bool gamepad_invert_x_axis;
     bool gamepad_invert_y_axis;
     int gamepad_1;
