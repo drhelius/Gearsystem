@@ -218,10 +218,10 @@ static void sdl_events_emu(const SDL_Event* event)
                 SDL_JoystickID id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(application_gamepad[i]));
 
                 if (!config_input[i].gamepad)
-                    break;
+                    continue;
 
                 if (event->cbutton.which != id)
-                    break;
+                    continue;
                 
                 if (event->cbutton.button == config_input[i].gamepad_1)
                     emu_key_pressed(pad, Key_1);
@@ -231,7 +231,7 @@ static void sdl_events_emu(const SDL_Event* event)
                     emu_key_pressed(pad, Key_Start);
 
                 if (config_input[i].gamepad_directional == 1)
-                    break;
+                    continue;
                 
                 if (event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP)
                     emu_key_pressed(pad, Key_Up);
@@ -253,10 +253,10 @@ static void sdl_events_emu(const SDL_Event* event)
                 SDL_JoystickID id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(application_gamepad[i]));
 
                 if (!config_input[i].gamepad)
-                    break;
+                    continue;
 
                 if (event->jbutton.which != id)
-                    break;
+                    continue;
 
                 if (event->jbutton.button == config_input[i].gamepad_1)
                     emu_key_released(pad, Key_1);
@@ -266,7 +266,7 @@ static void sdl_events_emu(const SDL_Event* event)
                     emu_key_released(pad, Key_Start);
 
                 if (config_input[i].gamepad_directional == 1)
-                    break;
+                    continue;
                 
                 if (event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP)
                     emu_key_released(pad, Key_Up);
@@ -288,13 +288,13 @@ static void sdl_events_emu(const SDL_Event* event)
                 SDL_JoystickID id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(application_gamepad[i]));
 
                 if (!config_input[i].gamepad)
-                    break;
+                    continue;
 
                 if (config_input[i].gamepad_directional == 0)
-                    break;
+                    continue;
 
                 if (event->caxis.which != id)
-                    break;
+                    continue;
 
                 const int STICK_DEAD_ZONE = 8000;
                     
