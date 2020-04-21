@@ -12,12 +12,12 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 
 ## Downloads
 
-- **Windows**: [Gearsystem-3.0.2-Windows.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.0.2/Gearsystem-3.0.2-Windows.zip)
+- **Windows**: [Gearsystem-3.0.3-Windows.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.0.3/Gearsystem-3.0.3-Windows.zip)
   - NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572)
 - **macOS**:
   - `brew cask install gearsystem`
-  - Or install manually: [Gearsystem-3.0.2-macOS.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.0.2/Gearsystem-3.0.2-macOS.zip)
-- **Linux**: [Gearsystem-3.0.2-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.0.2/Gearsystem-3.0.2-Linux.tar.xz)
+  - Or install manually: [Gearsystem-3.0.3-macOS.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.0.3/Gearsystem-3.0.3-macOS.zip)
+- **Linux**: [Gearsystem-3.0.3-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.0.3/Gearsystem-3.0.3-Linux.tar.xz)
 - **iOS**: Build Gearsystem with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use your iCloud Drive.
 - **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearsystem/).
 - **Raspberry Pi**: Build Gearsystem from sources. Optimized projects are provided for Raspberry Pi 1, 2 and 3.
