@@ -45,6 +45,8 @@ static void frame_throttle(void);
 
 int application_init(void)
 {
+    Log ("<·> %s %s Desktop App <·>", GEARSYSTEM_TITLE, GEARSYSTEM_VERSION);
+
     int ret = sdl_init();
     
     config_init();
@@ -116,6 +118,14 @@ static int sdl_init(void)
     SDL_GL_SetSwapInterval(0);
 
     SDL_SetWindowMinimumSize(sdl_window, 770, 600);
+
+    application_gamepad_mappings = SDL_GameControllerAddMappingsFromRW(SDL_RWFromFile("gamecontrollerdb.txt", "rb"), 1);
+
+    if (application_gamepad_mappings > 0)
+        Log("Succesfuly loaded %d game controller mappings", application_gamepad_mappings);
+    else
+        Log("Game controller database not found!");
+
 
     int gamepads_found = 0;
 
