@@ -189,7 +189,9 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Fast Forward Speed"))
             {
+                ImGui::PushItemWidth(100.0f);
                 ImGui::Combo("##fwd", &config_emulator.ffwd_speed, "X 1.5\0X 2\0X 2.5\0X 3\0Unlimited\0\0");
+                ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
 
@@ -221,7 +223,9 @@ static void main_menu(void)
            
             if (ImGui::BeginMenu("Select State Slot"))
             {
+                ImGui::PushItemWidth(100.0f);
                 ImGui::Combo("##slot", &config_emulator.save_slot, "Slot 1\0Slot 2\0Slot 3\0Slot 4\0Slot 5\0\0");
+                ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
 
@@ -251,24 +255,31 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("System"))
             {
+                ImGui::PushItemWidth(200.0f);
                 ImGui::Combo("##emu_system", &config_emulator.system, "Auto\0Master System / Mark III\0Game Gear\0SG-1000 / Multivision\0\0");
+                ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Region"))
             {
+                ImGui::PushItemWidth(200.0f);
                 ImGui::Combo("##emu_region", &config_emulator.zone, "Auto\0Master System Japan\0Master System Export\0Game Gear Japan\0Game Gear Export\0Game Gear International\0\0");
+                ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Mapper"))
             {
+                ImGui::PushItemWidth(140.0f);
                 ImGui::Combo("##emu_mapper", &config_emulator.mapper, "Auto\0ROM Only\0SEGA\0Codemasters\0Korean\0SG-1000\0\0");
+                ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Refresh Rate"))
             {
+                ImGui::PushItemWidth(130.0f);
                 if (ImGui::Combo("##emu_rate", &config_emulator.region, "Auto\0NTSC (60 Hz)\0PAL (50 Hz)\0\0"))
                 {
                     if (config_emulator.region > 0)
@@ -277,6 +288,7 @@ static void main_menu(void)
                         config_audio.sync = true;
                     }
                 }
+                ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
 
@@ -345,13 +357,17 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Scale"))
             {
+                ImGui::PushItemWidth(110.0f);
                 ImGui::Combo("##scale", &config_video.scale, "Auto\0Zoom X1\0Zoom X2\0Zoom X3\0\0");
+                ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Aspect Ratio"))
             {
+                ImGui::PushItemWidth(140.0f);
                 ImGui::Combo("##ratio", &config_video.ratio, "Square Pixels\0Standard (4:3)\0Wide (16:9)\0Fit Window\0\0");
+                ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
 
@@ -440,7 +456,9 @@ static void main_menu(void)
 
                     if (ImGui::BeginMenu("Directional Controls"))
                     {
+                        ImGui::PushItemWidth(160.0f);
                         ImGui::Combo("##directional", &config_input[0].gamepad_directional, "D-pad\0Left Analog Stick\0\0");
+                        ImGui::PopItemWidth();
                         ImGui::EndMenu();
                     }
 
@@ -464,7 +482,9 @@ static void main_menu(void)
 
                     if (ImGui::BeginMenu("Directional Controls"))
                     {
+                        ImGui::PushItemWidth(160.0f);
                         ImGui::Combo("##directional", &config_input[1].gamepad_directional, "D-pad\0Left Analog Stick\0\0");
+                        ImGui::PopItemWidth();
                         ImGui::EndMenu();
                     }
 
