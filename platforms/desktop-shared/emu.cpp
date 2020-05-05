@@ -239,6 +239,11 @@ void emu_get_info(char* info)
     }
 }
 
+GearsystemCore* emu_get_core(void)
+{
+    return gearsystem;
+}
+
 static void save_ram(void)
 {
     if (save_files_in_rom_dir)

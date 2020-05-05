@@ -56,6 +56,7 @@ EXTERN void emu_add_cheat(const char* cheat);
 EXTERN void emu_clear_cheats();
 EXTERN void emu_get_runtime(GS_RuntimeInfo& runtime);
 EXTERN void emu_get_info(char* info);
+EXTERN GearsystemCore* emu_get_core(void);
 
 #undef EMU_IMPORT
 #undef EXTERN
