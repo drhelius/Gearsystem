@@ -54,7 +54,6 @@ static void gamepad_configuration_item(const char* text, int* button, int player
 static void popup_modal_keyboard();
 static void popup_modal_gamepad(int pad);
 static void popup_modal_about(void);
-static void load_rom(const char* path);
 static void push_recent_rom(std::string path);
 static void menu_reset(void);
 static void menu_pause(void);
@@ -132,6 +131,33 @@ void gui_shortcut(gui_ShortCutEvent event)
     }
 }
 
+void gui_load_rom(const char* path)
+{
+    Cartridge::ForceConfiguration config;
+
+    config.system = get_system(config_emulator.system);
+    config.region = get_region(config_emulator.region);
+    config.type = get_mapper(config_emulator.mapper);
+    config.zone = get_zone(config_emulator.zone);
+
+    emu_resume();
+    emu_load_rom(path, config_emulator.save_in_rom_folder, config);
+    cheat_list.clear();
+    emu_clear_cheats();
+
+    if (config_emulator.start_paused)
+    {
+        emu_pause();
+        
+        for (int i=0; i < (GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT); i++)
+        {
+            emu_frame_buffer[i].red = 0;
+            emu_frame_buffer[i].green = 0;
+            emu_frame_buffer[i].blue = 0;
+        }
+    }
+}
+
 static void main_menu(void)
 {
     bool open_rom = false;
@@ -160,7 +186,7 @@ static void main_menu(void)
                     {
                         if (ImGui::MenuItem(config_emulator.recent_roms[i].c_str()))
                         {
-                            load_rom(config_emulator.recent_roms[i].c_str());
+                            gui_load_rom(config_emulator.recent_roms[i].c_str());
                         }
                     }
                 }
@@ -667,7 +693,7 @@ static void file_dialog_open_rom(void)
     if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 400), "*.*,.sms,.gg,.sg,.mv,.rom,.bin,.zip", &dialog_in_use))
     {
         push_recent_rom(file_dialog.selected_path.c_str());
-        load_rom(file_dialog.selected_path.c_str());
+        gui_load_rom(file_dialog.selected_path.c_str());
     }
 }
 
@@ -926,33 +952,6 @@ static void popup_modal_about(void)
         ImGui::SetItemDefaultFocus();
 
         ImGui::EndPopup();
-    }
-}
-
-static void load_rom(const char* path)
-{
-    Cartridge::ForceConfiguration config;
-
-    config.system = get_system(config_emulator.system);
-    config.region = get_region(config_emulator.region);
-    config.type = get_mapper(config_emulator.mapper);
-    config.zone = get_zone(config_emulator.zone);
-
-    emu_resume();
-    emu_load_rom(path, config_emulator.save_in_rom_folder, config);
-    cheat_list.clear();
-    emu_clear_cheats();
-
-    if (config_emulator.start_paused)
-    {
-        emu_pause();
-        
-        for (int i=0; i < (GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT); i++)
-        {
-            emu_frame_buffer[i].red = 0;
-            emu_frame_buffer[i].green = 0;
-            emu_frame_buffer[i].blue = 0;
-        }
     }
 }
 
