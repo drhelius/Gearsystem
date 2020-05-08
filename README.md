@@ -18,8 +18,11 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
   - `brew cask install gearsystem`
   - Or install manually: [Gearsystem-3.0.3-macOS.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.0.3/Gearsystem-3.0.3-macOS.zip)
 - **Linux**: [Gearsystem-3.0.3-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.0.3/Gearsystem-3.0.3-Linux.tar.xz)
+  - NOTE: You may need to install `libsdl2` and `libglew`
+- **Linux**: [Gearsystem-3.0.3-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.0.3/Gearsystem-3.0.3-Linux.tar.xz)
+- **Linux**: [Gearsystem-3.0.3-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.0.3/Gearsystem-3.0.3-Linux.tar.xz)
 - **iOS**: Build Gearsystem with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use your iCloud Drive.
-- **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearsystem/).
+- **RetroArch**: [Libretro core documentation](https://libretro.readthedocs.io/en/latest/library/gearsystem/).
 - **Raspberry Pi**: Build Gearsystem from sources. Optimized projects are provided for Raspberry Pi 1, 2, 3 and 4.
 
 ## Supported Machines
