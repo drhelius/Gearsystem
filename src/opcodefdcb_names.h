@@ -20,8 +20,6 @@
 #ifndef OPCODEFDCB_NAMES_H
 #define	OPCODEFDCB_NAMES_H
 
-#ifdef DISASM_GEARSYSTEM
-
 static const char* kOPCodeFDCBNames[256] = {
     "RLC (IY+d),B (UNDOCUMENTED)",
     "RLC (IY+d),C (UNDOCUMENTED)",
@@ -295,8 +293,6 @@ static const char* kOPCodeFDCBNames[256] = {
     "SET 7,(IY+d)",
     "SET 7,(IY+d),A (UNDOCUMENTED)"
 };
-
-#endif
 
 #endif	/* OPCODEFDCB_NAMES_H */
 

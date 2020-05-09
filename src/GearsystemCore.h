@@ -43,10 +43,11 @@ public:
     GearsystemCore();
     ~GearsystemCore();
     void Init();
-    void RunToVBlank(GS_Color* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount);
+    bool RunToVBlank(GS_Color* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool step = false, bool stopOnBreakpoints = false);
     bool LoadROM(const char* szFilePath, Cartridge::ForceConfiguration config);
     bool LoadROM(const char* szFilePath);
     bool LoadROMFromBuffer(const u8* buffer, int size);
+    void SaveMemoryDump();
     bool GetRuntimeInfo(GS_RuntimeInfo& runtime_info);
     void KeyPressed(GS_Joypads joypad, GS_Keys key);
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
@@ -77,6 +78,9 @@ public:
     Cartridge* GetCartridge();
     void SetSG1000Palette(GS_Color* pSG1000Palette);
     void Get16BitFrameBuffer(GS_Color* pFrameBuffer, u16* p16BitFrameBuffer);
+    Processor* GetProcessor();
+    Audio* GetAudio();
+    Video* GetVideo();
 
 private:
     void InitMemoryRules();

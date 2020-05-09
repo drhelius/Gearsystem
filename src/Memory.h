@@ -27,6 +27,16 @@
 class Memory
 {
 public:
+    struct stDisassembleRecord
+    {
+        u16 address;
+        char name[32];
+        char bytes[16];
+        int size;
+        int bank;
+    };
+
+public:
     Memory();
     ~Memory();
     void Init();
@@ -38,25 +48,23 @@ public:
     void Write(u16 address, u8 value);
     u8 Retrieve(u16 address);
     void Load(u16 address, u8 value);
-    void Disassemble(u16 address, const char* szDisassembled);
-    bool IsDisassembled(u16 address);
-    char* GetDisassembled(u16 address);
+    stDisassembleRecord* GetDisassembledMemoryMap();
+    stDisassembleRecord* GetDisassembledROMMemoryMap();
     void LoadSlotsFromROM(u8* pTheROM, int size);
     void MemoryDump(const char* szFilePath);
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
+    std::vector<stDisassembleRecord*>* GetBreakpoints();
+    stDisassembleRecord* GetRunToBreakpoint();
+    void SetRunToBreakpoint(stDisassembleRecord* pBreakpoint);
 
 private:
-
-    struct stDisassemble
-    {
-        char szDisString[32];
-    };
-
-private:
-    u8* m_pMap;
     MemoryRule* m_pCurrentMemoryRule;
-    stDisassemble* m_pDisassembledMap;
+    u8* m_pMap;
+    stDisassembleRecord* m_pDisassembledMap;
+    stDisassembleRecord* m_pDisassembledROMMap;
+    std::vector<stDisassembleRecord*> m_Breakpoints;
+    stDisassembleRecord* m_pRunToBreakpoint;
 };
 
 #include "Memory_inline.h"

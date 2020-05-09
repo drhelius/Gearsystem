@@ -29,14 +29,9 @@
 #include <fstream>
 #include <sstream>
 
-//#define DEBUG_GEARSYSTEM 1
-
-#ifdef DEBUG_GEARSYSTEM
-#define DISASM_GEARSYSTEM 1
-#endif
-
+#define DEBUG_GEARSYSTEM 1
 #define GEARSYSTEM_TITLE "Gearsystem"
-#define GEARSYSTEM_VERSION "3.0.3"
+#define GEARSYSTEM_VERSION "3.1.0"
 
 #ifndef EMULATOR_BUILD
 #define EMULATOR_BUILD "undefined"
@@ -49,6 +44,10 @@
 #ifdef _WIN32
 #define BLARGG_USE_NAMESPACE 1
 #endif
+
+//#define GEARSYSTEM_DISABLE_DISASSEMBLER
+
+#define MAX_ROM_SIZE 0x800000
 
 #define SafeDelete(pointer) if(pointer != NULL) {delete pointer; pointer = NULL;}
 #define SafeDeleteArray(pointer) if(pointer != NULL) {delete [] pointer; pointer = NULL;}
@@ -156,7 +155,7 @@ struct GS_RuntimeInfo
 #ifdef DEBUG_GEARSYSTEM
 #ifdef __ANDROID__
         #include <android/log.h>
-        #define printf(...) __android_log_print(ANDROID_LOG_DEBUG, "GEARBOY", __VA_ARGS__);
+        #define printf(...) __android_log_print(ANDROID_LOG_DEBUG, "GEARSYSTEM", __VA_ARGS__);
     #endif
 #define Log(msg, ...) (Log_func(msg, ##__VA_ARGS__))
 #else

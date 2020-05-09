@@ -19,8 +19,6 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
   - Or install manually: [Gearsystem-3.0.3-macOS.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.0.3/Gearsystem-3.0.3-macOS.zip)
 - **Linux**: [Gearsystem-3.0.3-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.0.3/Gearsystem-3.0.3-Linux.tar.xz)
   - NOTE: You may need to install `libsdl2` and `libglew`
-- **Linux**: [Gearsystem-3.0.3-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.0.3/Gearsystem-3.0.3-Linux.tar.xz)
-- **Linux**: [Gearsystem-3.0.3-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.0.3/Gearsystem-3.0.3-Linux.tar.xz)
 - **iOS**: Build Gearsystem with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use your iCloud Drive.
 - **RetroArch**: [Libretro core documentation](https://libretro.readthedocs.io/en/latest/library/gearsystem/).
 - **Raspberry Pi**: Build Gearsystem from sources. Optimized projects are provided for Raspberry Pi 1, 2, 3 and 4.
@@ -47,12 +45,13 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 - Compressed rom support (ZIP deflate).
 - Game Genie and Pro Action Replay cheat support.
 - Supported platforms: Windows, Linux, macOS, Raspberry Pi, iOS and RetroArch (libretro).
+- Full debugger with disassembler, breakpoints, debug symbols, memory editor, IO inspector and and VRAM viewer including tiles, sprites, backgrounds and palettes.
 
 ## Build Instructions
 
 ### Windows
 
-- You need Microsoft Visual Studio Community 2019 or later.
+- Install Microsoft Visual Studio Community 2019 or later.
 - Open the Gearsystem Visual Studio solution `platforms/windows/Gearsystem.sln` and build.
 - You may want to use the `platforms/windows/Makefile` to build the application using MinGW.
 
@@ -117,7 +116,7 @@ cd platforms/raspberrypi4
 make
 ```
 
-### Raspberry Pi 2 & 3 - Raspbian
+### Raspberry Pi 2 & 3 - Raspbian (CLI)
 
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development:
 

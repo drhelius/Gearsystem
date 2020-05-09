@@ -90,6 +90,19 @@ struct config_Input
     int gamepad_y_axis;
 };
 
+struct config_Debug
+{
+    bool debug = false;
+    bool show_screen = true;
+    bool show_disassembler = true;
+    bool show_processor = true;
+    bool show_memory = true;
+    bool show_iomap = false;
+    bool show_audio = false;
+    bool show_video = false;
+    int font_size = 0;
+};
+
 EXTERN mINI::INIFile* config_ini_file;
 EXTERN mINI::INIStructure config_ini_data;
 EXTERN char* config_root_path;
@@ -99,6 +112,7 @@ EXTERN config_Emulator config_emulator;
 EXTERN config_Video config_video;
 EXTERN config_Audio config_audio;
 EXTERN config_Input config_input[2];
+EXTERN config_Debug config_debug;
 
 EXTERN void config_init(void);
 EXTERN void config_destroy(void);

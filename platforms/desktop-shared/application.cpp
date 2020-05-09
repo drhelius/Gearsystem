@@ -43,9 +43,14 @@ static void run_emulator(void);
 static void render(void);
 static void frame_throttle(void);
 
-int application_init(void)
+int application_init(const char* arg)
 {
     Log ("<·> %s %s Desktop App <·>", GEARSYSTEM_TITLE, GEARSYSTEM_VERSION);
+
+    if (IsValidPointer(arg) && (strlen(arg) > 0))
+    {
+        Log ("Loading with argv: %s");
+    }
 
     int ret = sdl_init();
     
@@ -61,6 +66,11 @@ int application_init(void)
     renderer_init();
 
     SDL_GL_SetSwapInterval(config_video.sync ? 1 : 0);
+
+    if (IsValidPointer(arg) && (strlen(arg) > 0))
+    {
+        gui_load_rom(arg);
+    }
 
     return ret;
 }
@@ -433,6 +443,21 @@ static void sdl_shortcuts_gui(const SDL_Event* event)
             case SDL_SCANCODE_S:
                 gui_shortcut(gui_ShortcutSaveState);
                 break;
+            case SDL_SCANCODE_F5:
+                gui_shortcut(gui_ShortcutDebugContinue);
+                break;
+            case SDL_SCANCODE_F6:
+                gui_shortcut(gui_ShortcutDebugNextFrame);
+                break;
+            case SDL_SCANCODE_F8:
+                gui_shortcut(gui_ShortcutDebugRuntocursor);
+                break;
+            case SDL_SCANCODE_F9:
+                gui_shortcut(gui_ShortcutDebugBreakpoint);
+                break;
+            case SDL_SCANCODE_F10:
+                gui_shortcut(gui_ShortcutDebugStep);
+                break;
         }
     }
 }
@@ -455,7 +480,7 @@ static void run_emulator(void)
     }
     config_emulator.paused = emu_is_paused();
     emu_audio_sync = config_audio.sync;
-    emu_run_to_vblank();
+    emu_update();
 }
 
 static void render(void)

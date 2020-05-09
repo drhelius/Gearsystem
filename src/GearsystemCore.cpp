@@ -109,42 +109,43 @@ void GearsystemCore::Init()
     InitMemoryRules();
 }
 
-void GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount)
+bool GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool step, bool stopOnBreakpoints)
 {
+    bool breakpoint = false;
+
     if (!m_bPaused && m_pCartridge->IsReady())
     {
         bool vblank = false;
+        int totalClocks = 0;
         while (!vblank)
         {
             unsigned int clockCycles = m_pProcessor->Tick();
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer);
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
+            
+            /*
+            if ((step || (stopOnBreakpoints && m_pProcessor->BreakpointHit())) && !m_pProcessor->Halted() && !m_pProcessor->DuringOpCode())
+            {
+                vblank = true;
+                if (m_pProcessor->BreakpointHit())
+                    breakpoint = true;
+            }*/
+
+            totalClocks += clockCycles;
+
+            if (totalClocks > 702240)
+                vblank = true;
         }
+
         m_pAudio->EndFrame(pSampleBuffer, pSampleCount);
     }
+
+    return breakpoint;
 }
 
 bool GearsystemCore::LoadROM(const char* szFilePath, Cartridge::ForceConfiguration config)
 {
-#ifdef DEBUG_GEARSYSTEM
-    if (m_pCartridge->IsReady() && (strlen(m_pCartridge->GetFilePath()) > 0))
-    {
-        Log("Saving Memory Dump...");
-
-        using namespace std;
-
-        char path[512];
-
-        strcpy(path, m_pCartridge->GetFilePath());
-        strcat(path, ".dump");
-
-        m_pMemory->MemoryDump(path);
-
-        Log("Memory Dump Saved");
-    }
-#endif
-
     if (m_pCartridge->LoadFromFile(szFilePath))
     {
         m_pCartridge->ForceConfig(config);
@@ -193,6 +194,25 @@ bool GearsystemCore::LoadROMFromBuffer(const u8* buffer, int size)
         return false;
 }
 
+void GearsystemCore::SaveMemoryDump()
+{
+    if (m_pCartridge->IsReady() && (strlen(m_pCartridge->GetFilePath()) > 0))
+    {
+        using namespace std;
+
+        char path[512];
+
+        strcpy(path, m_pCartridge->GetFilePath());
+        strcat(path, ".dump");
+
+        Log("Saving Memory Dump %s...", path);
+
+        m_pMemory->MemoryDump(path);
+
+        Log("Memory Dump Saved");
+    }
+}
+
 bool GearsystemCore::GetRuntimeInfo(GS_RuntimeInfo& runtime_info)
 {
     if (m_pCartridge->IsReady())
@@ -219,6 +239,22 @@ Cartridge* GearsystemCore::GetCartridge()
 {
     return m_pCartridge;
 }
+
+Processor* GearsystemCore::GetProcessor()
+{
+    return m_pProcessor;
+}
+
+Audio* GearsystemCore::GetAudio()
+{
+    return m_pAudio;
+}
+
+Video* GearsystemCore::GetVideo()
+{
+    return m_pVideo;
+}
+
 
 void GearsystemCore::SetSG1000Palette(GS_Color* pSG1000Palette)
 {
@@ -557,6 +593,8 @@ bool GearsystemCore::SaveState(std::ostream& stream, size_t& size)
 
         return true;
     }
+
+    Log("Invalid rom or memory rule.");
 
     return false;
 }

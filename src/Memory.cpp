@@ -27,6 +27,7 @@ Memory::Memory()
     InitPointer(m_pMap);
     InitPointer(m_pCurrentMemoryRule);
     InitPointer(m_pDisassembledMap);
+    InitPointer(m_pDisassembledROMMap);
 }
 
 Memory::~Memory()
@@ -34,12 +35,14 @@ Memory::~Memory()
     SafeDeleteArray(m_pMap);
     InitPointer(m_pCurrentMemoryRule);
     SafeDeleteArray(m_pDisassembledMap);
+    SafeDeleteArray(m_pDisassembledROMMap);
 }
 
 void Memory::Init()
 {
     m_pMap = new u8[0x10000];
-    m_pDisassembledMap = new stDisassemble[0x10000];
+    m_pDisassembledMap = new stDisassembleRecord[0x10000];
+    m_pDisassembledROMMap = new stDisassembleRecord[MAX_ROM_SIZE];
     Reset();
 }
 
@@ -48,7 +51,20 @@ void Memory::Reset()
     for (int i = 0; i < 0x10000; i++)
     {
         m_pMap[i] = 0x00;
-        m_pDisassembledMap[i].szDisString[0] = 0;
+        m_pDisassembledMap[i].address = i;
+        m_pDisassembledMap[i].bank = 0;
+        m_pDisassembledMap[i].name[0] = 0;
+        m_pDisassembledMap[i].bytes[0] = 0;
+        m_pDisassembledMap[i].size = 0;
+    }
+
+    for (int i = 0; i < MAX_ROM_SIZE; i++)
+    {
+        m_pDisassembledROMMap[i].address = i & 0x3FFF;
+        m_pDisassembledROMMap[i].bank = i >> 14;
+        m_pDisassembledROMMap[i].name[0] = 0;
+        m_pDisassembledROMMap[i].bytes[0] = 0;
+        m_pDisassembledROMMap[i].size = 0;
     }
 }
 
@@ -65,21 +81,6 @@ MemoryRule* Memory::GetCurrentRule()
 u8* Memory::GetMemoryMap()
 {
     return m_pMap;
-}
-
-void Memory::Disassemble(u16 address, const char* szDisassembled)
-{
-    strcpy(m_pDisassembledMap[address].szDisString, szDisassembled);
-}
-
-bool Memory::IsDisassembled(u16 address)
-{
-    return m_pDisassembledMap[address].szDisString[0] != 0;
-}
-
-char* Memory::GetDisassembled(u16 address)
-{
-    return m_pDisassembledMap[address].szDisString;
 }
 
 void Memory::LoadSlotsFromROM(u8* pTheROM, int size)
@@ -103,13 +104,14 @@ void Memory::MemoryDump(const char* szFilePath)
     {
         for (int i = 0; i < 0x10000; i++)
         {
-            if (IsDisassembled(i))
+            if (m_pDisassembledMap[i].name[0] != 0)
             {
-                myfile << "$" << uppercase << hex << setw(4) << setfill('0') << i << "\t " << nouppercase << m_pDisassembledMap[i].szDisString << endl;
+                myfile << "0x" << hex << i << "\t " << m_pDisassembledMap[i].name << "\n";
+                i += (m_pDisassembledMap[i].size - 1);
             }
             else
             {
-                myfile << "$" << uppercase << hex << setw(4) << setfill('0') << i << "\t [" << hex << setw(2) << setfill('0') << (int) m_pMap[i] << "]" << endl;
+                myfile << "0x" << hex << i << "\t [0x" << hex << (int) m_pMap[i] << "]\n";
             }
         }
 
@@ -130,3 +132,19 @@ void Memory::LoadState(std::istream& stream)
 
     stream.read(reinterpret_cast<char*> (m_pMap), 0x10000);
 }
+
+std::vector<Memory::stDisassembleRecord*>* Memory::GetBreakpoints()
+{
+    return &m_Breakpoints;
+}
+
+Memory::stDisassembleRecord* Memory::GetRunToBreakpoint()
+{
+    return m_pRunToBreakpoint;
+}
+
+void Memory::SetRunToBreakpoint(Memory::stDisassembleRecord* pBreakpoint)
+{
+    m_pRunToBreakpoint = pBreakpoint;
+}
+

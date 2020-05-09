@@ -30,10 +30,13 @@
 
 EXTERN GS_Color* emu_frame_buffer;
 EXTERN bool emu_audio_sync;
+EXTERN bool emu_debug_disable_breakpoints;
+EXTERN int emu_debug_background_tile_address;
+EXTERN int emu_debug_background_map_address;
 
 EXTERN void emu_init(const char* save_path);
 EXTERN void emu_destroy(void);
-EXTERN void emu_run_to_vblank(void);
+EXTERN void emu_update(void);
 EXTERN void emu_load_rom(const char* file_path, bool save_in_rom_dir, Cartridge::ForceConfiguration config);
 EXTERN void emu_key_pressed(GS_Joypads pad, GS_Keys key);
 EXTERN void emu_key_released(GS_Joypads pad, GS_Keys key);
@@ -57,6 +60,9 @@ EXTERN void emu_clear_cheats();
 EXTERN void emu_get_runtime(GS_RuntimeInfo& runtime);
 EXTERN void emu_get_info(char* info);
 EXTERN GearsystemCore* emu_get_core(void);
+EXTERN void emu_debug_step(void);
+EXTERN void emu_debug_continue(void);
+EXTERN void emu_debug_next_frame(void);
 
 #undef EMU_IMPORT
 #undef EXTERN
