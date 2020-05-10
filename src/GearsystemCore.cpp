@@ -125,7 +125,7 @@ bool GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer, s16* pSampleBuffer, int
             m_pInput->Tick(clockCycles);
             
 
-            if ((step || (stopOnBreakpoints && m_pProcessor->BreakpointHit())) && !m_pProcessor->Halted())
+            if ((step || (stopOnBreakpoints && m_pProcessor->BreakpointHit())))
             {
                 vblank = true;
                 if (m_pProcessor->BreakpointHit())
@@ -152,6 +152,7 @@ bool GearsystemCore::LoadROM(const char* szFilePath, Cartridge::ForceConfigurati
         Reset();
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
         bool romTypeOK = AddMemoryRules();
+        m_pProcessor->Disassemble(m_pProcessor->GetState()->PC->GetValue());
 
         if (!romTypeOK)
         {
@@ -298,6 +299,7 @@ void GearsystemCore::ResetROM(Cartridge::ForceConfiguration config)
         Reset();
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
         AddMemoryRules();
+        m_pProcessor->Disassemble(m_pProcessor->GetState()->PC->GetValue());
     }
 }
 

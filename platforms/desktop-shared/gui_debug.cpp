@@ -559,8 +559,6 @@ static void debug_window_processor(void)
 
     ImGui::Separator();
 
-    u8 flags = proc_state->AF->GetLow();
-
     ImGui::TextColored(magenta, "  S Z Y H X P N C");
     ImGui::Text("  " BYTE_TO_BINARY_PATTERN_ALL_SPACED, BYTE_TO_BINARY(proc_state->AF->GetLow()));
 
