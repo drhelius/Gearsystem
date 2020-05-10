@@ -342,12 +342,12 @@ bool Processor::Disassemble(u16 address)
         std::vector<u8> bytes; 
         u16 opcode_temp_addr = address;
         u8 opcode_temp = m_pMemory->Read(opcode_temp_addr);
-        u8 prefixed = 0;
+        u8 ddfd_mod = 0;
         int first = 0;
 
         while ((opcode_temp == 0xDD) || (opcode_temp == 0xFD))
         {
-            prefixed = opcode_temp;
+            ddfd_mod = opcode_temp;
             bytes.push_back(opcode_temp);
             opcode_temp_addr++;
             first++;
@@ -360,14 +360,17 @@ bool Processor::Disassemble(u16 address)
         u8 opcode = bytes[first];
         stOPCodeInfo info;
 
+        bool prefixed = false;
+
         if (opcode == 0xCB)
         {
-            if (prefixed == 0xDD)
+            prefixed = true;
+            if (ddfd_mod == 0xDD)
             {
                 opcode = bytes[first + 2];
                 info = kOPCodeDDCBNames[opcode];
             }
-            else if (prefixed == 0xFD)
+            else if (ddfd_mod == 0xFD)
             {
                 opcode = bytes[first + 2];
                 info = kOPCodeFDCBNames[opcode];
@@ -380,20 +383,21 @@ bool Processor::Disassemble(u16 address)
         }
         else if (opcode == 0xED)
         {
+            prefixed = true;
             opcode = bytes[first + 1];
             info = kOPCodeEDNames[opcode];
         }
         else
         {
-            if (prefixed == 0xDD)
+            if (ddfd_mod == 0xDD)
                 info = kOPCodeDDNames[opcode];
-            else if (prefixed == 0xFD)
+            else if (ddfd_mod == 0xFD)
                 info = kOPCodeFDNames[opcode];
             else
                 info = kOPCodeNames[opcode];
         }
 
-        map[offset].size = info.size + first;
+        map[offset].size = info.size + (first > 1 ? (first - 1) : 0);
         map[offset].bytes[0] = 0;
 
         for (int i = 0; i < (int)bytes.size(); i++)
@@ -405,7 +409,13 @@ bool Processor::Disassemble(u16 address)
                 strcat(map[offset].bytes, value);
                 strcat(map[offset].bytes, " ");
             }
+            else if (i < 4)
+            {
+                strcat(map[offset].bytes, "   ");
+            }
         }
+
+        first += prefixed ? 1 : 0;
 
         switch (info.type)
         {
@@ -413,16 +423,22 @@ bool Processor::Disassemble(u16 address)
                 strcpy(map[offset].name, info.name);
                 break;
             case 1:
-                sprintf(map[offset].name, info.name, bytes[1]);
+                sprintf(map[offset].name, info.name, bytes[first]);
                 break;
             case 2:
-                sprintf(map[offset].name, info.name, (bytes[2] << 8) | bytes[1]);
+                sprintf(map[offset].name, info.name, bytes[first + 1]);
                 break;
             case 3:
-                sprintf(map[offset].name, info.name, (s8)bytes[1]);
+                sprintf(map[offset].name, info.name, (bytes[first + 2] << 8) | bytes[first + 1]);
                 break;
             case 4:
-                sprintf(map[offset].name, info.name, (s8)bytes[1], address + info.size + (s8)bytes[1]);
+                sprintf(map[offset].name, info.name, (s8)bytes[first + 1]);
+                break;
+            case 5:
+                sprintf(map[offset].name, info.name, address + info.size + (s8)bytes[first + 1], (s8)bytes[first + 1]);
+                break;
+            case 6:
+                sprintf(map[offset].name, info.name, (s8)bytes[first + 1], bytes[first + 2]);
                 break;
             default:
                 strcpy(map[offset].name, "PARSE ERROR");
