@@ -70,6 +70,12 @@ u8* MemoryRule::GetPage(int)
     return NULL;
 }
 
+int MemoryRule::GetBank(int)
+{
+    Log("MemoryRule::GetBank not implemented");
+    return 0;
+}
+
 void MemoryRule::SaveState(std::ostream&)
 {
     Log("MemoryRule::SaveState not implemented");

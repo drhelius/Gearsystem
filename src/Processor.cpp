@@ -42,6 +42,28 @@ Processor::Processor(Memory* pMemory)
     m_PrefixedCBValue = 0;
     m_bInputLastCycle = false;
     m_ProActionReplayList.clear();
+    m_bBreakpointHit = false;
+
+    m_ProcessorState.AF = &AF;
+    m_ProcessorState.BC = &BC;
+    m_ProcessorState.DE = &DE;
+    m_ProcessorState.HL = &HL;
+    m_ProcessorState.AF2 = &AF2;
+    m_ProcessorState.BC2 = &BC2;
+    m_ProcessorState.DE2 = &DE2;
+    m_ProcessorState.HL2 = &HL2;
+    m_ProcessorState.IX = &IX;
+    m_ProcessorState.IY = &IY;
+    m_ProcessorState.SP = &SP;
+    m_ProcessorState.PC = &PC;
+    m_ProcessorState.WZ = &WZ;
+    m_ProcessorState.I = &I;
+    m_ProcessorState.R = &R;
+    m_ProcessorState.IFF1 = &m_bIFF1;
+    m_ProcessorState.IFF2 = &m_bIFF2;
+    m_ProcessorState.Halt = &m_bHalt;
+    m_ProcessorState.NMI = &m_bNMIRequested;
+    m_ProcessorState.INT = &m_bINTRequested;
 }
 
 Processor::~Processor()
@@ -74,7 +96,7 @@ void Processor::Reset()
     BC2.SetValue(0x0000);
     DE2.SetValue(0x0000);
     HL2.SetValue(0x0000);
-    XY.SetValue(0x0000);
+    WZ.SetValue(0x0000);
     I.SetValue(0x00);
     R.SetValue(0x00);
     m_bINTRequested = false;
@@ -82,6 +104,8 @@ void Processor::Reset()
     m_bPrefixedCBOpcode = false;
     m_PrefixedCBValue = 0;
     m_bInputLastCycle = false;
+    m_ProActionReplayList.clear();
+    m_bBreakpointHit = false;
 }
 
 void Processor::SetIOPOrts(IOPorts* pIOPorts)
@@ -97,6 +121,7 @@ IOPorts* Processor::GetIOPOrts()
 unsigned int Processor::Tick()
 {
     m_iTStates = 0;
+    m_bBreakpointHit = false;
 
     if (!m_bInputLastCycle)
     {
@@ -109,7 +134,7 @@ unsigned int Processor::Tick()
             PC.SetValue(0x0066);
             m_iTStates += 11;
             IncreaseR();
-            XY.SetValue(PC.GetValue());
+            WZ.SetValue(PC.GetValue());
             return m_iTStates;
         }
         else if (m_bIFF1 && m_bINTRequested && !m_bAfterEI)
@@ -121,7 +146,7 @@ unsigned int Processor::Tick()
             PC.SetValue(0x0038);
             m_iTStates += 13;
             IncreaseR();
-            XY.SetValue(PC.GetValue());
+            WZ.SetValue(PC.GetValue());
             UpdateProActionReplay();
             return m_iTStates;
         }
@@ -130,6 +155,10 @@ unsigned int Processor::Tick()
     }
 
     ExecuteOPCode();
+
+    #ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
+    m_bBreakpointHit = Disassemble(PC.GetValue());
+    #endif
 
     return m_iTStates;
 }
@@ -274,6 +303,169 @@ void Processor::UndocumentedOPCode()
 #endif
 }
 
+bool Processor::Disassemble(u16 address)
+{
+    Memory::stDisassembleRecord* memoryMap = m_pMemory->GetDisassembledMemoryMap();
+    Memory::stDisassembleRecord* romMap = m_pMemory->GetDisassembledROMMemoryMap();
+
+    Memory::stDisassembleRecord* map = NULL;
+
+    int offset = address;
+    int bank = 0;
+
+    switch (address & 0xC000)
+    {
+    case 0x0000:
+        bank = m_pMemory->GetCurrentRule()->GetBank(0);
+        offset = (0x4000 * bank) + address;
+        map = romMap;
+        break;
+    case 0x4000:
+        bank = m_pMemory->GetCurrentRule()->GetBank(1);
+        offset = (0x4000 * bank) + (address & 0x3FFF);
+        map = romMap;
+        break;
+    case 0x8000:
+        bank = m_pMemory->GetCurrentRule()->GetBank(2);
+        offset = (0x4000 * bank) + (address & 0x3FFF);
+        map = romMap;
+        break;
+    default:
+        map = memoryMap;
+    }
+
+    if (map[offset].size == 0)
+    {
+        map[offset].bank = bank;
+        map[offset].address = address;
+
+        std::vector<u8> bytes; 
+        u16 opcode_temp_addr = address;
+        u8 opcode_temp = m_pMemory->Read(opcode_temp_addr);
+        u8 prefixed = 0;
+        int first = 0;
+
+        while ((opcode_temp == 0xDD) || (opcode_temp == 0xFD))
+        {
+            prefixed = opcode_temp;
+            bytes.push_back(opcode_temp);
+            opcode_temp_addr++;
+            first++;
+            opcode_temp = m_pMemory->Read(opcode_temp_addr);
+        }
+
+        for (int i = 0; i < 5; i++)
+            bytes.push_back(m_pMemory->Read(opcode_temp_addr + i));
+
+        u8 opcode = bytes[first];
+        stOPCodeInfo info;
+
+        if (opcode == 0xCB)
+        {
+            if (prefixed == 0xDD)
+            {
+                opcode = bytes[first + 2];
+                info = kOPCodeDDCBNames[opcode];
+            }
+            else if (prefixed == 0xFD)
+            {
+                opcode = bytes[first + 2];
+                info = kOPCodeFDCBNames[opcode];
+            }
+            else
+            {
+                opcode = bytes[first + 1];
+                info = kOPCodeCBNames[opcode];
+            }
+        }
+        else if (opcode == 0xED)
+        {
+            opcode = bytes[first + 1];
+            info = kOPCodeEDNames[opcode];
+        }
+        else
+        {
+            if (prefixed == 0xDD)
+                info = kOPCodeDDNames[opcode];
+            else if (prefixed == 0xFD)
+                info = kOPCodeFDNames[opcode];
+            else
+                info = kOPCodeNames[opcode];
+        }
+
+        map[offset].size = info.size + first;
+        map[offset].bytes[0] = 0;
+
+        for (int i = 0; i < (int)bytes.size(); i++)
+        {
+            if (i < map[offset].size)
+            {
+                char value[8];
+                sprintf(value, "%02X", bytes[i]);
+                strcat(map[offset].bytes, value);
+                strcat(map[offset].bytes, " ");
+            }
+        }
+
+        switch (info.type)
+        {
+            case 0:
+                strcpy(map[offset].name, info.name);
+                break;
+            case 1:
+                sprintf(map[offset].name, info.name, bytes[1]);
+                break;
+            case 2:
+                sprintf(map[offset].name, info.name, (bytes[2] << 8) | bytes[1]);
+                break;
+            case 3:
+                sprintf(map[offset].name, info.name, (s8)bytes[1]);
+                break;
+            case 4:
+                sprintf(map[offset].name, info.name, (s8)bytes[1], address + info.size + (s8)bytes[1]);
+                break;
+            default:
+                strcpy(map[offset].name, "PARSE ERROR");
+        }
+    }
+
+    Memory::stDisassembleRecord* runtobreakpoint = m_pMemory->GetRunToBreakpoint();
+    std::vector<Memory::stDisassembleRecord*>* breakpoints = m_pMemory->GetBreakpoints();
+
+    if (IsValidPointer(runtobreakpoint))
+    {
+        if (runtobreakpoint == &map[offset])
+        {
+            m_pMemory->SetRunToBreakpoint(NULL);
+            return true;
+        }
+        else
+            return false;
+    }
+    else
+    {
+        for (long unsigned int b = 0; b < breakpoints->size(); b++)
+        {
+            if ((*breakpoints)[b] == &map[offset])
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool Processor::BreakpointHit()
+{
+    return m_bBreakpointHit;
+}
+
+bool Processor::Halted()
+{
+    return m_bHalt;
+}
+
 void Processor::SaveState(std::ostream& stream)
 {
     using namespace std;
@@ -290,7 +482,7 @@ void Processor::SaveState(std::ostream& stream)
     u16 pc = PC.GetValue();
     u16 ix = IX.GetValue();
     u16 iy = IY.GetValue();
-    u16 xy = XY.GetValue();
+    u16 wz = WZ.GetValue();
     u8 i = I.GetValue();
     u8 r = R.GetValue();
 
@@ -306,7 +498,7 @@ void Processor::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&pc), sizeof(pc));
     stream.write(reinterpret_cast<const char*> (&ix), sizeof(ix));
     stream.write(reinterpret_cast<const char*> (&iy), sizeof(iy));
-    stream.write(reinterpret_cast<const char*> (&xy), sizeof(xy));
+    stream.write(reinterpret_cast<const char*> (&wz), sizeof(wz));
     stream.write(reinterpret_cast<const char*> (&i), sizeof(i));
     stream.write(reinterpret_cast<const char*> (&r), sizeof(r));
 
@@ -329,7 +521,7 @@ void Processor::LoadState(std::istream& stream)
 {
     using namespace std;
 
-    u16 af, bc, de, hl, af2, bc2, de2, hl2, sp, pc, ix, iy, xy;
+    u16 af, bc, de, hl, af2, bc2, de2, hl2, sp, pc, ix, iy, wz;
     u8 i, r;
 
     stream.read(reinterpret_cast<char*> (&af), sizeof(af));
@@ -344,7 +536,7 @@ void Processor::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&pc), sizeof(pc));
     stream.read(reinterpret_cast<char*> (&ix), sizeof(ix));
     stream.read(reinterpret_cast<char*> (&iy), sizeof(iy));
-    stream.read(reinterpret_cast<char*> (&xy), sizeof(xy));
+    stream.read(reinterpret_cast<char*> (&wz), sizeof(wz));
     stream.read(reinterpret_cast<char*> (&i), sizeof(i));
     stream.read(reinterpret_cast<char*> (&r), sizeof(r));
 
@@ -360,7 +552,7 @@ void Processor::LoadState(std::istream& stream)
     PC.SetValue(pc);
     IX.SetValue(ix);
     IY.SetValue(iy);
-    XY.SetValue(xy);
+    WZ.SetValue(wz);
     I.SetValue(i);
     R.SetValue(r);
 
@@ -409,6 +601,11 @@ void Processor::UpdateProActionReplay()
     {
         m_pMemory->Write(it->address, it->value);
     }
+}
+
+Processor::ProcessorState* Processor::GetState()
+{
+    return &m_ProcessorState;
 }
 
 void Processor::InitOPCodeFunctors()

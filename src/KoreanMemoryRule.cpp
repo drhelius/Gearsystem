@@ -102,6 +102,20 @@ u8* KoreanMemoryRule::GetPage(int index)
     }
 }
 
+int KoreanMemoryRule::GetBank(int index)
+{
+    switch (index)
+    {
+        case 0:
+        case 1:
+            return index;
+        case 2:
+            return m_iMapperSlot2;
+        default:
+            return 0;
+    }
+}
+
 void KoreanMemoryRule::SaveState(std::ostream& stream)
 {
     stream.write(reinterpret_cast<const char*> (&m_iMapperSlot2), sizeof(m_iMapperSlot2));

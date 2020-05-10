@@ -20,6 +20,13 @@
 #ifndef OPCODE_NAMES_H
 #define	OPCODE_NAMES_H
 
+struct stOPCodeInfo
+{
+    const char* name;
+    int size;
+    int type;
+};
+
 #include "opcodexx_names.h"
 #include "opcodecb_names.h"
 #include "opcodeed_names.h"

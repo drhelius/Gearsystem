@@ -30,6 +30,31 @@ class IOPorts;
 class Processor
 {
 public:
+    struct ProcessorState
+    {        
+        SixteenBitRegister* AF;
+        SixteenBitRegister* BC;
+        SixteenBitRegister* DE;
+        SixteenBitRegister* HL;
+        SixteenBitRegister* AF2;
+        SixteenBitRegister* BC2;
+        SixteenBitRegister* DE2;
+        SixteenBitRegister* HL2;
+        SixteenBitRegister* IX;
+        SixteenBitRegister* IY;
+        SixteenBitRegister* SP;
+        SixteenBitRegister* PC;
+        SixteenBitRegister* WZ;
+        EightBitRegister* I;
+        EightBitRegister* R;
+        bool* IFF1;
+        bool* IFF2;
+        bool* Halt;
+        bool* INT;
+        bool* NMI;
+    };
+
+public:
     Processor(Memory* pMemory);
     ~Processor();
     void Init();
@@ -43,6 +68,10 @@ public:
     void LoadState(std::istream& stream);
     void SetProActionReplayCheat(const char* szCheat);
     void ClearProActionReplayCheats();
+    ProcessorState* GetState();
+    bool Disassemble(u16 address);
+    bool BreakpointHit();
+    bool Halted();
 
 private:
     typedef void (Processor::*OPCptr) (void);
@@ -62,7 +91,7 @@ private:
     SixteenBitRegister IY;
     SixteenBitRegister SP;
     SixteenBitRegister PC;
-    SixteenBitRegister XY;  // MEMPTR register for XY flags
+    SixteenBitRegister WZ;
     EightBitRegister I;
     EightBitRegister R;
     bool m_bIFF1;
@@ -79,6 +108,7 @@ private:
     bool m_bPrefixedCBOpcode;
     u8 m_PrefixedCBValue;
     bool m_bInputLastCycle;
+    bool m_bBreakpointHit;
 
     struct ProActionReplayCode
     {
@@ -86,6 +116,8 @@ private:
         u8 value;
     };
     std::list<ProActionReplayCode> m_ProActionReplayList;
+
+    ProcessorState m_ProcessorState;
 
 private:
     u8 FetchOPCode();

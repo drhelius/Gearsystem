@@ -40,6 +40,7 @@ public:
     virtual size_t GetRamSize();
     virtual u8* GetRamBanks();
     virtual u8* GetPage(int index);
+    virtual int GetBank(int index);
     virtual void SaveState(std::ostream& stream);
     virtual void LoadState(std::istream& stream);
 

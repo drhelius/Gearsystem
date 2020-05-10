@@ -289,7 +289,7 @@ static void debug_window_disassembler(void)
     ImGui::SetNextWindowSize(ImVec2(482, 344), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Disassembler", &config_debug.show_disassembler);
-/*
+
     GearsystemCore* core = emu_get_core();
     Processor* processor = core->GetProcessor();
     Processor::ProcessorState* proc_state = processor->GetState();
@@ -300,7 +300,7 @@ static void debug_window_disassembler(void)
     Memory::stDisassembleRecord* map = NULL;
 
     int pc = proc_state->PC->GetValue();
-*/
+
     static bool follow_pc = true;
     static bool show_mem = true;
     static bool show_symbols = true;
@@ -308,7 +308,7 @@ static void debug_window_disassembler(void)
     ImGui::Checkbox("Follow PC", &follow_pc); ImGui::SameLine();
     ImGui::Checkbox("Show Memory", &show_mem);  ImGui::SameLine();
     ImGui::Checkbox("Show Symbols", &show_symbols);
-/*
+
     if (ImGui::Button("Step Over"))
         emu_debug_step();
     ImGui::SameLine();
@@ -398,20 +398,24 @@ static void debug_window_disassembler(void)
             int offset = i;
             int bank = 0;
 
-            if ((i & 0xC000) == 0x0000)
+            switch (i & 0xC000)
             {
-                bank = memory->GetCurrentRule()->GetCurrentRomBank0Index();
+            case 0x0000:
+                bank = memory->GetCurrentRule()->GetBank(0);
                 offset = (0x4000 * bank) + i;
                 map = romMap;
-            }
-            else if ((i & 0xC000) == 0x4000)
-            {
-                bank = memory->GetCurrentRule()->GetCurrentRomBank1Index();
+                break;
+            case 0x4000:
+                bank = memory->GetCurrentRule()->GetBank(1);
                 offset = (0x4000 * bank) + (i & 0x3FFF);
                 map = romMap;
-            }
-            else
-            {
+                break;
+            case 0x8000:
+                bank = memory->GetCurrentRule()->GetBank(2);
+                offset = (0x4000 * bank) + (i & 0x3FFF);
+                map = romMap;
+                break;
+            default:
                 map = memoryMap;
             }
 
@@ -537,7 +541,7 @@ static void debug_window_disassembler(void)
     ImGui::EndChild();
     
     ImGui::PopFont();
-*/
+
     ImGui::End();
 }
 
@@ -545,8 +549,8 @@ static void debug_window_processor(void)
 {
     ImGui::SetNextWindowPos(ImVec2(14, 210), ImGuiCond_FirstUseEver);
 
-    ImGui::Begin("Processor", &config_debug.show_processor, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
-/*
+    ImGui::Begin("Z80 Status", &config_debug.show_processor, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
+
     ImGui::PushFont(gui_default_font);
 
     GearsystemCore* core = emu_get_core();
@@ -557,64 +561,126 @@ static void debug_window_processor(void)
 
     u8 flags = proc_state->AF->GetLow();
 
-    ImGui::TextColored(magenta, "   Z"); ImGui::SameLine();
-    ImGui::Text("= %d", (bool)(flags & FLAG_ZERO)); ImGui::SameLine();
-
-    ImGui::TextColored(magenta, "  N"); ImGui::SameLine();
-    ImGui::Text("= %d", (bool)(flags & FLAG_SUB));
-
-    ImGui::TextColored(magenta, "   H"); ImGui::SameLine();
-    ImGui::Text("= %d", (bool)(flags & FLAG_HALF)); ImGui::SameLine();
-
-    ImGui::TextColored(magenta, "  C"); ImGui::SameLine();
-    ImGui::Text("= %d", (bool)(flags & FLAG_CARRY));
+    ImGui::TextColored(magenta, "  S Z Y H X P N C");
+    ImGui::Text("  " BYTE_TO_BINARY_PATTERN_ALL_SPACED, BYTE_TO_BINARY(proc_state->AF->GetLow()));
 
     ImGui::Columns(2, "registers");
     ImGui::Separator();
     ImGui::TextColored(cyan, " A"); ImGui::SameLine();
-    ImGui::Text("= $%02X", proc_state->AF->GetHigh());
+    ImGui::Text(" $%02X", proc_state->AF->GetHigh());
     ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->AF->GetHigh()));
 
     ImGui::NextColumn();
     ImGui::TextColored(cyan, " F"); ImGui::SameLine();
-    ImGui::Text("= $%02X", proc_state->AF->GetLow());
+    ImGui::Text(" $%02X", proc_state->AF->GetLow());
     ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->AF->GetLow()));
 
     ImGui::NextColumn();
     ImGui::Separator();
+    ImGui::TextColored(cyan, " A'"); ImGui::SameLine();
+    ImGui::Text("$%02X", proc_state->AF2->GetHigh());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->AF2->GetHigh()));
+
+    ImGui::NextColumn();
+    ImGui::TextColored(cyan, " F'"); ImGui::SameLine();
+    ImGui::Text("$%02X", proc_state->AF2->GetLow());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->AF2->GetLow()));
+
+    ImGui::NextColumn();
+    ImGui::Separator();
     ImGui::TextColored(cyan, " B"); ImGui::SameLine();
-    ImGui::Text("= $%02X", proc_state->BC->GetHigh());
+    ImGui::Text(" $%02X", proc_state->BC->GetHigh());
     ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->BC->GetHigh()));
 
     ImGui::NextColumn();
     ImGui::TextColored(cyan, " C"); ImGui::SameLine();
-    ImGui::Text("= $%02X", proc_state->BC->GetLow());
+    ImGui::Text(" $%02X", proc_state->BC->GetLow());
     ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->BC->GetLow()));
 
     ImGui::NextColumn();
     ImGui::Separator();
+    ImGui::TextColored(cyan, " B'"); ImGui::SameLine();
+    ImGui::Text("$%02X", proc_state->BC2->GetHigh());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->BC2->GetHigh()));
+
+    ImGui::NextColumn();
+    ImGui::TextColored(cyan, " C'"); ImGui::SameLine();
+    ImGui::Text("$%02X", proc_state->BC2->GetLow());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->BC2->GetLow()));
+
+    ImGui::NextColumn();
+    ImGui::Separator();
     ImGui::TextColored(cyan, " D"); ImGui::SameLine();
-    ImGui::Text("= $%02X", proc_state->DE->GetHigh());
+    ImGui::Text(" $%02X", proc_state->DE->GetHigh());
     ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->DE->GetHigh()));
 
     ImGui::NextColumn();
     ImGui::TextColored(cyan, " E"); ImGui::SameLine();
-    ImGui::Text("= $%02X", proc_state->DE->GetLow());
+    ImGui::Text(" $%02X", proc_state->DE->GetLow());
     ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->DE->GetLow()));
 
     ImGui::NextColumn();
     ImGui::Separator();
+    ImGui::TextColored(cyan, " D'"); ImGui::SameLine();
+    ImGui::Text("$%02X", proc_state->DE2->GetHigh());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->DE2->GetHigh()));
+
+    ImGui::NextColumn();
+    ImGui::TextColored(cyan, " E'"); ImGui::SameLine();
+    ImGui::Text("$%02X", proc_state->DE2->GetLow());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->DE2->GetLow()));
+
+    ImGui::NextColumn();
+    ImGui::Separator();
     ImGui::TextColored(cyan, " H"); ImGui::SameLine();
-    ImGui::Text("= $%02X", proc_state->HL->GetHigh());
+    ImGui::Text(" $%02X", proc_state->HL->GetHigh());
     ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->HL->GetHigh()));
 
     ImGui::NextColumn();
     ImGui::TextColored(cyan, " L"); ImGui::SameLine();
-    ImGui::Text("= $%02X", proc_state->HL->GetLow());
+    ImGui::Text(" $%02X", proc_state->HL->GetLow());
     ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->HL->GetLow()));
 
     ImGui::NextColumn();
+    ImGui::Separator();
+    ImGui::TextColored(cyan, " H'"); ImGui::SameLine();
+    ImGui::Text("$%02X", proc_state->HL2->GetHigh());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->HL2->GetHigh()));
+
+    ImGui::NextColumn();
+    ImGui::TextColored(cyan, " L'"); ImGui::SameLine();
+    ImGui::Text("$%02X", proc_state->HL2->GetLow());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->HL2->GetLow()));
+
+    ImGui::NextColumn();
+    ImGui::Separator();
+    ImGui::TextColored(cyan, " I"); ImGui::SameLine();
+    ImGui::Text(" $%02X", proc_state->I->GetValue());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->I->GetValue()));
+
+    ImGui::NextColumn();
+    ImGui::TextColored(cyan, " R"); ImGui::SameLine();
+    ImGui::Text(" $%02X", proc_state->R->GetValue());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->R->GetValue()));
+
+    ImGui::NextColumn();
     ImGui::Columns(1);
+
+    ImGui::Separator();
+    ImGui::TextColored(yellow, "    IX"); ImGui::SameLine();
+    ImGui::Text("= $%04X", proc_state->IX->GetValue());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED " " BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->IX->GetHigh()), BYTE_TO_BINARY(proc_state->IX->GetLow()));
+
+    ImGui::Separator();
+    ImGui::TextColored(yellow, "    IY"); ImGui::SameLine();
+    ImGui::Text("= $%04X", proc_state->IY->GetValue());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED " " BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->IY->GetHigh()), BYTE_TO_BINARY(proc_state->IY->GetLow()));
+
+    ImGui::Separator();
+    ImGui::TextColored(yellow, "    WZ"); ImGui::SameLine();
+    ImGui::Text("= $%04X", proc_state->WZ->GetValue());
+    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED " " BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->WZ->GetHigh()), BYTE_TO_BINARY(proc_state->WZ->GetLow()));
+
     ImGui::Separator();
     ImGui::TextColored(yellow, "    SP"); ImGui::SameLine();
     ImGui::Text("= $%04X", proc_state->SP->GetValue());
@@ -625,29 +691,17 @@ static void debug_window_processor(void)
     ImGui::Text("= $%04X", proc_state->PC->GetValue());
     ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED " " BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->PC->GetHigh()), BYTE_TO_BINARY(proc_state->PC->GetLow()));
 
-
-    ImGui::Columns(2);
     ImGui::Separator();
 
-    ImGui::TextColored(magenta, " IME"); ImGui::SameLine();
-    ImGui::Text("= %d", *proc_state->IME);
-
-    ImGui::NextColumn();
-
-    ImGui::TextColored(magenta, "HALT"); ImGui::SameLine();
-    ImGui::Text("= %d", *proc_state->Halt);
-
-    ImGui::NextColumn();
-
-    ImGui::Columns(1);
+    ImGui::TextColored(*proc_state->IFF1 ? green : gray, " IFF1"); ImGui::SameLine();
+    ImGui::TextColored(*proc_state->IFF2 ? green : gray, " IFF2"); ImGui::SameLine();
+    ImGui::TextColored(*proc_state->Halt ? green : gray, " HALT");
     
-    ImGui::Separator();
-
-    ImGui::TextColored(cyan, " DOUBLE SPEED "); ImGui::SameLine();
-    processor->CGBSpeed() ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
+    ImGui::TextColored(*proc_state->INT ? green : gray, "    INT"); ImGui::SameLine();
+    ImGui::TextColored(*proc_state->NMI ? green : gray, "  NMI");
 
     ImGui::PopFont();
-*/
+
     ImGui::End();
 }
 

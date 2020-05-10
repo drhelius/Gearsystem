@@ -28,6 +28,7 @@ Memory::Memory()
     InitPointer(m_pCurrentMemoryRule);
     InitPointer(m_pDisassembledMap);
     InitPointer(m_pDisassembledROMMap);
+    InitPointer(m_pRunToBreakpoint);
 }
 
 Memory::~Memory()
@@ -43,6 +44,8 @@ void Memory::Init()
     m_pMap = new u8[0x10000];
     m_pDisassembledMap = new stDisassembleRecord[0x10000];
     m_pDisassembledROMMap = new stDisassembleRecord[MAX_ROM_SIZE];
+    m_Breakpoints.clear();
+    InitPointer(m_pRunToBreakpoint);
     Reset();
 }
 

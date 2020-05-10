@@ -225,6 +225,19 @@ u8* SegaMemoryRule::GetPage(int index)
     }
 }
 
+int SegaMemoryRule::GetBank(int index)
+{
+    switch (index)
+    {
+        case 0:
+        case 1:
+        case 2:
+            return m_iMapperSlot[index];
+        default:
+            return 0;
+    }
+}
+
 void SegaMemoryRule::SaveState(std::ostream& stream)
 {
     stream.write(reinterpret_cast<const char*> (m_pRAMBanks), 0x8000);

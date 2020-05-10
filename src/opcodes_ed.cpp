@@ -299,7 +299,7 @@ void Processor::OPCodeED0x67()
     ToggleSignFlagFromResult(result);
     ToggleParityFlagFromResult(result);
     ToggleXYFlagsFromResult(result);
-    XY.SetValue(address + 1);
+    WZ.SetValue(address + 1);
 }
 
 void Processor::OPCodeED0x68()
@@ -360,7 +360,7 @@ void Processor::OPCodeED0x6F()
     ToggleSignFlagFromResult(result);
     ToggleParityFlagFromResult(result);
     ToggleXYFlagsFromResult(result);
-    XY.SetValue(address + 1);
+    WZ.SetValue(address + 1);
 }
 
 void Processor::OPCodeED0x70()
@@ -414,14 +414,14 @@ void Processor::OPCodeED0x78()
 {
     // IN A,(C)
     OPCodes_IN_C(AF.GetHighRegister());
-    XY.SetValue(BC.GetValue() + 1);
+    WZ.SetValue(BC.GetValue() + 1);
 }
 
 void Processor::OPCodeED0x79()
 {
     // OUT (C),A
     OPCodes_OUT_C(AF.GetHighRegister());
-    XY.SetValue(BC.GetValue() + 1);
+    WZ.SetValue(BC.GetValue() + 1);
 }
 
 void Processor::OPCodeED0x7A()
@@ -513,7 +513,7 @@ void Processor::OPCodeED0xB0()
     {
         PC.Decrement();
         PC.Decrement();
-        XY.SetValue(PC.GetValue() + 1);
+        WZ.SetValue(PC.GetValue() + 1);
         m_iTStates += 5;
     }
 }
@@ -526,7 +526,7 @@ void Processor::OPCodeED0xB1()
     {
         PC.Decrement();
         PC.Decrement();
-        XY.SetValue(PC.GetValue() + 1);
+        WZ.SetValue(PC.GetValue() + 1);
         m_iTStates += 5;
     }
 }
@@ -563,7 +563,7 @@ void Processor::OPCodeED0xB8()
     {
         PC.Decrement();
         PC.Decrement();
-        XY.SetValue(PC.GetValue() + 1);
+        WZ.SetValue(PC.GetValue() + 1);
         m_iTStates += 5;
     }
 }
@@ -576,7 +576,7 @@ void Processor::OPCodeED0xB9()
     {
         PC.Decrement();
         PC.Decrement();
-        XY.SetValue(PC.GetValue() + 1);
+        WZ.SetValue(PC.GetValue() + 1);
         m_iTStates += 5;
     }
 }

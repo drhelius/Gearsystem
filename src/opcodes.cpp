@@ -40,8 +40,8 @@ void Processor::OPCode0x02()
 {
     // LD (BC),A
     OPCodes_LD(BC.GetValue(), AF.GetHigh());
-    XY.SetLow((BC.GetValue() + 1) & 0xFF);
-    XY.SetHigh(AF.GetHigh());
+    WZ.SetLow((BC.GetValue() + 1) & 0xFF);
+    WZ.SetHigh(AF.GetHigh());
 }
 
 void Processor::OPCode0x03()
@@ -91,7 +91,7 @@ void Processor::OPCode0x0A()
 {
     // LD A,(BC)
     OPCodes_LD(AF.GetHighRegister(), BC.GetValue());
-    XY.SetValue(BC.GetValue() + 1);
+    WZ.SetValue(BC.GetValue() + 1);
 }
 
 void Processor::OPCode0x0B()
@@ -145,8 +145,8 @@ void Processor::OPCode0x12()
 {
     // LD (DE),A
     OPCodes_LD(DE.GetValue(), AF.GetHigh());
-    XY.SetLow((DE.GetValue() + 1) & 0xFF);
-    XY.SetHigh(AF.GetHigh());
+    WZ.SetLow((DE.GetValue() + 1) & 0xFF);
+    WZ.SetHigh(AF.GetHigh());
 }
 
 void Processor::OPCode0x13()
@@ -196,7 +196,7 @@ void Processor::OPCode0x1A()
 {
     // LD A,(DE)
     OPCodes_LD(AF.GetHighRegister(), DE.GetValue());
-    XY.SetValue(DE.GetValue() + 1);
+    WZ.SetValue(DE.GetValue() + 1);
 }
 
 void Processor::OPCode0x1B()
@@ -364,8 +364,8 @@ void Processor::OPCode0x32()
     // LD (nn),A
     u16 address = FetchArg16();
     m_pMemory->Write(address, AF.GetHigh());
-    XY.SetLow((address + 1) & 0xFF);
-    XY.SetHigh(AF.GetHigh());
+    WZ.SetLow((address + 1) & 0xFF);
+    WZ.SetHigh(AF.GetHigh());
 }
 
 void Processor::OPCode0x33()
@@ -436,7 +436,7 @@ void Processor::OPCode0x3A()
     // LD A,(nn)
     u16 address = FetchArg16();
     AF.GetHighRegister()->SetValue(m_pMemory->Read(address));
-    XY.SetValue(address + 1);
+    WZ.SetValue(address + 1);
 }
 
 void Processor::OPCode0x3B()
@@ -1370,8 +1370,8 @@ void Processor::OPCode0xD3()
     u8 port = m_pMemory->Read(PC.GetValue());
     PC.Increment();
     m_pIOPorts->DoOutput(port, AF.GetHigh());
-    XY.SetLow((port + 1) & 0xFF);
-    XY.SetHigh(AF.GetHigh());
+    WZ.SetLow((port + 1) & 0xFF);
+    WZ.SetHigh(AF.GetHigh());
 }
 
 void Processor::OPCode0xD4()
@@ -1428,7 +1428,7 @@ void Processor::OPCode0xDB()
         u8 port = m_pMemory->Read(PC.GetValue());
         PC.Increment();
         AF.SetHigh(m_pIOPorts->DoInput(port));
-        XY.SetValue((a << 8) | (port + 1));
+        WZ.SetValue((a << 8) | (port + 1));
         m_iTStates -= 10;
         m_bInputLastCycle = false;
     }
@@ -1493,7 +1493,7 @@ void Processor::OPCode0xE3()
     reg->SetHigh(m_pMemory->Read(SP.GetValue() + 1));
     m_pMemory->Write(SP.GetValue(), l);
     m_pMemory->Write(SP.GetValue() + 1, h);
-    XY.SetValue(reg->GetValue());
+    WZ.SetValue(reg->GetValue());
 }
 
 void Processor::OPCode0xE4()

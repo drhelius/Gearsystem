@@ -124,13 +124,13 @@ bool GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer, s16* pSampleBuffer, int
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
             
-            /*
-            if ((step || (stopOnBreakpoints && m_pProcessor->BreakpointHit())) && !m_pProcessor->Halted() && !m_pProcessor->DuringOpCode())
+
+            if ((step || (stopOnBreakpoints && m_pProcessor->BreakpointHit())) && !m_pProcessor->Halted())
             {
                 vblank = true;
                 if (m_pProcessor->BreakpointHit())
                     breakpoint = true;
-            }*/
+            }
 
             totalClocks += clockCycles;
 
@@ -767,6 +767,9 @@ void GearsystemCore::InitMemoryRules()
     m_pSegaMemoryRule = new SegaMemoryRule(m_pMemory, m_pCartridge);
     m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pMemory, m_pCartridge);
     m_pKoreanMemoryRule = new KoreanMemoryRule(m_pMemory, m_pCartridge);
+
+    m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
+    m_pProcessor->SetIOPOrts(m_pSmsIOPorts);
 }
 
 bool GearsystemCore::AddMemoryRules()

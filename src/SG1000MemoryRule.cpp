@@ -75,3 +75,11 @@ u8* SG1000MemoryRule::GetPage(int index)
     else
         return NULL;
 }
+
+int SG1000MemoryRule::GetBank(int index)
+{
+    if ((index >= 0) && (index < 3))
+        return index;
+    else
+        return 0;
+}

@@ -67,3 +67,11 @@ u8* RomOnlyMemoryRule::GetPage(int index)
     else
         return NULL;
 }
+
+int RomOnlyMemoryRule::GetBank(int index)
+{
+    if ((index >= 0) && (index < 3))
+        return index;
+    else
+        return 0;
+}

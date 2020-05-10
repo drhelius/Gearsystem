@@ -663,7 +663,7 @@ static void main_menu(void)
 
             ImGui::MenuItem("Show Disassembler", "", &config_debug.show_disassembler, config_debug.debug);
 
-            ImGui::MenuItem("Show Processor Status", "", &config_debug.show_processor, config_debug.debug);
+            ImGui::MenuItem("Show Z80 Status", "", &config_debug.show_processor, config_debug.debug);
 
             ImGui::MenuItem("Show Memory Editor", "", &config_debug.show_memory, config_debug.debug);
 

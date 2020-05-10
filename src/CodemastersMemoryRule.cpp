@@ -42,6 +42,7 @@ u8 CodemastersMemoryRule::PerformRead(u16 address)
     }
     else if (address < 0x8000)
     {
+        // ROM page 1
         u8* pROM = m_pCartridge->GetROM();
         return pROM[(address - 0x4000) + m_iMapperSlotAddress[1]];
     }
@@ -139,6 +140,19 @@ u8* CodemastersMemoryRule::GetPage(int index)
         return m_pMemory->GetMemoryMap() + (0x4000 * index);
     else
         return NULL;
+}
+
+int CodemastersMemoryRule::GetBank(int index)
+{
+    switch (index)
+    {
+        case 0:
+        case 1:
+        case 2:
+            return m_iMapperSlot[index];
+        default:
+            return 0;
+    }
 }
 
 void CodemastersMemoryRule::SaveState(std::ostream& stream)

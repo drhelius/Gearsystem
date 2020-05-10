@@ -20,7 +20,7 @@
 #ifndef GUI_DEBUG_CONSTANTS_H
 #define	GUI_DEBUG_CONSTANTS_H
 
-static const int gui_debug_symbols_count = 14;
+static const int gui_debug_symbols_count = 9;
 
 static const char* gui_debug_symbols[gui_debug_symbols_count] = {
     "00:0000 RST_00",
@@ -31,12 +31,7 @@ static const char* gui_debug_symbols[gui_debug_symbols_count] = {
     "00:0028 RST_28",
     "00:0030 RST_30",
     "00:0038 RST_38",
-    "00:0040 VBlankInterrupt",
-    "00:0048 LCDCInterrupt",
-    "00:0050 TimerOverflowInterrupt",
-    "00:0058 SerialTransferCompleteInterrupt",
-    "00:0060 JoypadTransitionInterrupt",
-    "00:0100 Boot"
+    "00:0066 NMI_Interrupt"
 };
 
 #endif	/* GUI_DEBUG_CONSTANTS_H */
