@@ -667,11 +667,7 @@ static void main_menu(void)
 
             ImGui::MenuItem("Show Memory Editor", "", &config_debug.show_memory, config_debug.debug);
 
-            ImGui::MenuItem("Show IO Map", "", &config_debug.show_iomap, config_debug.debug);
-
             ImGui::MenuItem("Show VRAM Viewer", "", &config_debug.show_video, config_debug.debug);
-
-            ImGui::MenuItem("Show Sound Registers", "", &config_debug.show_audio, config_debug.debug);
 
             ImGui::Separator();
 

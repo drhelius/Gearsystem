@@ -35,6 +35,7 @@ public:
     virtual bool PersistedRAM();
     virtual size_t GetRamSize();
     virtual u8* GetRamBanks();
+    virtual int GetRamBank();
     virtual u8* GetPage(int index);
     virtual int GetBank(int index);
     virtual void SaveState(std::ostream& stream);

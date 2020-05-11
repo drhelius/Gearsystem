@@ -134,6 +134,16 @@ void Video::SetSG1000Palette(GS_Color* pSG1000Palette)
     m_pSG1000Palette = pSG1000Palette;
 }
 
+u8* Video::GetVRAM()
+{
+    return m_pVdpVRAM;
+}
+
+u8* Video::GetCRAM()
+{
+    return m_pVdpCRAM;
+}
+
 bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
 {
     int max_height = m_bExtendedMode224 ? 224 : 192;

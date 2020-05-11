@@ -95,10 +95,8 @@ void config_read(void)
     Log("Loading settings from %s", config_emu_file_path);
 
     config_debug.debug = read_bool("Debug", "Debug", false);
-    config_debug.show_audio = read_bool("Debug", "Audio", false);
     config_debug.show_disassembler = read_bool("Debug", "Disassembler", true);
     config_debug.show_screen = read_bool("Debug", "Screen", true);
-    config_debug.show_iomap = read_bool("Debug", "IOMap", false);
     config_debug.show_memory = read_bool("Debug", "Memory", true);
     config_debug.show_processor = read_bool("Debug", "Processor", true);
     config_debug.show_video = read_bool("Debug", "Video", false);
@@ -176,10 +174,8 @@ void config_write(void)
     Log("Saving settings to %s", config_emu_file_path);
 
     write_bool("Debug", "Debug", config_debug.debug);
-    write_bool("Debug", "Audio", config_debug.show_audio);
     write_bool("Debug", "Disassembler", config_debug.show_disassembler);
     write_bool("Debug", "Screen", config_debug.show_screen);
-    write_bool("Debug", "IOMap", config_debug.show_iomap);
     write_bool("Debug", "Memory", config_debug.show_memory);
     write_bool("Debug", "Processor", config_debug.show_processor);
     write_bool("Debug", "Video", config_debug.show_video);

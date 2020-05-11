@@ -59,8 +59,6 @@ static Memory::stDisassembleRecord* selected_record = NULL;
 static char brk_address[8] = "";
 
 static void debug_window_processor(void);
-static void debug_window_io(void);
-static void debug_window_audio(void);
 static void debug_window_memory(void);
 static void debug_window_disassembler(void);
 static void debug_window_vram(void);
@@ -82,10 +80,6 @@ void gui_debug_windows(void)
             debug_window_memory();
         if (config_debug.show_disassembler)
             debug_window_disassembler();
-        if (config_debug.show_iomap)
-            debug_window_io();
-        if (config_debug.show_audio)
-            debug_window_audio();
         if (config_debug.show_video)
             debug_window_vram();
     }
@@ -174,21 +168,117 @@ static void debug_window_memory(void)
 
     GearsystemCore* core = emu_get_core();
     Memory* memory = core->GetMemory();
+    Cartridge* cart = core->GetCartridge();
+    Video* video = core->GetVideo();
 
     ImGui::PushFont(gui_default_font);
 
     ImGui::TextColored(cyan, "  BANKS: ");ImGui::SameLine();
-/*
-    ImGui::TextColored(magenta, "ROM1");ImGui::SameLine();
-    ImGui::Text("$%02X", memory->GetCurrentRule()->GetCurrentRomBank1Index()); ImGui::SameLine();
-    ImGui::TextColored(magenta, "  RAM");ImGui::SameLine();
-    ImGui::Text("$%02X", memory->GetCurrentRule()->GetCurrentRamBankIndex()); ImGui::SameLine();
-    ImGui::TextColored(magenta, "  WRAM1");ImGui::SameLine();
-    ImGui::Text("$%02X", memory->GetCurrentCGBRAMBank()); ImGui::SameLine();
-    ImGui::TextColored(magenta, "  VRAM");ImGui::SameLine();
-    ImGui::Text("$%02X", memory->GetCurrentLCDRAMBank());
-*/
+
+    ImGui::TextColored(magenta, "ROM0");ImGui::SameLine();
+    ImGui::Text("$%02X", memory->GetCurrentRule()->GetBank(0)); ImGui::SameLine();
+    ImGui::TextColored(magenta, "  ROM1");ImGui::SameLine();
+    ImGui::Text("$%02X", memory->GetCurrentRule()->GetBank(1)); ImGui::SameLine();
+    ImGui::TextColored(magenta, "  ROM2");ImGui::SameLine();
+    ImGui::Text("$%02X", memory->GetCurrentRule()->GetBank(2)); 
+
+    if (cart->GetType() == Cartridge::CartridgeSegaMapper)
+    {
+        ImGui::SameLine();
+        ImGui::TextColored(magenta, "  RAM");ImGui::SameLine();
+        ImGui::Text("$%02X", memory->GetCurrentRule()->GetRamBank());
+    }
+
     ImGui::PopFont();
+
+    if (ImGui::BeginTabBar("##memory_tabs", ImGuiTabBarFlags_None))
+    {
+        if (cart->GetType() == Cartridge::CartridgeSegaMapper)
+        {
+            if (ImGui::BeginTabItem("FIXED 1KB"))
+            {
+                ImGui::PushFont(gui_default_font);
+                mem_edit.DrawContents(memory->GetMemoryMap(), 0x400, 0);
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("PAGE0"))
+            {
+                ImGui::PushFont(gui_default_font);
+                mem_edit.DrawContents(memory->GetCurrentRule()->GetPage(0) + 0x400, 0x4000 - 0x400, 0x400);
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+        } 
+        else if (ImGui::BeginTabItem("PAGE0"))
+        {
+            ImGui::PushFont(gui_default_font);
+            mem_edit.DrawContents(memory->GetCurrentRule()->GetPage(0), 0x4000, 0);
+            ImGui::PopFont();
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("PAGE1"))
+        {
+            ImGui::PushFont(gui_default_font);
+            mem_edit.DrawContents(memory->GetCurrentRule()->GetPage(1), 0x4000, 0x4000);
+            ImGui::PopFont();
+            ImGui::EndTabItem();
+        }
+
+        if ((cart->GetType() == Cartridge::CartridgeCodemastersMapper) && IsValidPointer(memory->GetCurrentRule()->GetRamBanks()))
+        {
+            if (ImGui::BeginTabItem("PAGE2"))
+            {
+                ImGui::PushFont(gui_default_font);
+                mem_edit.DrawContents(memory->GetCurrentRule()->GetPage(2), 0x2000, 0x8000);
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("EXT RAM"))
+            {
+                ImGui::PushFont(gui_default_font);
+                mem_edit.DrawContents(memory->GetCurrentRule()->GetRamBanks(), 0x2000, 0xA000);
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+        }
+        else if (ImGui::BeginTabItem("PAGE2"))
+        {
+            ImGui::PushFont(gui_default_font);
+            mem_edit.DrawContents(memory->GetCurrentRule()->GetPage(2), 0x4000, 0x8000);
+            ImGui::PopFont();
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("RAM"))
+        {
+            ImGui::PushFont(gui_default_font);
+            mem_edit.DrawContents(memory->GetMemoryMap() + 0xC000, 0x4000, 0xC000);
+            ImGui::PopFont();
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("VRAM"))
+        {
+            ImGui::PushFont(gui_default_font);
+            mem_edit.DrawContents(video->GetVRAM(), 0x4000, 0);
+            ImGui::PopFont();
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("CRAM"))
+        {
+            ImGui::PushFont(gui_default_font);
+            mem_edit.DrawContents(video->GetCRAM(), 0x40, 0);
+            ImGui::PopFont();
+            ImGui::EndTabItem();
+        }
+
+        ImGui::EndTabBar();
+    }
 /*
     if (ImGui::BeginTabBar("##memory_tabs", ImGuiTabBarFlags_None))
     {
@@ -700,371 +790,6 @@ static void debug_window_processor(void)
 
     ImGui::PopFont();
 
-    ImGui::End();
-}
-
-static void debug_window_audio(void)
-{
-    ImGui::SetNextWindowPos(ImVec2(130, 264), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(417, 0), ImGuiCond_FirstUseEver);
-
-    ImGui::Begin("Sound Registers", &config_debug.show_audio);
-/*
-    ImGui::PushFont(gui_default_font);
-
-    GearsystemCore* core = emu_get_core();
-    Audio* audio = core->GetAudio();
-
-    gb_apu_state_t apu_state;
-    audio->GetApu()->save_state(&apu_state);
-
-    ImGui::Columns(2, "audio");
-
-    ImGui::TextColored(yellow, "CHANNEL 1 - TONE & SWEEP:");
-
-    u8 value = apu_state.regs[0xFF10 - 0xFF10];
-    ImGui::TextColored(cyan, " $FF10"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR10"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    value = apu_state.regs[0xFF11 - 0xFF10];
-    ImGui::TextColored(cyan, " $FF11"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR11"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    value = apu_state.regs[0xFF12 - 0xFF10];
-    ImGui::TextColored(cyan, " $FF12"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR12"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    value = apu_state.regs[0xFF13 - 0xFF10];
-    ImGui::TextColored(cyan, " $FF13"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR13"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    value = apu_state.regs[0xFF14 - 0xFF10];
-    ImGui::TextColored(cyan, " $FF14"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR14"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    ImGui::NextColumn();
-
-    ImGui::TextColored(yellow, "CHANNEL 3 - WAVE:");
-
-    value = apu_state.regs[0xFF1A - 0xFF10];
-    ImGui::TextColored(cyan, " $FF1A"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR30"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    value = apu_state.regs[0xFF1B - 0xFF10];
-    ImGui::TextColored(cyan, " $FF1B"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR31"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    value = apu_state.regs[0xFF1C - 0xFF10];
-    ImGui::TextColored(cyan, " $FF1C"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR32"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    value = apu_state.regs[0xFF1D - 0xFF10];
-    ImGui::TextColored(cyan, " $FF1D"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR33"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    value = apu_state.regs[0xFF1E - 0xFF10];
-    ImGui::TextColored(cyan, " $FF1E"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR34"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    ImGui::NextColumn();
-    ImGui::Separator();
-
-    ImGui::TextColored(yellow, "CHANNEL 2 - TONE:");
-
-    value = apu_state.regs[0xFF16 - 0xFF10];
-    ImGui::TextColored(cyan, " $FF16"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR21"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    value = apu_state.regs[0xFF17 - 0xFF10];
-    ImGui::TextColored(cyan, " $FF17"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR22"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    value = apu_state.regs[0xFF18 - 0xFF10];
-    ImGui::TextColored(cyan, " $FF18"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR23"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    value = apu_state.regs[0xFF19 - 0xFF10];
-    ImGui::TextColored(cyan, " $FF19"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR24"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    ImGui::NextColumn();
-
-    ImGui::TextColored(yellow, "CHANNEL 4 - NOISE:");
-
-    value = apu_state.regs[0xFF20 - 0xFF10];
-    ImGui::TextColored(cyan, " $FF20"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR41"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    value = apu_state.regs[0xFF21 - 0xFF10];
-    ImGui::TextColored(cyan, " $FF21"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR42"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    value = apu_state.regs[0xFF22 - 0xFF10];
-    ImGui::TextColored(cyan, " $FF22"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR43"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    value = apu_state.regs[0xFF23 - 0xFF10];
-    ImGui::TextColored(cyan, " $FF23"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR44"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    ImGui::NextColumn();
-    ImGui::Separator();
-
-    ImGui::TextColored(yellow, "CONTROL:");
-
-    value = apu_state.regs[0xFF24 - 0xFF10];
-    ImGui::TextColored(cyan, " $FF24"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR50"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    value = apu_state.regs[0xFF25 - 0xFF10];
-    ImGui::TextColored(cyan, " $FF25"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR51"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    value = apu_state.regs[0xFF26 - 0xFF10];
-    ImGui::TextColored(cyan, " $FF26"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "NR52"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", value, BYTE_TO_BINARY(value));
-
-    ImGui::NextColumn();
-
-    ImGui::TextColored(yellow, "WAVE ($FF30 - $FF37):" );
-
-    ImGui::Text(" %02X%02X %02X%02X %02X%02X %02X%02X", apu_state.regs[0x20], apu_state.regs[0x21], apu_state.regs[0x22], apu_state.regs[0x23], apu_state.regs[0x24], apu_state.regs[0x25], apu_state.regs[0x26], apu_state.regs[0x27]);
-
-    ImGui::TextColored(yellow, "WAVE ($FF38 - $FF3F):" );
-
-    ImGui::Text(" %02X%02X %02X%02X %02X%02X %02X%02X", apu_state.regs[0x28], apu_state.regs[0x29], apu_state.regs[0x2A], apu_state.regs[0x2B], apu_state.regs[0x2C], apu_state.regs[0x2D], apu_state.regs[0x2E], apu_state.regs[0x2F]);
-
-    ImGui::NextColumn();
-
-    ImGui::Columns(1);
-
-    ImGui::PopFont();
-*/
-    ImGui::End();
-}
-
-static void debug_window_io(void)
-{
-    ImGui::SetNextWindowPos(ImVec2(121, 164), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(420, 0), ImGuiCond_FirstUseEver);
-
-    ImGui::Begin("IO Map", &config_debug.show_iomap);
-/*
-    ImGui::PushFont(gui_default_font);
-
-    GearsystemCore* core = emu_get_core();
-    Memory* memory = core->GetMemory();
-
-    ImGui::Columns(2, "iomap");
-
-    ImGui::TextColored(yellow, "INTERRUPTS:");
-
-    ImGui::TextColored(cyan, " $FFFF"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "IE  "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFFFF), BYTE_TO_BINARY(memory->Retrieve(0xFFFF)));
-
-    ImGui::TextColored(cyan, " $FF0F"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "IF  "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF0F), BYTE_TO_BINARY(memory->Retrieve(0xFF0F)));
-
-    ImGui::TextColored(cyan, " VBLNK  "); ImGui::SameLine();
-    IsSetBit(memory->Retrieve(0xFF0F), 0) && IsSetBit(memory->Retrieve(0xFFFF), 0) ? ImGui::TextColored(green, "ON  ") : ImGui::TextColored(gray, "OFF "); ImGui::SameLine();
-    ImGui::TextColored(magenta, "IF:"); ImGui::SameLine();
-    ImGui::Text("%d", IsSetBit(memory->Retrieve(0xFF0F), 0)); ImGui::SameLine();
-    ImGui::TextColored(magenta, "  IE:"); ImGui::SameLine();
-    ImGui::Text("%d", IsSetBit(memory->Retrieve(0xFFFF), 0));
-
-    ImGui::TextColored(cyan, " STAT   "); ImGui::SameLine();
-    IsSetBit(memory->Retrieve(0xFF0F), 1) && IsSetBit(memory->Retrieve(0xFFFF), 1) ? ImGui::TextColored(green, "ON  ") : ImGui::TextColored(gray, "OFF "); ImGui::SameLine();
-    ImGui::TextColored(magenta, "IF:"); ImGui::SameLine();
-    ImGui::Text("%d", IsSetBit(memory->Retrieve(0xFF0F), 1)); ImGui::SameLine();
-    ImGui::TextColored(magenta, "  IE:"); ImGui::SameLine();
-    ImGui::Text("%d", IsSetBit(memory->Retrieve(0xFFFF), 1));
-
-    ImGui::TextColored(cyan, " TIMER  "); ImGui::SameLine();
-    IsSetBit(memory->Retrieve(0xFF0F), 2) && IsSetBit(memory->Retrieve(0xFFFF), 2) ? ImGui::TextColored(green, "ON  ") : ImGui::TextColored(gray, "OFF "); ImGui::SameLine();
-    ImGui::TextColored(magenta, "IF:"); ImGui::SameLine();
-    ImGui::Text("%d", IsSetBit(memory->Retrieve(0xFF0F), 2)); ImGui::SameLine();
-    ImGui::TextColored(magenta, "  IE:"); ImGui::SameLine();
-    ImGui::Text("%d", IsSetBit(memory->Retrieve(0xFFFF), 2));
-
-    ImGui::TextColored(cyan, " SERIAL "); ImGui::SameLine();
-    IsSetBit(memory->Retrieve(0xFF0F), 3) && IsSetBit(memory->Retrieve(0xFFFF), 3) ? ImGui::TextColored(green, "ON  ") : ImGui::TextColored(gray, "OFF "); ImGui::SameLine();
-    ImGui::TextColored(magenta, "IF:"); ImGui::SameLine();
-    ImGui::Text("%d", IsSetBit(memory->Retrieve(0xFF0F), 3)); ImGui::SameLine();
-    ImGui::TextColored(magenta, "  IE:"); ImGui::SameLine();
-    ImGui::Text("%d", IsSetBit(memory->Retrieve(0xFFFF), 3));
-
-    ImGui::TextColored(cyan, " JOYPAD "); ImGui::SameLine();
-    IsSetBit(memory->Retrieve(0xFF0F), 4) && IsSetBit(memory->Retrieve(0xFFFF), 4) ? ImGui::TextColored(green, "ON  ") : ImGui::TextColored(gray, "OFF "); ImGui::SameLine();
-    ImGui::TextColored(magenta, "IF:"); ImGui::SameLine();
-    ImGui::Text("%d", IsSetBit(memory->Retrieve(0xFF0F), 4)); ImGui::SameLine();
-    ImGui::TextColored(magenta, "  IE:"); ImGui::SameLine();
-    ImGui::Text("%d", IsSetBit(memory->Retrieve(0xFFFF), 4));
-
-    ImGui::TextColored(yellow, "GBC:");
-
-    ImGui::TextColored(cyan, " $FF4D"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "KEY1"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF4D), BYTE_TO_BINARY(memory->Retrieve(0xFF4D)));
-
-    ImGui::TextColored(cyan, " $FF70"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "SVBK"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF70), BYTE_TO_BINARY(memory->Retrieve(0xFF70)));
-
-    ImGui::TextColored(yellow, "GBC LCD:");
-
-    ImGui::TextColored(cyan, " $FF68"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "BCPS"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF68), BYTE_TO_BINARY(memory->Retrieve(0xFF68)));
-
-    ImGui::TextColored(cyan, " $FF69"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "BCPD"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF69), BYTE_TO_BINARY(memory->Retrieve(0xFF69)));
-
-    ImGui::TextColored(cyan, " $FF6A"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "OCPS"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF6A), BYTE_TO_BINARY(memory->Retrieve(0xFF6A)));
-
-    ImGui::TextColored(cyan, " $FF6B"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "OCPD"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF6B), BYTE_TO_BINARY(memory->Retrieve(0xFF6B)));
-
-    ImGui::TextColored(cyan, " $FF4F"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "VBK "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF4F), BYTE_TO_BINARY(memory->Retrieve(0xFF4F)));
-
-    ImGui::TextColored(yellow, "GBC HDMA:");
-
-    ImGui::TextColored(cyan, " $FF51:$FF52"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "SOURCE "); ImGui::SameLine();
-    ImGui::Text("$%04X", (memory->Retrieve(0xFF51) << 8) | memory->Retrieve(0xFF52));
-
-    ImGui::TextColored(cyan, " $FF53:$FF54"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "DEST   "); ImGui::SameLine();
-    ImGui::Text("$%04X", (memory->Retrieve(0xFF53) << 8) | memory->Retrieve(0xFF54));
-
-    ImGui::TextColored(cyan, " $FF55"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "LEN "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF55), BYTE_TO_BINARY(memory->Retrieve(0xFF55)));
-
-    ImGui::TextColored(yellow, "GBC INFRARED:");
-
-    ImGui::TextColored(cyan, " $FF56"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "RP  "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF56), BYTE_TO_BINARY(memory->Retrieve(0xFF56)));
-
-    ImGui::NextColumn();
-
-    ImGui::TextColored(yellow, "LCD:");
-
-    ImGui::TextColored(cyan, " $FF40"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "LCDC"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF40), BYTE_TO_BINARY(memory->Retrieve(0xFF40)));
-
-    ImGui::TextColored(cyan, " $FF41"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "STAT"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF41), BYTE_TO_BINARY(memory->Retrieve(0xFF41)));
-
-    ImGui::TextColored(cyan, " $FF42"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "SCY "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF42), BYTE_TO_BINARY(memory->Retrieve(0xFF42)));
-
-    ImGui::TextColored(cyan, " $FF43"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "SCX "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF43), BYTE_TO_BINARY(memory->Retrieve(0xFF43)));
-
-    ImGui::TextColored(cyan, " $FF44"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "LY  "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF44), BYTE_TO_BINARY(memory->Retrieve(0xFF44)));
-
-    ImGui::TextColored(cyan, " $FF45"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "LYC "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF45), BYTE_TO_BINARY(memory->Retrieve(0xFF45)));
-
-    ImGui::TextColored(cyan, " $FF46"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "DMA "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF46), BYTE_TO_BINARY(memory->Retrieve(0xFF46)));
-
-    ImGui::TextColored(cyan, " $FF47"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "BGP "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF47), BYTE_TO_BINARY(memory->Retrieve(0xFF47)));
-
-    ImGui::TextColored(cyan, " $FF48"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "OBP0"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF48), BYTE_TO_BINARY(memory->Retrieve(0xFF48)));
-
-    ImGui::TextColored(cyan, " $FF49"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "OBP1"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF49), BYTE_TO_BINARY(memory->Retrieve(0xFF49)));
-
-    ImGui::TextColored(cyan, " $FF4A"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "WY  "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF4A), BYTE_TO_BINARY(memory->Retrieve(0xFF4A)));
-
-    ImGui::TextColored(cyan, " $FF4B"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "WX  "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF4B), BYTE_TO_BINARY(memory->Retrieve(0xFF4B)));
-
-    ImGui::TextColored(yellow, "TIMER:");
-
-    ImGui::TextColored(cyan, " $FF04"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "DIV "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF04), BYTE_TO_BINARY(memory->Retrieve(0xFF04)));
-
-    ImGui::TextColored(cyan, " $FF05"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "TIMA"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF05), BYTE_TO_BINARY(memory->Retrieve(0xFF05)));
-
-    ImGui::TextColored(cyan, " $FF06"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "TMA "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF06), BYTE_TO_BINARY(memory->Retrieve(0xFF06)));
-
-    ImGui::TextColored(cyan, " $FF07"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "TAC "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF07), BYTE_TO_BINARY(memory->Retrieve(0xFF07)));
-
-    ImGui::TextColored(yellow, "INPUT:");
-
-    ImGui::TextColored(cyan, " $FF00"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "JOYP"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF00), BYTE_TO_BINARY(memory->Retrieve(0xFF00)));
-
-    ImGui::TextColored(yellow, "SERIAL:");
-
-    ImGui::TextColored(cyan, " $FF01"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "SB  "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF01), BYTE_TO_BINARY(memory->Retrieve(0xFF01)));
-
-    ImGui::TextColored(cyan, " $FF02"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "SC  "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")", memory->Retrieve(0xFF02), BYTE_TO_BINARY(memory->Retrieve(0xFF02)));
-
-    ImGui::Columns(1);
-
-    ImGui::PopFont();
-*/
     ImGui::End();
 }
 

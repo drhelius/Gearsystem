@@ -27,17 +27,14 @@ MemoryRule::MemoryRule(Memory* pMemory, Cartridge* pCartridge)
 
 MemoryRule::~MemoryRule()
 {
-
 }
 
 void MemoryRule::SaveRam(std::ostream&)
 {
-    Log("MemoryRule::SaveRam not implemented");
 }
 
 bool MemoryRule::LoadRam(std::istream&, s32)
 {
-    Log("MemoryRule::LoadRam not implemented");
     return false;
 }
 
@@ -48,40 +45,38 @@ void MemoryRule::SetRamChangedCallback(RamChangedCallback callback)
 
 bool MemoryRule::PersistedRAM()
 {
-    Log("MemoryRule::PersistedRAM not implemented");
     return false;
 }
 
 size_t MemoryRule::GetRamSize()
 {
-    Log("MemoryRule::GetRamSize not implemented");
     return 0;
 }
 
 u8* MemoryRule::GetRamBanks()
 {
-    Log("MemoryRule::GetRamBanks not implemented");
     return NULL;
+}
+
+int MemoryRule::GetRamBank()
+{
+    return 0;
 }
 
 u8* MemoryRule::GetPage(int)
 {
-    Log("MemoryRule::GetPage not implemented");
     return NULL;
 }
 
 int MemoryRule::GetBank(int)
 {
-    Log("MemoryRule::GetBank not implemented");
     return 0;
 }
 
 void MemoryRule::SaveState(std::ostream&)
 {
-    Log("MemoryRule::SaveState not implemented");
 }
 
 void MemoryRule::LoadState(std::istream&)
 {
-    Log("MemoryRule::LoadState not implemented");
 }

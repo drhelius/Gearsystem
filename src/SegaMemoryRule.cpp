@@ -208,6 +208,11 @@ u8* SegaMemoryRule::GetRamBanks()
         return m_pRAMBanks;
 }
 
+int SegaMemoryRule::GetRamBank()
+{
+    return m_RAMBankStartAddress == 0x4000 ? 1 : 0;
+}
+
 u8* SegaMemoryRule::GetPage(int index)
 {
     switch (index)

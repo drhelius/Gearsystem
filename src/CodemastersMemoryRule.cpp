@@ -134,6 +134,11 @@ void CodemastersMemoryRule::Reset()
     m_bRAMBankActive = false;
 }
 
+u8* CodemastersMemoryRule::GetRamBanks()
+{
+    return m_bRAMBankActive ? m_pCartRAM : NULL;
+}
+
 u8* CodemastersMemoryRule::GetPage(int index)
 {
     if ((index >= 0) && (index < 3))

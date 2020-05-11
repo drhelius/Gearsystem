@@ -49,6 +49,8 @@ public:
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
     void SetSG1000Palette(GS_Color* pSG1000Palette);
+    u8* GetVRAM();
+    u8* GetCRAM();
 
 private:
     void ScanLine(int line);
