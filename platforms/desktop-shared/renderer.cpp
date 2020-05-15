@@ -47,15 +47,17 @@ static const int FRAME_BUFFER_SCALE = 4;
 
 static void init_ogl_gui(void);
 static void init_ogl_emu(void);
+static void init_ogl_debug(void);
 static void init_texture(int index, int w, int h);
 static void init_scanlines_texture(void);
 static void render_gui(void);
 static void render_emu_normal(void);
 static void render_emu_mix(void);
-static void setup_bilinear(void);
+static void render_emu_bilinear(void);
 static void render_quad(int viewportWidth, int viewportHeight);
-static void render_scanlines(void);
 static void update_system_texture(void);
+static void update_debug_textures(void);
+static void render_scanlines(void);
 
 void renderer_init(void)
 {
@@ -66,7 +68,7 @@ void renderer_init(void)
         /* Problem: glewInit failed, something is seriously wrong. */
         Log("GLEW Error: %s\n", glewGetErrorString(err));
     }
-    
+
     renderer_glew_version = (const char*)glewGetString(GLEW_VERSION);
     renderer_opengl_version = (const char*)glGetString(GL_VERSION);
 
@@ -76,6 +78,7 @@ void renderer_init(void)
 
     init_ogl_gui();
     init_ogl_emu();
+    init_ogl_debug();
 
     first_frame = true;
 }
@@ -86,6 +89,9 @@ void renderer_destroy(void)
     glDeleteTextures(3, fbo_texture);
     glDeleteTextures(3, system_texture);
     glDeleteTextures(1, &scanlines_texture);
+    glDeleteTextures(1, &renderer_emu_debug_vram_background);
+    glDeleteTextures(1, &renderer_emu_debug_vram_tiles);
+    glDeleteTextures(64, renderer_emu_debug_vram_sprites);
     ImGui_ImplOpenGL2_Shutdown();
 }
 
@@ -117,6 +123,11 @@ void renderer_render(void)
     current_system_texture = system_texture[res];
     renderer_emu_texture = fbo_texture[res];
 
+    if (config_debug.debug)
+    {
+        update_debug_textures();
+    }
+
     if (config_video.mix_frames)
         render_emu_mix();
     else
@@ -125,9 +136,9 @@ void renderer_render(void)
     if (config_video.scanlines)
         render_scanlines();
 
-    setup_bilinear();
+    render_emu_bilinear();
 
-    ImVec4 clear_color = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
+    ImVec4 clear_color = ImVec4(0.1f, 0.1f, 0.1f, 1.00f);
 
     glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x, (int)ImGui::GetIO().DisplaySize.y);
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
@@ -159,6 +170,30 @@ static void init_ogl_emu(void)
     init_texture(2, GS_RESOLUTION_SMS_WIDTH, GS_RESOLUTION_SMS_HEIGHT_EXTENDED);
 
     init_scanlines_texture();
+}
+
+static void init_ogl_debug(void)
+{
+    glGenTextures(1, &renderer_emu_debug_vram_background);
+    glBindTexture(GL_TEXTURE_2D, renderer_emu_debug_vram_background);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)emu_debug_background_buffer);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    glGenTextures(1, &renderer_emu_debug_vram_tiles);
+    glBindTexture(GL_TEXTURE_2D, renderer_emu_debug_vram_tiles);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 16 * 8, 24 * 8, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)emu_debug_tile_buffers);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    for (int s = 0; s < 64; s++)
+    {
+        glGenTextures(1, &renderer_emu_debug_vram_sprites[s]);
+        glBindTexture(GL_TEXTURE_2D, renderer_emu_debug_vram_sprites[s]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 8, 16, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)emu_debug_sprite_buffers[s]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    }
 }
 
 static void init_texture(int index, int w, int h)
@@ -211,7 +246,7 @@ static void render_emu_mix(void)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, current_fbo);
 
-    float alpha = 0.15f + (0.40f * (1.0f - config_video.mix_frames_intensity));
+    float alpha = 0.15f + (0.20f * (1.0f - config_video.mix_frames_intensity));
 
     if (first_frame)
     {
@@ -244,6 +279,7 @@ static void update_system_texture(void)
     glBindTexture(GL_TEXTURE_2D, current_system_texture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, current_runtime.screen_width, current_runtime.screen_height,
             GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_frame_buffer);
+
     if (config_video.bilinear)
     {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -256,7 +292,25 @@ static void update_system_texture(void)
     }
 }
 
-static void setup_bilinear(void)
+static void update_debug_textures(void)
+{
+    glBindTexture(GL_TEXTURE_2D, renderer_emu_debug_vram_background);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256,
+            GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_debug_background_buffer);
+
+    glBindTexture(GL_TEXTURE_2D, renderer_emu_debug_vram_tiles);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 16 * 8, 24 * 8,
+                GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_debug_tile_buffers);
+
+    for (int s = 0; s < 64; s++)
+    {
+        glBindTexture(GL_TEXTURE_2D, renderer_emu_debug_vram_sprites[s]);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 8, 16,
+                GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_debug_sprite_buffers[s]);
+    }
+}
+
+static void render_emu_bilinear(void)
 {
     glBindTexture(GL_TEXTURE_2D, renderer_emu_texture);
 

@@ -744,15 +744,18 @@ static void debug_window_vram(void)
 
 static void debug_window_vram_background(void)
 {
-    /*
-    Memory* memory = emu_get_core()->GetMemory();
+    Video* video = emu_get_core()->GetVideo();
+    GS_RuntimeInfo runtime;
+    emu_get_runtime(runtime);
+    u8* regs = video->GetRegisters();
+    u8* vram = video->GetVRAM();
 
     static bool show_grid = true;
     static bool show_screen = true;
-    static int tile_address_radio = 0;
-    static int map_address_radio = 0;
+    int lines = video->IsExtendedMode224() ? 32 : 28;
     float scale = 1.5f;
-    float size = 256.0f * scale;
+    float size_h = 256.0f * scale;
+    float size_v = 8.0f * lines * scale;
     float spacing = 8.0f * scale;
 
     ImGui::Checkbox("Show Grid##grid_bg", &show_grid); ImGui::SameLine();
@@ -761,43 +764,52 @@ static void debug_window_vram_background(void)
     ImGui::PushFont(gui_default_font);
 
     ImGui::Columns(2, "bg", false);
-    ImGui::SetColumnOffset(1, size + 10.0f);
+    ImGui::SetColumnOffset(1, size_h + 10.0f);
 
     ImVec2 p = ImGui::GetCursorScreenPos();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImGuiIO& io = ImGui::GetIO();
 
-    ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_background, ImVec2(size, size));
+    ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_background, ImVec2(size_h, size_v), ImVec2(0.0f, 0.0f), ImVec2(1.0f, (1.0f / 32.0f) * lines));
 
     if (show_grid)
     {
         float x = p.x;
         for (int n = 0; n <= 32; n++)
         {
-            draw_list->AddLine(ImVec2(x, p.y), ImVec2(x, p.y + size), ImColor(dark_gray), 1.0f);
+            draw_list->AddLine(ImVec2(x, p.y), ImVec2(x, p.y + size_v), ImColor(dark_gray), 1.0f);
             x += spacing;
         }
 
         float y = p.y;  
-        for (int n = 0; n <= 32; n++)
+        for (int n = 0; n <= lines; n++)
         {
-            draw_list->AddLine(ImVec2(p.x, y), ImVec2(p.x + size, y), ImColor(dark_gray), 1.0f);
+            draw_list->AddLine(ImVec2(p.x, y), ImVec2(p.x + size_h, y), ImColor(dark_gray), 1.0f);
             y += spacing;
         }
     }
 
     if (show_screen)
     {
-        u8 scroll_x = memory->Retrieve(0xFF43);
-        u8 scroll_y = memory->Retrieve(0xFF42);
+        int scroll_x = 256 - regs[8];
+        int scroll_y = regs[9];
 
-        float grid_x_max = p.x + size;
-        float grid_y_max = p.y + size;
+        if (emu_get_core()->GetCartridge()->IsGameGear())
+        {
+            scroll_x += GS_RESOLUTION_GG_X_OFFSET;
+            scroll_y += GS_RESOLUTION_GG_Y_OFFSET;
+        }
+
+        scroll_x &= 0xFF;
+        scroll_y &= 0xFF;
+
+        float grid_x_max = p.x + size_h;
+        float grid_y_max = p.y + size_v;
 
         float rect_x_min = p.x + (scroll_x * scale);
         float rect_y_min = p.y + (scroll_y * scale);
-        float rect_x_max = p.x + ((scroll_x + GAMEBOY_WIDTH) * scale);
-        float rect_y_max = p.y + ((scroll_y + GAMEBOY_HEIGHT) * scale);
+        float rect_x_max = p.x + ((scroll_x + runtime.screen_width) * scale);
+        float rect_y_max = p.y + ((scroll_y + runtime.screen_height) * scale);
 
         float x_overflow = 0.0f;
         float y_overflow = 0.0f;
@@ -829,7 +841,7 @@ static void debug_window_vram_background(void)
 
     int tile_x = -1;
     int tile_y = -1;
-    if ((mouse_x >= 0.0f) && (mouse_x < size) && (mouse_y >= 0.0f) && (mouse_y < size))
+    if ((mouse_x >= 0.0f) && (mouse_x < size_h) && (mouse_y >= 0.0f) && (mouse_y < size_v))
     {
         tile_x = mouse_x / spacing;
         tile_y = mouse_y / spacing;
@@ -840,111 +852,53 @@ static void debug_window_vram_background(void)
 
         ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_background, ImVec2(128.0f, 128.0f), ImVec2((1.0f / 32.0f) * tile_x, (1.0f / 32.0f) * tile_y), ImVec2((1.0f / 32.0f) * (tile_x + 1), (1.0f / 32.0f) * (tile_y + 1)));
 
-        ImGui::TextColored(yellow, "DMG:");
+        ImGui::TextColored(yellow, "INFO:");
 
         ImGui::TextColored(cyan, " X:"); ImGui::SameLine();
         ImGui::Text("$%02X", tile_x); ImGui::SameLine();
-        ImGui::TextColored(cyan, "   Y:"); ImGui::SameLine();
+        ImGui::TextColored(cyan, "    Y:"); ImGui::SameLine();
         ImGui::Text("$%02X", tile_y);
 
-        u8 lcdc = memory->Retrieve(0xFF40);
-
-        int tile_start_addr = emu_debug_background_tile_address >= 0 ? emu_debug_background_tile_address : IsSetBit(lcdc, 4) ? 0x8000 : 0x8800;
-        int map_start_addr = emu_debug_background_map_address >= 0 ? emu_debug_background_map_address : IsSetBit(lcdc, 3) ? 0x9C00 : 0x9800;
-
-        u16 map_addr = map_start_addr + (32 * tile_y) + tile_x;
+        int name_table_addr = (regs[2] & (video->IsExtendedMode224() ? 0x0C : 0x0E)) << 10;
+        if (video->IsExtendedMode224())
+                name_table_addr |= 0x700;
+        u16 map_addr = name_table_addr + (64 * tile_y) + (tile_x * 2);
 
         ImGui::TextColored(cyan, " Map Addr: "); ImGui::SameLine();
-        ImGui::Text("$%04X", map_addr);
+        ImGui::Text(" $%04X", map_addr);
 
-        int map_tile = 0;
+        u16 tile_info_lo = vram[map_addr];
+        u16 tile_info_hi = vram[map_addr + 1];
 
-        if (tile_start_addr == 0x8800)
-        {
-            map_tile = static_cast<s8> (memory->Retrieve(map_addr));
-            map_tile += 128;
-        }
-        else
-        {
-            map_tile = memory->Retrieve(map_addr);
-        }
+        int tile_number = ((tile_info_hi & 1) << 8) | tile_info_lo;
+        bool tile_hflip = IsSetBit(tile_info_hi, 1);
+        bool tile_vflip = IsSetBit(tile_info_hi, 2);
+        int tile_palette = IsSetBit(tile_info_hi, 3) ? 16 : 0;
+        bool tile_priority = IsSetBit(tile_info_hi, 4);       
 
         ImGui::TextColored(cyan, " Tile Addr:"); ImGui::SameLine();
-        ImGui::Text("$%04X", tile_start_addr + (map_tile << 4));
+        ImGui::Text(" $%04X", tile_number << 5);
         ImGui::TextColored(cyan, " Tile Number:"); ImGui::SameLine();
-        ImGui::Text("$%02X", memory->Retrieve(map_addr));
+        ImGui::Text("$%03X", tile_number);
 
-        if (emu_is_cgb())
-        {
-            ImGui::TextColored(yellow, "GBC:");
+        ImGui::TextColored(cyan, " Value:"); ImGui::SameLine();
+        ImGui::Text("$%04X", tile_info_hi << 8 | tile_info_lo);
+        ImGui::TextColored(cyan, " Palette:"); ImGui::SameLine();
+        ImGui::Text("%d", tile_palette);
 
-            u8 cgb_tile_attr = memory->ReadCGBLCDRAM(map_addr, true);
-            int cgb_tile_pal = cgb_tile_attr & 0x07;
-            int cgb_tile_bank = IsSetBit(cgb_tile_attr, 3) ? 1 : 0;
-            bool cgb_tile_xflip = IsSetBit(cgb_tile_attr, 5);
-            bool cgb_tile_yflip = IsSetBit(cgb_tile_attr, 6);
+        ImGui::TextColored(cyan, " H-Flip:"); ImGui::SameLine();
+        tile_hflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
 
-            ImGui::TextColored(cyan, " Attributes:"); ImGui::SameLine();
-            ImGui::Text("$%02X", cgb_tile_attr);
-            ImGui::TextColored(cyan, " Palette:"); ImGui::SameLine();
-            ImGui::Text("%d", cgb_tile_pal);
-            ImGui::TextColored(cyan, " Bank:"); ImGui::SameLine();
-            ImGui::Text("%d", cgb_tile_bank);
+        ImGui::TextColored(cyan, " V-Flip:"); ImGui::SameLine();
+        tile_vflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
 
-            ImGui::TextColored(cyan, " X-Flip:"); ImGui::SameLine();
-            cgb_tile_xflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
-
-            ImGui::TextColored(cyan, " Y-Flip:"); ImGui::SameLine();
-            cgb_tile_yflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
-        }
+        ImGui::TextColored(cyan, " Priority:"); ImGui::SameLine();
+        tile_priority ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
     }
 
     ImGui::Columns(1);
 
     ImGui::PopFont();
-
-    ImGui::Text("Tile address:"); ImGui::SameLine();
-    ImGui::RadioButton("Auto##tile", &tile_address_radio, 0); ImGui::SameLine();
-    ImGui::RadioButton("0x8000", &tile_address_radio, 1); ImGui::SameLine();
-    ImGui::RadioButton("0x8800", &tile_address_radio, 2);
-
-    switch (tile_address_radio)
-    {
-    case 0:
-        emu_debug_background_tile_address = -1;
-        break;
-    case 1:
-        emu_debug_background_tile_address = 0x8000;
-        break;
-    case 2:
-        emu_debug_background_tile_address = 0x8800;
-        break;
-    default:
-        emu_debug_background_tile_address = -1;
-        break;
-    }
-
-    ImGui::Text("Map address:"); ImGui::SameLine();
-    ImGui::RadioButton("Auto##map", &map_address_radio, 0); ImGui::SameLine();
-    ImGui::RadioButton("0x9C00", &map_address_radio, 1); ImGui::SameLine();
-    ImGui::RadioButton("0x9800", &map_address_radio, 2);
-
-    switch (map_address_radio)
-    {
-    case 0:
-        emu_debug_background_map_address = -1;
-        break;
-    case 1:
-        emu_debug_background_map_address = 0x9C00;
-        break;
-    case 2:
-        emu_debug_background_map_address = 0x9800;
-        break;
-    default:
-        emu_debug_background_map_address = -1;
-        break;
-    }
-    */
 }
 
 static void debug_window_vram_tiles(void)

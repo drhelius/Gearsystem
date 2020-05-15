@@ -52,6 +52,8 @@ public:
     void SetSG1000Palette(GS_Color* pSG1000Palette);
     u8* GetVRAM();
     u8* GetCRAM();
+    u8* GetRegisters();
+    GS_Color ConvertTo8BitColor(int palette_color);
 
 private:
     void ScanLine(int line);
@@ -59,7 +61,6 @@ private:
     void RenderBackgroundSG1000(int line);
     void RenderSpritesSMSGG(int line);
     void RenderSpritesSG1000(int line);
-    GS_Color ConvertTo8BitColor(int palette_color);
 
 private:
     Memory* m_pMemory;

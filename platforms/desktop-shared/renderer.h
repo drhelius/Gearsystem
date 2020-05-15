@@ -27,6 +27,9 @@
 #endif
 
 EXTERN uint32_t renderer_emu_texture;
+EXTERN uint32_t renderer_emu_debug_vram_background;
+EXTERN uint32_t renderer_emu_debug_vram_tiles;
+EXTERN uint32_t renderer_emu_debug_vram_sprites[64];
 EXTERN const char* renderer_glew_version;
 EXTERN const char* renderer_opengl_version;
 

@@ -144,6 +144,11 @@ u8* Video::GetCRAM()
     return m_pVdpCRAM;
 }
 
+u8* Video::GetRegisters()
+{
+    return m_VdpRegister;
+}
+
 bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
 {
     int max_height = m_bExtendedMode224 ? 224 : 192;

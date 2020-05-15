@@ -29,6 +29,10 @@
 #endif
 
 EXTERN GS_Color* emu_frame_buffer;
+EXTERN GS_Color* emu_debug_background_buffer;
+EXTERN GS_Color* emu_debug_tile_buffers;
+EXTERN GS_Color* emu_debug_sprite_buffers[64];
+
 EXTERN bool emu_audio_sync;
 EXTERN bool emu_debug_disable_breakpoints;
 EXTERN int emu_debug_background_tile_address;
