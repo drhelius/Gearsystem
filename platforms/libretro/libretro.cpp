@@ -43,9 +43,10 @@ static int current_screen_width = 0;
 static int current_screen_height = 0;
 static bool allow_up_down = false;
 
-GearsystemCore* core;
-GS_Color *frame_buf;
-u16* frame_buf_16bit;
+static GearsystemCore* core;
+static GS_Color *frame_buf;
+static u16* frame_buf_16bit;
+static Cartridge::ForceConfiguration config;
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 {
@@ -57,6 +58,10 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 }
 
 static const struct retro_variable vars[] = {
+    { "gearsystem_system", "System (restart); Auto|Master System / Mark III|Game Gear|SG-1000 / Multivision" },
+    { "gearsystem_region", "Region (restart); Auto|Master System Japan|Master System Export|Game Gear Japan|Game Gear Export|Game Gear International" },
+    { "gearsystem_mapper", "Mapper (restart); Auto|ROM Only|SEGA|Codemasters|Korean|SG-1000" },
+    { "gearsystem_timing", "Timing (restart); Auto|NTSC (60 Hz)|PAL (50 Hz)" },
     { "gearsystem_up_down_allowed", "Allow Up+Down / Left+Right; Disabled|Enabled" },
     { NULL }
 };
@@ -88,6 +93,11 @@ void retro_init(void)
     frame_buf_16bit = new u16[GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT];
 
     audio_sample_count = 0;
+
+    config.type = Cartridge::CartridgeNotSupported;
+    config.zone = Cartridge::CartridgeUnknownZone;
+    config.region = Cartridge::CartridgeUnknownRegion;
+    config.system = Cartridge::CartridgeUnknownSystem;
 }
 
 void retro_deinit(void)
@@ -256,6 +266,80 @@ static void check_variables(void)
         else
             allow_up_down = false;
     }
+
+    var.key = "gearsystem_system";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Auto") == 0)
+            config.system = Cartridge::CartridgeUnknownSystem;
+        else if (strcmp(var.value, "Master System / Mark III") == 0)
+            config.system = Cartridge::CartridgeSMS;
+        else if (strcmp(var.value, "Game Gear") == 0)
+            config.system = Cartridge::CartridgeGG;
+        else if (strcmp(var.value, "SG-1000 / Multivision") == 0)
+            config.system = Cartridge::CartridgeSG1000;
+        else 
+            config.system = Cartridge::CartridgeUnknownSystem;
+    }
+
+    var.key = "gearsystem_region";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Auto") == 0)
+            config.zone = Cartridge::CartridgeUnknownZone;
+        else if (strcmp(var.value, "Master System Japan") == 0)
+            config.zone = Cartridge::CartridgeJapanSMS;
+        else if (strcmp(var.value, "Master System Export") == 0)
+            config.zone = Cartridge::CartridgeExportSMS;
+        else if (strcmp(var.value, "Game Gear Japan") == 0)
+            config.zone = Cartridge::CartridgeJapanGG;
+        else if (strcmp(var.value, "Game Gear Export") == 0)
+            config.zone = Cartridge::CartridgeExportGG;
+        else if (strcmp(var.value, "Game Gear International") == 0)
+            config.zone = Cartridge::CartridgeInternationalGG;
+        else
+            config.zone = Cartridge::CartridgeUnknownZone;
+    }
+
+    var.key = "gearsystem_mapper";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Auto") == 0)
+            config.type = Cartridge::CartridgeNotSupported;
+        else if (strcmp(var.value, "ROM Only") == 0)
+            config.type = Cartridge::CartridgeRomOnlyMapper;
+        else if (strcmp(var.value, "SEGA") == 0)
+            config.type = Cartridge::CartridgeSegaMapper;
+        else if (strcmp(var.value, "Codemasters") == 0)
+            config.type = Cartridge::CartridgeCodemastersMapper;
+        else if (strcmp(var.value, "Korean") == 0)
+            config.type = Cartridge::CartridgeKoreanMapper;
+        else if (strcmp(var.value, "SG-1000") == 0)
+            config.type = Cartridge::CartridgeSG1000Mapper;
+        else
+            config.type = Cartridge::CartridgeNotSupported;
+    }
+
+    var.key = "gearsystem_timing";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Auto") == 0)
+            config.region = Cartridge::CartridgeUnknownRegion;
+        else if (strcmp(var.value, "NTSC (60 Hz)") == 0)
+            config.region = Cartridge::CartridgeNTSC;
+        else if (strcmp(var.value, "PAL (50 Hz)") == 0)
+            config.region = Cartridge::CartridgePAL;
+        else
+            config.region = Cartridge::CartridgeUnknownRegion;
+    }
 }
 
 void retro_run(void)
@@ -300,14 +384,14 @@ void retro_run(void)
 void retro_reset(void)
 {
     check_variables();
-    core->ResetROMPreservingRAM();
+    core->ResetROMPreservingRAM(&config);
 }
 
 bool retro_load_game(const struct retro_game_info *info)
 {
     check_variables();
 
-    core->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size);
+    core->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size, &config);
 
     struct retro_input_descriptor desc[] = {
         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left" },
