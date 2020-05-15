@@ -119,31 +119,86 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
     GatherMetadata(crc);
 
     if (config.region == CartridgePAL)
+    {
+        Log("Forcing Region: PAL");
         m_bPAL = true;
+    }
     else if (config.region == CartridgeNTSC)
+    {
+        Log("Forcing Region: NTSC");
         m_bPAL = false;
+    }
 
     if (config.system == CartridgeSMS)
     {
+        Log("Forcing System: Master System");
         m_bGameGear = false;
         m_bSG1000 = false;
     }
     else if (config.system == CartridgeGG)
     {
+        Log("Forcing System: Game Gear");
         m_bGameGear = true;
         m_bSG1000 = false;
     }
     else if (config.system == CartridgeSG1000)
     {
+        Log("Forcing System: SG-1000");
         m_bGameGear = false;
         m_bSG1000 = true;
     }
 
-    if (config.type != CartridgeNotSupported)
-        m_Type = config.type;
+    switch (config.type)
+    {
+        case Cartridge::CartridgeRomOnlyMapper:
+            m_Type = config.type;
+            Log("Forcing Mapper: ROM only");
+            break;
+        case Cartridge::CartridgeSegaMapper:
+            m_Type = config.type;
+            Log("Forcing Mapper: SEGA");
+            break;
+        case Cartridge::CartridgeCodemastersMapper:
+            m_Type = config.type;
+            Log("Forcing Mapper: Codemasters");
+            break;
+        case Cartridge::CartridgeSG1000Mapper:
+            m_Type = config.type;
+            Log("Forcing Mapper: SG-1000");
+            break;
+        case Cartridge::CartridgeKoreanMapper:
+            m_Type = config.type;
+            Log("Forcing Mapper: Korean");
+            break;
+        default:
+            break;
+    }
 
-    if (config.zone != CartridgeUnknownZone)
-        m_Zone = config.zone;
+    switch (config.zone)
+    {
+        case CartridgeJapanSMS:
+            m_Zone = config.zone;
+            Log("Forcing Zone: SMS Japan");
+            break;
+        case CartridgeExportSMS:
+            m_Zone = config.zone;
+            Log("Forcing Zone: SMS Export");
+            break;
+        case CartridgeJapanGG:
+            m_Zone = config.zone;
+            Log("Forcing Zone: GG Japan");
+            break;
+        case CartridgeExportGG:
+            m_Zone = config.zone;
+            Log("Forcing Zone: GG Export");
+            break;
+        case CartridgeInternationalGG:
+            m_Zone = config.zone;
+            Log("Forcing Zone: GG International");
+            break;
+        default:
+            break;
+    }
 }
 
 int Cartridge::GetROMSize() const
