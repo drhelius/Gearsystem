@@ -43,6 +43,7 @@ public:
     u8 GetDataPort();
     u8 GetStatusFlags();
     bool IsExtendedMode224();
+    bool IsSG1000Mode();
     void WriteData(u8 data);
     void WriteControl(u8 control);
     void LatchHCounter();

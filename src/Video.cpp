@@ -308,6 +308,11 @@ bool Video::IsExtendedMode224()
     return m_bExtendedMode224;
 }
 
+bool Video::IsSG1000Mode()
+{
+    return m_bSG1000;
+}
+
 void Video::WriteData(u8 data)
 {
     m_bFirstByteInSequence = true;

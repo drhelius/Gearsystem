@@ -68,7 +68,8 @@ static void debug_window_vram_oam(void);
 static void debug_window_vram_palettes(void);
 static void add_symbol(const char* line);
 static void add_breakpoint(void);
-static ImVec4 color_565_to_float(u16 color);
+static ImVec4 color_444_to_float(u16 color);
+static ImVec4 color_222_to_float(u8 color);
 
 void gui_debug_windows(void)
 {
@@ -84,7 +85,6 @@ void gui_debug_windows(void)
             debug_window_vram();
     }
 }
-
 
 void gui_debug_reset(void)
 {
@@ -279,96 +279,6 @@ static void debug_window_memory(void)
 
         ImGui::EndTabBar();
     }
-/*
-    if (ImGui::BeginTabBar("##memory_tabs", ImGuiTabBarFlags_None))
-    {
-        if (ImGui::BeginTabItem("ROM0"))
-        {
-            ImGui::PushFont(gui_default_font);
-            mem_edit.DrawContents(memory->GetROM0(), 0x4000, 0);
-            ImGui::PopFont();
-            ImGui::EndTabItem();
-        }
-
-        if (ImGui::BeginTabItem("ROM1"))
-        {
-            ImGui::PushFont(gui_default_font);
-            mem_edit.DrawContents(memory->GetROM1(), 0x4000, 0x4000);
-            ImGui::PopFont();
-            ImGui::EndTabItem();
-        }
-
-        if (ImGui::BeginTabItem("VRAM"))
-        {
-            ImGui::PushFont(gui_default_font);
-            mem_edit.DrawContents(memory->GetVRAM(), 0x2000, 0x8000);
-            ImGui::PopFont();
-            ImGui::EndTabItem();
-        }
-
-        if (ImGui::BeginTabItem("RAM"))
-        {
-            ImGui::PushFont(gui_default_font);
-            mem_edit.DrawContents(memory->GetRAM(), 0x2000, 0xA000);
-            ImGui::PopFont();
-            ImGui::EndTabItem();
-        }
-
-        if (emu_is_cgb())
-        {
-            if (ImGui::BeginTabItem("WRAM0"))
-            {
-                ImGui::PushFont(gui_default_font);
-                mem_edit.DrawContents(memory->GetWRAM0(), 0x1000, 0xC000);
-                ImGui::PopFont();
-                ImGui::EndTabItem();
-            }
-            if (ImGui::BeginTabItem("WRAM1"))
-            {
-                ImGui::PushFont(gui_default_font);
-                mem_edit.DrawContents(memory->GetWRAM1(), 0x1000, 0xD000);
-                ImGui::PopFont();
-                ImGui::EndTabItem();
-            }
-        }
-        else
-        {
-            if (ImGui::BeginTabItem("WRAM"))
-            {
-                ImGui::PushFont(gui_default_font);
-                mem_edit.DrawContents(memory->GetWRAM0(), 0x2000, 0xC000);
-                ImGui::PopFont();
-                ImGui::EndTabItem();
-            }
-        }
-        
-        if (ImGui::BeginTabItem("OAM"))
-        {
-            ImGui::PushFont(gui_default_font);
-            mem_edit.DrawContents(memory->GetMemoryMap() + 0xFE00, 0x00A0, 0xFE00);
-            ImGui::PopFont();
-            ImGui::EndTabItem();
-        }
-
-        if (ImGui::BeginTabItem("IO"))
-        {
-            ImGui::PushFont(gui_default_font);
-            mem_edit.DrawContents(memory->GetMemoryMap() + 0xFF00, 0x0080, 0xFF00);
-            ImGui::PopFont();
-            ImGui::EndTabItem();
-        }
-
-        if (ImGui::BeginTabItem("HIRAM"))
-        {
-            ImGui::PushFont(gui_default_font);
-            mem_edit.DrawContents(memory->GetMemoryMap() + 0xFF80, 0x007F, 0xFF80);
-            ImGui::PopFont();
-            ImGui::EndTabItem();
-        }
-        ImGui::EndTabBar();
-    }
-
-    */
 
     ImGui::End();
 }
@@ -799,7 +709,7 @@ static void debug_window_vram(void)
     ImGui::SetNextWindowSize(ImVec2(544, 534), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("VRAM Viewer", &config_debug.show_video);
-/*
+
     if (ImGui::BeginTabBar("##vram_tabs", ImGuiTabBarFlags_None))
     {
         if (ImGui::BeginTabItem("Background"))
@@ -814,7 +724,7 @@ static void debug_window_vram(void)
             ImGui::EndTabItem();
         }
 
-        if (ImGui::BeginTabItem("OAM"))
+        if (ImGui::BeginTabItem("Sprites"))
         {
             debug_window_vram_oam();
             ImGui::EndTabItem();
@@ -828,7 +738,7 @@ static void debug_window_vram(void)
 
         ImGui::EndTabBar();
     }
-*/
+
     ImGui::End();
 }
 
@@ -1265,153 +1175,69 @@ static void debug_window_vram_oam(void)
 
 static void debug_window_vram_palettes(void)
 {
-    /*
+    
     GearsystemCore* core = emu_get_core();
     Video* video = core->GetVideo();
-    Memory* memory = core->GetMemory();
-    u16* palette = core->GetDMGInternalPalette();
+    u8* palettes = video->GetCRAM();
 
     ImGui::PushFont(gui_default_font);
 
-    ImGui::TextColored(yellow, "DMG:"); ImGui::SameLine();
-    ImGui::TextColored(cyan, "                          0       1       2       3");
+    ImGui::TextColored(yellow, "Background:");
 
-    u8 bgp = memory->Retrieve(0xFF47);
-    u8 obp0 = memory->Retrieve(0xFF48);
-    u8 obp1 = memory->Retrieve(0xFF49);
-    
-    ImGui::TextColored(cyan, " $FF47"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "BGP "); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")  ", bgp, BYTE_TO_BINARY(bgp)); ImGui::SameLine();
-
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 2; i ++)
     {
-        int index = (bgp >> (i * 2)) & 0x03;
-        int color = palette[index];
-        ImVec4 float_color = color_565_to_float(color);
-        char id[16];
-        sprintf(id, "##dmg_bg_%d", i);
-        ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker); ImGui::SameLine();
-        ImGui::Text("%d  ", index);
-        if (i < 3)
-            ImGui::SameLine();
-    }
-
-    ImGui::TextColored(cyan, " $FF48"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "OBP0"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")  ", obp0, BYTE_TO_BINARY(obp0)); ImGui::SameLine();
-
-    for (int i = 0; i < 4; i++)
-    {
-        int index = (obp0 >> (i * 2)) & 0x03;
-        int color = palette[index];
-        ImVec4 float_color = color_565_to_float(color);
-        char id[16];
-        sprintf(id, "##dmg_bg_%d", i);
-        ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker); ImGui::SameLine();
-        ImGui::Text("%d  ", index);
-        if (i < 3)
-            ImGui::SameLine();
-    }
-
-    ImGui::TextColored(cyan, " $FF49"); ImGui::SameLine();
-    ImGui::TextColored(magenta, "OBP1"); ImGui::SameLine();
-    ImGui::Text("$%02X (" BYTE_TO_BINARY_PATTERN_SPACED ")  ", obp1, BYTE_TO_BINARY(obp1)); ImGui::SameLine();
-
-    for (int i = 0; i < 4; i++)
-    {
-        int index = (obp1 >> (i * 2)) & 0x03;
-        int color = palette[index];
-        ImVec4 float_color = color_565_to_float(color);
-        char id[16];
-        sprintf(id, "##dmg_bg_%d", i);
-        ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker); ImGui::SameLine();
-        ImGui::Text("%d  ", index);
-        if (i < 3)
-            ImGui::SameLine();
-    }
-
-    ImGui::Text(" ");
-
-    PaletteMatrix bg_palettes = video->GetCGBBackgroundPalettes();
-    PaletteMatrix sprite_palettes = video->GetCGBSpritePalettes();
-
-    ImGui::Columns(2, "palettes");
-
-    ImGui::TextColored(yellow, "GBC BACKGROUND:");
-
-    ImGui::NextColumn();
-
-    ImGui::TextColored(yellow, "GBC SPRITES:");
-
-    ImGui::NextColumn();
-
-    ImGui::Separator();
-
-    for (int p = 0; p < 8; p++)
-    {
-        ImGui::TextColored(cyan, " %d ", p); ImGui::SameLine();
-
-        for (int c = 0; c < 4; c++)
+        ImGui::Text(" "); ImGui::SameLine(31.0f);
+        for (int c = 0; c < 16; c++)
         {
-            u16 color = (*bg_palettes)[p][c][1];
-            ImVec4 float_color = color_565_to_float(color);
-            char id[16];
-            sprintf(id, "##cgb_bg_%d_%d", p, c);
-            ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker);
-            if (c < 3)
-            {   
-                ImGui::SameLine(); ImGui::Dummy(ImVec2(8.0f, 0.0f));
-                ImGui::SameLine();
-            }
-        }
-
-        ImGui::Text("  "); ImGui::SameLine();
-
-        for (int c = 0; c < 4; c++)
-        {
-            u16 color = (*bg_palettes)[p][c][1];
-            ImGui::Text("%04X ", color);
-            if (c < 3)
-                ImGui::SameLine();
-        }
-    }
-
-    ImGui::NextColumn();
-
-    for (int p = 0; p < 8; p++)
-    {
-        ImGui::TextColored(cyan, " %d ", p); ImGui::SameLine();
-
-        for (int c = 0; c < 4; c++)
-        {
-            u16 color = (*sprite_palettes)[p][c][1];
-            ImVec4 float_color = color_565_to_float(color);
-            char id[16];
-            sprintf(id, "##cgb_bg_%d_%d", p, c);
-            ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker);
-            if (c < 3)
+            ImVec4 float_color;
+            if (core->GetCartridge()->IsGameGear())
             {
-                ImGui::SameLine(); ImGui::Dummy(ImVec2(8.0f, 0.0f));
-                ImGui::SameLine();
+                u8 color_lo = palettes[(i << 5) + (c << 1)];
+                u8 color_hi = palettes[(i << 5) + (c << 1) + 1];
+                u16 color = color_hi << 8 | color_lo;
+                float_color = color_444_to_float(color);
+            }
+            else
+            {
+                u8 color = palettes[(i << 4) + c];
+                float_color = color_222_to_float(color);
+            }
+
+            char id[16];
+            sprintf(id, "##pal_%d_%d", i, c);
+            ImGui::ColorEdit3(id, (float*)&float_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoPicker);
+            if (c < 15)
+            {   
+                ImGui::SameLine(31.0f + (29.0f * (c + 1))); 
             }
         }
 
         ImGui::Text("  "); ImGui::SameLine();
 
-        for (int c = 0; c < 4; c++)
+        for (int c = 0; c < 16; c++)
         {
-            u16 color = (*sprite_palettes)[p][c][1];
-            ImGui::Text("%04X ", color);
-            if (c < 3)
+            if (core->GetCartridge()->IsGameGear())
+            {
+                u8 color_lo = palettes[(i << 5) + (c << 1)];
+                u8 color_hi = palettes[(i << 5) + (c << 1) + 1];
+                u16 color = color_hi << 8 | color_lo;
+                ImGui::Text("%03X", color);
+            }
+            else
+            {
+                u8 color = palettes[(i << 4) + c];
+                ImGui::Text("$%02X", color);
+            }
+            
+            if (c < 15)
                 ImGui::SameLine();
         }
+
+        if (i == 0)
+            ImGui::TextColored(yellow, "Background & Sprites:");
     }
-
-    ImGui::Columns(1);
-
+   
     ImGui::PopFont();
-    */
 }
 
 static void add_symbol(const char* line)
@@ -1535,12 +1361,22 @@ static void add_breakpoint(void)
     }
 }
 
-static ImVec4 color_565_to_float(u16 color)
+static ImVec4 color_444_to_float(u16 color)
 {
     ImVec4 ret;
     ret.w = 0;
-    ret.x = (1.0f / 31.0f) * ((color >> 11) & 0x1F);
-    ret.y = (1.0f / 63.0f) * ((color >> 5) & 0x3F);
-    ret.z = (1.0f / 31.0f) * (color & 0x1F);
+    ret.x = (1.0f / 15.0f) * (color & 0xF);
+    ret.y = (1.0f / 15.0f) * ((color >> 4) & 0xF);
+    ret.z = (1.0f / 15.0f) * ((color >> 8) & 0xF);
+    return ret;
+}
+
+static ImVec4 color_222_to_float(u8 color)
+{
+    ImVec4 ret;
+    ret.w = 0;
+    ret.x = (1.0f / 3.0f) * (color & 0x3);
+    ret.y = (1.0f / 3.0f) * ((color >> 2) & 0x3);
+    ret.z = (1.0f / 3.0f) * ((color >> 4) & 0x3);
     return ret;
 }
