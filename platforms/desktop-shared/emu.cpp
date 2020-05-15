@@ -87,7 +87,7 @@ void emu_load_rom(const char* file_path, bool save_in_rom_dir, Cartridge::ForceC
 {
     save_files_in_rom_dir = save_in_rom_dir;
     save_ram();
-    gearsystem->LoadROM(file_path, config);
+    gearsystem->LoadROM(file_path, &config);
     load_ram();
     emu_debug_continue();
 }
@@ -154,7 +154,7 @@ void emu_reset(bool save_in_rom_dir, Cartridge::ForceConfiguration config)
 {
     save_files_in_rom_dir = save_in_rom_dir;
     save_ram();
-    gearsystem->ResetROM(config);
+    gearsystem->ResetROM(&config);
     load_ram();
 }
 
@@ -192,7 +192,7 @@ void emu_load_ram(const char* file_path, bool save_in_rom_dir, Cartridge::ForceC
     {
         save_files_in_rom_dir = save_in_rom_dir;
         save_ram();
-        gearsystem->ResetROM(config);
+        gearsystem->ResetROM(&config);
         gearsystem->LoadRam(file_path, true);
     }
 }

@@ -144,11 +144,12 @@ bool GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer, s16* pSampleBuffer, int
     return breakpoint;
 }
 
-bool GearsystemCore::LoadROM(const char* szFilePath, Cartridge::ForceConfiguration config)
+bool GearsystemCore::LoadROM(const char* szFilePath, Cartridge::ForceConfiguration* config)
 {
     if (m_pCartridge->LoadFromFile(szFilePath))
     {
-        m_pCartridge->ForceConfig(config);
+        if (IsValidPointer(config))
+            m_pCartridge->ForceConfig(*config);
         Reset();
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
         bool romTypeOK = AddMemoryRules();
@@ -165,21 +166,12 @@ bool GearsystemCore::LoadROM(const char* szFilePath, Cartridge::ForceConfigurati
         return false;
 }
 
-bool GearsystemCore::LoadROM(const char* szFilePath)
-{
-    Cartridge::ForceConfiguration config;
-    config.type = Cartridge::CartridgeNotSupported;
-    config.zone = Cartridge::CartridgeUnknownZone;
-    config.region = Cartridge::CartridgeUnknownRegion;
-    config.system = Cartridge::CartridgeUnknownSystem;
-
-    return LoadROM(szFilePath, config);
-}
-
-bool GearsystemCore::LoadROMFromBuffer(const u8* buffer, int size)
+bool GearsystemCore::LoadROMFromBuffer(const u8* buffer, int size, Cartridge::ForceConfiguration* config)
 {
     if (m_pCartridge->LoadFromBuffer(buffer, size))
     {
+        if (IsValidPointer(config))
+            m_pCartridge->ForceConfig(*config);
         Reset();
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
         bool romTypeOK = AddMemoryRules();
@@ -290,12 +282,13 @@ bool GearsystemCore::IsPaused()
     return m_bPaused;
 }
 
-void GearsystemCore::ResetROM(Cartridge::ForceConfiguration config)
+void GearsystemCore::ResetROM(Cartridge::ForceConfiguration* config)
 {
     if (m_pCartridge->IsReady())
     {
         Log("Gearsystem RESET");
-        m_pCartridge->ForceConfig(config);
+        if (IsValidPointer(config))
+            m_pCartridge->ForceConfig(*config);
         Reset();
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
         AddMemoryRules();
@@ -303,18 +296,7 @@ void GearsystemCore::ResetROM(Cartridge::ForceConfiguration config)
     }
 }
 
-void GearsystemCore::ResetROM()
-{
-    Cartridge::ForceConfiguration config;
-    config.type = Cartridge::CartridgeNotSupported;
-    config.zone = Cartridge::CartridgeUnknownZone;
-    config.region = Cartridge::CartridgeUnknownRegion;
-    config.system = Cartridge::CartridgeUnknownSystem;
-
-    ResetROM(config);
-}
-
-void GearsystemCore::ResetROMPreservingRAM()
+void GearsystemCore::ResetROMPreservingRAM(Cartridge::ForceConfiguration* config)
 {
     if (m_pCartridge->IsReady())
     {
@@ -327,7 +309,7 @@ void GearsystemCore::ResetROMPreservingRAM()
 
             m_pMemory->GetCurrentRule()->SaveRam(stream);
 
-            ResetROM();
+            ResetROM(config);
 
             stream.seekg(0, stream.end);
             s32 size = (s32)stream.tellg();
