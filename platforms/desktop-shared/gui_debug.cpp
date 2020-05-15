@@ -66,6 +66,7 @@ static void debug_window_vram_background(void);
 static void debug_window_vram_tiles(void);
 static void debug_window_vram_oam(void);
 static void debug_window_vram_palettes(void);
+static void debug_window_vram_regs(void);
 static void add_symbol(const char* line);
 static void add_breakpoint(void);
 static ImVec4 color_444_to_float(u16 color);
@@ -708,17 +709,17 @@ static void debug_window_vram(void)
     ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(544, 534), ImGuiCond_FirstUseEver);
 
-    ImGui::Begin("VRAM Viewer", &config_debug.show_video);
+    ImGui::Begin("VDP Viewer", &config_debug.show_video);
 
     if (ImGui::BeginTabBar("##vram_tabs", ImGuiTabBarFlags_None))
     {
-        if (ImGui::BeginTabItem("Background"))
+        if (ImGui::BeginTabItem("Name Table"))
         {
             debug_window_vram_background();
             ImGui::EndTabItem();
         }
 
-        if (ImGui::BeginTabItem("Tiles"))
+        if (ImGui::BeginTabItem("Pattern Table"))
         {
             debug_window_vram_tiles();
             ImGui::EndTabItem();
@@ -730,9 +731,10 @@ static void debug_window_vram(void)
             ImGui::EndTabItem();
         }
 
-        if (ImGui::BeginTabItem("Palettes"))
+        if (ImGui::BeginTabItem("Palettes & Registers"))
         {
             debug_window_vram_palettes();
+            debug_window_vram_regs();
             ImGui::EndTabItem();
         }
 
@@ -856,7 +858,7 @@ static void debug_window_vram_background(void)
 
         ImGui::TextColored(cyan, " X:"); ImGui::SameLine();
         ImGui::Text("$%02X", tile_x); ImGui::SameLine();
-        ImGui::TextColored(cyan, "    Y:"); ImGui::SameLine();
+        ImGui::TextColored(cyan, "   Y:"); ImGui::SameLine();
         ImGui::Text("$%02X", tile_y);
 
         int name_table_addr = (regs[2] & (video->IsExtendedMode224() ? 0x0C : 0x0E)) << 10;
@@ -1129,14 +1131,13 @@ static void debug_window_vram_oam(void)
 
 static void debug_window_vram_palettes(void)
 {
-    
     GearsystemCore* core = emu_get_core();
     Video* video = core->GetVideo();
     u8* palettes = video->GetCRAM();
 
     ImGui::PushFont(gui_default_font);
 
-    ImGui::TextColored(yellow, "Background:");
+    ImGui::TextColored(yellow, "PALETTE 0 (BG):");
 
     for (int i = 0; i < 2; i ++)
     {
@@ -1188,9 +1189,34 @@ static void debug_window_vram_palettes(void)
         }
 
         if (i == 0)
-            ImGui::TextColored(yellow, "Background & Sprites:");
+        {
+            ImGui::TextColored(yellow, " ");
+            ImGui::TextColored(yellow, "PALETTE 1 (BG & SPRITES):");
+        }
     }
    
+    ImGui::PopFont();
+}
+
+static void debug_window_vram_regs(void)
+{
+    ImGui::PushFont(gui_default_font);
+
+    Video* video = emu_get_core()->GetVideo();
+    u8* regs = video->GetRegisters();
+
+    const char* reg_desc[] = {"CONTROL 1     ", "CONTROL 2     ", "NAME TABLE    ", "COLOR TABLE   ", "PATTERN TABLE ", "SPRITE ATTR   ", "SPRITE PATTERN", "BACKDROP COLOR", "H SCROLL      ", "V SCROLL      ", "V INTERRUPT   "};
+
+    ImGui::TextColored(yellow, " ");
+    ImGui::TextColored(yellow, "VDP REGISTERS:");
+
+    for (int i = 0; i < 11; i++)
+    {
+        ImGui::TextColored(cyan, " REG $%01X ", i); ImGui::SameLine();
+        ImGui::TextColored(magenta, "%s ", reg_desc[i]); ImGui::SameLine();
+        ImGui::Text("$%02X  (" BYTE_TO_BINARY_PATTERN_SPACED ")", regs[i], BYTE_TO_BINARY(regs[i]));
+    }
+
     ImGui::PopFont();
 }
 
