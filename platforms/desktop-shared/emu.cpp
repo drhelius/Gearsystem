@@ -40,7 +40,7 @@ static const char* get_zone(Cartridge::CartridgeZones zone);
 static void init_debug(void);
 static void update_debug(void);
 static void update_debug_background_buffer(void);
-static void update_debug_tile_buffers(void);
+static void update_debug_tile_buffer(void);
 static void update_debug_sprite_buffers(void);
 
 void emu_init(const char* save_path)
@@ -74,7 +74,7 @@ void emu_init(const char* save_path)
     audio_enabled = true;
     emu_audio_sync = true;
     emu_debug_disable_breakpoints = false;
-
+    emu_debug_tile_palette = 0;
 }
 
 void emu_destroy(void)
@@ -365,13 +365,13 @@ static const char* get_zone(Cartridge::CartridgeZones zone)
 static void init_debug(void)
 {
     emu_debug_background_buffer = new GS_Color[256 * 256];
-    emu_debug_tile_buffers = new GS_Color[16 * 24 * 64];
+    emu_debug_tile_buffer = new GS_Color[32 * 16 * 64];
 
-    for (int i=0; i < (16 * 24 * 64); i++)
+    for (int i=0; i < (32 * 16 * 64); i++)
     {
-        emu_debug_tile_buffers[i].red = 0;
-        emu_debug_tile_buffers[i].green = 0;
-        emu_debug_tile_buffers[i].blue = 0;
+        emu_debug_tile_buffer[i].red = 0;
+        emu_debug_tile_buffer[i].green = 0;
+        emu_debug_tile_buffer[i].blue = 0;
     }
 
     for (int s = 0; s < 64; s++)
@@ -397,15 +397,13 @@ static void init_debug(void)
 static void update_debug(void)
 {
     update_debug_background_buffer();
-    update_debug_tile_buffers();
+    update_debug_tile_buffer();
     update_debug_sprite_buffers();
 }
 
 static void update_debug_background_buffer(void)
 {
     Video* video = gearsystem->GetVideo();
-    GS_RuntimeInfo runtime;
-    emu_get_runtime(runtime);
     u8* regs = video->GetRegisters();
     u8* vram = video->GetVRAM();
 
@@ -447,63 +445,33 @@ static void update_debug_background_buffer(void)
     }
 }
 
-static void update_debug_tile_buffers(void)
+static void update_debug_tile_buffer(void)
 {
-/*    Memory* memory = gearboy->GetMemory();
-    Video* video = gearboy->GetVideo();
-    u16* dmg_palette = gearboy->GetDMGInternalPalette();
-    PaletteMatrix bg_palettes = video->GetCGBBackgroundPalettes();
-    PaletteMatrix sprite_palettes = video->GetCGBSpritePalettes();
+    Video* video = gearsystem->GetVideo();
+    u8* vram = video->GetVRAM();
 
-    for (int b = 0; b < 2; b++)
+    for (int y = 0; y < 128; y++)
     {
-        for (int pixel = 0; pixel < (16 * 24 * 64); pixel++)
+        int width_y = (y * 256);
+        int tile_y = y / 8;
+        int offset_y = y & 0x7;
+
+        for (int x = 0; x < 256; x++)
         {
-            int tilex = (pixel >> 3) & 0xF;
-            int tile_offset_x = pixel & 0x7;
-            int tiley = (pixel >> 10); 
-            int tile_offset_y = (pixel >> 7) & 0x7; 
-            int tile = (tiley << 4) + tilex;
-            int tile_address = 0x8000 + (tile << 4) + (tile_offset_y << 1);
-            u8 byte1 = 0;
-            u8 byte2 = 0;
+            int tile_x = x / 8;
+            int offset_x = x & 0x7;
+            offset_x = 7 - offset_x;
+            int pixel = width_y + x;
 
-            if (b == 0)
-            {
-                byte1 = memory->Retrieve(tile_address);
-                byte2 = memory->Retrieve(tile_address + 1);
-            }
-            else
-            {
-                byte1 = memory->ReadCGBLCDRAM(tile_address, true);
-                byte2 = memory->ReadCGBLCDRAM(tile_address + 1, true);
-            }
+            int tile_number = (tile_y * 32) + tile_x;
+            int tile_palette = emu_debug_tile_palette * 16;
 
-            int tile_bit = 0x1 << (7 - tile_offset_x);
-            int pixel_data = (byte1 & tile_bit) ? 1 : 0;
-            pixel_data |= (byte2 & tile_bit) ? 2 : 0;
+            int tile_data_addr = (tile_number * 32) + (4 * offset_y);
+            int color_index = ((vram[tile_data_addr] >> offset_x) & 1) | (((vram[tile_data_addr + 1] >> offset_x) & 1) << 1) | (((vram[tile_data_addr + 2] >> offset_x) & 1) << 2) | (((vram[tile_data_addr + 3] >> offset_x) & 1) << 3);
 
-            if (gearboy->IsCGB())
-            {
-                if (emu_debug_tile_color_palette > 7)
-                {
-                    pixel_data = (*sprite_palettes)[emu_debug_tile_color_palette - 8][pixel_data][1];
-                }
-                else
-                {
-                    pixel_data = (*bg_palettes)[emu_debug_tile_color_palette][pixel_data][1];
-                }
-                debug_tile_buffers_565[b][pixel] = pixel_data;
-            }
-            else
-            {
-                u8 palette = memory->Retrieve(0xFF47 + emu_debug_tile_dmg_palette);
-                pixel_data = (palette >> (pixel_data << 1)) & 0x03;
-                debug_tile_buffers_565[b][pixel] = dmg_palette[pixel_data];
-            }
+            emu_debug_tile_buffer[pixel] = video->ConvertTo8BitColor(color_index + tile_palette);
         }
     }
-    */
 }
 
 static void update_debug_sprite_buffers(void)
