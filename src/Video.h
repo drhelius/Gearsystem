@@ -53,6 +53,8 @@ public:
     u8* GetVRAM();
     u8* GetCRAM();
     u8* GetRegisters();
+    GS_Color* GetSG1000Palette();
+    int GetSG1000Mode();
     GS_Color ConvertTo8BitColor(int palette_color);
 
 private:

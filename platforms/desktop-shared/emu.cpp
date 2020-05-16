@@ -39,9 +39,12 @@ static const char* get_mapper(Cartridge::CartridgeTypes type);
 static const char* get_zone(Cartridge::CartridgeZones zone);
 static void init_debug(void);
 static void update_debug(void);
-static void update_debug_background_buffer(void);
-static void update_debug_tile_buffer(void);
-static void update_debug_sprite_buffers(void);
+static void update_debug_background_buffer_smsgg(void);
+static void update_debug_tile_buffer_smsgg(void);
+static void update_debug_sprite_buffers_smsgg(void);
+static void update_debug_background_buffer_sg1000(void);
+static void update_debug_tile_buffer_sg1000(void);
+static void update_debug_sprite_buffers_sg1000(void);
 
 void emu_init(const char* save_path)
 {
@@ -396,12 +399,21 @@ static void init_debug(void)
 
 static void update_debug(void)
 {
-    update_debug_background_buffer();
-    update_debug_tile_buffer();
-    update_debug_sprite_buffers();
+    if (gearsystem->GetVideo()->IsSG1000Mode())
+    {
+        update_debug_background_buffer_sg1000();
+        update_debug_tile_buffer_sg1000();
+        update_debug_sprite_buffers_sg1000();
+    }
+    else
+    {
+        update_debug_background_buffer_smsgg();
+        update_debug_tile_buffer_smsgg();
+        update_debug_sprite_buffers_smsgg();
+    }
 }
 
-static void update_debug_background_buffer(void)
+static void update_debug_background_buffer_smsgg(void)
 {
     Video* video = gearsystem->GetVideo();
     u8* regs = video->GetRegisters();
@@ -445,7 +457,51 @@ static void update_debug_background_buffer(void)
     }
 }
 
-static void update_debug_tile_buffer(void)
+static void update_debug_background_buffer_sg1000(void)
+{
+    Video* video = gearsystem->GetVideo();
+    u8* regs = video->GetRegisters();
+    u8* vram = video->GetVRAM();
+
+    for (int y = 0; y < 256; y++)
+    {
+        int width_y = (y * 256);
+        int tile_y = y / 8;
+        int offset_y = y & 0x7;
+
+        for (int x = 0; x < 256; x++)
+        {
+            int tile_x = x / 8;
+            int offset_x = x & 0x7;
+            int pixel = width_y + x;
+
+            int name_table_addr = (regs[2] & (video->IsExtendedMode224() ? 0x0C : 0x0E)) << 10;
+            if (video->IsExtendedMode224())
+                name_table_addr |= 0x700;
+            u16 map_addr = name_table_addr + (64 * tile_y) + (tile_x * 2);
+
+            u16 tile_info_lo = vram[map_addr];
+            u16 tile_info_hi = vram[map_addr + 1];
+
+            int tile_number = ((tile_info_hi & 1) << 8) | tile_info_lo;
+            bool tile_hflip = IsSetBit(tile_info_hi, 1);
+            bool tile_vflip = IsSetBit(tile_info_hi, 2);
+            int tile_palette = IsSetBit(tile_info_hi, 3) ? 16 : 0;
+            if (!tile_hflip)
+                offset_x = 7 - offset_x;
+            if (tile_vflip)
+                offset_y = 7 - offset_y;
+
+
+            int tile_data_addr = (tile_number * 32) + (4 * offset_y);
+            int color_index = ((vram[tile_data_addr] >> offset_x) & 1) | (((vram[tile_data_addr + 1] >> offset_x) & 1) << 1) | (((vram[tile_data_addr + 2] >> offset_x) & 1) << 2) | (((vram[tile_data_addr + 3] >> offset_x) & 1) << 3);
+
+            emu_debug_background_buffer[pixel] = video->ConvertTo8BitColor(color_index + tile_palette);
+        }
+    }
+}
+
+static void update_debug_tile_buffer_smsgg(void)
 {
     Video* video = gearsystem->GetVideo();
     u8* vram = video->GetVRAM();
@@ -474,74 +530,67 @@ static void update_debug_tile_buffer(void)
     }
 }
 
-static void update_debug_sprite_buffers(void)
+static void update_debug_tile_buffer_sg1000(void)
 {
-    /*
-    Memory* memory = gearboy->GetMemory();
-    Video* video = gearboy->GetVideo();
-    u16 address = 0xFE00;
-    u16* dmg_palette = gearboy->GetDMGInternalPalette();
-    PaletteMatrix sprite_palettes = video->GetCGBSpritePalettes();
-    u8 lcdc = memory->Retrieve(0xFF40);
-    bool sprites_16 = IsSetBit(lcdc, 2);
+    Video* video = gearsystem->GetVideo();
+    u8* vram = video->GetVRAM();
+    u8* regs = video->GetRegisters();
+    int mode = video->GetSG1000Mode();
 
-    for (int s = 0; s < 40; s++)
+    int pattern_table_addr = 0;
+    int color_table_addr = 0;
+
+    if (mode == 0x200)
     {
-        u8 tile = memory->Retrieve(address + 2);
-        u8 flags = memory->Retrieve(address + 3);
-        int palette = IsSetBit(flags, 4) ? 1 : 0;
-        bool xflip = IsSetBit(flags, 5);
-        bool yflip = IsSetBit(flags, 6);
-        bool cgb_bank = IsSetBit(flags, 3);
-        int cgb_pal = flags & 0x07;
-
-        for (int pixel = 0; pixel < (8 * 16); pixel++)
-        {
-            u16 tile_addr = 0x8000 + (tile * 16);
-
-            int pixel_x = pixel & 0x7;
-            int pixel_y = pixel / 8;
-
-            u16 line_addr = tile_addr + (2 * pixel_y);
-
-            if (xflip)
-                pixel_x = 7 - pixel_x;
-            if (yflip)
-                line_addr = (sprites_16 ? 15 : 7) - line_addr;
-
-            u8 byte1 = 0;
-            u8 byte2 = 0;
-
-            if (gearboy->IsCGB() && cgb_bank)
-            {
-                byte1 = memory->ReadCGBLCDRAM(line_addr, true);
-                byte2 = memory->ReadCGBLCDRAM(line_addr + 1, true);
-            }
-            else
-            {
-                byte1 = memory->Retrieve(line_addr);
-                byte2 = memory->Retrieve(line_addr + 1);
-            }
-
-            int tile_bit = 0x1 << (7 - pixel_x);
-            int pixel_data = (byte1 & tile_bit) ? 1 : 0;
-            pixel_data |= (byte2 & tile_bit) ? 2 : 0;
-
-            if (gearboy->IsCGB())
-            {
-                pixel_data = (*sprite_palettes)[cgb_pal][pixel_data][1];
-                debug_oam_buffers_565[s][pixel] = pixel_data;
-            }
-            else
-            {
-                u8 final_palette = memory->Retrieve(0xFF48 + palette);
-                pixel_data = (final_palette >> (pixel_data << 1)) & 0x03;
-                debug_oam_buffers_565[s][pixel] = dmg_palette[pixel_data];
-            }
-        }
-
-        address += 4;
+        pattern_table_addr = (regs[4] & 0x04) << 11;
+        color_table_addr = (regs[3] & 0x80) << 6;
     }
-    */
+    else
+    {
+        pattern_table_addr = (regs[4] & 0x07) << 11;
+        color_table_addr = regs[3] << 6;
+    }
+
+    for (int y = 0; y < 128; y++)
+    {
+        int width_y = (y * 256);
+        int tile_y = y / 8;
+        int offset_y = y & 0x7;
+
+        for (int x = 0; x < 256; x++)
+        {
+            int tile_x = x / 8;
+            int offset_x = x & 0x7;
+            offset_x = 7 - offset_x;
+            int pixel = width_y + x;
+
+            int tile_number = (tile_y * 32) + tile_x;
+            int tile_palette = emu_debug_tile_palette * 16;
+
+            int tile_data_addr = pattern_table_addr + (tile_number * 8) + (1 * offset_y);
+            bool color = IsSetBit(vram[tile_data_addr], offset_x);
+
+            GS_Color black;
+            black.red = 0;
+            black.green = 0;
+            black.blue = 0;
+
+            GS_Color white;
+            black.red = 255;
+            black.green = 255;
+            black.blue = 255;
+
+            emu_debug_tile_buffer[pixel] = color ? white : black;
+        }
+    }
 }
 
+static void update_debug_sprite_buffers_smsgg(void)
+{
+
+}
+
+static void update_debug_sprite_buffers_sg1000(void)
+{
+
+}

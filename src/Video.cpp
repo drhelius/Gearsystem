@@ -149,6 +149,16 @@ u8* Video::GetRegisters()
     return m_VdpRegister;
 }
 
+GS_Color* Video::GetSG1000Palette()
+{
+    return m_pSG1000Palette;
+}
+
+int Video::GetSG1000Mode()
+{
+    return m_iSG1000Mode;
+}
+
 bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
 {
     int max_height = m_bExtendedMode224 ? 224 : 192;
