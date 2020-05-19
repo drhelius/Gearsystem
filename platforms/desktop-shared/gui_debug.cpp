@@ -64,7 +64,7 @@ static void debug_window_disassembler(void);
 static void debug_window_vram(void);
 static void debug_window_vram_background(void);
 static void debug_window_vram_tiles(void);
-static void debug_window_vram_oam(void);
+static void debug_window_vram_sprites(void);
 static void debug_window_vram_palettes(void);
 static void debug_window_vram_regs(void);
 static void add_symbol(const char* line);
@@ -727,7 +727,7 @@ static void debug_window_vram(void)
 
         if (ImGui::BeginTabItem("Sprites"))
         {
-            debug_window_vram_oam();
+            debug_window_vram_sprites();
             ImGui::EndTabItem();
         }
 
@@ -981,88 +981,99 @@ static void debug_window_vram_tiles(void)
     ImGui::Columns(1);
 }
 
-static void debug_window_vram_oam(void)
+static void debug_window_vram_sprites(void)
 {
-    /*
-    float scale = 5.0f;
+    float scale = 4.0f;
     float width = 8.0f * scale;
     float height_8 = 8.0f * scale;
     float height_16 = 16.0f * scale;
 
     GearsystemCore* core = emu_get_core();
-    Memory* memory = core->GetMemory();
+    Video* video = core->GetVideo();
+    u8* regs = video->GetRegisters();
+    u8* vram = video->GetVRAM();
+    GS_RuntimeInfo runtime;
+    emu_get_runtime(runtime);
 
-    ImVec2 p[40];
+    bool sprites_16 = IsSetBit(regs[1], 1);
 
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImVec2 p[64];
+
     ImGuiIO& io = ImGui::GetIO();
-
-    u8 lcdc = memory->Retrieve(0xFF40);
-    bool sprites_16 = IsSetBit(lcdc, 2);
 
     ImGui::PushFont(gui_default_font);
 
-    ImGui::Columns(2, "oam", true);
+    ImGui::Columns(2, "spr", false);
+    ImGui::SetColumnOffset(1, 200.0f);
 
-    for (int s = 0; s < 40; s++)
+    ImGui::BeginChild("sprites", ImVec2(0, 0.0f), true);
+
+    for (int s = 0; s < 64; s++)
     {
         p[s] = ImGui::GetCursorScreenPos();
 
-        ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_oam[s], ImVec2(width, sprites_16 ? height_16 : height_8), ImVec2(0.0f, 0.0f), ImVec2(1.0f, sprites_16 ? 1.0f : 0.5f));
+        ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_sprites[s], ImVec2(width, sprites_16 ? height_16 : height_8), ImVec2(0.0f, 0.0f), ImVec2(1.0f, sprites_16 ? 1.0f : 0.5f));
 
         float mouse_x = io.MousePos.x - p[s].x;
         float mouse_y = io.MousePos.y - p[s].y;
 
         if ((mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < (sprites_16 ? height_16 : height_8)))
         {
+            ImDrawList* draw_list = ImGui::GetWindowDrawList();
             draw_list->AddRect(ImVec2(p[s].x, p[s].y), ImVec2(p[s].x + width, p[s].y + (sprites_16 ? height_16 : height_8)), ImColor(cyan), 2.0f, 15, 3.0f);
         }
 
-        if (s % 5 < 4)
+        if (s % 4 < 3)
             ImGui::SameLine();
     }
+
+    ImGui::EndChild();
 
     ImGui::NextColumn();
 
     ImVec2 p_screen = ImGui::GetCursorScreenPos();
 
-    float screen_scale = 1.5f;
+    float screen_scale = 1.0f;
 
-    ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(GAMEBOY_WIDTH * screen_scale, GAMEBOY_HEIGHT * screen_scale));
+    ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(runtime.screen_width * screen_scale, runtime.screen_height * screen_scale));
 
-    for (int s = 0; s < 40; s++)
+    int scy_adjust = core->GetCartridge()->IsGameGear() ? GS_RESOLUTION_GG_Y_OFFSET : 0;
+    int sprite_shift = IsSetBit(regs[0], 3) ? 8 : 0;
+    u16 sprite_table_address = (regs[5] << 7) & 0x3F00;
+    u16 sprite_table_address_2 = sprite_table_address + 0x80;
+    u16 sprite_tiles_address = (regs[6] << 11) & 0x2000;
+
+    int scx_begin = core->GetCartridge()->IsGameGear() ? GS_RESOLUTION_GG_X_OFFSET : 0;
+    int scx_end = scx_begin + runtime.screen_width;
+
+    for (int s = 0; s < 64; s++)
     {
         float mouse_x = io.MousePos.x - p[s].x;
         float mouse_y = io.MousePos.y - p[s].y;
 
         if ((mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < (sprites_16 ? height_16 : height_8)))
         {
-            u16 address = 0xFE00 + (4 * s);
+            u16 sprite_info_address = sprite_table_address_2 + (s << 1);
 
-            u8 y = memory->Retrieve(address);
-            u8 x = memory->Retrieve(address + 1);
-            u8 tile = memory->Retrieve(address + 2);
-            u8 flags = memory->Retrieve(address + 3);
-            int palette = IsSetBit(flags, 4) ? 1 : 0;
-            bool xflip = IsSetBit(flags, 5);
-            bool yflip = IsSetBit(flags, 6);
-            bool priority = !IsSetBit(flags, 7);
-            bool cgb_bank = IsSetBit(flags, 3);
-            int cgb_pal = flags & 0x07;
+            int y = vram[sprite_table_address + s] + 1;
+            int x = vram[sprite_info_address] - sprite_shift;
+            int tile = vram[sprite_info_address + 1];
+            tile &= sprites_16 ? 0xFE : 0xFF;
+            int sprite_tile_addr = sprite_tiles_address + (tile << 5);
 
-            float real_x = x - 8.0f;
-            float real_y = y - 16.0f;
+            float real_x = x - 0.0f;
+            float real_y = y - 0.0f;
             float rectx_min = p_screen.x + (real_x * screen_scale);
             float rectx_max = p_screen.x + ((real_x + 8.0f) * screen_scale);
             float recty_min = p_screen.y + (real_y * screen_scale);
             float recty_max = p_screen.y + ((real_y + (sprites_16 ? 16.0f : 8.0f)) * screen_scale);
 
-            rectx_min = fminf(fmaxf(rectx_min, p_screen.x), p_screen.x + (GAMEBOY_WIDTH * screen_scale));
-            rectx_max = fminf(fmaxf(rectx_max, p_screen.x), p_screen.x + (GAMEBOY_WIDTH * screen_scale));
-            recty_min = fminf(fmaxf(recty_min, p_screen.y), p_screen.y + (GAMEBOY_HEIGHT * screen_scale));
-            recty_max = fminf(fmaxf(recty_max, p_screen.y), p_screen.y + (GAMEBOY_HEIGHT * screen_scale));
+            rectx_min = fminf(fmaxf(rectx_min, p_screen.x), p_screen.x + (runtime.screen_width * screen_scale));
+            rectx_max = fminf(fmaxf(rectx_max, p_screen.x), p_screen.x + (runtime.screen_width * screen_scale));
+            recty_min = fminf(fmaxf(recty_min, p_screen.y), p_screen.y + (runtime.screen_height * screen_scale));
+            recty_max = fminf(fmaxf(recty_max, p_screen.y), p_screen.y + (runtime.screen_height * screen_scale));
             
-
+            ImDrawList* draw_list = ImGui::GetWindowDrawList();
             draw_list->AddRect(ImVec2(rectx_min, recty_min), ImVec2(rectx_max, recty_max), ImColor(cyan), 2.0f, 15, 2.0f);
 
             ImGui::TextColored(yellow, "DETAILS:");
@@ -1075,36 +1086,13 @@ static void debug_window_vram_oam(void)
             ImGui::Text("$%02X", tile);
 
             ImGui::TextColored(cyan, " Tile Addr:"); ImGui::SameLine();
-            ImGui::Text("$%04X", 0x8000 + (tile * 16)); ImGui::SameLine();
-
-            ImGui::TextColored(cyan, "  Bank:"); ImGui::SameLine();
-            ImGui::Text("%d", cgb_bank);
-
-            ImGui::TextColored(cyan, " OAM Addr:"); ImGui::SameLine();
-            ImGui::Text("$%04X", address); ImGui::SameLine();
-
-            
-            ImGui::TextColored(cyan, "  Flags:"); ImGui::SameLine();
-            ImGui::Text("$%02X", flags); 
-
-            ImGui::TextColored(cyan, " Priority:"); ImGui::SameLine();
-            priority ? ImGui::TextColored(green, "ON ") : ImGui::TextColored(gray, "OFF"); ImGui::SameLine();
-
-            ImGui::TextColored(cyan, "  Palette:"); ImGui::SameLine();
-            ImGui::Text("%d", emu_is_cgb() ? cgb_pal : palette);
-
-            ImGui::TextColored(cyan, " X-Flip:"); ImGui::SameLine();
-            xflip ? ImGui::TextColored(green, "ON ") : ImGui::TextColored(gray, "OFF"); ImGui::SameLine();
-
-            ImGui::TextColored(cyan, "  Y-Flip:"); ImGui::SameLine();
-            yflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
+            ImGui::Text("$%04X", sprite_tile_addr); ImGui::SameLine();
         }
     }
 
     ImGui::Columns(1);
 
     ImGui::PopFont();
-    */
 }
 
 static void debug_window_vram_palettes(void)
