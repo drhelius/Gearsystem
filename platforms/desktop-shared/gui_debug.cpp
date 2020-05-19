@@ -1055,14 +1055,14 @@ static void debug_window_vram_sprites(void)
         {
             u16 sprite_info_address = sprite_table_address_2 + (s << 1);
 
-            int y = vram[sprite_table_address + s] + 1;
-            int x = vram[sprite_info_address] - sprite_shift;
+            int y = vram[sprite_table_address + s];
+            int x = vram[sprite_info_address];
             int tile = vram[sprite_info_address + 1];
             tile &= sprites_16 ? 0xFE : 0xFF;
             int sprite_tile_addr = sprite_tiles_address + (tile << 5);
 
-            float real_x = x - 0.0f;
-            float real_y = y - 0.0f;
+            float real_x = x - sprite_shift;
+            float real_y = y + 1.0f;
             float rectx_min = p_screen.x + (real_x * screen_scale);
             float rectx_max = p_screen.x + ((real_x + 8.0f) * screen_scale);
             float recty_min = p_screen.y + (real_y * screen_scale);
