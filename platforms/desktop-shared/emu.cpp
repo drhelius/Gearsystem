@@ -515,8 +515,7 @@ static void update_debug_tile_buffer_smsgg(void)
         for (int x = 0; x < 256; x++)
         {
             int tile_x = x / 8;
-            int offset_x = x & 0x7;
-            offset_x = 7 - offset_x;
+            int offset_x = 7 - (x & 0x7);
             int pixel = width_y + x;
 
             int tile_number = (tile_y * 32) + tile_x;
@@ -560,8 +559,7 @@ static void update_debug_tile_buffer_sg1000(void)
         for (int x = 0; x < 256; x++)
         {
             int tile_x = x / 8;
-            int offset_x = x & 0x7;
-            offset_x = 7 - offset_x;
+            int offset_x = 7 - (x & 0x7);
             int pixel = width_y + x;
 
             int tile_number = (tile_y * 32) + tile_x;
@@ -587,7 +585,37 @@ static void update_debug_tile_buffer_sg1000(void)
 
 static void update_debug_sprite_buffers_smsgg(void)
 {
+    GearsystemCore* core = emu_get_core();
+    Video* video = core->GetVideo();
+    u8* regs = video->GetRegisters();
+    u8* vram = video->GetVRAM();
+    GS_RuntimeInfo runtime;
+    emu_get_runtime(runtime);
 
+    bool sprites_16 = IsSetBit(regs[1], 1);
+    u16 sprite_table_address = (regs[5] << 7) & 0x3F00;
+    u16 sprite_table_address_2 = sprite_table_address + 0x80;
+    u16 sprite_tiles_address = (regs[6] << 11) & 0x2000;
+
+    for (int s = 0; s < 64; s++)
+    {
+        u16 sprite_info_address = sprite_table_address_2 + (s << 1);
+        int tile = vram[sprite_info_address + 1];
+        tile &= sprites_16 ? 0xFE : 0xFF;
+        int tile_addr = sprite_tiles_address + (tile << 5);
+
+        for (int pixel = 0; pixel < (8 * 16); pixel++)
+        {
+            int pixel_x = 7 - (pixel & 0x7);
+            int pixel_y = pixel / 8;
+
+            u16 line_addr = tile_addr + (4 * pixel_y);
+
+            int color_index = ((vram[line_addr] >> pixel_x) & 1) | (((vram[line_addr + 1] >> pixel_x) & 1) << 1) | (((vram[line_addr + 2] >> pixel_x) & 1) << 2) | (((vram[line_addr + 3] >> pixel_x) & 1) << 3);
+
+            emu_debug_sprite_buffers[s][pixel] = video->ConvertTo8BitColor(color_index + 16);
+        }
+    }
 }
 
 static void update_debug_sprite_buffers_sg1000(void)

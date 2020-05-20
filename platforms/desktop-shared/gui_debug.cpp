@@ -1082,11 +1082,14 @@ static void debug_window_vram_sprites(void)
             ImGui::TextColored(cyan, "  Y:"); ImGui::SameLine();
             ImGui::Text("$%02X", y); ImGui::SameLine();
 
-            ImGui::TextColored(cyan, "   Tile:"); ImGui::SameLine();
+            ImGui::TextColored(cyan, "  Tile:"); ImGui::SameLine();
             ImGui::Text("$%02X", tile);
 
             ImGui::TextColored(cyan, " Tile Addr:"); ImGui::SameLine();
-            ImGui::Text("$%04X", sprite_tile_addr); ImGui::SameLine();
+            ImGui::Text("$%04X", sprite_tile_addr);
+
+            ImGui::TextColored(cyan, " Horizontal Sprite Shift:"); ImGui::SameLine();
+            sprite_shift > 0 ? ImGui::TextColored(green, "ON ") : ImGui::TextColored(gray, "OFF");
         }
     }
 
