@@ -52,7 +52,7 @@ u8 GameGearIOPorts::DoInput(u8 port)
             case 0x00:
             {
                 u8 port00 = m_pInput->GetPort00();
-                if (m_pCartridge->GetZone() == Cartridge::CartridgeExportSMS)
+                if (m_pCartridge->GetZone() != Cartridge::CartridgeJapanGG)
                     port00 |= 0x40;
                 return port00;
             }
@@ -140,7 +140,7 @@ void GameGearIOPorts::DoOutput(u8 port, u8 value)
             m_Port3F_HC = value & 0x05;
 
             m_Port3F =  ((value & 0x80) | (value & 0x20) << 1) & 0xC0;
-            if (m_pCartridge->GetZone() == Cartridge::CartridgeExportSMS)
+            if (m_pCartridge->GetZone() != Cartridge::CartridgeJapanGG)
                 m_Port3F ^= 0xC0;
         }
     }
