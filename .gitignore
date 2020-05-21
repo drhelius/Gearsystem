@@ -81,3 +81,6 @@ platforms/**/gearsystem
 
 #Android
 platforms/libretro/libs/
+
+#JetBrains
+.idea
