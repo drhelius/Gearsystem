@@ -443,13 +443,13 @@ static void update_debug_background_buffer_smsgg(void)
             bool tile_hflip = IsSetBit(tile_info_hi, 1);
             bool tile_vflip = IsSetBit(tile_info_hi, 2);
             int tile_palette = IsSetBit(tile_info_hi, 3) ? 16 : 0;
+            int final_offset_y = offset_y;
             if (!tile_hflip)
                 offset_x = 7 - offset_x;
             if (tile_vflip)
-                offset_y = 7 - offset_y;
+                final_offset_y = 7 - offset_y;
 
-
-            int tile_data_addr = (tile_number * 32) + (4 * offset_y);
+            int tile_data_addr = (tile_number * 32) + (4 * final_offset_y);
             int color_index = ((vram[tile_data_addr] >> offset_x) & 1) | (((vram[tile_data_addr + 1] >> offset_x) & 1) << 1) | (((vram[tile_data_addr + 2] >> offset_x) & 1) << 2) | (((vram[tile_data_addr + 3] >> offset_x) & 1) << 3);
 
             emu_debug_background_buffer[pixel] = video->ConvertTo8BitColor(color_index + tile_palette);
