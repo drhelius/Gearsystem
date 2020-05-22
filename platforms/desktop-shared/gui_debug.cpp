@@ -731,9 +731,12 @@ static void debug_window_vram(void)
             ImGui::EndTabItem();
         }
 
-        if (ImGui::BeginTabItem("Palettes & Registers"))
+        bool isSG1000 = emu_get_core()->GetVideo()->IsSG1000Mode();
+
+        if (ImGui::BeginTabItem(isSG1000 ? "Registers" : "Palettes & Registers"))
         {
-            debug_window_vram_palettes();
+            if (!isSG1000)
+                debug_window_vram_palettes();
             debug_window_vram_regs();
             ImGui::EndTabItem();
         }
@@ -751,11 +754,18 @@ static void debug_window_vram_background(void)
     emu_get_runtime(runtime);
     u8* regs = video->GetRegisters();
     u8* vram = video->GetVRAM();
+    bool isMode224 = video->IsExtendedMode224();
     bool isGG = emu_get_core()->GetCartridge()->IsGameGear();
+    bool isSG1000 = video->IsSG1000Mode();
+    int SG1000mode = video->GetSG1000Mode();
 
     static bool show_grid = true;
     static bool show_screen = true;
-    int lines = video->IsExtendedMode224() ? 32 : 28;
+    int lines = 28;
+    if (isMode224)
+        lines = 32;
+    else if (isSG1000)
+        lines = 24;
     float scale = 1.5f;
     float size_h = 256.0f * scale;
     float size_v = 8.0f * lines * scale;
@@ -862,41 +872,66 @@ static void debug_window_vram_background(void)
         ImGui::TextColored(cyan, "   Y:"); ImGui::SameLine();
         ImGui::Text("$%02X", tile_y);
 
-        int name_table_addr = (regs[2] & (video->IsExtendedMode224() ? 0x0C : 0x0E)) << 10;
-        if (video->IsExtendedMode224())
+        if (isSG1000)
+        {
+            int name_table_addr = (regs[2] & 0x0F) << 10;
+            int region = (regs[4] & 0x03) << 8;
+            int tile_number = (tile_y * 32) + tile_x;
+            int name_tile_addr = name_table_addr + tile_number;
+
+            int name_tile = 0;
+
+            if (SG1000mode == 0x200)
+                name_tile = vram[name_tile_addr] | (region & 0x300 & tile_number);
+            else
+                name_tile = vram[name_tile_addr];
+
+            int pattern_table_addr = (regs[4] & (SG1000mode == 0x200 ? 0x04 : 0x07)) << 11;
+            int tile_addr = pattern_table_addr + (name_tile << 3);
+
+            ImGui::TextColored(cyan, " Tile Addr:"); ImGui::SameLine();
+            ImGui::Text(" $%04X", tile_addr);
+            ImGui::TextColored(cyan, " Tile Number:"); ImGui::SameLine();
+            ImGui::Text("$%03X", name_tile);
+        }
+        else
+        {
+            int name_table_addr = (regs[2] & (isMode224 ? 0x0C : 0x0E)) << 10;
+            if (isMode224)
                 name_table_addr |= 0x700;
-        u16 map_addr = name_table_addr + (64 * tile_y) + (tile_x * 2);
+            u16 map_addr = name_table_addr + (64 * tile_y) + (tile_x * 2);
 
-        ImGui::TextColored(cyan, " Map Addr: "); ImGui::SameLine();
-        ImGui::Text(" $%04X", map_addr);
+            ImGui::TextColored(cyan, " Map Addr: "); ImGui::SameLine();
+            ImGui::Text(" $%04X", map_addr);
 
-        u16 tile_info_lo = vram[map_addr];
-        u16 tile_info_hi = vram[map_addr + 1];
+            u16 tile_info_lo = vram[map_addr];
+            u16 tile_info_hi = vram[map_addr + 1];
 
-        int tile_number = ((tile_info_hi & 1) << 8) | tile_info_lo;
-        bool tile_hflip = IsSetBit(tile_info_hi, 1);
-        bool tile_vflip = IsSetBit(tile_info_hi, 2);
-        int tile_palette = IsSetBit(tile_info_hi, 3) ? 16 : 0;
-        bool tile_priority = IsSetBit(tile_info_hi, 4);       
+            int tile_number = ((tile_info_hi & 1) << 8) | tile_info_lo;
+            bool tile_hflip = IsSetBit(tile_info_hi, 1);
+            bool tile_vflip = IsSetBit(tile_info_hi, 2);
+            int tile_palette = IsSetBit(tile_info_hi, 3) ? 16 : 0;
+            bool tile_priority = IsSetBit(tile_info_hi, 4);       
 
-        ImGui::TextColored(cyan, " Tile Addr:"); ImGui::SameLine();
-        ImGui::Text(" $%04X", tile_number << 5);
-        ImGui::TextColored(cyan, " Tile Number:"); ImGui::SameLine();
-        ImGui::Text("$%03X", tile_number);
+            ImGui::TextColored(cyan, " Tile Addr:"); ImGui::SameLine();
+            ImGui::Text(" $%04X", tile_number << 5);
+            ImGui::TextColored(cyan, " Tile Number:"); ImGui::SameLine();
+            ImGui::Text("$%03X", tile_number);
 
-        ImGui::TextColored(cyan, " Value:"); ImGui::SameLine();
-        ImGui::Text("$%04X", tile_info_hi << 8 | tile_info_lo);
-        ImGui::TextColored(cyan, " Palette:"); ImGui::SameLine();
-        ImGui::Text("%d", tile_palette);
+            ImGui::TextColored(cyan, " Value:"); ImGui::SameLine();
+            ImGui::Text("$%04X", tile_info_hi << 8 | tile_info_lo);
+            ImGui::TextColored(cyan, " Palette:"); ImGui::SameLine();
+            ImGui::Text("%d", tile_palette);
 
-        ImGui::TextColored(cyan, " H-Flip:"); ImGui::SameLine();
-        tile_hflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
+            ImGui::TextColored(cyan, " H-Flip:"); ImGui::SameLine();
+            tile_hflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
 
-        ImGui::TextColored(cyan, " V-Flip:"); ImGui::SameLine();
-        tile_vflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
+            ImGui::TextColored(cyan, " V-Flip:"); ImGui::SameLine();
+            tile_vflip ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
 
-        ImGui::TextColored(cyan, " Priority:"); ImGui::SameLine();
-        tile_priority ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
+            ImGui::TextColored(cyan, " Priority:"); ImGui::SameLine();
+            tile_priority ? ImGui::TextColored(green, "ON") : ImGui::TextColored(gray, "OFF");
+        }
     }
 
     ImGui::Columns(1);
@@ -906,10 +941,16 @@ static void debug_window_vram_background(void)
 
 static void debug_window_vram_tiles(void)
 {
+    Video* video = emu_get_core()->GetVideo();
+    u8* regs = video->GetRegisters();
+    int SG1000mode = video->GetSG1000Mode();
+    bool isSG1000 = video->IsSG1000Mode();
+
     static bool show_grid = true;
+    int lines = isSG1000 ? 32 : 16;
     float scale = 1.5f;
     float width = 8.0f * 32.0f * scale;
-    float height = 8.0f * 16.0f * scale;
+    float height = 8.0f * lines * scale;
     float spacing = 8.0f * scale;
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImGuiIO& io = ImGui::GetIO();
@@ -918,18 +959,19 @@ static void debug_window_vram_tiles(void)
     ImGui::Checkbox("Show Grid##grid_tiles", &show_grid);
     ImGui::SameLine(140.0f);
 
-    ImGui::PushItemWidth(200.0f);
-
-    ImGui::Combo("Palette##tile_palette", &emu_debug_tile_palette, "Palette 0 (BG)\0Palette 1 (BG & Sprites)\0\0");
-
-    ImGui::PopItemWidth();
+    if (!isSG1000)
+    {
+        ImGui::PushItemWidth(200.0f);
+        ImGui::Combo("Palette##tile_palette", &emu_debug_tile_palette, "Palette 0 (BG)\0Palette 1 (BG & Sprites)\0\0");
+        ImGui::PopItemWidth();
+    }
 
     ImGui::Columns(2, "tiles", false);
     ImGui::SetColumnOffset(1, width + 10.0f);
 
     p = ImGui::GetCursorScreenPos();
-    
-    ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_tiles, ImVec2(width, height));
+
+    ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_tiles, ImVec2(width, height), ImVec2(0.0f, 0.0f), ImVec2(1.0f, (1.0f / 32.0f) * lines));
 
     if (show_grid)
     {
@@ -941,7 +983,7 @@ static void debug_window_vram_tiles(void)
         }
 
         float y = p.y;  
-        for (int n = 0; n <= 16; n++)
+        for (int n = 0; n <= lines; n++)
         {
             draw_list->AddLine(ImVec2(p.x, y), ImVec2(p.x + width, y), ImColor(dark_gray), 1.0f);
             y += spacing;
@@ -963,7 +1005,7 @@ static void debug_window_vram_tiles(void)
 
         ImGui::NextColumn();
 
-        ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_tiles, ImVec2(128.0f, 128.0f), ImVec2((1.0f / 32.0f) * tile_x, (1.0f / 16.0f) * tile_y), ImVec2((1.0f / 32.0f) * (tile_x + 1), (1.0f / 16.0f) * (tile_y + 1)));
+        ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_tiles, ImVec2(128.0f, 128.0f), ImVec2((1.0f / 32.0f) * tile_x, (1.0f / 32.0f) * tile_y), ImVec2((1.0f / 32.0f) * (tile_x + 1), (1.0f / 32.0f) * (tile_y + 1)));
 
         ImGui::PushFont(gui_default_font);
 
@@ -971,10 +1013,22 @@ static void debug_window_vram_tiles(void)
 
         int tile = (tile_y << 5) + tile_x;
 
+        int tile_addr = 0;
+
+        if (isSG1000)
+        {
+            int pattern_table_addr = (regs[4] & (SG1000mode == 0x200 ? 0x04 : 0x07)) << 11;
+            tile_addr = pattern_table_addr + (tile << 3);
+        }
+        else
+        {
+            tile_addr = tile << 5;
+        }
+
         ImGui::TextColored(cyan, " Tile Number:"); ImGui::SameLine();
         ImGui::Text("$%03X", tile); 
         ImGui::TextColored(cyan, " Tile Addr:"); ImGui::SameLine();
-        ImGui::Text("$%04X", tile << 5); 
+        ImGui::Text("$%04X", tile_addr); 
 
         ImGui::PopFont();
     }

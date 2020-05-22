@@ -368,9 +368,9 @@ static const char* get_zone(Cartridge::CartridgeZones zone)
 static void init_debug(void)
 {
     emu_debug_background_buffer = new GS_Color[256 * 256];
-    emu_debug_tile_buffer = new GS_Color[32 * 16 * 64];
+    emu_debug_tile_buffer = new GS_Color[32 * 32 * 64];
 
-    for (int i=0; i < (32 * 16 * 64); i++)
+    for (int i=0; i < (32 * 32 * 64); i++)
     {
         emu_debug_tile_buffer[i].red = 0;
         emu_debug_tile_buffer[i].green = 0;
@@ -460,8 +460,27 @@ static void update_debug_background_buffer_smsgg(void)
 static void update_debug_background_buffer_sg1000(void)
 {
     Video* video = gearsystem->GetVideo();
-    u8* regs = video->GetRegisters();
     u8* vram = video->GetVRAM();
+    u8* regs = video->GetRegisters();
+    int mode = video->GetSG1000Mode();
+    GS_Color* pal = video->GetSG1000Palette();
+
+    int pattern_table_addr = 0;
+    int color_table_addr = 0;
+    int name_table_addr = (regs[2] & 0x0F) << 10;
+    int region = (regs[4] & 0x03) << 8;
+    int backdrop_color = regs[7] & 0x0F;
+
+    if (mode == 0x200)
+    {
+        pattern_table_addr = (regs[4] & 0x04) << 11;
+        color_table_addr = (regs[3] & 0x80) << 6;
+    }
+    else
+    {
+        pattern_table_addr = (regs[4] & 0x07) << 11;
+        color_table_addr = regs[3] << 6;
+    }
 
     for (int y = 0; y < 256; y++)
     {
@@ -472,31 +491,34 @@ static void update_debug_background_buffer_sg1000(void)
         for (int x = 0; x < 256; x++)
         {
             int tile_x = x / 8;
-            int offset_x = x & 0x7;
+            int offset_x = 7 - (x & 0x7);
             int pixel = width_y + x;
 
-            int name_table_addr = (regs[2] & (video->IsExtendedMode224() ? 0x0C : 0x0E)) << 10;
-            if (video->IsExtendedMode224())
-                name_table_addr |= 0x700;
-            u16 map_addr = name_table_addr + (64 * tile_y) + (tile_x * 2);
+            int tile_number = (tile_y * 32) + tile_x;
 
-            u16 tile_info_lo = vram[map_addr];
-            u16 tile_info_hi = vram[map_addr + 1];
+            int name_tile_addr = name_table_addr + tile_number;
 
-            int tile_number = ((tile_info_hi & 1) << 8) | tile_info_lo;
-            bool tile_hflip = IsSetBit(tile_info_hi, 1);
-            bool tile_vflip = IsSetBit(tile_info_hi, 2);
-            int tile_palette = IsSetBit(tile_info_hi, 3) ? 16 : 0;
-            if (!tile_hflip)
-                offset_x = 7 - offset_x;
-            if (tile_vflip)
-                offset_y = 7 - offset_y;
+            int name_tile = 0;
 
+            if (mode == 0x200)
+                name_tile = vram[name_tile_addr] | (region & 0x300 & tile_number);
+            else
+                name_tile = vram[name_tile_addr];
 
-            int tile_data_addr = (tile_number * 32) + (4 * offset_y);
-            int color_index = ((vram[tile_data_addr] >> offset_x) & 1) | (((vram[tile_data_addr + 1] >> offset_x) & 1) << 1) | (((vram[tile_data_addr + 2] >> offset_x) & 1) << 2) | (((vram[tile_data_addr + 3] >> offset_x) & 1) << 3);
+            u8 pattern_line = vram[pattern_table_addr + (name_tile << 3) + offset_y];
 
-            emu_debug_background_buffer[pixel] = video->ConvertTo8BitColor(color_index + tile_palette);
+            u8 color_line = 0;
+
+            if (mode == 0x200)
+                color_line = vram[color_table_addr + (name_tile << 3) + offset_y];
+            else
+                color_line = vram[color_table_addr + (name_tile >> 3)];
+
+            int bg_color = color_line & 0x0F;
+            int fg_color = color_line >> 4;
+            int final_color = IsSetBit(pattern_line, offset_x) ? fg_color : bg_color;
+
+            emu_debug_background_buffer[pixel] = pal[(final_color > 0) ? final_color : backdrop_color];
         }
     }
 }
@@ -550,7 +572,7 @@ static void update_debug_tile_buffer_sg1000(void)
         color_table_addr = regs[3] << 6;
     }
 
-    for (int y = 0; y < 128; y++)
+    for (int y = 0; y < 256; y++)
     {
         int width_y = (y * 256);
         int tile_y = y / 8;
@@ -619,5 +641,35 @@ static void update_debug_sprite_buffers_smsgg(void)
 
 static void update_debug_sprite_buffers_sg1000(void)
 {
+    GearsystemCore* core = emu_get_core();
+    Video* video = core->GetVideo();
+    u8* regs = video->GetRegisters();
+    u8* vram = video->GetVRAM();
+    GS_RuntimeInfo runtime;
+    emu_get_runtime(runtime);
 
+    bool sprites_16 = IsSetBit(regs[1], 1);
+    u16 sprite_table_address = (regs[5] << 7) & 0x3F00;
+    u16 sprite_table_address_2 = sprite_table_address + 0x80;
+    u16 sprite_tiles_address = (regs[6] << 11) & 0x2000;
+
+    for (int s = 0; s < 64; s++)
+    {
+        u16 sprite_info_address = sprite_table_address_2 + (s << 1);
+        int tile = vram[sprite_info_address + 1];
+        tile &= sprites_16 ? 0xFE : 0xFF;
+        int tile_addr = sprite_tiles_address + (tile << 5);
+
+        for (int pixel = 0; pixel < (8 * 16); pixel++)
+        {
+            int pixel_x = 7 - (pixel & 0x7);
+            int pixel_y = pixel / 8;
+
+            u16 line_addr = tile_addr + (4 * pixel_y);
+
+            int color_index = ((vram[line_addr] >> pixel_x) & 1) | (((vram[line_addr + 1] >> pixel_x) & 1) << 1) | (((vram[line_addr + 2] >> pixel_x) & 1) << 2) | (((vram[line_addr + 3] >> pixel_x) & 1) << 3);
+
+            emu_debug_sprite_buffers[s][pixel] = video->ConvertTo8BitColor(color_index + 16);
+        }
+    }
 }
