@@ -751,6 +751,7 @@ static void debug_window_vram_background(void)
     emu_get_runtime(runtime);
     u8* regs = video->GetRegisters();
     u8* vram = video->GetVRAM();
+    bool isGG = emu_get_core()->GetCartridge()->IsGameGear();
 
     static bool show_grid = true;
     static bool show_screen = true;
@@ -796,7 +797,7 @@ static void debug_window_vram_background(void)
         int scroll_x = 256 - regs[8];
         int scroll_y = regs[9];
 
-        if (emu_get_core()->GetCartridge()->IsGameGear())
+        if (isGG)
         {
             scroll_x += GS_RESOLUTION_GG_X_OFFSET;
             scroll_y += GS_RESOLUTION_GG_Y_OFFSET;
@@ -994,7 +995,7 @@ static void debug_window_vram_sprites(void)
     u8* vram = video->GetVRAM();
     GS_RuntimeInfo runtime;
     emu_get_runtime(runtime);
-
+    bool isGG = core->GetCartridge()->IsGameGear();
     bool sprites_16 = IsSetBit(regs[1], 1);
 
     ImVec2 p[64];
@@ -1037,14 +1038,10 @@ static void debug_window_vram_sprites(void)
 
     ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(runtime.screen_width * screen_scale, runtime.screen_height * screen_scale));
 
-    int scy_adjust = core->GetCartridge()->IsGameGear() ? GS_RESOLUTION_GG_Y_OFFSET : 0;
     int sprite_shift = IsSetBit(regs[0], 3) ? 8 : 0;
     u16 sprite_table_address = (regs[5] << 7) & 0x3F00;
     u16 sprite_table_address_2 = sprite_table_address + 0x80;
     u16 sprite_tiles_address = (regs[6] << 11) & 0x2000;
-
-    int scx_begin = core->GetCartridge()->IsGameGear() ? GS_RESOLUTION_GG_X_OFFSET : 0;
-    int scx_end = scx_begin + runtime.screen_width;
 
     for (int s = 0; s < 64; s++)
     {
@@ -1061,8 +1058,8 @@ static void debug_window_vram_sprites(void)
             tile &= sprites_16 ? 0xFE : 0xFF;
             int sprite_tile_addr = sprite_tiles_address + (tile << 5);
 
-            float real_x = x - sprite_shift;
-            float real_y = y + 1.0f;
+            float real_x = x - sprite_shift - (isGG ? GS_RESOLUTION_GG_X_OFFSET : 0);
+            float real_y = y + 1.0f - (isGG ? GS_RESOLUTION_GG_Y_OFFSET : 0);;
             float rectx_min = p_screen.x + (real_x * screen_scale);
             float rectx_max = p_screen.x + ((real_x + 8.0f) * screen_scale);
             float recty_min = p_screen.y + (real_y * screen_scale);
@@ -1103,6 +1100,7 @@ static void debug_window_vram_palettes(void)
     GearsystemCore* core = emu_get_core();
     Video* video = core->GetVideo();
     u8* palettes = video->GetCRAM();
+    bool isGG = core->GetCartridge()->IsGameGear();
 
     ImGui::PushFont(gui_default_font);
 
@@ -1114,7 +1112,7 @@ static void debug_window_vram_palettes(void)
         for (int c = 0; c < 16; c++)
         {
             ImVec4 float_color;
-            if (core->GetCartridge()->IsGameGear())
+            if (isGG)
             {
                 u8 color_lo = palettes[(i << 5) + (c << 1)];
                 u8 color_hi = palettes[(i << 5) + (c << 1) + 1];
@@ -1140,7 +1138,7 @@ static void debug_window_vram_palettes(void)
 
         for (int c = 0; c < 16; c++)
         {
-            if (core->GetCartridge()->IsGameGear())
+            if (isGG)
             {
                 u8 color_lo = palettes[(i << 5) + (c << 1)];
                 u8 color_hi = palettes[(i << 5) + (c << 1) + 1];

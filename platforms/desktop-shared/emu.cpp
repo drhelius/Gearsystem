@@ -563,7 +563,6 @@ static void update_debug_tile_buffer_sg1000(void)
             int pixel = width_y + x;
 
             int tile_number = (tile_y * 32) + tile_x;
-            int tile_palette = emu_debug_tile_palette * 16;
 
             int tile_data_addr = pattern_table_addr + (tile_number * 8) + (1 * offset_y);
             bool color = IsSetBit(vram[tile_data_addr], offset_x);
