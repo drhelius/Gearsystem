@@ -1159,9 +1159,17 @@ static void debug_window_vram_sprites(void)
 
             float max_width = 8.0f;
             float max_height = sprites_16 ? 16.0f : 8.0f;
-            if (isSG1000 && sprites_16)
+
+            if (isSG1000)
             {
-                max_width = 16.0f;
+                if (sprites_16)
+                    max_width = 16.0f;
+
+                if(IsSetBit(regs[1], 0))
+                {
+                    max_width *= 2.0f;
+                    max_height *= 2.0f;
+                }
             }
 
             float rectx_min = p_screen.x + (real_x * screen_scale);
