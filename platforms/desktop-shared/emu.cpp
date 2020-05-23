@@ -379,9 +379,9 @@ static void init_debug(void)
 
     for (int s = 0; s < 64; s++)
     {
-        emu_debug_sprite_buffers[s] = new GS_Color[8 * 16];
+        emu_debug_sprite_buffers[s] = new GS_Color[16 * 16];
 
-        for (int i=0; i < (8 * 16); i++)
+        for (int i=0; i < (16 * 16); i++)
         {
             emu_debug_sprite_buffers[s][i].red = 0;
             emu_debug_sprite_buffers[s][i].green = 0;
@@ -625,8 +625,12 @@ static void update_debug_sprite_buffers_smsgg(void)
         tile &= sprites_16 ? 0xFE : 0xFF;
         int tile_addr = sprite_tiles_address + (tile << 5);
 
+        int padding = 0;
         for (int pixel = 0; pixel < (8 * 16); pixel++)
         {
+            if ((pixel != 0) && (pixel % 8 == 0))
+                padding += 8;
+
             int pixel_x = 7 - (pixel & 0x7);
             int pixel_y = pixel / 8;
 
@@ -634,7 +638,7 @@ static void update_debug_sprite_buffers_smsgg(void)
 
             int color_index = ((vram[line_addr] >> pixel_x) & 1) | (((vram[line_addr + 1] >> pixel_x) & 1) << 1) | (((vram[line_addr + 2] >> pixel_x) & 1) << 2) | (((vram[line_addr + 3] >> pixel_x) & 1) << 3);
 
-            emu_debug_sprite_buffers[s][pixel] = video->ConvertTo8BitColor(color_index + 16);
+            emu_debug_sprite_buffers[s][pixel + padding] = video->ConvertTo8BitColor(color_index + 16);
         }
     }
 }
@@ -645,31 +649,41 @@ static void update_debug_sprite_buffers_sg1000(void)
     Video* video = core->GetVideo();
     u8* regs = video->GetRegisters();
     u8* vram = video->GetVRAM();
+    GS_Color* pal = video->GetSG1000Palette();
     GS_RuntimeInfo runtime;
     emu_get_runtime(runtime);
 
-    bool sprites_16 = IsSetBit(regs[1], 1);
-    u16 sprite_table_address = (regs[5] << 7) & 0x3F00;
-    u16 sprite_table_address_2 = sprite_table_address + 0x80;
-    u16 sprite_tiles_address = (regs[6] << 11) & 0x2000;
+    int sprite_size = IsSetBit(regs[1], 1) ? 16 : 8;
+    u16 sprite_attribute_addr = (regs[5] & 0x7F) << 7;
+    u16 sprite_pattern_addr = (regs[6] & 0x07) << 11;
 
     for (int s = 0; s < 64; s++)
     {
-        u16 sprite_info_address = sprite_table_address_2 + (s << 1);
-        int tile = vram[sprite_info_address + 1];
-        tile &= sprites_16 ? 0xFE : 0xFF;
-        int tile_addr = sprite_tiles_address + (tile << 5);
+        int sprite_attribute_offset = sprite_attribute_addr + (s << 2);
+        int sprite_color = vram[sprite_attribute_offset + 3] & 0x0F;
+        int sprite_tile = vram[sprite_attribute_offset + 2];
+        sprite_tile &= (sprite_size == 16) ? 0xFC : 0xFF;
 
-        for (int pixel = 0; pixel < (8 * 16); pixel++)
+        for (int pixel_y = 0; pixel_y < sprite_size; pixel_y++)
         {
-            int pixel_x = 7 - (pixel & 0x7);
-            int pixel_y = pixel / 8;
+            int sprite_line_addr = sprite_pattern_addr + (sprite_tile << 3) + pixel_y;
 
-            u16 line_addr = tile_addr + (4 * pixel_y);
+            for (int pixel_x = 0; pixel_x < 16; pixel_x++)
+            {
+                if ((sprite_size == 8) && (pixel_x == 8))
+                    break;
 
-            int color_index = ((vram[line_addr] >> pixel_x) & 1) | (((vram[line_addr + 1] >> pixel_x) & 1) << 1) | (((vram[line_addr + 2] >> pixel_x) & 1) << 2) | (((vram[line_addr + 3] >> pixel_x) & 1) << 3);
+                int pixel = (pixel_y * 16) + pixel_x;
 
-            emu_debug_sprite_buffers[s][pixel] = video->ConvertTo8BitColor(color_index + 16);
+                bool sprite_pixel = false;
+
+                if (pixel_x < 8)
+                    sprite_pixel = IsSetBit(vram[sprite_line_addr], 7 - pixel_x);
+                else
+                    sprite_pixel = IsSetBit(vram[sprite_line_addr + 16], 15 - pixel_x);
+
+                emu_debug_sprite_buffers[s][pixel] = pal[sprite_pixel ? sprite_color : 0];
+            }
         }
     }
 }

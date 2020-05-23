@@ -957,10 +957,10 @@ static void debug_window_vram_tiles(void)
     ImVec2 p;
 
     ImGui::Checkbox("Show Grid##grid_tiles", &show_grid);
-    ImGui::SameLine(140.0f);
 
     if (!isSG1000)
     {
+        ImGui::SameLine(140.0f);
         ImGui::PushItemWidth(200.0f);
         ImGui::Combo("Palette##tile_palette", &emu_debug_tile_palette, "Palette 0 (BG)\0Palette 1 (BG & Sprites)\0\0");
         ImGui::PopItemWidth();
@@ -1039,9 +1039,8 @@ static void debug_window_vram_tiles(void)
 static void debug_window_vram_sprites(void)
 {
     float scale = 4.0f;
-    float width = 8.0f * scale;
-    float height_8 = 8.0f * scale;
-    float height_16 = 16.0f * scale;
+    float size_8 = 8.0f * scale;
+    float size_16 = 16.0f * scale;
 
     GearsystemCore* core = emu_get_core();
     Video* video = core->GetVideo();
@@ -1050,7 +1049,22 @@ static void debug_window_vram_sprites(void)
     GS_RuntimeInfo runtime;
     emu_get_runtime(runtime);
     bool isGG = core->GetCartridge()->IsGameGear();
+    bool isSG1000 = video->IsSG1000Mode();
     bool sprites_16 = IsSetBit(regs[1], 1);
+
+    float width = 0.0f;
+    float height = 0.0f;
+
+    if (isSG1000)
+    {
+        width = sprites_16 ? size_16 : size_8;
+        height = sprites_16 ? size_16 : size_8;
+    }
+    else
+    {
+        width = size_8;
+        height = sprites_16 ? size_16 : size_8;
+    }
 
     ImVec2 p[64];
 
@@ -1059,7 +1073,7 @@ static void debug_window_vram_sprites(void)
     ImGui::PushFont(gui_default_font);
 
     ImGui::Columns(2, "spr", false);
-    ImGui::SetColumnOffset(1, 200.0f);
+    ImGui::SetColumnOffset(1, (sprites_16 && isSG1000) ? 330.0f : 200.0f);
 
     ImGui::BeginChild("sprites", ImVec2(0, 0.0f), true);
 
@@ -1067,15 +1081,15 @@ static void debug_window_vram_sprites(void)
     {
         p[s] = ImGui::GetCursorScreenPos();
 
-        ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_sprites[s], ImVec2(width, sprites_16 ? height_16 : height_8), ImVec2(0.0f, 0.0f), ImVec2(1.0f, sprites_16 ? 1.0f : 0.5f));
+        ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_sprites[s], ImVec2(width, height), ImVec2(0.0f, 0.0f), ImVec2((1.0f / 16.0f) * (width / scale), (1.0f / 16.0f) * (height / scale)));
 
         float mouse_x = io.MousePos.x - p[s].x;
         float mouse_y = io.MousePos.y - p[s].y;
 
-        if ((mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < (sprites_16 ? height_16 : height_8)))
+        if ((mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < height))
         {
             ImDrawList* draw_list = ImGui::GetWindowDrawList();
-            draw_list->AddRect(ImVec2(p[s].x, p[s].y), ImVec2(p[s].x + width, p[s].y + (sprites_16 ? height_16 : height_8)), ImColor(cyan), 2.0f, 15, 3.0f);
+            draw_list->AddRect(ImVec2(p[s].x, p[s].y), ImVec2(p[s].x + width, p[s].y + height), ImColor(cyan), 2.0f, 15, 3.0f);
         }
 
         if (s % 4 < 3)
@@ -1092,32 +1106,68 @@ static void debug_window_vram_sprites(void)
 
     ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(runtime.screen_width * screen_scale, runtime.screen_height * screen_scale));
 
-    int sprite_shift = IsSetBit(regs[0], 3) ? 8 : 0;
-    u16 sprite_table_address = (regs[5] << 7) & 0x3F00;
-    u16 sprite_table_address_2 = sprite_table_address + 0x80;
-    u16 sprite_tiles_address = (regs[6] << 11) & 0x2000;
-
     for (int s = 0; s < 64; s++)
     {
         float mouse_x = io.MousePos.x - p[s].x;
         float mouse_y = io.MousePos.y - p[s].y;
 
-        if ((mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < (sprites_16 ? height_16 : height_8)))
+        if ((mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < height))
         {
-            u16 sprite_info_address = sprite_table_address_2 + (s << 1);
+            int x = 0;
+            int y = 0;
+            int tile = 0;
+            int sprite_tile_addr = 0;
+            int sprite_shift = 0;
+            float real_x = 0.0f;
+            float real_y = 0.0f;
 
-            int y = vram[sprite_table_address + s];
-            int x = vram[sprite_info_address];
-            int tile = vram[sprite_info_address + 1];
-            tile &= sprites_16 ? 0xFE : 0xFF;
-            int sprite_tile_addr = sprite_tiles_address + (tile << 5);
+            if (isSG1000)
+            {
+                u16 sprite_attribute_addr = (regs[5] & 0x7F) << 7;
+                u16 sprite_pattern_addr = (regs[6] & 0x07) << 11;
+                int sprite_attribute_offset = sprite_attribute_addr + (s << 2);
+                tile = vram[sprite_attribute_offset + 2];
+                sprite_tile_addr = sprite_pattern_addr + (tile << 3);
+                sprite_shift = (vram[sprite_attribute_offset + 3] & 0x80) ? 32 : 0;
+                x = vram[sprite_attribute_offset + 1];
+                y = vram[sprite_attribute_offset];
 
-            float real_x = x - sprite_shift - (isGG ? GS_RESOLUTION_GG_X_OFFSET : 0);
-            float real_y = y + 1.0f - (isGG ? GS_RESOLUTION_GG_Y_OFFSET : 0);;
+                int final_y = (y + 1) & 0xFF;
+
+                if (final_y >= 0xE0)
+                    final_y = -(0x100 - final_y);
+
+                real_x = x - sprite_shift;
+                real_y = final_y;
+            }
+            else
+            {
+                sprite_shift = IsSetBit(regs[0], 3) ? 8 : 0;
+                u16 sprite_table_address = (regs[5] << 7) & 0x3F00;
+                u16 sprite_table_address_2 = sprite_table_address + 0x80;
+                u16 sprite_info_address = sprite_table_address_2 + (s << 1);
+                u16 sprite_tiles_address = (regs[6] << 11) & 0x2000;
+                y = vram[sprite_table_address + s];
+                x = vram[sprite_info_address];
+                tile = vram[sprite_info_address + 1];
+                tile &= sprites_16 ? 0xFE : 0xFF;
+                sprite_tile_addr = sprite_tiles_address + (tile << 5);
+
+                real_x = x - sprite_shift - (isGG ? GS_RESOLUTION_GG_X_OFFSET : 0);
+                real_y = y + 1.0f - (isGG ? GS_RESOLUTION_GG_Y_OFFSET : 0);
+            }
+
+            float max_width = 8.0f;
+            float max_height = sprites_16 ? 16.0f : 8.0f;
+            if (isSG1000 && sprites_16)
+            {
+                max_width = 16.0f;
+            }
+
             float rectx_min = p_screen.x + (real_x * screen_scale);
-            float rectx_max = p_screen.x + ((real_x + 8.0f) * screen_scale);
+            float rectx_max = p_screen.x + ((real_x + max_width) * screen_scale);
             float recty_min = p_screen.y + (real_y * screen_scale);
-            float recty_max = p_screen.y + ((real_y + (sprites_16 ? 16.0f : 8.0f)) * screen_scale);
+            float recty_max = p_screen.y + ((real_y + max_height) * screen_scale);
 
             rectx_min = fminf(fmaxf(rectx_min, p_screen.x), p_screen.x + (runtime.screen_width * screen_scale));
             rectx_max = fminf(fmaxf(rectx_max, p_screen.x), p_screen.x + (runtime.screen_width * screen_scale));
