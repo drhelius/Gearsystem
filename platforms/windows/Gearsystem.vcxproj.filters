@@ -138,6 +138,9 @@
     <ClCompile Include="..\..\src\audio\Sms_Apu.cpp">
       <Filter>core\audio</Filter>
     </ClCompile>
+    <ClCompile Include="..\desktop-shared\gui_debug.cpp">
+      <Filter>desktop_shared</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\audio-shared\Sound_Queue.h">
@@ -319,6 +322,12 @@
     </ClInclude>
     <ClInclude Include="..\..\src\audio\Sms_Oscs.h">
       <Filter>core\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\gui_debug.h">
+      <Filter>desktop_shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\gui_debug_constants.h">
+      <Filter>desktop_shared</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
