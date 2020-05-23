@@ -162,7 +162,7 @@ void gui_debug_reset_breakpoints(void)
 
 static void debug_window_memory(void)
 {
-    ImGui::SetNextWindowPos(ImVec2(180, 382), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(160, 380), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(482, 308), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Memory Editor", &config_debug.show_memory);
@@ -286,7 +286,7 @@ static void debug_window_memory(void)
 
 static void debug_window_disassembler(void)
 {
-    ImGui::SetNextWindowPos(ImVec2(180, 30), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(160, 30), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(482, 344), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Disassembler", &config_debug.show_disassembler);
@@ -548,7 +548,7 @@ static void debug_window_disassembler(void)
 
 static void debug_window_processor(void)
 {
-    ImGui::SetNextWindowPos(ImVec2(14, 210), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(6, 30), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Z80 Status", &config_debug.show_processor, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
 
@@ -706,8 +706,8 @@ static void debug_window_processor(void)
 
 static void debug_window_vram(void)
 {
-    ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(544, 534), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(648, 254), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(604, 534), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("VDP Viewer", &config_debug.show_video);
 

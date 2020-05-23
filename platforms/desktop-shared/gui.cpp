@@ -800,7 +800,7 @@ static void main_window(void)
     {
         flags |= ImGuiWindowFlags_AlwaysAutoResize;
 
-        ImGui::SetNextWindowPos(ImVec2(7, 32), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowPos(ImVec2(648, 30), ImGuiCond_FirstUseEver);
 
         ImGui::Begin("Output###debug_output", &config_debug.show_screen, flags);
     }
