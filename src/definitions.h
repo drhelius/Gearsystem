@@ -29,7 +29,10 @@
 #include <fstream>
 #include <sstream>
 
-//#define DEBUG_GEARSYSTEM 1
+#ifdef DEBUG
+#define DEBUG_GEARSYSTEM 1
+#endif
+
 #define GEARSYSTEM_TITLE "Gearsystem"
 #define GEARSYSTEM_VERSION "3.1.1"
 

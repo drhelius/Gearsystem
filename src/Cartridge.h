@@ -33,6 +33,7 @@ public:
 		CartridgeCodemastersMapper,
         CartridgeSG1000Mapper,
         CartridgeKoreanMapper,
+        CartridgeMSXMapper,
         CartridgeNotSupported
     };
     
@@ -74,6 +75,7 @@ public:
     ~Cartridge();
     void Init();
     void Reset();
+    u32 GetCRC() const;
     bool IsGameGear() const;
     bool IsSG1000() const;
     bool IsPAL() const;
@@ -114,6 +116,7 @@ private:
     bool m_bSG1000;
     bool m_bPAL;
     bool m_bRAMWithoutBattery;
+    u32 m_iCRC;
 
     struct GameGenieCode
     {

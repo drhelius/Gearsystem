@@ -39,6 +39,7 @@ Cartridge::Cartridge()
     m_bSG1000 = false;
     m_bPAL = false;
     m_bRAMWithoutBattery = false;
+    m_iCRC = 0;
 }
 
 Cartridge::~Cartridge()
@@ -67,6 +68,12 @@ void Cartridge::Reset()
     m_bPAL = false;
     m_bRAMWithoutBattery = false;
     m_GameGenieList.clear();
+    m_iCRC = 0;
+}
+
+u32 Cartridge::GetCRC() const
+{
+    return m_iCRC;
 }
 
 bool Cartridge::IsGameGear() const
@@ -115,8 +122,8 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
     m_bGameGear = (extension == "gg");
     m_bSG1000 = (extension == "sg" || extension == "mv");
 
-    u32 crc = CalculateCRC32(0, m_pROM, m_iROMSize);
-    GatherMetadata(crc);
+    m_iCRC = CalculateCRC32(0, m_pROM, m_iROMSize);
+    GatherMetadata(m_iCRC);
 
     if (config.region == CartridgePAL)
     {
@@ -393,9 +400,9 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
 
         m_bReady = true;
 
-        u32 crc = CalculateCRC32(0, m_pROM, m_iROMSize);
+        m_iCRC = CalculateCRC32(0, m_pROM, m_iROMSize);
 
-        return GatherMetadata(crc);
+        return GatherMetadata(m_iCRC);
     }
     else
         return false;
@@ -586,6 +593,10 @@ void Cartridge::GetInfoFromDB(u32 crc)
             else if (kGameDatabase[i].mapper == GS_DB_KOREAN_MAPPER)
             {
                 m_Type = Cartridge::CartridgeKoreanMapper;
+            }
+            else if (kGameDatabase[i].mapper == GS_DB_MSX_MAPPER)
+            {
+                m_Type = Cartridge::CartridgeMSXMapper;
             }
 
             if (kGameDatabase[i].sms_mode)

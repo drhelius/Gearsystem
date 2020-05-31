@@ -23,6 +23,7 @@
 #define GS_DB_CODEMASTERS_MAPPER 1
 #define GS_DB_DEFAULT_MAPPER 0
 #define GS_DB_SG1000_MAPPER 2
+#define GS_DB_MSX_MAPPER 3
 #define GS_DB_KOREAN_MAPPER 4
 
 struct GS_GameDBEntry
@@ -107,6 +108,17 @@ const GS_GameDBEntry kGameDatabase[] =
     // KOREAN MAPPER
     {0x89B79E77, GS_DB_KOREAN_MAPPER, false, false, false, "Dallyeora Pigu-Wang (Korean)"},
     {0x97D03541, GS_DB_KOREAN_MAPPER, false, false, false, "Sangokushi 3 (Korean)"},
+
+    // MSX MAPPER
+    {0x445525E2, GS_DB_MSX_MAPPER, false, false, false, "Penguin Adventure (KR)"},
+    {0x83F0EEDE, GS_DB_MSX_MAPPER, false, false, false, "Street Master (KR)"},
+    {0xA05258F5, GS_DB_MSX_MAPPER, false, false, false, "Won-Si-In (KR)"},
+    {0x06965ED9, GS_DB_MSX_MAPPER, false, false, false, "F-1 Spirit - The way to Formula-1 (KR)"},
+    {0x77EFE84A, GS_DB_MSX_MAPPER, false, false, false, "Cyborg Z (KR)"},
+    {0xF89AF3CC, GS_DB_MSX_MAPPER, false, false, false, "Knightmare II - The Maze of Galious (KR)"},
+    {0x9195C34C, GS_DB_MSX_MAPPER, false, false, false, "Super Boy 3 (KR)"},
+    {0xE316C06D, GS_DB_MSX_MAPPER, false, false, false, "Nemesis (KR)"},
+    {0x0A77FA5E, GS_DB_MSX_MAPPER, false, false, false, "Nemesis 2 (KR)"},
 
     // SG-1000 with RAM without battery
     {0x092F29D6, GS_DB_SG1000_MAPPER, false, false, true, "Castle, The (J)"},

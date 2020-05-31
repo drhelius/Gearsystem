@@ -29,6 +29,7 @@
 #include "CodemastersMemoryRule.h"
 #include "RomOnlyMemoryRule.h"
 #include "KoreanMemoryRule.h"
+#include "MSXMemoryRule.h"
 #include "SG1000MemoryRule.h"
 #include "SmsIOPorts.h"
 #include "GameGearIOPorts.h"
@@ -46,6 +47,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pSG1000MemoryRule);
     InitPointer(m_pRomOnlyMemoryRule);
     InitPointer(m_pKoreanMemoryRule);
+    InitPointer(m_pMSXMemoryRule);
     InitPointer(m_pSmsIOPorts);
     InitPointer(m_pGameGearIOPorts);
     m_bPaused = true;
@@ -78,6 +80,7 @@ GearsystemCore::~GearsystemCore()
     SafeDelete(m_pSG1000MemoryRule);
     SafeDelete(m_pSegaMemoryRule);
     SafeDelete(m_pKoreanMemoryRule);
+    SafeDelete(m_pMSXMemoryRule);
     SafeDelete(m_pCartridge);
     SafeDelete(m_pInput);
     SafeDelete(m_pVideo);
@@ -751,6 +754,7 @@ void GearsystemCore::InitMemoryRules()
     m_pSegaMemoryRule = new SegaMemoryRule(m_pMemory, m_pCartridge);
     m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pMemory, m_pCartridge);
     m_pKoreanMemoryRule = new KoreanMemoryRule(m_pMemory, m_pCartridge);
+    m_pMSXMemoryRule = new MSXMemoryRule(m_pMemory, m_pCartridge);
 
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
     m_pProcessor->SetIOPOrts(m_pSmsIOPorts);
@@ -778,6 +782,9 @@ bool GearsystemCore::AddMemoryRules()
             break;
         case Cartridge::CartridgeKoreanMapper:
             m_pMemory->SetCurrentRule(m_pKoreanMemoryRule);
+            break;
+        case Cartridge::CartridgeMSXMapper:
+            m_pMemory->SetCurrentRule(m_pMSXMemoryRule);
             break;
         case Cartridge::CartridgeNotSupported:
             notSupported = true;

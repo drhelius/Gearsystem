@@ -34,7 +34,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 ## Features
 
 - Accurate Z80 core, including undocumented opcodes and behaviour like R and [MEMPTR](https://gist.github.com/drhelius/8497817) registers.
-- Multi-Mapper support: SEGA, Codemasters, Korean, SG-1000, and ROM only cartridges.
+- Multi-Mapper support: SEGA, Codemasters, Korean, MSX, SG-1000, and ROM only cartridges.
 - External RAM support with save files.
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
 - Accurate VDP emulation including timing and SMS2 only 224 mode support.

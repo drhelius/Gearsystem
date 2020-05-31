@@ -260,7 +260,7 @@ void emu_get_info(char* info)
         const char* mapper = get_mapper(cart->GetType());
         const char* zone = get_zone(cart->GetZone());
 
-        sprintf(info, "File Name: %s\nMapper: %s\nRegion: %s\nSystem: %s\nRefresh Rate: %s\nCartridge Checksum: %s\nROM Banks: %d\nBattery: %s\nScreen Resolution: %dx%d", filename, mapper, zone, system, pal, checksum, rom_banks, battery, runtime.screen_width, runtime.screen_height);
+        sprintf(info, "File Name: %s\nMapper: %s\nRegion: %s\nSystem: %s\nRefresh Rate: %s\nCartridge Header: %s\nROM Banks: %d\nBattery: %s\nScreen Resolution: %dx%d", filename, mapper, zone, system, pal, checksum, rom_banks, battery, runtime.screen_width, runtime.screen_height);
     }
     else
     {
@@ -327,6 +327,9 @@ static const char* get_mapper(Cartridge::CartridgeTypes type)
         break;
     case Cartridge::CartridgeKoreanMapper:
         return "Korean";
+        break;
+    case Cartridge::CartridgeMSXMapper:
+        return "MSX";
         break;
     case Cartridge::CartridgeNotSupported:
         return "Not Supported";
