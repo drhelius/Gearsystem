@@ -856,8 +856,8 @@ static void debug_window_vram_background(void)
     int tile_y = -1;
     if ((mouse_x >= 0.0f) && (mouse_x < size_h) && (mouse_y >= 0.0f) && (mouse_y < size_v))
     {
-        tile_x = mouse_x / spacing;
-        tile_y = mouse_y / spacing;
+        tile_x = (int)(mouse_x / spacing);
+        tile_y = (int)(mouse_y / spacing);
 
         draw_list->AddRect(ImVec2(p.x + (tile_x * spacing), p.y + (tile_y * spacing)), ImVec2(p.x + ((tile_x + 1) * spacing), p.y + ((tile_y + 1) * spacing)), ImColor(cyan), 2.0f, 15, 2.0f);
 
@@ -908,10 +908,10 @@ static void debug_window_vram_background(void)
             u16 tile_info_hi = vram[map_addr + 1];
 
             int tile_number = ((tile_info_hi & 1) << 8) | tile_info_lo;
-            bool tile_hflip = IsSetBit(tile_info_hi, 1);
-            bool tile_vflip = IsSetBit(tile_info_hi, 2);
-            int tile_palette = IsSetBit(tile_info_hi, 3) ? 16 : 0;
-            bool tile_priority = IsSetBit(tile_info_hi, 4);       
+            bool tile_hflip = IsSetBit((u8)tile_info_hi, 1);
+            bool tile_vflip = IsSetBit((u8)tile_info_hi, 2);
+            int tile_palette = IsSetBit((u8)tile_info_hi, 3) ? 16 : 0;
+            bool tile_priority = IsSetBit((u8)tile_info_hi, 4);
 
             ImGui::TextColored(cyan, " Tile Addr:"); ImGui::SameLine();
             ImGui::Text(" $%04X", tile_number << 5);
@@ -998,8 +998,8 @@ static void debug_window_vram_tiles(void)
 
     if ((mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < height))
     {
-        tile_x = mouse_x / spacing;
-        tile_y = mouse_y / spacing;
+        tile_x = (int)(mouse_x / spacing);
+        tile_y = (int)(mouse_y / spacing);
 
         draw_list->AddRect(ImVec2(p.x + (tile_x * spacing), p.y + (tile_y * spacing)), ImVec2(p.x + ((tile_x + 1) * spacing), p.y + ((tile_y + 1) * spacing)), ImColor(cyan), 2.0f, 15, 2.0f);
 
@@ -1137,8 +1137,8 @@ static void debug_window_vram_sprites(void)
                 if (final_y >= 0xE0)
                     final_y = -(0x100 - final_y);
 
-                real_x = x - sprite_shift;
-                real_y = final_y;
+                real_x = (float)(x - sprite_shift);
+                real_y = (float)final_y;
             }
             else
             {
@@ -1153,8 +1153,8 @@ static void debug_window_vram_sprites(void)
                 tile &= sprites_16 ? 0xFE : 0xFF;
                 sprite_tile_addr = sprite_tiles_address + (tile << 5);
 
-                real_x = x - sprite_shift - (isGG ? GS_RESOLUTION_GG_X_OFFSET : 0);
-                real_y = y + 1.0f - (isGG ? GS_RESOLUTION_GG_Y_OFFSET : 0);
+                real_x = (float)(x - sprite_shift - (isGG ? GS_RESOLUTION_GG_X_OFFSET : 0));
+                real_y = (float)(y + 1.0f - (isGG ? GS_RESOLUTION_GG_Y_OFFSET : 0));
             }
 
             float max_width = 8.0f;
@@ -1337,13 +1337,13 @@ static void add_symbol(const char* line)
 
         if (separator != std::string::npos)
         {
-            s.address = std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
+            s.address = (u16)std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
 
             s.bank = std::stoul(str.substr(0, separator), 0 , 16);
         }
         else
         {
-            s.address = std::stoul(str, 0, 16);
+            s.address = (u16)std::stoul(str, 0, 16);
             s.bank = 0;
         }
 
@@ -1353,7 +1353,7 @@ static void add_symbol(const char* line)
 
 static void add_breakpoint(void)
 {
-    int input_len = strlen(brk_address);
+    int input_len = (int)strlen(brk_address);
     u16 target_address = 0;
     int target_bank = 0;
     int target_offset = 0;
@@ -1365,7 +1365,7 @@ static void add_breakpoint(void)
 
         if (separator != std::string::npos)
         {
-            target_address = std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
+            target_address = (u16)std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
 
             target_bank = std::stoul(str.substr(0, separator), 0 , 16);
             target_bank &= 0xFF;
@@ -1374,7 +1374,7 @@ static void add_breakpoint(void)
     else if (input_len == 4)
     {
         target_bank = 0; 
-        target_address = std::stoul(brk_address, 0, 16);
+        target_address = (u16)std::stoul(brk_address, 0, 16);
     }
     else
     {

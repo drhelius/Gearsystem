@@ -443,9 +443,9 @@ static void update_debug_background_buffer_smsgg(void)
             u16 tile_info_hi = vram[map_addr + 1];
 
             int tile_number = ((tile_info_hi & 1) << 8) | tile_info_lo;
-            bool tile_hflip = IsSetBit(tile_info_hi, 1);
-            bool tile_vflip = IsSetBit(tile_info_hi, 2);
-            int tile_palette = IsSetBit(tile_info_hi, 3) ? 16 : 0;
+            bool tile_hflip = IsSetBit((u8)tile_info_hi, 1);
+            bool tile_vflip = IsSetBit((u8)tile_info_hi, 2);
+            int tile_palette = IsSetBit((u8)tile_info_hi, 3) ? 16 : 0;
             int final_offset_y = offset_y;
             if (!tile_hflip)
                 offset_x = 7 - offset_x;

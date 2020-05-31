@@ -695,7 +695,7 @@ static void main_menu(void)
             ImGui::EndMenu();
         }
 
-        main_menu_height = ImGui::GetWindowSize().y;
+        main_menu_height = (int)ImGui::GetWindowSize().y;
 
         ImGui::EndMainMenuBar();       
     }
@@ -741,8 +741,8 @@ static void main_window(void)
     GS_RuntimeInfo runtime;
     emu_get_runtime(runtime);
 
-    int w = ImGui::GetIO().DisplaySize.x;
-    int h = ImGui::GetIO().DisplaySize.y - main_menu_height;
+    int w = (int)ImGui::GetIO().DisplaySize.x;
+    int h = (int)ImGui::GetIO().DisplaySize.y - main_menu_height;
 
     int selected_ratio = config_debug.debug ? 0 : config_video.ratio;
     float ratio = (float)runtime.screen_width / (float)runtime.screen_height;
@@ -765,8 +765,8 @@ static void main_window(void)
             ratio = (float)runtime.screen_width / (float)runtime.screen_height;
     }
 
-    int w_corrected = selected_ratio == 3 ? w : runtime.screen_height * ratio;
-    int h_corrected = selected_ratio == 3 ? h : runtime.screen_height;
+    int w_corrected = (int)(selected_ratio == 3 ? w : runtime.screen_height * ratio);
+    int h_corrected = (int)(selected_ratio == 3 ? h : runtime.screen_height);
 
     int factor = 0;
 
@@ -806,8 +806,8 @@ static void main_window(void)
     }
     else
     {
-        ImGui::SetNextWindowSize(ImVec2(main_window_width, main_window_height));
-        ImGui::SetNextWindowPos(ImVec2(window_x, window_y));
+        ImGui::SetNextWindowSize(ImVec2((float)main_window_width, (float)main_window_height));
+        ImGui::SetNextWindowPos(ImVec2((float)window_x, (float)window_y));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
         flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav;
@@ -815,7 +815,7 @@ static void main_window(void)
         ImGui::Begin(GEARSYSTEM_TITLE, 0, flags);
     }
 
-    ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(main_window_width, main_window_height));
+    ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2((float)main_window_width, (float)main_window_height));
 
     if (config_video.fps)
         show_fps();
