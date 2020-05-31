@@ -24,6 +24,7 @@
     <ClCompile Include="..\..\src\KoreanMemoryRule.cpp" />
     <ClCompile Include="..\..\src\Memory.cpp" />
     <ClCompile Include="..\..\src\MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\MSXMemoryRule.cpp" />
     <ClCompile Include="..\..\src\opcodes.cpp" />
     <ClCompile Include="..\..\src\opcodes_cb.cpp" />
     <ClCompile Include="..\..\src\opcodes_ed.cpp" />
@@ -74,6 +75,7 @@
     <ClInclude Include="..\..\src\Memory.h" />
     <ClInclude Include="..\..\src\MemoryRule.h" />
     <ClInclude Include="..\..\src\Memory_inline.h" />
+    <ClInclude Include="..\..\src\MSXMemoryRule.h" />
     <ClInclude Include="..\..\src\opcodecb_names.h" />
     <ClInclude Include="..\..\src\opcodeddcb_names.h" />
     <ClInclude Include="..\..\src\opcodedd_names.h" />

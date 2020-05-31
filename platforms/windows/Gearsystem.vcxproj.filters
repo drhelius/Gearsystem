@@ -141,6 +141,9 @@
     <ClCompile Include="..\desktop-shared\gui_debug.cpp">
       <Filter>desktop_shared</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\MSXMemoryRule.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\audio-shared\Sound_Queue.h">
@@ -328,6 +331,9 @@
     </ClInclude>
     <ClInclude Include="..\desktop-shared\gui_debug_constants.h">
       <Filter>desktop_shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\MSXMemoryRule.h">
+      <Filter>core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
