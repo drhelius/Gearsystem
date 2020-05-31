@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2BC6E4192484212C00BD52B3 /* MSXMemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2BC6E4182484212C00BD52B3 /* MSXMemoryRule.cpp */; };
 		663EBD051A103B0F00F32DC8 /* GLViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 663EBD031A103B0F00F32DC8 /* GLViewController.xib */; };
 		6661D2F01A10B5D4009CFFF5 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6661D2EF1A10B518009CFFF5 /* libSDL2.a */; };
 		666602A31A7ECF0300DEB660 /* texturemanager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 666602A21A7ECF0300DEB660 /* texturemanager.mm */; };
@@ -73,6 +74,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		2BC6E4152484212C00BD52B3 /* MSXMemoryRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MSXMemoryRule.h; path = ../../src/MSXMemoryRule.h; sourceTree = "<group>"; };
+		2BC6E4182484212C00BD52B3 /* MSXMemoryRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MSXMemoryRule.cpp; path = ../../src/MSXMemoryRule.cpp; sourceTree = "<group>"; };
 		663EBD041A103B0F00F32DC8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/GLViewController.xib; sourceTree = "<group>"; };
 		6661D2E91A10B518009CFFF5 /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = "dependencies/SDL-2.0.4-9174/Xcode-iOS/SDL/SDL.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		666602A01A7ECF0300DEB660 /* texture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = texture.h; sourceTree = "<group>"; };
@@ -303,6 +306,8 @@
 		66AB413C1A102C0D006C951A /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				2BC6E4182484212C00BD52B3 /* MSXMemoryRule.cpp */,
+				2BC6E4152484212C00BD52B3 /* MSXMemoryRule.h */,
 				66A7B47822C82E0F00E7B287 /* KoreanMemoryRule.cpp */,
 				66A7B47B22C82E0F00E7B287 /* KoreanMemoryRule.h */,
 				66AB415B1A1030C1006C951A /* Audio.cpp */,
@@ -502,6 +507,7 @@
 				66AB41911A1030C2006C951A /* MemoryRule.cpp in Sources */,
 				66AB41AB1A1030D4006C951A /* Multi_Buffer.cpp in Sources */,
 				66AB41AA1A1030D4006C951A /* Effects_Buffer.cpp in Sources */,
+				2BC6E4192484212C00BD52B3 /* MSXMemoryRule.cpp in Sources */,
 				66AB41D91A103191006C951A /* Emulator.mm in Sources */,
 				66AB41DE1A103191006C951A /* timer.mm in Sources */,
 				66AB418F1A1030C2006C951A /* Input.cpp in Sources */,
@@ -590,6 +596,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
+					GEARSYSTEM_DISABLE_DISASSEMBLER,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -640,6 +647,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = GEARSYSTEM_DISABLE_DISASSEMBLER;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
