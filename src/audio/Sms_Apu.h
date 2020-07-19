@@ -58,14 +58,9 @@ private:
 	Sms_Noise   noise;
 	unsigned    noise_feedback;
 	unsigned    looped_feedback;
+	unsigned int ggstereo_save;
 	
 	void run_until( blip_time_t );
-};
-
-struct sms_apu_state_t
-{
-	unsigned char regs [8] [2];
-	unsigned char latch;
 };
 
 inline void Sms_Apu::output( Blip_Buffer* b ) { output( b, b, b ); }

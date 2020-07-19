@@ -46,56 +46,50 @@ inline void Sms_Square::reset()
 
 void Sms_Square::run( blip_time_t time, blip_time_t end_time )
 {
-	if ( !volume || period <= 128 )
-	{
-		// ignore 16kHz and higher
-		if ( last_amp )
-		{
-			synth->offset( time, -last_amp, output );
-			last_amp = 0;
-		}
-		time += delay;
-		if ( !period )
-		{
-			time = end_time;
-		}
-		else if ( time < end_time )
-		{
-			// keep calculating phase
-			int count = (end_time - time + period - 1) / period;
-			phase = (phase + count) & 1;
-			time += count * period;
-		}
-	}
-	else
-	{
-		int amp = phase ? volume : -volume;
-		{
-			int delta = amp - last_amp;
-			if ( delta )
-			{
-				last_amp = amp;
-				synth->offset( time, delta, output );
-			}
-		}
-		
-		time += delay;
-		if ( time < end_time )
-		{
-			Blip_Buffer* const output = this->output;
-			int delta = amp * 2;
-			do
-			{
-				delta = -delta;
-				synth->offset_inline( time, delta, output );
-				time += period;
-				phase ^= 1;
-			}
-			while ( time < end_time );
-			this->last_amp = phase ? volume : -volume;
-		}
-	}
-	delay = time - end_time;
+    int amp = volume;
+    if ( period > 128 )
+        amp = amp << 1 & -phase;
+
+    {
+        int delta = amp - last_amp;
+        if ( delta )
+        {
+            last_amp = amp;
+            synth->offset( time, delta, output );
+        }
+    }
+
+    time += delay;
+    delay = 0;
+    if ( period )
+    {
+        if ( time < end_time )
+        {
+            if ( !volume || period <= 128 ) // ignore 16kHz and higher
+            {
+                // keep calculating phase
+                int count = (end_time - time + period - 1) / period;
+                phase = (phase + count) & 1;
+                time += count * period;
+            }
+            else
+            {
+                Blip_Buffer* const output_ = this->output;
+                int delta = amp * 2 - volume * 2;
+                do
+                {
+                    delta = -delta;
+                    synth->offset_inline( time, delta, output_ );
+                    time += period;
+                }
+                while ( time < end_time );
+
+                last_amp = (delta >> 1) + volume;
+                phase = (delta >= 0);
+            }
+        }
+        delay = time - end_time;
+    }
 }
 
 // Sms_Noise
@@ -112,10 +106,8 @@ inline void Sms_Noise::reset()
 
 void Sms_Noise::run( blip_time_t time, blip_time_t end_time )
 {
-	int amp = volume;
-	if ( shifter & 1 )
-		amp = -amp;
-	
+	int amp = (shifter & 1) ? 0 : volume * 2;
+
 	{
 		int delta = amp - last_amp;
 		if ( delta )
@@ -128,31 +120,33 @@ void Sms_Noise::run( blip_time_t time, blip_time_t end_time )
 	time += delay;
 	if ( !volume )
 		time = end_time;
-	
+
 	if ( time < end_time )
 	{
-		Blip_Buffer* const output = this->output;
-		unsigned shifter = this->shifter;
-		int delta = amp * 2;
-		int period = *this->period * 2;
-		if ( !period )
-			period = 16;
-		
+		Blip_Buffer* const output_ = this->output;
+		unsigned shifter_ = this->shifter;
+		int delta = (shifter_ & 1) ? (-volume * 2) : (volume * 2);
+		int period_ = *this->period * 2;
+		if ( !period_ )
+			period_ = 16;
+
 		do
 		{
-			int changed = shifter + 1;
-			shifter = (feedback & -(shifter & 1)) ^ (shifter >> 1);
+			int changed = shifter_ + 1;
+			shifter_ = (feedback & -(shifter_ & 1)) ^ (shifter_ >> 1);
 			if ( changed & 2 ) // true if bits 0 and 1 differ
 			{
+				amp = (shifter_ & 1) ? 0 : volume * 2;
 				delta = -delta;
-				synth.offset_inline( time, delta, output );
+				synth.offset_inline( time, delta, output_ );
+				last_amp = amp;
 			}
-			time += period;
+			time += period_;
 		}
 		while ( time < end_time );
 		
-		this->shifter = shifter;
-		this->last_amp = delta >> 1;
+		this->shifter = shifter_;
+		this->last_amp = (shifter_ & 1) ? 0 : volume * 2; //delta >> 1;
 	}
 	delay = time - end_time;
 }
@@ -210,6 +204,7 @@ void Sms_Apu::reset( unsigned feedback, int noise_width )
 {
 	last_time = 0;
 	latch = 0;
+	ggstereo_save = 0xFF;
 	
 	if ( !feedback || !noise_width )
 	{
@@ -243,7 +238,6 @@ void Sms_Apu::run_until( blip_time_t end_time )
 			Sms_Osc& osc = *oscs [i];
 			if ( osc.output )
 			{
-				osc.output->set_modified();
 				if ( i < 3 )
 					squares [i].run( last_time, end_time );
 				else
@@ -268,6 +262,8 @@ void Sms_Apu::write_ggstereo( blip_time_t time, int data )
 {
 	require( (unsigned) data <= 0xFF );
 	
+	ggstereo_save = data;
+
 	run_until( time );
 	
 	for ( int i = 0; i < osc_count; i++ )
@@ -281,7 +277,6 @@ void Sms_Apu::write_ggstereo( blip_time_t time, int data )
 		{
 			if ( old_output )
 			{
-				old_output->set_modified();
 				square_synth.offset( time, -osc.last_amp, old_output );
 			}
 			osc.last_amp = 0;
