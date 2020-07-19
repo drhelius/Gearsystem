@@ -561,20 +561,8 @@ static void update_debug_tile_buffer_sg1000(void)
     u8* regs = video->GetRegisters();
     int mode = video->GetSG1000Mode();
 
-    int pattern_table_addr = 0;
-    int color_table_addr = 0;
-
-    if (mode == 0x200)
-    {
-        pattern_table_addr = (regs[4] & 0x04) << 11;
-        color_table_addr = (regs[3] & 0x80) << 6;
-    }
-    else
-    {
-        pattern_table_addr = (regs[4] & 0x07) << 11;
-        color_table_addr = regs[3] << 6;
-    }
-
+    int pattern_table_addr = (regs[4] & ((mode == 0x200) ? 0x04 : 0x07)) << 11;
+    
     for (int y = 0; y < 256; y++)
     {
         int width_y = (y * 256);
