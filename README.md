@@ -45,7 +45,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 - Compressed rom support (ZIP deflate).
 - Game Genie and Pro Action Replay cheat support.
 - Supported platforms: Windows, Linux, macOS, Raspberry Pi, iOS and RetroArch (libretro).
-- Full debugger with disassembler, breakpoints, debug symbols, memory editor, IO inspector and and VRAM viewer including tiles, sprites, backgrounds and palettes.
+- Full debugger with disassembler, breakpoints, debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
 
 <img src="http://www.geardome.com/files/gearsystem/gearsystem_debug_01.png" width="687" height="494">
 
