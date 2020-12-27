@@ -305,13 +305,14 @@ void Processor::UndocumentedOPCode()
 
 bool Processor::Disassemble(u16 address)
 {
-    Memory::stDisassembleRecord* memoryMap = m_pMemory->GetDisassembledMemoryMap();
-    Memory::stDisassembleRecord* romMap = m_pMemory->GetDisassembledROMMemoryMap();
+    Memory::stDisassembleRecord** memoryMap = m_pMemory->GetDisassembledMemoryMap();
+    Memory::stDisassembleRecord** romMap = m_pMemory->GetDisassembledROMMemoryMap();
 
-    Memory::stDisassembleRecord* map = NULL;
+    Memory::stDisassembleRecord** map = NULL;
 
     int offset = address;
     int bank = 0;
+    bool rom = false;
 
     switch (address & 0xC000)
     {
@@ -319,25 +320,49 @@ bool Processor::Disassemble(u16 address)
         bank = m_pMemory->GetCurrentRule()->GetBank(0);
         offset = (0x4000 * bank) + address;
         map = romMap;
+        rom = true;
         break;
     case 0x4000:
         bank = m_pMemory->GetCurrentRule()->GetBank(1);
         offset = (0x4000 * bank) + (address & 0x3FFF);
         map = romMap;
+        rom = true;
         break;
     case 0x8000:
         bank = m_pMemory->GetCurrentRule()->GetBank(2);
         offset = (0x4000 * bank) + (address & 0x3FFF);
         map = romMap;
+        rom = true;
         break;
     default:
         map = memoryMap;
+        rom = false;
     }
 
-    if (map[offset].size == 0)
+    if (!IsValidPointer(map[offset]))
     {
-        map[offset].bank = bank;
-        map[offset].address = address;
+        map[offset] = new Memory::stDisassembleRecord;
+
+        if (rom)
+        {
+            map[offset]->address = offset & 0x3FFF;
+            map[offset]->bank = offset >> 14;
+        }
+        else
+        {
+            map[offset]->address = offset;
+            map[offset]->bank = 0;
+        }
+
+        map[offset]->name[0] = 0;
+        map[offset]->bytes[0] = 0;
+        map[offset]->size = 0;
+    }
+
+    if (map[offset]->size == 0)
+    {
+        map[offset]->bank = bank;
+        map[offset]->address = address;
 
         std::vector<u8> bytes; 
         u16 opcode_temp_addr = address;
@@ -397,21 +422,21 @@ bool Processor::Disassemble(u16 address)
                 info = kOPCodeNames[opcode];
         }
 
-        map[offset].size = info.size + (first > 1 ? (first - 1) : 0);
-        map[offset].bytes[0] = 0;
+        map[offset]->size = info.size + (first > 1 ? (first - 1) : 0);
+        map[offset]->bytes[0] = 0;
 
         for (int i = 0; i < (int)bytes.size(); i++)
         {
-            if (i < map[offset].size)
+            if (i < map[offset]->size)
             {
                 char value[8];
                 sprintf(value, "%02X", bytes[i]);
-                strcat(map[offset].bytes, value);
-                strcat(map[offset].bytes, " ");
+                strcat(map[offset]->bytes, value);
+                strcat(map[offset]->bytes, " ");
             }
             else if (i < 4)
             {
-                strcat(map[offset].bytes, "   ");
+                strcat(map[offset]->bytes, "   ");
             }
         }
 
@@ -420,28 +445,28 @@ bool Processor::Disassemble(u16 address)
         switch (info.type)
         {
             case 0:
-                strcpy(map[offset].name, info.name);
+                strcpy(map[offset]->name, info.name);
                 break;
             case 1:
-                sprintf(map[offset].name, info.name, bytes[first]);
+                sprintf(map[offset]->name, info.name, bytes[first]);
                 break;
             case 2:
-                sprintf(map[offset].name, info.name, bytes[first + 1]);
+                sprintf(map[offset]->name, info.name, bytes[first + 1]);
                 break;
             case 3:
-                sprintf(map[offset].name, info.name, (bytes[first + 2] << 8) | bytes[first + 1]);
+                sprintf(map[offset]->name, info.name, (bytes[first + 2] << 8) | bytes[first + 1]);
                 break;
             case 4:
-                sprintf(map[offset].name, info.name, (s8)bytes[first + 1]);
+                sprintf(map[offset]->name, info.name, (s8)bytes[first + 1]);
                 break;
             case 5:
-                sprintf(map[offset].name, info.name, address + info.size + (s8)bytes[first + 1], (s8)bytes[first + 1]);
+                sprintf(map[offset]->name, info.name, address + info.size + (s8)bytes[first + 1], (s8)bytes[first + 1]);
                 break;
             case 6:
-                sprintf(map[offset].name, info.name, (s8)bytes[first + 1], bytes[first + 2]);
+                sprintf(map[offset]->name, info.name, (s8)bytes[first + 1], bytes[first + 2]);
                 break;
             default:
-                strcpy(map[offset].name, "PARSE ERROR");
+                strcpy(map[offset]->name, "PARSE ERROR");
         }
     }
 
@@ -450,7 +475,7 @@ bool Processor::Disassemble(u16 address)
 
     if (IsValidPointer(runtobreakpoint))
     {
-        if (runtobreakpoint == &map[offset])
+        if (runtobreakpoint == map[offset])
         {
             m_pMemory->SetRunToBreakpoint(NULL);
             return true;
@@ -462,7 +487,7 @@ bool Processor::Disassemble(u16 address)
     {
         for (long unsigned int b = 0; b < breakpoints->size(); b++)
         {
-            if ((*breakpoints)[b] == &map[offset])
+            if ((*breakpoints)[b] == map[offset])
             {
                 return true;
             }

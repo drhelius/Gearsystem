@@ -48,8 +48,8 @@ public:
     void Write(u16 address, u8 value);
     u8 Retrieve(u16 address);
     void Load(u16 address, u8 value);
-    stDisassembleRecord* GetDisassembledMemoryMap();
-    stDisassembleRecord* GetDisassembledROMMemoryMap();
+    stDisassembleRecord** GetDisassembledMemoryMap();
+    stDisassembleRecord** GetDisassembledROMMemoryMap();
     void LoadSlotsFromROM(u8* pTheROM, int size);
     void MemoryDump(const char* szFilePath);
     void SaveState(std::ostream& stream);
@@ -61,8 +61,8 @@ public:
 private:
     MemoryRule* m_pCurrentMemoryRule;
     u8* m_pMap;
-    stDisassembleRecord* m_pDisassembledMap;
-    stDisassembleRecord* m_pDisassembledROMMap;
+    stDisassembleRecord** m_pDisassembledMap;
+    stDisassembleRecord** m_pDisassembledROMMap;
     std::vector<stDisassembleRecord*> m_Breakpoints;
     stDisassembleRecord* m_pRunToBreakpoint;
 };
