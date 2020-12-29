@@ -45,12 +45,11 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_bGameGear = false;
     m_iLinesPerFrame = 0;
     m_bPAL = false;
-    m_bVIntReached = false;
-    m_bVCounterIncremented = false;
-    m_bHIntReached = false;
-    m_bScrollXLatched = false;
-    m_bVIntFlagSet = false;
-    m_bReg10CounterDecremented = false;
+    m_LineEvents.hint = false;
+    m_LineEvents.scrollx = false;
+    m_LineEvents.vcounter = false;
+    m_LineEvents.vint = false;
+    m_LineEvents.vintFlag = false;
     m_bExtendedMode224 = false;
     m_iRenderLine = 0;
     m_iScreenWidth = 0;
@@ -81,13 +80,12 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_iLinesPerFrame = bPAL ? GS_LINES_PER_FRAME_PAL : GS_LINES_PER_FRAME_NTSC;
     m_bFirstByteInSequence = true;
     m_VdpBuffer = 0;
-    m_iVCounter = 0;
+    m_iVCounter = m_iLinesPerFrame - 1;
     m_iHCounter = 0;
     m_VdpCode = 0;
     m_VdpBuffer = 0;
     m_VdpAddress = 0;
     m_VdpStatus = 0;
-    m_bReg10CounterDecremented = false;
     m_ScrollX = 0;
     m_ScrollY = 0;
     for (int i = 0; i < (GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT); i++)
@@ -113,13 +111,14 @@ void Video::Reset(bool bGameGear, bool bPAL)
         m_VdpRegister[i] = 0;
 
     m_bExtendedMode224 = false;
-    m_bVIntReached = false;
-    m_bVCounterIncremented = false;
-    m_bHIntReached = false;
-    m_bScrollXLatched = false;
-    m_bVIntFlagSet = false;
+    m_LineEvents.hint = false;
+    m_LineEvents.scrollx = false;
+    m_LineEvents.vcounter = false;
+    m_LineEvents.vint = false;
+    m_LineEvents.vintFlag = false;
+    m_LineEvents.render = false;
+
     m_iCycleCounter = 0;
-    m_iVCounter = m_iLinesPerFrame - 1;
     m_iVdpRegister10Counter = m_VdpRegister[10];
     m_iRenderLine = 0;
 
@@ -127,6 +126,25 @@ void Video::Reset(bool bGameGear, bool bPAL)
 
     m_bSG1000 = false;
     m_iSG1000Mode = 0;
+
+    if (m_bGameGear)
+    {
+        m_Timing[TIMING_VINT] = 27;
+        m_Timing[TIMING_XSCROLL] = 14;
+        m_Timing[TIMING_HINT] = 29;
+        m_Timing[TIMING_VCOUNT] = 28;
+        m_Timing[TIMING_FLAG_VINT] = 27;
+        m_Timing[TIMING_RENDER] = 200;
+    }
+    else
+    {
+        m_Timing[TIMING_VINT] = 25;
+        m_Timing[TIMING_XSCROLL] = 14;
+        m_Timing[TIMING_HINT] = 27;
+        m_Timing[TIMING_VCOUNT] = 25;
+        m_Timing[TIMING_FLAG_VINT] = 25;
+        m_Timing[TIMING_RENDER] = 200;
+    }
 }
 
 void Video::SetSG1000Palette(GS_Color* pSG1000Palette)
@@ -168,42 +186,46 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
     m_iCycleCounter += clockCycles;
 
     ///// VINT /////
-    if (!m_bVIntReached && (m_iCycleCounter >= 222))
+    if (!m_LineEvents.vint && (m_iCycleCounter >= m_Timing[TIMING_VINT]))
     {
-        m_bVIntReached = true;
+        m_LineEvents.vint = true;
         if ((m_iRenderLine == (max_height + 1)) && (IsSetBit(m_VdpRegister[1], 5)))
             m_pProcessor->RequestINT(true);
     }
 
-    ///// XSCROLL /////
-    if (!m_bScrollXLatched && (m_iCycleCounter >= 211))
+    ///// SCROLLX /////
+    if (!m_LineEvents.scrollx && (m_iCycleCounter >= m_Timing[TIMING_XSCROLL]))
     {
-        m_bScrollXLatched = true;
+        m_LineEvents.scrollx = true;
         m_ScrollX = m_VdpRegister[8];   // latch scroll X
     }
 
     ///// HINT /////
-    if (!m_bHIntReached && (m_iCycleCounter >= 224))
+    if (!m_LineEvents.hint && (m_iCycleCounter >= m_Timing[TIMING_HINT]))
     {
-        m_bHIntReached = true;
-        if (m_iRenderLine <= max_height)
+        m_LineEvents.hint = true;
+        if (/*(m_iRenderLine >= GS_RESOLUTION_GG_Y_OFFSET) &&*/ (m_iRenderLine <= max_height))
         {
-            m_iVdpRegister10Counter--;
-            if (m_iVdpRegister10Counter < 0)
+            if (m_iVdpRegister10Counter == 0)
             {
                 m_iVdpRegister10Counter = m_VdpRegister[10];
                 if (!m_bSG1000 && IsSetBit(m_VdpRegister[0], 4))
                     m_pProcessor->RequestINT(true);
             }
+            else
+            {
+                m_iVdpRegister10Counter--;
+            }
+            
         }
         else
             m_iVdpRegister10Counter = m_VdpRegister[10];
     }
 
     ///// VCOUNT /////
-    if (!m_bVCounterIncremented && (m_iCycleCounter >= 222))
+    if (!m_LineEvents.vcounter && (m_iCycleCounter >= m_Timing[TIMING_VCOUNT]))
     {
-        m_bVCounterIncremented = true;
+        m_LineEvents.vcounter = true;
         m_iVCounter++;
         if (m_iVCounter >= m_iLinesPerFrame)
         {
@@ -213,32 +235,39 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
     }
 
     ///// FLAG VINT /////
-    if (!m_bVIntFlagSet && (m_iCycleCounter >= 222))
+    if (!m_LineEvents.vintFlag && (m_iCycleCounter >= m_Timing[TIMING_FLAG_VINT]))
     {
-        m_bVIntFlagSet = true;
+        m_LineEvents.vintFlag = true;
         if (m_iRenderLine == (max_height + 1))
             m_VdpStatus = SetBit(m_VdpStatus, 7);
+    }
+
+    ///// RENDER /////
+    if (!m_LineEvents.render && (m_iCycleCounter >= m_Timing[TIMING_RENDER]))
+    {
+        m_LineEvents.render = true;
+        if ((m_iRenderLine < max_height) && IsValidPointer(m_pColorFrameBuffer))
+        {
+            ScanLine(m_iRenderLine);
+        }
     }
 
     ///// RENDER LINE /////
     if (m_iCycleCounter >= GS_CYCLES_PER_LINE)
     {
-        if ((m_iRenderLine < max_height) && IsValidPointer(m_pColorFrameBuffer))
-        {
-            ScanLine(m_iRenderLine);
-        }
-        else if (m_iRenderLine == max_height)
+        if (m_iRenderLine == (max_height - 1))
         {
             return_vblank = true;
         }
         m_iRenderLine++;
         m_iRenderLine %= m_iLinesPerFrame;
         m_iCycleCounter -= GS_CYCLES_PER_LINE;
-        m_bVIntReached = false;
-        m_bHIntReached = false;
-        m_bVCounterIncremented = false;
-        m_bScrollXLatched = false;
-        m_bVIntFlagSet = false;
+        m_LineEvents.hint = false;
+        m_LineEvents.scrollx = false;
+        m_LineEvents.vcounter = false;
+        m_LineEvents.vint = false;
+        m_LineEvents.vintFlag = false;
+        m_LineEvents.render = false;
     }
 
     return return_vblank;
@@ -460,13 +489,14 @@ void Video::RenderBackgroundSMSGG(int line)
     int tile_y_offset = map_y & 7;
 
     int palette_color = 0;
-    u8 info = 0;
 
     int scx_begin = m_bGameGear ? GS_RESOLUTION_GG_X_OFFSET : 0;
     int scx_end = scx_begin + m_iScreenWidth;
 
     for (int scx = scx_begin; scx < scx_end; scx++)
     {
+        int pixel = line_width + scx - scx_begin;
+
         if (IsSetBit(m_VdpRegister[0], 5) && scx < 8)
         {
             palette_color = (m_VdpRegister[7] & 0x0F) + 16;
@@ -507,18 +537,26 @@ void Video::RenderBackgroundSMSGG(int line)
                     (((m_pVdpVRAM[tile_data_addr + 2] >> tile_pixel_x) & 0x01) << 2) +
                     (((m_pVdpVRAM[tile_data_addr + 3] >> tile_pixel_x) & 0x01) << 3) +
                     palette_offset;
-            info = 0x01 | ((priority && ((palette_color - palette_offset) != 0)) ? 0x02 : 0);
+
+            bool final_priority = priority && ((palette_color - palette_offset) != 0);
+
+            if ((m_pInfoBuffer[pixel] & 0x01) && !final_priority)
+            {
+                m_pInfoBuffer[pixel] = 0;
+                continue;
+            }
         }
 
-        int pixel = line_width + scx - scx_begin;
-
         m_pColorFrameBuffer[pixel] = ConvertTo8BitColor(palette_color);
-        m_pInfoBuffer[pixel] = info;
+        m_pInfoBuffer[pixel] = 0;
     }
 }
 
 void Video::RenderSpritesSMSGG(int line)
 {
+    line++;
+    line %= (m_bExtendedMode224 ? 224 : 192);
+
     if (m_bGameGear && ((line < GS_RESOLUTION_GG_Y_OFFSET) || (line >= (GS_RESOLUTION_GG_Y_OFFSET + GS_RESOLUTION_GG_HEIGHT))))
         return;
 
@@ -578,9 +616,6 @@ void Video::RenderSpritesSMSGG(int line)
 
             int pixel = line_width + sprite_pixel_x - scx_begin;
 
-            if (m_pInfoBuffer[pixel] & 0x02)
-                continue;
-
             int tile_pixel_x = 7 - tile_x;
 
             int palette_color = ((m_pVdpVRAM[sprite_tile_addr] >> tile_pixel_x) & 0x01) +
@@ -594,10 +629,10 @@ void Video::RenderSpritesSMSGG(int line)
 
             m_pColorFrameBuffer[pixel] = ConvertTo8BitColor(palette_color);
 
-            if ((m_pInfoBuffer[pixel] & 0x04) != 0)
+            if ((m_pInfoBuffer[pixel] & 0x01) != 0)
                 sprite_collision = true;
-            else
-                m_pInfoBuffer[pixel] |= 0x04;
+
+            m_pInfoBuffer[pixel] |= 0x01;
         }
     }
 
@@ -780,13 +815,14 @@ void Video::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_ScrollX), sizeof(m_ScrollX));
     stream.write(reinterpret_cast<const char*> (&m_ScrollY), sizeof(m_ScrollY));
     stream.write(reinterpret_cast<const char*> (&m_iLinesPerFrame), sizeof(m_iLinesPerFrame));
-    stream.write(reinterpret_cast<const char*> (&m_bReg10CounterDecremented), sizeof(m_bReg10CounterDecremented));
+    bool bogus = false;
+    stream.write(reinterpret_cast<const char*> (&bogus), sizeof(bogus));
     stream.write(reinterpret_cast<const char*> (&m_bExtendedMode224), sizeof(m_bExtendedMode224));
-    stream.write(reinterpret_cast<const char*> (&m_bVIntFlagSet), sizeof(m_bVIntFlagSet));
-    stream.write(reinterpret_cast<const char*> (&m_bVIntReached), sizeof(m_bVIntReached));
-    stream.write(reinterpret_cast<const char*> (&m_bHIntReached), sizeof(m_bHIntReached));
-    stream.write(reinterpret_cast<const char*> (&m_bScrollXLatched), sizeof(m_bScrollXLatched));
-    stream.write(reinterpret_cast<const char*> (&m_bVCounterIncremented), sizeof(m_bVCounterIncremented));
+    stream.write(reinterpret_cast<const char*> (&m_LineEvents.vintFlag), sizeof(m_LineEvents.vintFlag));
+    stream.write(reinterpret_cast<const char*> (&m_LineEvents.vint), sizeof(m_LineEvents.vint));
+    stream.write(reinterpret_cast<const char*> (&m_LineEvents.hint), sizeof(m_LineEvents.hint));
+    stream.write(reinterpret_cast<const char*> (&m_LineEvents.scrollx), sizeof(m_LineEvents.scrollx));
+    stream.write(reinterpret_cast<const char*> (&m_LineEvents.vcounter), sizeof(m_LineEvents.vcounter));
     stream.write(reinterpret_cast<const char*> (&m_iRenderLine), sizeof(m_iRenderLine));
 }
 
@@ -810,12 +846,13 @@ void Video::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_ScrollX), sizeof(m_ScrollX));
     stream.read(reinterpret_cast<char*> (&m_ScrollY), sizeof(m_ScrollY));
     stream.read(reinterpret_cast<char*> (&m_iLinesPerFrame), sizeof(m_iLinesPerFrame));
-    stream.read(reinterpret_cast<char*> (&m_bReg10CounterDecremented), sizeof(m_bReg10CounterDecremented));
+    bool bogus;
+    stream.read(reinterpret_cast<char*> (&bogus), sizeof(bogus));
     stream.read(reinterpret_cast<char*> (&m_bExtendedMode224), sizeof(m_bExtendedMode224));
-    stream.read(reinterpret_cast<char*> (&m_bVIntFlagSet), sizeof(m_bVIntFlagSet));
-    stream.read(reinterpret_cast<char*> (&m_bVIntReached), sizeof(m_bVIntReached));
-    stream.read(reinterpret_cast<char*> (&m_bHIntReached), sizeof(m_bHIntReached));
-    stream.read(reinterpret_cast<char*> (&m_bScrollXLatched), sizeof(m_bScrollXLatched));
-    stream.read(reinterpret_cast<char*> (&m_bVCounterIncremented), sizeof(m_bVCounterIncremented));
+    stream.read(reinterpret_cast<char*> (&m_LineEvents.vintFlag), sizeof(m_LineEvents.vintFlag));
+    stream.read(reinterpret_cast<char*> (&m_LineEvents.vint), sizeof(m_LineEvents.vint));
+    stream.read(reinterpret_cast<char*> (&m_LineEvents.hint), sizeof(m_LineEvents.hint));
+    stream.read(reinterpret_cast<char*> (&m_LineEvents.scrollx), sizeof(m_LineEvents.scrollx));
+    stream.read(reinterpret_cast<char*> (&m_LineEvents.vcounter), sizeof(m_LineEvents.vcounter));
     stream.read(reinterpret_cast<char*> (&m_iRenderLine), sizeof(m_iRenderLine));
 }
