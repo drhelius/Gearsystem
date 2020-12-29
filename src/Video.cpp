@@ -463,10 +463,12 @@ void Video::ScanLine(int line)
 
 void Video::RenderBackgroundSMSGG(int line)
 {
-    if (m_bGameGear && ((line < GS_RESOLUTION_GG_Y_OFFSET) || (line >= (GS_RESOLUTION_GG_Y_OFFSET + GS_RESOLUTION_GG_HEIGHT))))
+    int y_offset = m_bExtendedMode224 ? GS_RESOLUTION_GG_Y_OFFSET_EXTENDED : GS_RESOLUTION_GG_Y_OFFSET;
+
+    if (m_bGameGear && ((line < y_offset) || (line >= (y_offset + GS_RESOLUTION_GG_HEIGHT))))
         return;
 
-    int scy_adjust = m_bGameGear ? GS_RESOLUTION_GG_Y_OFFSET : 0;
+    int scy_adjust = m_bGameGear ? y_offset : 0;
     int scy = line;
     int line_width = (line - scy_adjust) * m_iScreenWidth;
     int origin_x = m_ScrollX;
@@ -557,12 +559,14 @@ void Video::RenderSpritesSMSGG(int line)
     line++;
     line %= (m_bExtendedMode224 ? 224 : 192);
 
-    if (m_bGameGear && ((line < GS_RESOLUTION_GG_Y_OFFSET) || (line >= (GS_RESOLUTION_GG_Y_OFFSET + GS_RESOLUTION_GG_HEIGHT))))
+    int y_offset = m_bExtendedMode224 ? GS_RESOLUTION_GG_Y_OFFSET_EXTENDED : GS_RESOLUTION_GG_Y_OFFSET;
+
+    if (m_bGameGear && ((line < y_offset) || (line >= (y_offset + GS_RESOLUTION_GG_HEIGHT))))
         return;
 
     int sprite_collision = false;
     int sprite_count = 0;
-    int scy_adjust = m_bGameGear ? GS_RESOLUTION_GG_Y_OFFSET : 0;
+    int scy_adjust = m_bGameGear ? y_offset : 0;
     int line_width = (line - scy_adjust) * m_iScreenWidth;
     int sprite_height = IsSetBit(m_VdpRegister[1], 1) ? 16 : 8;
     int sprite_shift = IsSetBit(m_VdpRegister[0], 3) ? 8 : 0;
