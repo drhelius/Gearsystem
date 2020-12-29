@@ -132,7 +132,7 @@ void Memory::MemoryDump(const char* szFilePath)
     {
         for (int i = 0; i < 0x10000; i++)
         {
-            if (m_pDisassembledMap[i]->name[0] != 0)
+            if (IsValidPointer(m_pDisassembledMap[i]) && (m_pDisassembledMap[i]->name[0] != 0))
             {
                 myfile << "0x" << hex << i << "\t " << m_pDisassembledMap[i]->name << "\n";
                 i += (m_pDisassembledMap[i]->size - 1);
