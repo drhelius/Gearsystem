@@ -48,6 +48,7 @@ public:
     bool LoadROM(const char* szFilePath, Cartridge::ForceConfiguration* config = NULL);
     bool LoadROMFromBuffer(const u8* buffer, int size, Cartridge::ForceConfiguration* config = NULL);
     void SaveMemoryDump();
+    void SaveDisassembledROM();
     bool GetRuntimeInfo(GS_RuntimeInfo& runtime_info);
     void KeyPressed(GS_Joypads joypad, GS_Keys key);
     void KeyReleased(GS_Joypads joypad, GS_Keys key);

@@ -166,7 +166,12 @@ void emu_reset(bool save_in_rom_dir, Cartridge::ForceConfiguration config)
 
 void emu_memory_dump(void)
 {
-    gearsystem->GetMemory()->MemoryDump("memdump.txt");
+    gearsystem->SaveMemoryDump();
+}
+
+void emu_dissasemble_rom(void)
+{
+    gearsystem->SaveDisassembledROM();
 }
 
 void emu_audio_volume(float volume)
@@ -295,6 +300,10 @@ void emu_debug_next_frame(void)
 
 static void save_ram(void)
 {
+#ifdef DEBUG_GEARSYSTEM
+    emu_dissasemble_rom();
+#endif
+
     if (save_files_in_rom_dir)
         gearsystem->SaveRam();
     else

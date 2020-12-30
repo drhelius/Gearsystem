@@ -55,24 +55,6 @@ GearsystemCore::GearsystemCore()
 
 GearsystemCore::~GearsystemCore()
 {
-#ifdef DEBUG_GEARSYSTEM
-    if (m_pCartridge->IsReady() && (strlen(m_pCartridge->GetFilePath()) > 0))
-    {
-        Log("Saving Memory Dump...");
-
-        using namespace std;
-
-        char path[512];
-
-        strcpy(path, m_pCartridge->GetFilePath());
-        strcat(path, ".dump");
-
-        m_pMemory->MemoryDump(path);
-
-        Log("Memory Dump Saved");
-    }
-#endif
-
     SafeDelete(m_pGameGearIOPorts);
     SafeDelete(m_pSmsIOPorts);
     SafeDelete(m_pRomOnlyMemoryRule);
@@ -206,6 +188,41 @@ void GearsystemCore::SaveMemoryDump()
         m_pMemory->MemoryDump(path);
 
         Log("Memory Dump Saved");
+    }
+}
+
+void GearsystemCore::SaveDisassembledROM()
+{
+    Memory::stDisassembleRecord** romMap = m_pMemory->GetDisassembledROMMemoryMap();
+
+    if (m_pCartridge->IsReady() && (strlen(m_pCartridge->GetFilePath()) > 0) && IsValidPointer(romMap))
+    {
+        using namespace std;
+
+        char path[512];
+
+        strcpy(path, m_pCartridge->GetFilePath());
+        strcat(path, ".dis");
+
+        Log("Saving Disassembled ROM %s...", path);
+
+        ofstream myfile(path, ios::out | ios::trunc);
+
+        if (myfile.is_open())
+        {
+            for (int i = 0; i < 65536; i++)
+            {
+                if (IsValidPointer(romMap[i]) && (romMap[i]->name[0] != 0))
+                {
+                    myfile << "0x" << hex << i << "\t " << romMap[i]->name << "\n";
+                    i += (romMap[i]->size - 1);
+                }
+            }
+
+            myfile.close();
+        }
+
+        Log("Disassembled ROM Saved");
     }
 }
 
