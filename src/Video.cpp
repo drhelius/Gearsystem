@@ -130,7 +130,7 @@ void Video::Reset(bool bGameGear, bool bPAL)
     if (m_bGameGear)
     {
         m_Timing[TIMING_VINT] = 27;
-        m_Timing[TIMING_XSCROLL] = 14;
+        m_Timing[TIMING_XSCROLL] = 16;
         m_Timing[TIMING_HINT] = 29;
         m_Timing[TIMING_VCOUNT] = 28;
         m_Timing[TIMING_FLAG_VINT] = 27;
@@ -252,7 +252,7 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
         }
     }
 
-    ///// RENDER LINE /////
+    ///// END OF LINE /////
     if (m_iCycleCounter >= GS_CYCLES_PER_LINE)
     {
         if (m_iRenderLine == (max_height - 1))
