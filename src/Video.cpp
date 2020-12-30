@@ -67,7 +67,7 @@ Video::~Video()
 
 void Video::Init()
 {
-    m_pInfoBuffer = new u8[GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT];
+    m_pInfoBuffer = new u8[GS_RESOLUTION_MAX_WIDTH * GS_LINES_PER_FRAME_PAL];
     m_pVdpVRAM = new u8[0x4000];
     m_pVdpCRAM = new u8[0x40];
     Reset(false, false);
@@ -88,7 +88,7 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_VdpStatus = 0;
     m_ScrollX = 0;
     m_ScrollY = 0;
-    for (int i = 0; i < (GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT); i++)
+    for (int i = 0; i < (GS_RESOLUTION_MAX_WIDTH * GS_LINES_PER_FRAME_PAL); i++)
         m_pInfoBuffer[i] = 0;
     for (int i = 0; i < 0x4000; i++)
         m_pVdpVRAM[i] = 0;
@@ -134,7 +134,7 @@ void Video::Reset(bool bGameGear, bool bPAL)
         m_Timing[TIMING_HINT] = 29;
         m_Timing[TIMING_VCOUNT] = 28;
         m_Timing[TIMING_FLAG_VINT] = 27;
-        m_Timing[TIMING_RENDER] = 190;
+        m_Timing[TIMING_RENDER] = 195;
     }
     else
     {
@@ -143,7 +143,12 @@ void Video::Reset(bool bGameGear, bool bPAL)
         m_Timing[TIMING_HINT] = 27;
         m_Timing[TIMING_VCOUNT] = 25;
         m_Timing[TIMING_FLAG_VINT] = 25;
-        m_Timing[TIMING_RENDER] = 190;
+        m_Timing[TIMING_RENDER] = 195;
+    }
+
+    for (int i = 0; i < 8; i++)
+    {
+        m_NextLineSprites[i].y = -1;
     }
 }
 
@@ -246,10 +251,7 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
     if (!m_LineEvents.render && (m_iCycleCounter >= m_Timing[TIMING_RENDER]))
     {
         m_LineEvents.render = true;
-        if ((m_iRenderLine < max_height) && IsValidPointer(m_pColorFrameBuffer))
-        {
-            ScanLine(m_iRenderLine);
-        }
+        ScanLine(m_iRenderLine);
     }
 
     ///// END OF LINE /////
@@ -431,32 +433,48 @@ void Video::WriteControl(u8 control)
 
 void Video::ScanLine(int line)
 {
+    int max_height = m_bExtendedMode224 ? 224 : 192;
+    int next_line = line + 1;
+    next_line %= m_iLinesPerFrame;
+
+    if (!m_bSG1000)
+    {
+        ParseSpritesSMSGG(next_line);
+    }
+
     if (IsSetBit(m_VdpRegister[1], 6))
     {
         // DISPLAY ON
         if (m_bSG1000)
         {
-            RenderBackgroundSG1000(line);
-            RenderSpritesSG1000(line);
+            if (line < max_height)
+            {
+                RenderBackgroundSG1000(line);
+                RenderSpritesSG1000(line);
+            }
         }
         else
         {
             RenderBackgroundSMSGG(line);
-            RenderSpritesSMSGG(line);
+            RenderSpritesSMSGG(next_line);
         }
     }
     else
     {
         // DISPLAY OFF
-        int line_width = line * m_iScreenWidth;
-
-        for (int scx = 0; scx < m_iScreenWidth; scx++)
+        if (line < max_height)
         {
-            GS_Color final_color;
-            final_color.red = 0;
-            final_color.green = 0;
-            final_color.blue = 0;
-            m_pColorFrameBuffer[line_width + scx] = final_color;
+            int line_width = line * m_iScreenWidth;
+
+            for (int scx = 0; scx < m_iScreenWidth; scx++)
+            {
+                int pixel = line_width + scx;
+
+                GS_Color final_color = {0,0,0};
+
+                m_pColorFrameBuffer[pixel] = final_color;
+                m_pInfoBuffer[pixel] = 0;
+            }
         }
     }
 }
@@ -495,116 +513,147 @@ void Video::RenderBackgroundSMSGG(int line)
     int scx_begin = m_bGameGear ? GS_RESOLUTION_GG_X_OFFSET : 0;
     int scx_end = scx_begin + m_iScreenWidth;
 
+    int max_height = m_bExtendedMode224 ? 224 : 192;
+
     for (int scx = scx_begin; scx < scx_end; scx++)
     {
         int pixel = line_width + scx - scx_begin;
 
-        if (IsSetBit(m_VdpRegister[0], 5) && scx < 8)
+        if (line < max_height)
         {
-            palette_color = (m_VdpRegister[7] & 0x0F) + 16;
-        }
-        else
-        {
-            if (IsSetBit(m_VdpRegister[0], 7) && (scx >= 192))
+            if (IsSetBit(m_VdpRegister[0], 5) && scx < 8)
             {
-                map_y = scy;
-                tile_y = map_y >> 3;
-                tile_y_offset = map_y & 7;
+                palette_color = (m_VdpRegister[7] & 0x0F) + 16;
             }
-            u8 map_x = scx - origin_x;
-
-            int tile_x = map_x >> 3;
-            int tile_x_offset = map_x & 7;
-
-            int tile_addr = map_address + (((tile_y << 5) + tile_x) << 1);
-            int tile_index = m_pVdpVRAM[tile_addr];
-            int tile_info = m_pVdpVRAM[tile_addr + 1];
-            if (IsSetBit(tile_info, 0))
-                tile_index = (tile_index | 0x0100) & 0x1FF;
-
-            bool hflip = IsSetBit(tile_info, 1);
-            bool vflip = IsSetBit(tile_info, 2);
-            int palette_offset = IsSetBit(tile_info, 3) ? 16 : 0;
-            bool priority = IsSetBit(tile_info, 4);
-
-            int tile_data_addr = tile_index << 5;
-            tile_data_addr += ((vflip ? 7 - tile_y_offset : tile_y_offset) << 2);
-
-            int tile_pixel_x = 7 - tile_x_offset;
-            if (hflip)
-                tile_pixel_x = tile_x_offset;
-
-            palette_color = ((m_pVdpVRAM[tile_data_addr] >> tile_pixel_x) & 0x01) +
-                    (((m_pVdpVRAM[tile_data_addr + 1] >> tile_pixel_x) & 0x01) << 1) +
-                    (((m_pVdpVRAM[tile_data_addr + 2] >> tile_pixel_x) & 0x01) << 2) +
-                    (((m_pVdpVRAM[tile_data_addr + 3] >> tile_pixel_x) & 0x01) << 3) +
-                    palette_offset;
-
-            bool final_priority = priority && ((palette_color - palette_offset) != 0);
-
-            if ((m_pInfoBuffer[pixel] & 0x01) && !final_priority)
+            else
             {
-                m_pInfoBuffer[pixel] = 0;
-                continue;
+                if (IsSetBit(m_VdpRegister[0], 7) && (scx >= 192))
+                {
+                    map_y = scy;
+                    tile_y = map_y >> 3;
+                    tile_y_offset = map_y & 7;
+                }
+                u8 map_x = scx - origin_x;
+
+                int tile_x = map_x >> 3;
+                int tile_x_offset = map_x & 7;
+
+                int tile_addr = map_address + (((tile_y << 5) + tile_x) << 1);
+                int tile_index = m_pVdpVRAM[tile_addr];
+                int tile_info = m_pVdpVRAM[tile_addr + 1];
+                if (IsSetBit(tile_info, 0))
+                    tile_index = (tile_index | 0x0100) & 0x1FF;
+
+                bool hflip = IsSetBit(tile_info, 1);
+                bool vflip = IsSetBit(tile_info, 2);
+                int palette_offset = IsSetBit(tile_info, 3) ? 16 : 0;
+                bool priority = IsSetBit(tile_info, 4);
+
+                int tile_data_addr = tile_index << 5;
+                tile_data_addr += ((vflip ? 7 - tile_y_offset : tile_y_offset) << 2);
+
+                int tile_pixel_x = 7 - tile_x_offset;
+                if (hflip)
+                    tile_pixel_x = tile_x_offset;
+
+                palette_color = ((m_pVdpVRAM[tile_data_addr] >> tile_pixel_x) & 0x01) +
+                        (((m_pVdpVRAM[tile_data_addr + 1] >> tile_pixel_x) & 0x01) << 1) +
+                        (((m_pVdpVRAM[tile_data_addr + 2] >> tile_pixel_x) & 0x01) << 2) +
+                        (((m_pVdpVRAM[tile_data_addr + 3] >> tile_pixel_x) & 0x01) << 3) +
+                        palette_offset;
+
+                bool final_priority = priority && ((palette_color - palette_offset) != 0);
+
+                if ((m_pInfoBuffer[pixel] & 0x01) && !final_priority)
+                {
+                    m_pInfoBuffer[pixel] = 0;
+                    continue;
+                }
             }
+
+            m_pColorFrameBuffer[pixel] = ConvertTo8BitColor(palette_color);
         }
 
-        m_pColorFrameBuffer[pixel] = ConvertTo8BitColor(palette_color);
         m_pInfoBuffer[pixel] = 0;
+    }
+}
+
+void Video::ParseSpritesSMSGG(int line)
+{
+    u16 sprite_table_address = (m_VdpRegister[5] << 7) & 0x3F00;
+    u16 sprite_table_address_2 = sprite_table_address + 0x80;
+    int buffer_index = 0;
+    int max_height = m_bExtendedMode224 ? 224 : 192;
+
+    for (int sprite = 0; sprite < 64; sprite++)
+    {
+        int sprite_index = sprite_table_address + sprite;
+
+        if (!m_bExtendedMode224 && (m_pVdpVRAM[sprite_index] == 0xD0))
+        {
+            break;
+        }
+
+        int sprite_y = m_pVdpVRAM[sprite_index] + 1;
+
+        int sprite_height = IsSetBit(m_VdpRegister[1], 1) ? 16 : 8;
+
+        if ((line >= sprite_y) && (line < (sprite_y + sprite_height)))
+        {
+            if (buffer_index > 7)
+            {
+                if (line < max_height)
+                    m_VdpStatus = SetBit(m_VdpStatus, 6);
+                break;
+            }
+
+            u16 sprite_info_address = sprite_table_address_2 + (sprite << 1);
+
+            m_NextLineSprites[buffer_index].y = m_pVdpVRAM[sprite_index];
+            m_NextLineSprites[buffer_index].x = m_pVdpVRAM[sprite_info_address];
+            m_NextLineSprites[buffer_index].pattern = m_pVdpVRAM[sprite_info_address + 1];
+
+            buffer_index++;
+        }
+    }
+
+    for (int i = buffer_index; i < 8; i++)
+    {
+        m_NextLineSprites[i].y = -1;
     }
 }
 
 void Video::RenderSpritesSMSGG(int line)
 {
-    line++;
-    line %= (m_bExtendedMode224 ? 224 : 192);
-
     int y_offset = m_bExtendedMode224 ? GS_RESOLUTION_GG_Y_OFFSET_EXTENDED : GS_RESOLUTION_GG_Y_OFFSET;
 
     if (m_bGameGear && ((line < y_offset) || (line >= (y_offset + GS_RESOLUTION_GG_HEIGHT))))
         return;
 
     int sprite_collision = false;
-    int sprite_count = 0;
     int scy_adjust = m_bGameGear ? y_offset : 0;
     int line_width = (line - scy_adjust) * m_iScreenWidth;
     int sprite_height = IsSetBit(m_VdpRegister[1], 1) ? 16 : 8;
     int sprite_shift = IsSetBit(m_VdpRegister[0], 3) ? 8 : 0;
-    u16 sprite_table_address = (m_VdpRegister[5] << 7) & 0x3F00;
-    u16 sprite_table_address_2 = sprite_table_address + 0x80;
     u16 sprite_tiles_address = (m_VdpRegister[6] << 11) & 0x2000;
 
     int scx_begin = m_bGameGear ? GS_RESOLUTION_GG_X_OFFSET : 0;
     int scx_end = scx_begin + m_iScreenWidth;
 
-    int max_sprite = 63;
+    int max_height = m_bExtendedMode224 ? 224 : 192;
 
-    for (int sprite = 0; sprite < 64; sprite++)
+    for (int i = 7; i >= 0; i--)
     {
-        int sprite_y = m_pVdpVRAM[sprite_table_address + sprite];
-        if (!m_bExtendedMode224 && (sprite_y == 0xD0))
-        {
-            max_sprite = sprite - 1;
-            break;
-        }
-    }
-
-    for (int sprite = max_sprite; sprite >= 0; sprite--)
-    {
-        u8 sprite_y = m_pVdpVRAM[sprite_table_address + sprite] + 1;
-        if ((sprite_y > line) || ((sprite_y + sprite_height) <= line))
+        if (m_NextLineSprites[i].y < 0)
             continue;
 
-        sprite_count++;
-        if (sprite_count > 8)
-            m_VdpStatus = SetBit(m_VdpStatus, 6);
+        u8 sprite_y = m_NextLineSprites[i].y + 1;
 
-        u16 sprite_info_address = sprite_table_address_2 + (sprite << 1);
-        int sprite_x = m_pVdpVRAM[sprite_info_address] - sprite_shift;
+        int sprite_x = m_NextLineSprites[i].x - sprite_shift;
         if (sprite_x >= GS_RESOLUTION_MAX_WIDTH)
             continue;
 
-        int sprite_tile = m_pVdpVRAM[sprite_info_address + 1];
+        int sprite_tile = m_NextLineSprites[i].pattern;
         sprite_tile &= (sprite_height == 16) ? 0xFE : 0xFF;
         int sprite_tile_addr = sprite_tiles_address + (sprite_tile << 5) + ((line - sprite_y) << 2);
 
@@ -631,7 +680,8 @@ void Video::RenderSpritesSMSGG(int line)
 
             palette_color += 16;
 
-            m_pColorFrameBuffer[pixel] = ConvertTo8BitColor(palette_color);
+            if (line < max_height)
+                m_pColorFrameBuffer[pixel] = ConvertTo8BitColor(palette_color);
 
             if ((m_pInfoBuffer[pixel] & 0x01) != 0)
                 sprite_collision = true;
@@ -803,7 +853,7 @@ void Video::SaveState(std::ostream& stream)
 {
     using namespace std;
 
-    stream.write(reinterpret_cast<const char*> (m_pInfoBuffer), GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT);
+    stream.write(reinterpret_cast<const char*> (m_pInfoBuffer), GS_RESOLUTION_MAX_WIDTH * GS_LINES_PER_FRAME_PAL);
     stream.write(reinterpret_cast<const char*> (m_pVdpVRAM), 0x4000);
     stream.write(reinterpret_cast<const char*> (m_pVdpCRAM), 0x40);
     stream.write(reinterpret_cast<const char*> (&m_bFirstByteInSequence), sizeof(m_bFirstByteInSequence));
@@ -822,19 +872,23 @@ void Video::SaveState(std::ostream& stream)
     bool bogus = false;
     stream.write(reinterpret_cast<const char*> (&bogus), sizeof(bogus));
     stream.write(reinterpret_cast<const char*> (&m_bExtendedMode224), sizeof(m_bExtendedMode224));
-    stream.write(reinterpret_cast<const char*> (&m_LineEvents.vintFlag), sizeof(m_LineEvents.vintFlag));
-    stream.write(reinterpret_cast<const char*> (&m_LineEvents.vint), sizeof(m_LineEvents.vint));
-    stream.write(reinterpret_cast<const char*> (&m_LineEvents.hint), sizeof(m_LineEvents.hint));
-    stream.write(reinterpret_cast<const char*> (&m_LineEvents.scrollx), sizeof(m_LineEvents.scrollx));
-    stream.write(reinterpret_cast<const char*> (&m_LineEvents.vcounter), sizeof(m_LineEvents.vcounter));
+    stream.write(reinterpret_cast<const char*> (&m_LineEvents), sizeof(m_LineEvents));
     stream.write(reinterpret_cast<const char*> (&m_iRenderLine), sizeof(m_iRenderLine));
+
+    stream.write(reinterpret_cast<const char*> (&m_bGameGear), sizeof(m_bGameGear));
+    stream.write(reinterpret_cast<const char*> (&m_bPAL), sizeof(m_bPAL));
+    stream.write(reinterpret_cast<const char*> (&m_iScreenWidth), sizeof(m_iScreenWidth));
+    stream.write(reinterpret_cast<const char*> (&m_bSG1000), sizeof(m_bSG1000));
+    stream.write(reinterpret_cast<const char*> (&m_iSG1000Mode), sizeof(m_iSG1000Mode));
+    stream.write(reinterpret_cast<const char*> (&m_Timing), sizeof(m_Timing));
+    stream.write(reinterpret_cast<const char*> (&m_NextLineSprites), sizeof(m_NextLineSprites));
 }
 
 void Video::LoadState(std::istream& stream)
 {
     using namespace std;
 
-    stream.read(reinterpret_cast<char*> (m_pInfoBuffer), GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT);
+    stream.read(reinterpret_cast<char*> (m_pInfoBuffer), GS_RESOLUTION_MAX_WIDTH * GS_LINES_PER_FRAME_PAL);
     stream.read(reinterpret_cast<char*> (m_pVdpVRAM), 0x4000);
     stream.read(reinterpret_cast<char*> (m_pVdpCRAM), 0x40);
     stream.read(reinterpret_cast<char*> (&m_bFirstByteInSequence), sizeof(m_bFirstByteInSequence));
@@ -853,10 +907,14 @@ void Video::LoadState(std::istream& stream)
     bool bogus;
     stream.read(reinterpret_cast<char*> (&bogus), sizeof(bogus));
     stream.read(reinterpret_cast<char*> (&m_bExtendedMode224), sizeof(m_bExtendedMode224));
-    stream.read(reinterpret_cast<char*> (&m_LineEvents.vintFlag), sizeof(m_LineEvents.vintFlag));
-    stream.read(reinterpret_cast<char*> (&m_LineEvents.vint), sizeof(m_LineEvents.vint));
-    stream.read(reinterpret_cast<char*> (&m_LineEvents.hint), sizeof(m_LineEvents.hint));
-    stream.read(reinterpret_cast<char*> (&m_LineEvents.scrollx), sizeof(m_LineEvents.scrollx));
-    stream.read(reinterpret_cast<char*> (&m_LineEvents.vcounter), sizeof(m_LineEvents.vcounter));
+    stream.read(reinterpret_cast<char*> (&m_LineEvents), sizeof(m_LineEvents));
     stream.read(reinterpret_cast<char*> (&m_iRenderLine), sizeof(m_iRenderLine));
+
+    stream.read(reinterpret_cast<char*> (&m_bGameGear), sizeof(m_bGameGear));
+    stream.read(reinterpret_cast<char*> (&m_bPAL), sizeof(m_bPAL));
+    stream.read(reinterpret_cast<char*> (&m_iScreenWidth), sizeof(m_iScreenWidth));
+    stream.read(reinterpret_cast<char*> (&m_bSG1000), sizeof(m_bSG1000));
+    stream.read(reinterpret_cast<char*> (&m_iSG1000Mode), sizeof(m_iSG1000Mode));
+    stream.read(reinterpret_cast<char*> (&m_Timing), sizeof(m_Timing));
+    stream.read(reinterpret_cast<char*> (&m_NextLineSprites), sizeof(m_NextLineSprites));
 }

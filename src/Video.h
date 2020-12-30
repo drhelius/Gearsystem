@@ -61,6 +61,7 @@ private:
     void ScanLine(int line);
     void RenderBackgroundSMSGG(int line);
     void RenderBackgroundSG1000(int line);
+    void ParseSpritesSMSGG(int line);
     void RenderSpritesSMSGG(int line);
     void RenderSpritesSG1000(int line);
 
@@ -117,6 +118,15 @@ private:
     int m_Timing[6];
 
     GS_Color* m_pSG1000Palette;
+
+    struct SATEntry
+    {
+        int x;
+        int y;
+        int pattern;
+    };
+
+    SATEntry m_NextLineSprites[8];
 };
 
 inline GS_Color Video::ConvertTo8BitColor(int palette_color)
