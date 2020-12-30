@@ -134,7 +134,7 @@ void Video::Reset(bool bGameGear, bool bPAL)
         m_Timing[TIMING_HINT] = 29;
         m_Timing[TIMING_VCOUNT] = 28;
         m_Timing[TIMING_FLAG_VINT] = 27;
-        m_Timing[TIMING_RENDER] = 200;
+        m_Timing[TIMING_RENDER] = 190;
     }
     else
     {
@@ -143,7 +143,7 @@ void Video::Reset(bool bGameGear, bool bPAL)
         m_Timing[TIMING_HINT] = 27;
         m_Timing[TIMING_VCOUNT] = 25;
         m_Timing[TIMING_FLAG_VINT] = 25;
-        m_Timing[TIMING_RENDER] = 200;
+        m_Timing[TIMING_RENDER] = 190;
     }
 }
 
