@@ -40,7 +40,6 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 - Accurate VDP emulation including timing and SMS2 only 224 mode support.
 - Internal database for rom detection.
 - Audio emulation using SDL Audio and [Sms_Snd_Emu library](http://blargg.8bitalley.com/libs/audio.html#Sms_Snd_Emu).
-- Saves battery powered RAM cartridges to file.
 - Save states.
 - Compressed rom support (ZIP deflate).
 - Game Genie and Pro Action Replay cheat support.
