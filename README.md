@@ -15,7 +15,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 - **Windows**: [Gearsystem-3.1.0-Windows.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.1.0/Gearsystem-3.1.0-Windows.zip)
   - NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572)
 - **macOS**:
-  - `brew cask install gearsystem`
+  - `brew install --cask gearsystem`
   - Or install manually: [Gearsystem-3.1.0-macOS.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.1.0/Gearsystem-3.1.0-macOS.zip)
 - **Linux**: [Gearsystem-3.1.0-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.1.0/Gearsystem-3.1.0-Linux.tar.xz)
   - NOTE: You may need to install `libsdl2` and `libglew`
@@ -151,7 +151,8 @@ Gearsystem passes all tests in Zexall, including undocumented instructions and b
 
 SMS VDP Test  ([from SMS Power!](http://www.smspower.org/Homebrew/SMSVDPTest-SMS))
 
-![vdptest.sms](http://www.geardome.com/files/gearsystem/vdptest5.png)![vdptest.sms](http://www.geardome.com/files/gearsystem/vdptest4.png)![vdptest.sms](http://www.geardome.com/files/gearsystem/vdptest6.png)
+![vdptest.sms](http://www.geardome.com/files/gearsystem/vdptest5.png)![vdptest.sms](http://www.geardome.com/files/gearsystem/vdptest4.png)
+<img src="http://www.geardome.com/files/gearsystem/vdptest7.png" alt="vdptest.sms" width="368"/>
 
 ## Screenshots
 
