@@ -625,6 +625,11 @@ void Video::ParseSpritesSMSGG(int line)
 
 void Video::RenderSpritesSMSGG(int line)
 {
+    int max_height = m_bExtendedMode224 ? 224 : 192;
+
+    if ((line >= max_height) && (line < (m_iLinesPerFrame - (m_bPAL ? 11 : 27))))
+        return;
+
     int y_offset = m_bExtendedMode224 ? GS_RESOLUTION_GG_Y_OFFSET_EXTENDED : GS_RESOLUTION_GG_Y_OFFSET;
 
     if (m_bGameGear && ((line < y_offset) || (line >= (y_offset + GS_RESOLUTION_GG_HEIGHT))))
@@ -639,8 +644,6 @@ void Video::RenderSpritesSMSGG(int line)
 
     int scx_begin = m_bGameGear ? GS_RESOLUTION_GG_X_OFFSET : 0;
     int scx_end = scx_begin + m_iScreenWidth;
-
-    int max_height = m_bExtendedMode224 ? 224 : 192;
 
     for (int i = 7; i >= 0; i--)
     {
