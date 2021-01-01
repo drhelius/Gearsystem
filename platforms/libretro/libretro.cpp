@@ -42,6 +42,7 @@ static int audio_sample_count = 0;
 static int current_screen_width = 0;
 static int current_screen_height = 0;
 static bool allow_up_down = false;
+static bool libretro_supports_bitmasks;
 
 static GearsystemCore* core;
 static GS_Color *frame_buf;
@@ -98,6 +99,8 @@ void retro_init(void)
     config.zone = Cartridge::CartridgeUnknownZone;
     config.region = Cartridge::CartridgeUnknownRegion;
     config.system = Cartridge::CartridgeUnknownSystem;
+
+    libretro_supports_bitmasks = environ_cb(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, NULL);
 }
 
 void retro_deinit(void)
@@ -208,44 +211,55 @@ static void update_input(void)
 
     for (int player=0; player<2; player++)
     {
-        if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
+        int16_t ib;
+        if (libretro_supports_bitmasks)
+            ib = input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
+        else
         {
-            if (allow_up_down || !input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))
+            unsigned int i;
+            ib = 0;
+            for (i = 0; i <= RETRO_DEVICE_ID_JOYPAD_R3; i++)
+                ib |= input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, i) ? (1 << i) : 0;
+        }
+
+        if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_UP))
+        {
+            if (allow_up_down || !(ib & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN)))
                 core->KeyPressed(static_cast<GS_Joypads>(player), Key_Up);
         }
         else
             core->KeyReleased(static_cast<GS_Joypads>(player), Key_Up);
-        if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))
+        if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN))
         {
-            if (allow_up_down || !input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
+            if (allow_up_down || !(ib & (1 << RETRO_DEVICE_ID_JOYPAD_UP)))
                 core->KeyPressed(static_cast<GS_Joypads>(player), Key_Down);
         }
         else
             core->KeyReleased(static_cast<GS_Joypads>(player), Key_Down);
-        if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT))
+        if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT))
         {
-            if (allow_up_down || !input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT))
+            if (allow_up_down || !(ib & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT)))
                 core->KeyPressed(static_cast<GS_Joypads>(player), Key_Left);
         }
         else
             core->KeyReleased(static_cast<GS_Joypads>(player), Key_Left);
-        if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT))
+        if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT))
         {
-            if (allow_up_down || !input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT))
+            if (allow_up_down || !(ib & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT)))
                 core->KeyPressed(static_cast<GS_Joypads>(player), Key_Right);
         }
         else
             core->KeyReleased(static_cast<GS_Joypads>(player), Key_Right);
 
-        if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B))
+        if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B))
             core->KeyPressed(static_cast<GS_Joypads>(player), Key_1);
         else
             core->KeyReleased(static_cast<GS_Joypads>(player), Key_1);
-        if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A))
+        if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_A))
             core->KeyPressed(static_cast<GS_Joypads>(player), Key_2);
         else
             core->KeyReleased(static_cast<GS_Joypads>(player), Key_2);
-        if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START))
+        if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_START))
             core->KeyPressed(static_cast<GS_Joypads>(player), Key_Start);
         else
             core->KeyReleased(static_cast<GS_Joypads>(player), Key_Start);
