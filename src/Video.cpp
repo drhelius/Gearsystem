@@ -595,10 +595,13 @@ void Video::ParseSpritesSMSGG(int line)
         }
 
         int sprite_y = m_pVdpVRAM[sprite_index] + 1;
-
         int sprite_height = IsSetBit(m_VdpRegister[1], 1) ? 16 : 8;
+        int sprite_y2 = sprite_y + sprite_height;
 
-        if ((line >= sprite_y) && (line < (sprite_y + sprite_height)))
+        int sprite_y_offscreen = ((sprite_y > 240) && (sprite_y <= 256)) ? sprite_y - 256 : sprite_y;
+        int sprite_y_offscreen2 = sprite_y_offscreen + sprite_height;
+
+        if (((line >= sprite_y) && (line < sprite_y2)) || ((line >= sprite_y_offscreen) && (line < sprite_y_offscreen2)))
         {
             if (buffer_index > 7)
             {
@@ -627,7 +630,7 @@ void Video::RenderSpritesSMSGG(int line)
 {
     int max_height = m_bExtendedMode224 ? 224 : 192;
 
-    if ((line >= max_height) && (line < (m_iLinesPerFrame - (m_bPAL ? 11 : 27))))
+    if ((line >= max_height) && (line < 240))
         return;
 
     int y_offset = m_bExtendedMode224 ? GS_RESOLUTION_GG_Y_OFFSET_EXTENDED : GS_RESOLUTION_GG_Y_OFFSET;
@@ -650,7 +653,12 @@ void Video::RenderSpritesSMSGG(int line)
         if (m_NextLineSprites[i].y < 0)
             continue;
 
-        u8 sprite_y = m_NextLineSprites[i].y + 1;
+        int sprite_y = m_NextLineSprites[i].y + 1;
+
+        if ((sprite_y > 240) && (sprite_y <= 256) && (line < max_height))
+        {
+            sprite_y -= 256;
+        }
 
         int sprite_x = m_NextLineSprites[i].x - sprite_shift;
         if (sprite_x >= GS_RESOLUTION_MAX_WIDTH)
