@@ -116,17 +116,8 @@ private:
     };
 
     int m_Timing[6];
-
     GS_Color* m_pSG1000Palette;
-
-    struct SATEntry
-    {
-        int x;
-        int y;
-        int pattern;
-    };
-
-    SATEntry m_NextLineSprites[8];
+    int m_NextLineSprites[8];
 };
 
 inline GS_Color Video::ConvertTo8BitColor(int palette_color)

@@ -148,7 +148,7 @@ void Video::Reset(bool bGameGear, bool bPAL)
 
     for (int i = 0; i < 8; i++)
     {
-        m_NextLineSprites[i].y = -1;
+        m_NextLineSprites[i] = -1;
     }
 }
 
@@ -209,7 +209,7 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
     if (!m_LineEvents.hint && (m_iCycleCounter >= m_Timing[TIMING_HINT]))
     {
         m_LineEvents.hint = true;
-        if (/*(m_iRenderLine >= GS_RESOLUTION_GG_Y_OFFSET) &&*/ (m_iRenderLine <= max_height))
+        if (m_iRenderLine <= max_height)
         {
             if (m_iVdpRegister10Counter == 0)
             {
@@ -581,7 +581,6 @@ void Video::RenderBackgroundSMSGG(int line)
 void Video::ParseSpritesSMSGG(int line)
 {
     u16 sprite_table_address = (m_VdpRegister[5] << 7) & 0x3F00;
-    u16 sprite_table_address_2 = sprite_table_address + 0x80;
     int buffer_index = 0;
     int max_height = m_bExtendedMode224 ? 224 : 192;
 
@@ -610,11 +609,7 @@ void Video::ParseSpritesSMSGG(int line)
                 break;
             }
 
-            u16 sprite_info_address = sprite_table_address_2 + (sprite << 1);
-
-            m_NextLineSprites[buffer_index].y = m_pVdpVRAM[sprite_index];
-            m_NextLineSprites[buffer_index].x = m_pVdpVRAM[sprite_info_address];
-            m_NextLineSprites[buffer_index].pattern = m_pVdpVRAM[sprite_info_address + 1];
+            m_NextLineSprites[buffer_index] = sprite;
 
             buffer_index++;
         }
@@ -622,7 +617,7 @@ void Video::ParseSpritesSMSGG(int line)
 
     for (int i = buffer_index; i < 8; i++)
     {
-        m_NextLineSprites[i].y = -1;
+        m_NextLineSprites[i] = -1;
     }
 }
 
@@ -638,6 +633,9 @@ void Video::RenderSpritesSMSGG(int line)
     if (m_bGameGear && ((line < y_offset) || (line >= (y_offset + GS_RESOLUTION_GG_HEIGHT))))
         return;
 
+    u16 sprite_table_address = (m_VdpRegister[5] << 7) & 0x3F00;
+    u16 sprite_table_address_2 = sprite_table_address + 0x80;
+
     int sprite_collision = false;
     int scy_adjust = m_bGameGear ? y_offset : 0;
     int line_width = (line - scy_adjust) * m_iScreenWidth;
@@ -650,21 +648,26 @@ void Video::RenderSpritesSMSGG(int line)
 
     for (int i = 7; i >= 0; i--)
     {
-        if (m_NextLineSprites[i].y < 0)
+        if (m_NextLineSprites[i] < 0)
             continue;
 
-        int sprite_y = m_NextLineSprites[i].y + 1;
+        int sprite = m_NextLineSprites[i];
+
+        u16 sprite_info_address = sprite_table_address_2 + (sprite << 1);
+        int sprite_index = sprite_table_address + sprite;
+
+        int sprite_y = m_pVdpVRAM[sprite_index] + 1;
 
         if ((sprite_y > 240) && (sprite_y <= 256) && (line < max_height))
         {
             sprite_y -= 256;
         }
 
-        int sprite_x = m_NextLineSprites[i].x - sprite_shift;
+        int sprite_x = m_pVdpVRAM[sprite_info_address] - sprite_shift;
         if (sprite_x >= GS_RESOLUTION_MAX_WIDTH)
             continue;
 
-        int sprite_tile = m_NextLineSprites[i].pattern;
+        int sprite_tile = m_pVdpVRAM[sprite_info_address + 1];
         sprite_tile &= (sprite_height == 16) ? 0xFE : 0xFF;
         int sprite_tile_addr = sprite_tiles_address + (sprite_tile << 5) + ((line - sprite_y) << 2);
 
