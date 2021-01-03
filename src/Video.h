@@ -97,6 +97,8 @@ private:
         bool scrollx;
         bool vcounter;
         bool render;
+        bool display;
+        bool spriteovr;
     };
     LineEvents m_LineEvents;
 
@@ -112,12 +114,16 @@ private:
         TIMING_HINT = 2,
         TIMING_VCOUNT = 3,
         TIMING_FLAG_VINT = 4,
-        TIMING_RENDER = 5
+        TIMING_RENDER = 5,
+        TIMING_DISPLAY = 6,
+        TIMING_SPRITEOVR = 7
     };
 
-    int m_Timing[6];
+    int m_Timing[8];
     GS_Color* m_pSG1000Palette;
     int m_NextLineSprites[8];
+    bool m_bDisplayEnabled;
+    bool m_bSpriteOvrRequest;
 };
 
 inline GS_Color Video::ConvertTo8BitColor(int palette_color)

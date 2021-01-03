@@ -56,6 +56,8 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_bSG1000 = false;
     m_iSG1000Mode = 0;
     m_pSG1000Palette = const_cast<GS_Color*>(&kSG1000_palette[0]);
+    m_bDisplayEnabled = false;
+    m_bSpriteOvrRequest = false;
 }
 
 Video::~Video()
@@ -107,6 +109,9 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_VdpRegister[9] = 0x00; // Scroll-Y
     m_VdpRegister[10] = 0xFF; // H-line interrupt ($FF=OFF)
 
+    m_bDisplayEnabled = false;
+    m_bSpriteOvrRequest = false;
+
     for (int i = 11; i < 16; i++)
         m_VdpRegister[i] = 0;
 
@@ -131,10 +136,12 @@ void Video::Reset(bool bGameGear, bool bPAL)
     {
         m_Timing[TIMING_VINT] = 27;
         m_Timing[TIMING_XSCROLL] = 16;
-        m_Timing[TIMING_HINT] = 29;
+        m_Timing[TIMING_HINT] = 30;
         m_Timing[TIMING_VCOUNT] = 28;
         m_Timing[TIMING_FLAG_VINT] = 27;
         m_Timing[TIMING_RENDER] = 195;
+        m_Timing[TIMING_DISPLAY] = 20;
+        m_Timing[TIMING_SPRITEOVR] = 27;
     }
     else
     {
@@ -144,6 +151,8 @@ void Video::Reset(bool bGameGear, bool bPAL)
         m_Timing[TIMING_VCOUNT] = 25;
         m_Timing[TIMING_FLAG_VINT] = 25;
         m_Timing[TIMING_RENDER] = 195;
+        m_Timing[TIMING_DISPLAY] = 37;
+        m_Timing[TIMING_SPRITEOVR] = 25;
     }
 
     for (int i = 0; i < 8; i++)
@@ -198,6 +207,13 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
             m_pProcessor->RequestINT(true);
     }
 
+    ///// DISPLAY ON/OFF /////
+    if (!m_LineEvents.display && (m_iCycleCounter >= m_Timing[TIMING_DISPLAY]))
+    {
+        m_LineEvents.display = true;
+        m_bDisplayEnabled = IsSetBit(m_VdpRegister[1], 6);
+    }
+
     ///// SCROLLX /////
     if (!m_LineEvents.scrollx && (m_iCycleCounter >= m_Timing[TIMING_XSCROLL]))
     {
@@ -221,7 +237,6 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
             {
                 m_iVdpRegister10Counter--;
             }
-            
         }
         else
             m_iVdpRegister10Counter = m_VdpRegister[10];
@@ -247,6 +262,18 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
             m_VdpStatus = SetBit(m_VdpStatus, 7);
     }
 
+    ///// SPRITE OVR /////
+    if (!m_LineEvents.spriteovr && (m_iCycleCounter >= m_Timing[TIMING_SPRITEOVR]) && !m_bSG1000)
+    {
+        m_LineEvents.spriteovr = true;
+
+        if (m_bSpriteOvrRequest)
+        {
+            m_bSpriteOvrRequest = false;
+            m_VdpStatus = SetBit(m_VdpStatus, 6);
+        }
+    }
+
     ///// RENDER /////
     if (!m_LineEvents.render && (m_iCycleCounter >= m_Timing[TIMING_RENDER]))
     {
@@ -270,6 +297,8 @@ bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
         m_LineEvents.vint = false;
         m_LineEvents.vintFlag = false;
         m_LineEvents.render = false;
+        m_LineEvents.display = false;
+        m_LineEvents.spriteovr = false;
     }
 
     return return_vblank;
@@ -442,7 +471,7 @@ void Video::ScanLine(int line)
         ParseSpritesSMSGG(next_line);
     }
 
-    if (IsSetBit(m_VdpRegister[1], 6))
+    if (m_bDisplayEnabled)
     {
         // DISPLAY ON
         if (m_bSG1000)
@@ -605,7 +634,7 @@ void Video::ParseSpritesSMSGG(int line)
             if (buffer_index > 7)
             {
                 if (line < max_height)
-                    m_VdpStatus = SetBit(m_VdpStatus, 6);
+                    m_bSpriteOvrRequest = true;
                 break;
             }
 
@@ -896,6 +925,8 @@ void Video::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_iSG1000Mode), sizeof(m_iSG1000Mode));
     stream.write(reinterpret_cast<const char*> (&m_Timing), sizeof(m_Timing));
     stream.write(reinterpret_cast<const char*> (&m_NextLineSprites), sizeof(m_NextLineSprites));
+    stream.write(reinterpret_cast<const char*> (&m_bDisplayEnabled), sizeof(m_bDisplayEnabled));
+    stream.write(reinterpret_cast<const char*> (&m_bSpriteOvrRequest), sizeof(m_bSpriteOvrRequest));
 }
 
 void Video::LoadState(std::istream& stream)
@@ -931,4 +962,6 @@ void Video::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_iSG1000Mode), sizeof(m_iSG1000Mode));
     stream.read(reinterpret_cast<char*> (&m_Timing), sizeof(m_Timing));
     stream.read(reinterpret_cast<char*> (&m_NextLineSprites), sizeof(m_NextLineSprites));
+    stream.read(reinterpret_cast<char*> (&m_bDisplayEnabled), sizeof(m_bDisplayEnabled));
+    stream.read(reinterpret_cast<char*> (&m_bSpriteOvrRequest), sizeof(m_bSpriteOvrRequest));
 }
