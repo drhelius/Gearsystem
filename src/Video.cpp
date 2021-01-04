@@ -511,13 +511,10 @@ void Video::ScanLine(int line)
 void Video::RenderBackgroundSMSGG(int line)
 {
     int y_offset = m_bExtendedMode224 ? GS_RESOLUTION_GG_Y_OFFSET_EXTENDED : GS_RESOLUTION_GG_Y_OFFSET;
-
-    if (m_bGameGear && ((line < y_offset) || (line >= (y_offset + GS_RESOLUTION_GG_HEIGHT))))
-        return;
-
     int scy_adjust = m_bGameGear ? y_offset : 0;
     int scy = line;
-    int line_width = (line - scy_adjust) * m_iScreenWidth;
+    int line_width_info = line * m_iScreenWidth;
+    int line_width_screen = (line - scy_adjust) * m_iScreenWidth;
     int origin_x = m_ScrollX;
     if ((line < 16) && IsSetBit(m_VdpRegister[0], 6))
         origin_x = 0;
@@ -546,7 +543,9 @@ void Video::RenderBackgroundSMSGG(int line)
 
     for (int scx = scx_begin; scx < scx_end; scx++)
     {
-        int pixel = line_width + scx - scx_begin;
+        int scx_diff = scx - scx_begin;
+        int pixel_screen = line_width_screen + scx_diff;
+        int pixel_info = line_width_info + scx_diff;
 
         if (line < max_height)
         {
@@ -593,17 +592,25 @@ void Video::RenderBackgroundSMSGG(int line)
 
                 bool final_priority = priority && ((palette_color - palette_offset) != 0);
 
-                if ((m_pInfoBuffer[pixel] & 0x01) && !final_priority)
+                if ((m_pInfoBuffer[pixel_info] & 0x01) && !final_priority)
                 {
-                    m_pInfoBuffer[pixel] = 0;
+                    m_pInfoBuffer[pixel_info] = 0;
                     continue;
                 }
             }
 
-            m_pColorFrameBuffer[pixel] = ConvertTo8BitColor(palette_color);
+            if (m_bGameGear)
+            {
+                if ((line >= y_offset) && (line < (y_offset + GS_RESOLUTION_GG_HEIGHT)))
+                    m_pColorFrameBuffer[pixel_screen] = ConvertTo8BitColor(palette_color);
+            }
+            else
+            {
+                m_pColorFrameBuffer[pixel_screen] = ConvertTo8BitColor(palette_color);
+            }
         }
 
-        m_pInfoBuffer[pixel] = 0;
+        m_pInfoBuffer[pixel_info] = 0;
     }
 }
 
@@ -658,16 +665,12 @@ void Video::RenderSpritesSMSGG(int line)
         return;
 
     int y_offset = m_bExtendedMode224 ? GS_RESOLUTION_GG_Y_OFFSET_EXTENDED : GS_RESOLUTION_GG_Y_OFFSET;
-
-    if (m_bGameGear && ((line < y_offset) || (line >= (y_offset + GS_RESOLUTION_GG_HEIGHT))))
-        return;
-
     u16 sprite_table_address = (m_VdpRegister[5] << 7) & 0x3F00;
     u16 sprite_table_address_2 = sprite_table_address + 0x80;
-
     int sprite_collision = false;
     int scy_adjust = m_bGameGear ? y_offset : 0;
-    int line_width = (line - scy_adjust) * m_iScreenWidth;
+    int line_width_info = line * m_iScreenWidth;
+    int line_width_screen = (line - scy_adjust) * m_iScreenWidth;
     int sprite_height = IsSetBit(m_VdpRegister[1], 1) ? 16 : 8;
     int sprite_shift = IsSetBit(m_VdpRegister[0], 3) ? 8 : 0;
     u16 sprite_tiles_address = (m_VdpRegister[6] << 11) & 0x2000;
@@ -710,7 +713,9 @@ void Video::RenderSpritesSMSGG(int line)
             if (IsSetBit(m_VdpRegister[0], 5) && (sprite_pixel_x < 8))
                 continue;
 
-            int pixel = line_width + sprite_pixel_x - scx_begin;
+            int x_diff = sprite_pixel_x - scx_begin;
+            int pixel_screen = line_width_screen + x_diff;
+            int pixel_info = line_width_info + x_diff;
 
             int tile_pixel_x = 7 - tile_x;
 
@@ -723,13 +728,21 @@ void Video::RenderSpritesSMSGG(int line)
 
             palette_color += 16;
 
-            if (line < max_height)
-                m_pColorFrameBuffer[pixel] = ConvertTo8BitColor(palette_color);
+            if (m_bGameGear)
+            {
+                if ((line >= y_offset) && (line < (y_offset + GS_RESOLUTION_GG_HEIGHT)))
+                    m_pColorFrameBuffer[pixel_screen] = ConvertTo8BitColor(palette_color);
+            }
+            else
+            {
+                if (line < max_height)
+                    m_pColorFrameBuffer[pixel_screen] = ConvertTo8BitColor(palette_color);
+            }
 
-            if ((m_pInfoBuffer[pixel] & 0x01) != 0)
+            if ((m_pInfoBuffer[pixel_info] & 0x01) != 0)
                 sprite_collision = true;
 
-            m_pInfoBuffer[pixel] |= 0x01;
+            m_pInfoBuffer[pixel_info] |= 0x01;
         }
     }
 
