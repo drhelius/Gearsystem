@@ -61,6 +61,7 @@ const GS_GameDBEntry kGameDatabase[] =
     {0xC1756BEE, GS_DB_CODEMASTERS_MAPPER, false, false, false, "Pete Sampras Tennis"},
     
     // PAL
+    {0xA109A6FE, GS_DB_DEFAULT_MAPPER, true, false, false, "Power Strike 2"},
     {0x72420F38, GS_DB_DEFAULT_MAPPER, true, false, false, "Addams Family, The"},
     {0x2D48C1D3, GS_DB_DEFAULT_MAPPER, true, false, false, "Back to the Future Part III"},
     {0x1CBB7BF1, GS_DB_DEFAULT_MAPPER, true, false, false, "Battlemaniacs"},
