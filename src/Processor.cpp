@@ -618,12 +618,18 @@ void Processor::SetProActionReplayCheat(const char* szCheat)
     for (std::string::iterator p = code.begin(); code.end() != p; ++p)
         *p = toupper(*p);
 
-    if (code.length() == 9)
+    if ((code.length() == 8) || (code.length() == 9))
     {
+        int offset = 0;
+        if (code.length() == 8)
+        {
+            offset = 1;
+        }
+
         ProActionReplayCode par;
 
-        par.value = (AsHex(code[7]) << 4 | AsHex(code[8])) & 0xFF;
-        par.address = ((AsHex(code[2]) << 12) | (AsHex(code[3]) << 8) | (AsHex(code[5]) << 4) | AsHex(code[6])) & 0xFFFF;
+        par.value = (AsHex(code[7-offset]) << 4 | AsHex(code[8-offset])) & 0xFF;
+        par.address = ((AsHex(code[2]) << 12) | (AsHex(code[3]) << 8) | (AsHex(code[5-offset]) << 4) | AsHex(code[6-offset])) & 0xFFFF;
 
         m_ProActionReplayList.push_back(par);
     }

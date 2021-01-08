@@ -383,7 +383,7 @@ static void main_menu(void)
                 {
                     std::string cheat = cheat_buffer;
 
-                    if ((cheat_list.size() < 10) && ((cheat.length() == 7) || (cheat.length() == 8) || (cheat.length() == 11)))
+                    if ((cheat.length() == 7) || (cheat.length() == 11) || (cheat.length() == 8) || (cheat.length() == 9))
                     {
                         cheat_list.push_back(cheat_buffer);
                         emu_add_cheat(cheat_buffer);
