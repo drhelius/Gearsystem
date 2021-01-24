@@ -654,13 +654,13 @@ static void debug_window_processor(void)
     ImGui::NextColumn();
     ImGui::Separator();
     ImGui::TextColored(cyan, " I"); ImGui::SameLine();
-    ImGui::Text(" $%02X", proc_state->I->GetValue());
-    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->I->GetValue()));
+    ImGui::Text(" $%02X", *proc_state->I);
+    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(*proc_state->I));
 
     ImGui::NextColumn();
     ImGui::TextColored(cyan, " R"); ImGui::SameLine();
-    ImGui::Text(" $%02X", proc_state->R->GetValue());
-    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->R->GetValue()));
+    ImGui::Text(" $%02X", *proc_state->R);
+    ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(*proc_state->R));
 
     ImGui::NextColumn();
     ImGui::Columns(1);

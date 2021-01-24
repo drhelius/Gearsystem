@@ -203,18 +203,18 @@ inline bool Processor::IsPrefixedInstruction()
 
 inline void Processor::IncreaseR()
 {
-    u8 r = R.GetValue();
-    R.SetValue(((r + 1) & 0x7F) | (r & 0x80));
+    u8 r = R;
+    R = ((r + 1) & 0x7F) | (r & 0x80);
 }
 
-inline void Processor::OPCodes_LD(EightBitRegister* reg1, u8 value)
+inline void Processor::OPCodes_LD(u8* reg1, u8 value)
 {
-    reg1->SetValue(value);
+    *reg1 = value;
 }
 
-inline void Processor::OPCodes_LD(EightBitRegister* reg, u16 address)
+inline void Processor::OPCodes_LD(u8* reg, u16 address)
 {
-    reg->SetValue(m_pMemory->Read(address));
+    *reg = m_pMemory->Read(address);
 }
 
 inline void Processor::OPCodes_LD(u16 address, u8 reg)
@@ -374,11 +374,11 @@ inline void Processor::OPCodes_RET_Conditional(bool condition)
     }
 }
 
-inline void Processor::OPCodes_IN_C(EightBitRegister* reg)
+inline void Processor::OPCodes_IN_C(u8* reg)
 {
     u8 result = m_pIOPorts->DoInput(BC.GetLow());
     if (IsValidPointer(reg))
-        reg->SetValue(result);
+        *reg = result;
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     ToggleZeroFlagFromResult(result);
     ToggleSignFlagFromResult(result);
@@ -440,9 +440,9 @@ inline void Processor::OPCodes_IND()
         ClearFlag(FLAG_PARITY);
 }
 
-inline void Processor::OPCodes_OUT_C(EightBitRegister* reg)
+inline void Processor::OPCodes_OUT_C(u8* reg)
 {
-    m_pIOPorts->DoOutput(BC.GetLow(), reg->GetValue());
+    m_pIOPorts->DoOutput(BC.GetLow(), *reg);
 }
 
 inline void Processor::OPCodes_OUTI()
@@ -618,10 +618,10 @@ inline void Processor::OPCodes_CPD()
     WZ.Decrement();
 }
 
-inline void Processor::OPCodes_INC(EightBitRegister* reg)
+inline void Processor::OPCodes_INC(u8* reg)
 {
-    u8 result = reg->GetValue() + 1;
-    reg->SetValue(result);
+    u8 result = *reg + 1;
+    *reg = result;
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     ToggleZeroFlagFromResult(result);
     ToggleSignFlagFromResult(result);
@@ -647,10 +647,10 @@ inline void Processor::OPCodes_INC_HL()
         ToggleFlag(FLAG_PARITY);
 }
 
-inline void Processor::OPCodes_DEC(EightBitRegister* reg)
+inline void Processor::OPCodes_DEC(u8* reg)
 {
-    u8 result = reg->GetValue() - 1;
-    reg->SetValue(result);
+    u8 result = *reg - 1;
+    *reg = result;
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     ToggleFlag(FLAG_NEGATIVE);
     ToggleZeroFlagFromResult(result);
@@ -807,19 +807,19 @@ inline void Processor::OPCodes_SBC_HL(u16 number)
         ToggleFlag(FLAG_PARITY);
 }
 
-inline void Processor::OPCodes_SLL(EightBitRegister* reg)
+inline void Processor::OPCodes_SLL(u8* reg)
 {
     u16 address = 0x0000;
     if (IsPrefixedInstruction())
     {
         address = GetEffectiveAddress();
-        reg->SetValue(m_pMemory->Read(address));
+        *reg = m_pMemory->Read(address);
     }
-    (reg->GetValue() & 0x80) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
-    u8 result = (reg->GetValue() << 1) | 0x01;
-    reg->SetValue(result);
+    (*reg & 0x80) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
+    u8 result = (*reg << 1) | 0x01;
+    *reg = result;
     if (IsPrefixedInstruction())
-        m_pMemory->Write(address, reg->GetValue());
+        m_pMemory->Write(address, *reg);
     ToggleZeroFlagFromResult(result);
     ToggleSignFlagFromResult(result);
     ToggleParityFlagFromResult(result);
@@ -839,19 +839,19 @@ inline void Processor::OPCodes_SLL_HL()
     ToggleXYFlagsFromResult(result);
 }
 
-inline void Processor::OPCodes_SLA(EightBitRegister* reg)
+inline void Processor::OPCodes_SLA(u8* reg)
 {
     u16 address = 0x0000;
     if (IsPrefixedInstruction())
     {
         address = GetEffectiveAddress();
-        reg->SetValue(m_pMemory->Read(address));
+        *reg = m_pMemory->Read(address);
     }
-    (reg->GetValue() & 0x80) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
-    u8 result = reg->GetValue() << 1;
-    reg->SetValue(result);
+    (*reg & 0x80) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
+    u8 result = *reg << 1;
+    *reg = result;
     if (IsPrefixedInstruction())
-        m_pMemory->Write(address, reg->GetValue());
+        m_pMemory->Write(address, *reg);
     ToggleZeroFlagFromResult(result);
     ToggleSignFlagFromResult(result);
     ToggleParityFlagFromResult(result);
@@ -871,15 +871,15 @@ inline void Processor::OPCodes_SLA_HL()
     ToggleXYFlagsFromResult(result);
 }
 
-inline void Processor::OPCodes_SRA(EightBitRegister* reg)
+inline void Processor::OPCodes_SRA(u8* reg)
 {
     u16 address = 0x0000;
     if (IsPrefixedInstruction())
     {
         address = GetEffectiveAddress();
-        reg->SetValue(m_pMemory->Read(address));
+        *reg = m_pMemory->Read(address);
     }
-    u8 result = reg->GetValue();
+    u8 result = *reg;
     (result & 0x01) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     if ((result & 0x80) != 0)
     {
@@ -888,9 +888,9 @@ inline void Processor::OPCodes_SRA(EightBitRegister* reg)
     }
     else
         result >>= 1;
-    reg->SetValue(result);
+    *reg = result;
     if (IsPrefixedInstruction())
-        m_pMemory->Write(address, reg->GetValue());
+        m_pMemory->Write(address, *reg);
     ToggleZeroFlagFromResult(result);
     ToggleSignFlagFromResult(result);
     ToggleParityFlagFromResult(result);
@@ -916,20 +916,20 @@ inline void Processor::OPCodes_SRA_HL()
     ToggleXYFlagsFromResult(result);
 }
 
-inline void Processor::OPCodes_SRL(EightBitRegister* reg)
+inline void Processor::OPCodes_SRL(u8* reg)
 {
     u16 address = 0x0000;
     if (IsPrefixedInstruction())
     {
         address = GetEffectiveAddress();
-        reg->SetValue(m_pMemory->Read(address));
+        *reg = m_pMemory->Read(address);
     }
-    u8 result = reg->GetValue();
+    u8 result = *reg;
     (result & 0x01) != 0 ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     result >>= 1;
-    reg->SetValue(result);
+    *reg = result;
     if (IsPrefixedInstruction())
-        m_pMemory->Write(address, reg->GetValue());
+        m_pMemory->Write(address, *reg);
     ToggleZeroFlagFromResult(result);
     ToggleSignFlagFromResult(result);
     ToggleParityFlagFromResult(result);
@@ -949,15 +949,15 @@ inline void Processor::OPCodes_SRL_HL()
     ToggleXYFlagsFromResult(result);
 }
 
-inline void Processor::OPCodes_RLC(EightBitRegister* reg, bool isRegisterA)
+inline void Processor::OPCodes_RLC(u8* reg, bool isRegisterA)
 {
     u16 address = 0x0000;
     if (!isRegisterA && IsPrefixedInstruction())
     {
         address = GetEffectiveAddress();
-        reg->SetValue(m_pMemory->Read(address));
+        *reg = m_pMemory->Read(address);
     }
-    u8 result = reg->GetValue();
+    u8 result = *reg;
     if ((result & 0x80) != 0)
     {
         ToggleFlag(FLAG_CARRY);
@@ -969,9 +969,9 @@ inline void Processor::OPCodes_RLC(EightBitRegister* reg, bool isRegisterA)
         ClearFlag(FLAG_CARRY);
         result <<= 1;
     }
-    reg->SetValue(result);
+    *reg = result;
     if (!isRegisterA && IsPrefixedInstruction())
-        m_pMemory->Write(address, reg->GetValue());
+        m_pMemory->Write(address, *reg);
     ClearFlag(FLAG_HALF);
     ClearFlag(FLAG_NEGATIVE);
     ToggleXYFlagsFromResult(result);
@@ -1005,22 +1005,22 @@ inline void Processor::OPCodes_RLC_HL()
     ToggleXYFlagsFromResult(result);
 }
 
-inline void Processor::OPCodes_RL(EightBitRegister* reg, bool isRegisterA)
+inline void Processor::OPCodes_RL(u8* reg, bool isRegisterA)
 {
     u16 address = 0x0000;
     if (!isRegisterA && IsPrefixedInstruction())
     {
         address = GetEffectiveAddress();
-        reg->SetValue(m_pMemory->Read(address));
+        *reg = m_pMemory->Read(address);
     }
     u8 carry = IsSetFlag(FLAG_CARRY) ? 1 : 0;
-    u8 result = reg->GetValue();
+    u8 result = *reg;
     ((result & 0x80) != 0) ? ToggleFlag(FLAG_CARRY) : ClearFlag(FLAG_CARRY);
     result <<= 1;
     result |= carry;
-    reg->SetValue(result);
+    *reg = result;
     if (!isRegisterA && IsPrefixedInstruction())
-        m_pMemory->Write(address, reg->GetValue());
+        m_pMemory->Write(address, *reg);
     ClearFlag(FLAG_HALF);
     ClearFlag(FLAG_NEGATIVE);
     ToggleXYFlagsFromResult(result);
@@ -1047,15 +1047,15 @@ inline void Processor::OPCodes_RL_HL()
     ToggleXYFlagsFromResult(result);
 }
 
-inline void Processor::OPCodes_RRC(EightBitRegister* reg, bool isRegisterA)
+inline void Processor::OPCodes_RRC(u8* reg, bool isRegisterA)
 {
     u16 address = 0x0000;
     if (!isRegisterA && IsPrefixedInstruction())
     {
         address = GetEffectiveAddress();
-        reg->SetValue(m_pMemory->Read(address));
+        *reg = m_pMemory->Read(address);
     }
-    u8 result = reg->GetValue();
+    u8 result = *reg;
     if ((result & 0x01) != 0)
     {
         ToggleFlag(FLAG_CARRY);
@@ -1067,9 +1067,9 @@ inline void Processor::OPCodes_RRC(EightBitRegister* reg, bool isRegisterA)
         ClearFlag(FLAG_CARRY);
         result >>= 1;
     }
-    reg->SetValue(result);
+    *reg = result;
     if (!isRegisterA && IsPrefixedInstruction())
-        m_pMemory->Write(address, reg->GetValue());
+        m_pMemory->Write(address, *reg);
     ClearFlag(FLAG_HALF);
     ClearFlag(FLAG_NEGATIVE);
     ToggleXYFlagsFromResult(result);
@@ -1103,22 +1103,22 @@ inline void Processor::OPCodes_RRC_HL()
     ToggleXYFlagsFromResult(result);
 }
 
-inline void Processor::OPCodes_RR(EightBitRegister* reg, bool isRegisterA)
+inline void Processor::OPCodes_RR(u8* reg, bool isRegisterA)
 {
     u16 address = 0x0000;
     if (!isRegisterA && IsPrefixedInstruction())
     {
         address = GetEffectiveAddress();
-        reg->SetValue(m_pMemory->Read(address));
+        *reg = m_pMemory->Read(address);
     }
     u8 carry = IsSetFlag(FLAG_CARRY) ? 0x80 : 0x00;
-    u8 result = reg->GetValue();
+    u8 result = *reg;
     ((result & 0x01) != 0) ? ToggleFlag(FLAG_CARRY) : ClearFlag(FLAG_CARRY);
     result >>= 1;
     result |= carry;
-    reg->SetValue(result);
+    *reg = result;
     if (!isRegisterA && IsPrefixedInstruction())
-        m_pMemory->Write(address, reg->GetValue());
+        m_pMemory->Write(address, *reg);
     ClearFlag(FLAG_HALF);
     ClearFlag(FLAG_NEGATIVE);
     ToggleXYFlagsFromResult(result);
@@ -1145,10 +1145,10 @@ inline void Processor::OPCodes_RR_HL()
     ToggleXYFlagsFromResult(result);
 }
 
-inline void Processor::OPCodes_BIT(EightBitRegister* reg, int bit)
+inline void Processor::OPCodes_BIT(u8* reg, int bit)
 {
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
-    u8 value = reg->GetValue();
+    u8 value = *reg;
     if (IsPrefixedInstruction())
         value = m_pMemory->Read(GetEffectiveAddress());
     if (!IsSetBit(value, bit))
@@ -1184,17 +1184,17 @@ inline void Processor::OPCodes_BIT_HL(int bit)
     ToggleFlag(FLAG_HALF);
 }
 
-inline void Processor::OPCodes_SET(EightBitRegister* reg, int bit)
+inline void Processor::OPCodes_SET(u8* reg, int bit)
 {
     u16 address = 0x0000;
     if (IsPrefixedInstruction())
     {
         address = GetEffectiveAddress();
-        reg->SetValue(m_pMemory->Read(address));
+        *reg = m_pMemory->Read(address);
     }
-    reg->SetValue(reg->GetValue() | (0x1 << bit));
+    *reg = *reg | (0x1 << bit);
     if (IsPrefixedInstruction())
-        m_pMemory->Write(address, reg->GetValue());
+        m_pMemory->Write(address, *reg);
 }
 
 inline void Processor::OPCodes_SET_HL(int bit)
@@ -1205,17 +1205,17 @@ inline void Processor::OPCodes_SET_HL(int bit)
     m_pMemory->Write(address, result);
 }
 
-inline void Processor::OPCodes_RES(EightBitRegister* reg, int bit)
+inline void Processor::OPCodes_RES(u8* reg, int bit)
 {
     u16 address = 0x0000;
     if (IsPrefixedInstruction())
     {
         address = GetEffectiveAddress();
-        reg->SetValue(m_pMemory->Read(address));
+        *reg = m_pMemory->Read(address);
     }
-    reg->SetValue(reg->GetValue() & (~(0x1 << bit)));
+    *reg = *reg & (~(0x1 << bit));
     if (IsPrefixedInstruction())
-        m_pMemory->Write(address, reg->GetValue());
+        m_pMemory->Write(address, *reg);
 }
 
 inline void Processor::OPCodes_RES_HL(int bit)

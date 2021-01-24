@@ -168,7 +168,7 @@ void Processor::OPCodeED0x56()
 void Processor::OPCodeED0x57()
 {
     // LD A,I
-    u8 value = I.GetValue();
+    u8 value = I;
     OPCodes_LD(AF.GetHighRegister(), value);
     ToggleSignFlagFromResult(value);
     ToggleZeroFlagFromResult(value);
@@ -228,7 +228,7 @@ void Processor::OPCodeED0x5E()
 void Processor::OPCodeED0x5F()
 {
     // LD A,R
-    u8 value = R.GetValue();
+    u8 value = R;
     OPCodes_LD(AF.GetHighRegister(), value);
     ToggleSignFlagFromResult(value);
     ToggleZeroFlagFromResult(value);

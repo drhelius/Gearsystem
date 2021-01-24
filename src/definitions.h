@@ -33,8 +33,12 @@
 #define DEBUG_GEARSYSTEM 1
 #endif
 
+#if defined(PS2) || defined(PSP)
+#define PERFORMANCE
+#endif
+
 #define GEARSYSTEM_TITLE "Gearsystem"
-#define GEARSYSTEM_VERSION "3.2.0"
+#define GEARSYSTEM_VERSION "3.2.1"
 
 #ifndef EMULATOR_BUILD
 #define EMULATOR_BUILD "undefined"

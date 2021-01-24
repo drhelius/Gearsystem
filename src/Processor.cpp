@@ -97,8 +97,8 @@ void Processor::Reset()
     DE2.SetValue(0x0000);
     HL2.SetValue(0x0000);
     WZ.SetValue(0x0000);
-    I.SetValue(0x00);
-    R.SetValue(0x00);
+    I = 0x00;
+    R = 0x00;
     m_bINTRequested = false;
     m_bNMIRequested = false;
     m_bPrefixedCBOpcode = false;
@@ -118,49 +118,56 @@ IOPorts* Processor::GetIOPOrts()
     return m_pIOPorts;
 }
 
-unsigned int Processor::Tick()
+unsigned int Processor::RunFor(u8 tstates)
 {
-    m_iTStates = 0;
-    m_bBreakpointHit = false;
+    u8 executed = 0;
 
-    if (!m_bInputLastCycle)
+    while (executed < tstates)
     {
-        if (m_bNMIRequested)
+        m_iTStates = 0;
+        m_bBreakpointHit = false;
+
+        if (!m_bInputLastCycle)
         {
-            LeaveHalt();
-            m_bNMIRequested = false;
-            m_bIFF1 = false;
-            StackPush(&PC);
-            PC.SetValue(0x0066);
-            m_iTStates += 11;
-            IncreaseR();
-            WZ.SetValue(PC.GetValue());
-            return m_iTStates;
-        }
-        else if (m_bIFF1 && m_bINTRequested && !m_bAfterEI)
-        {
-            LeaveHalt();
-            m_bIFF1 = false;
-            m_bIFF2 = false;
-            StackPush(&PC);
-            PC.SetValue(0x0038);
-            m_iTStates += 13;
-            IncreaseR();
-            WZ.SetValue(PC.GetValue());
-            UpdateProActionReplay();
-            return m_iTStates;
+            if (m_bNMIRequested)
+            {
+                LeaveHalt();
+                m_bNMIRequested = false;
+                m_bIFF1 = false;
+                StackPush(&PC);
+                PC.SetValue(0x0066);
+                m_iTStates += 11;
+                IncreaseR();
+                WZ.SetValue(PC.GetValue());
+                return m_iTStates;
+            }
+            else if (m_bIFF1 && m_bINTRequested && !m_bAfterEI)
+            {
+                LeaveHalt();
+                m_bIFF1 = false;
+                m_bIFF2 = false;
+                StackPush(&PC);
+                PC.SetValue(0x0038);
+                m_iTStates += 13;
+                IncreaseR();
+                WZ.SetValue(PC.GetValue());
+                UpdateProActionReplay();
+                return m_iTStates;
+            }
+
+            m_bAfterEI = false;
         }
 
-        m_bAfterEI = false;
+        ExecuteOPCode();
+
+        #ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
+        m_bBreakpointHit = Disassemble(PC.GetValue());
+        #endif
+
+        executed += m_iTStates;
     }
 
-    ExecuteOPCode();
-
-    #ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
-    m_bBreakpointHit = Disassemble(PC.GetValue());
-    #endif
-
-    return m_iTStates;
+    return executed;
 }
 
 void Processor::RequestINT(bool assert)
@@ -524,8 +531,8 @@ void Processor::SaveState(std::ostream& stream)
     u16 ix = IX.GetValue();
     u16 iy = IY.GetValue();
     u16 wz = WZ.GetValue();
-    u8 i = I.GetValue();
-    u8 r = R.GetValue();
+    u8 i = I;
+    u8 r = R;
 
     stream.write(reinterpret_cast<const char*> (&af), sizeof(af));
     stream.write(reinterpret_cast<const char*> (&bc), sizeof(bc));
@@ -594,8 +601,8 @@ void Processor::LoadState(std::istream& stream)
     IX.SetValue(ix);
     IY.SetValue(iy);
     WZ.SetValue(wz);
-    I.SetValue(i);
-    R.SetValue(r);
+    I = i;
+    R = r;
 
     stream.read(reinterpret_cast<char*> (&m_bIFF1), sizeof(m_bIFF1));
     stream.read(reinterpret_cast<char*> (&m_bIFF2), sizeof(m_bIFF2));

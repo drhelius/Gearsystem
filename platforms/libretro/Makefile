@@ -204,7 +204,7 @@ else ifeq ($(platform), ps2)
    CC = mips64r5900el-ps2-elf-gcc
    CXX = mips64r5900el-ps2-elf-g++
    AR = mips64r5900el-ps2-elf-ar
-   CXXFLAGS += -Wall -DMINIZ_NO_TIME -ffast-math -fsingle-precision-constant
+   CXXFLAGS += -Wall -DMINIZ_NO_TIME -ffast-math -fsingle-precision-constant -DPS2
 	STATIC_LINKING = 1
 # PSP
 else ifeq ($(platform), psp1)
@@ -212,7 +212,7 @@ else ifeq ($(platform), psp1)
    CC = psp-gcc
    CXX = psp-g++
    AR = psp-ar
-   CXXFLAGS += -Wall -DMINIZ_NO_TIME -ffast-math -fsingle-precision-constant
+   CXXFLAGS += -Wall -DMINIZ_NO_TIME -ffast-math -fsingle-precision-constant -DPSP
 	STATIC_LINKING = 1
 # Vita
 else ifeq ($(platform), vita)

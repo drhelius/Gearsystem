@@ -128,7 +128,8 @@ void Processor::OPCode0x0F()
 void Processor::OPCode0x10()
 {
     // DJNZ (PC+e)
-    BC.GetHighRegister()->Decrement();
+    u8* b = BC.GetHighRegister();
+    *b = *b - 1;
     OPCodes_JR_n_conditional(BC.GetHigh() != 0);
 }
 
@@ -435,7 +436,7 @@ void Processor::OPCode0x3A()
 {
     // LD A,(nn)
     u16 address = FetchArg16();
-    AF.GetHighRegister()->SetValue(m_pMemory->Read(address));
+    *(AF.GetHighRegister()) = m_pMemory->Read(address);
     WZ.SetValue(address + 1);
 }
 

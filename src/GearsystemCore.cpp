@@ -104,20 +104,25 @@ bool GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer, s16* pSampleBuffer, int
         int totalClocks = 0;
         while (!vblank)
         {
-            unsigned int clockCycles = m_pProcessor->Tick();
+#ifdef PERFORMANCE
+            unsigned int clockCycles = m_pProcessor->RunFor(75);
+#else
+            unsigned int clockCycles = m_pProcessor->RunFor(1);
+#endif
             vblank = m_pVideo->Tick(clockCycles, pFrameBuffer);
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
-            
 
+            totalClocks += clockCycles;
+
+#ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
             if ((step || (stopOnBreakpoints && m_pProcessor->BreakpointHit())))
             {
                 vblank = true;
                 if (m_pProcessor->BreakpointHit())
                     breakpoint = true;
             }
-
-            totalClocks += clockCycles;
+#endif
 
             if (totalClocks > 702240)
                 vblank = true;
@@ -847,12 +852,12 @@ void GearsystemCore::Get16BitFrameBuffer(GS_Color* pFrameBuffer, u16* p16BitFram
         int pixels = GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT;
         
 
-        for (int i = 0; i < pixels; i++)
-        {
-            GS_Color p = pFrameBuffer[i];
+        // for (int i = 0; i < pixels; i++)
+        // {
+        //     GS_Color p = pFrameBuffer[i];
 
-            p16BitFrameBuffer[i] = 0;
-            p16BitFrameBuffer[i] = ((p.red >> 3) << 11) | ((p.green >> 2) << 5) | (p.blue >> 3);
-        }
+        //     p16BitFrameBuffer[i] = 0;
+        //     p16BitFrameBuffer[i] = ((p.red >> 3) << 11) | ((p.green >> 2) << 5) | (p.blue >> 3);
+        // }
     }
 }
