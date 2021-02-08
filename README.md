@@ -1,6 +1,6 @@
 # Gearsystem
 
-[![Build Status](https://travis-ci.org/drhelius/Gearsystem.svg?branch=master)](https://travis-ci.org/drhelius/Gearsystem)
+[![Gearsystem CI](https://github.com/drhelius/Gearsystem/workflows/Gearsystem%20CI/badge.svg)](https://github.com/drhelius/Gearsystem/actions)
 
 Gearsystem is a very accurate, cross-platform Sega Master System / Game Gear / SG-1000 emulator written in C++ that runs on Windows, macOS, Linux, iOS, Raspberry Pi and RetroArch.
 
