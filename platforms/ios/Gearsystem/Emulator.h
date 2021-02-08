@@ -35,8 +35,8 @@
 {
     Sound_Queue* theSoundQueue;
     s16 theSampleBufffer[GS_AUDIO_BUFFER_SIZE];
-    GS_Color* theFrameBuffer;
-    GS_Color* theTexture;
+    u8* theFrameBuffer;
+    u8* theTexture;
     EmulatorInput* theInput;
     GLuint GBTexture;
     Texture* scanlineTexture;

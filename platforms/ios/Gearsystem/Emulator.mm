@@ -51,25 +51,17 @@
         
         theInput = new EmulatorInput(self);
         theInput->Init();
-        theFrameBuffer = new GS_Color[GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT];
-        theTexture = new GS_Color[256 * 256];
+        theFrameBuffer = new u8[GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT * 3];
+        theTexture = new u8[256 * 256 * 3];
         
-        for (int y = 0; y < GS_RESOLUTION_MAX_HEIGHT; ++y)
+        for (int i = 0; i < GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT * 3; ++i)
         {
-            for (int x = 0; x < GS_RESOLUTION_MAX_WIDTH; ++x)
-            {
-                int pixel = (y * GS_RESOLUTION_MAX_WIDTH) + x;
-                theFrameBuffer[pixel].red = theFrameBuffer[pixel].green = theFrameBuffer[pixel].blue = 0x00;
-            }
+            theFrameBuffer[i] = 0;
         }
 
-        for (int y = 0; y < 256; ++y)
+        for (int i = 0; i < 256 * 256 * 3; ++i)
         {
-            for (int x = 0; x < 256; ++x)
-            {
-                int pixel = (y * 256) + x;
-                theTexture[pixel].red = theTexture[pixel].green = theTexture[pixel].blue = 0x00;
-            }
+            theTexture[i] = 0;
         }
     }
     return self;
@@ -122,11 +114,11 @@
         theSoundQueue->write(theSampleBufffer, sampleCount);
     }
 
-    for (int y = 0; y < scr_h; ++y)
+    for (int y = 0; y < scr_h * 3; ++y)
     {
-        int y_256 = y * 256;
-        int y_gb_width = y * scr_w;
-        for (int x = 0; x < scr_w; ++x)
+        int y_256 = y * 256 * 3;
+        int y_gb_width = y * scr_w * 3;
+        for (int x = 0; x < scr_w * 3; ++x)
         {
             theTexture[y_256 + x] = theFrameBuffer[y_gb_width + x];
         }
