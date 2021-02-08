@@ -189,9 +189,7 @@ void gui_load_rom(const char* path)
         
         for (int i=0; i < (GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT); i++)
         {
-            emu_frame_buffer[i].red = 0;
-            emu_frame_buffer[i].green = 0;
-            emu_frame_buffer[i].blue = 0;
+            emu_frame_buffer[i] = 0;
         }
     }
 }
@@ -1140,9 +1138,7 @@ static void menu_reset(void)
         
         for (int i=0; i < (GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT); i++)
         {
-            emu_frame_buffer[i].red = 0;
-            emu_frame_buffer[i].green = 0;
-            emu_frame_buffer[i].blue = 0;
+            emu_frame_buffer[i] = 0;
         }
     }
 }

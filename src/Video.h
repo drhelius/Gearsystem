@@ -37,7 +37,7 @@ public:
     ~Video();
     void Init();
     void Reset(bool bGameGear, bool bPAL);
-    bool Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer);
+    bool Tick(unsigned int clockCycles);
     u8 GetVCounter();
     u8 GetHCounter();
     u8 GetDataPort();
@@ -49,13 +49,14 @@ public:
     void LatchHCounter();
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
-    void SetSG1000Palette(GS_Color* pSG1000Palette);
     u8* GetVRAM();
     u8* GetCRAM();
     u8* GetRegisters();
-    GS_Color* GetSG1000Palette();
     int GetSG1000Mode();
-    GS_Color ConvertTo8BitColor(int palette_color);
+    u16 ColorFromPalette(int palette_color);
+    u16* GetFrameBuffer();
+    void Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size);
+    void Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size);
 
 private:
     void ScanLine(int line);
@@ -69,7 +70,7 @@ private:
     Memory* m_pMemory;
     Processor* m_pProcessor;
     u8* m_pInfoBuffer;
-    GS_Color* m_pColorFrameBuffer;
+    u16* m_pFrameBuffer;
     u8* m_pVdpVRAM;
     u8* m_pVdpCRAM;
     bool m_bFirstByteInSequence;
@@ -120,37 +121,47 @@ private:
     };
 
     int m_Timing[8];
-    GS_Color* m_pSG1000Palette;
     int m_NextLineSprites[8];
     bool m_bDisplayEnabled;
     bool m_bSpriteOvrRequest;
 };
 
-inline GS_Color Video::ConvertTo8BitColor(int palette_color)
+inline u8* Video::GetVRAM()
 {
-    int r, g, b, highest_value;
+    return m_pVdpVRAM;
+}
+
+inline u8* Video::GetCRAM()
+{
+    return m_pVdpCRAM;
+}
+
+inline u8* Video::GetRegisters()
+{
+    return m_VdpRegister;
+}
+
+inline int Video::GetSG1000Mode()
+{
+    return m_iSG1000Mode;
+}
+
+inline u16 Video::ColorFromPalette(int palette_color)
+{
     if (m_bGameGear)
     {
         int palette_color_2 = palette_color << 1;
-        r = m_pVdpCRAM[palette_color_2] & 0x0F;
-        g = (m_pVdpCRAM[palette_color_2] >> 4) & 0x0F;
-        b = (m_pVdpCRAM[(palette_color_2) + 1]) & 0x0F;
-        highest_value = 15;
+        return m_pVdpCRAM[palette_color_2] | ((m_pVdpCRAM[palette_color_2 + 1] & 0x0F) << 8);
     }
     else
     {
-        r = m_pVdpCRAM[palette_color] & 0x03;
-        g = (m_pVdpCRAM[palette_color] >> 2) & 0x03;
-        b = (m_pVdpCRAM[palette_color] >> 4) & 0x03;
-        highest_value = 3;
+        return m_pVdpCRAM[palette_color];
     }
+}
 
-    GS_Color final_color;
-
-    final_color.red = (r * 255) / highest_value;
-    final_color.green = (g * 255) / highest_value;
-    final_color.blue = (b * 255) / highest_value;
-    return final_color;
+inline u16* Video::GetFrameBuffer()
+{
+    return m_pFrameBuffer;
 }
 
 const u8 kVdpHCounter[228] = {
@@ -172,6 +183,16 @@ const u8 kVdpHCounter[228] = {
   0x90,0x91,0x92,0x92,0x93,
 };
 
-const GS_Color kSG1000_palette[16] = {{0, 0, 0},{0, 0, 0},{33, 200, 66},{94, 220, 120},{84, 85, 237},{125, 118, 252},{212, 82, 77},{66, 235, 245},{252, 85, 84},{255, 121, 120},{212, 193, 84},{230, 206, 128},{33, 176, 59},{201, 91, 186},{204, 204, 204},{255, 255, 255}};
+const u8 kSG1000_palette_888[48] = {0,0,0, 0,0,0, 33,200,66, 94,220,120, 84,85,237, 125,118,252, 212,82,77, 66,235,245, 252,85,84, 255,121,120, 212,193,84, 230,206,128, 33,176,59, 201,91,186, 204,204,204, 255,255,255};
+const u16 kSG1000_palette_565_rgb[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0xFFFF};
+const u16 kSG1000_palette_555_rgb[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0x7FFF};
+const u16 kSG1000_palette_565_bgr[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0xFFFF};
+const u16 kSG1000_palette_555_bgr[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0x7FFF};
+const u8 k2bitTo8bit[4] = {0,85,170,255};
+const u8 k2bitTo5bit[4] = {0,10,21,31};
+const u8 k2bitTo6bit[4] = {0,21,42,63};
+const u8 k4bitTo8bit[16] = {0,17,34,51,68,86,102,119,136,153,170,187,204,221,238,255};
+const u8 k4bitTo5bit[16] = {0,2,4,6,8,10,12,14,17,19,21,23,25,27,29,31};
+const u8 k4bitTo6bit[16] = {0,4,8,13,17,21,25,29,34,38,42,46,50,55,59,63};
 
 #endif	/* VIDEO_H */

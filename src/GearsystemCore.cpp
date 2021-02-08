@@ -51,6 +51,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pSmsIOPorts);
     InitPointer(m_pGameGearIOPorts);
     m_bPaused = true;
+    m_pixelFormat = GS_PIXEL_RGB888;
 }
 
 GearsystemCore::~GearsystemCore()
@@ -71,9 +72,11 @@ GearsystemCore::~GearsystemCore()
     SafeDelete(m_pMemory);
 }
 
-void GearsystemCore::Init()
+void GearsystemCore::Init(GS_Color_Format pixelFormat)
 {
     Log("--== %s %s by Ignacio Sanchez ==--", GEARSYSTEM_TITLE, GEARSYSTEM_VERSION);
+
+    m_pixelFormat = pixelFormat;
 
     m_pMemory = new Memory();
     m_pProcessor = new Processor(m_pMemory);
@@ -94,7 +97,7 @@ void GearsystemCore::Init()
     InitMemoryRules();
 }
 
-bool GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool step, bool stopOnBreakpoints)
+bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool step, bool stopOnBreakpoints)
 {
     bool breakpoint = false;
 
@@ -109,7 +112,7 @@ bool GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer, s16* pSampleBuffer, int
 #else
             unsigned int clockCycles = m_pProcessor->RunFor(1);
 #endif
-            vblank = m_pVideo->Tick(clockCycles, pFrameBuffer);
+            vblank = m_pVideo->Tick(clockCycles);
             m_pAudio->Tick(clockCycles);
             m_pInput->Tick(clockCycles);
 
@@ -129,6 +132,7 @@ bool GearsystemCore::RunToVBlank(GS_Color* pFrameBuffer, s16* pSampleBuffer, int
         }
 
         m_pAudio->EndFrame(pSampleBuffer, pSampleCount);
+        RenderFrameBuffer(pFrameBuffer);
     }
 
     return breakpoint;
@@ -271,12 +275,6 @@ Audio* GearsystemCore::GetAudio()
 Video* GearsystemCore::GetVideo()
 {
     return m_pVideo;
-}
-
-
-void GearsystemCore::SetSG1000Palette(GS_Color* pSG1000Palette)
-{
-    m_pVideo->SetSG1000Palette(pSG1000Palette);
 }
 
 void GearsystemCore::KeyPressed(GS_Joypads joypad, GS_Keys key)
@@ -845,19 +843,25 @@ void GearsystemCore::Reset()
     m_bPaused = false;
 }
 
-void GearsystemCore::Get16BitFrameBuffer(GS_Color* pFrameBuffer, u16* p16BitFrameBuffer)
+void GearsystemCore::RenderFrameBuffer(u8* finalFrameBuffer)
 {
-    if (IsValidPointer(pFrameBuffer) && IsValidPointer(p16BitFrameBuffer))
+    int size = GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT;
+
+    switch (m_pixelFormat)
     {
-        int pixels = GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT;
-        
-
-        // for (int i = 0; i < pixels; i++)
-        // {
-        //     GS_Color p = pFrameBuffer[i];
-
-        //     p16BitFrameBuffer[i] = 0;
-        //     p16BitFrameBuffer[i] = ((p.red >> 3) << 11) | ((p.green >> 2) << 5) | (p.blue >> 3);
-        // }
+        case GS_PIXEL_RGB555:
+        case GS_PIXEL_BGR555:
+        case GS_PIXEL_RGB565:
+        case GS_PIXEL_BGR565:
+        {
+            m_pVideo->Render16bit(m_pVideo->GetFrameBuffer(), finalFrameBuffer, m_pixelFormat, size);
+            break;
+        }
+        case GS_PIXEL_RGB888:
+        case GS_PIXEL_BGR888:
+        {
+            m_pVideo->Render24bit(m_pVideo->GetFrameBuffer(), finalFrameBuffer, m_pixelFormat, size);
+            break;
+        }
     }
 }

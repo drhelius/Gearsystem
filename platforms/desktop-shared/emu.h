@@ -28,10 +28,10 @@
     #define EXTERN extern
 #endif
 
-EXTERN GS_Color* emu_frame_buffer;
-EXTERN GS_Color* emu_debug_background_buffer;
-EXTERN GS_Color* emu_debug_tile_buffer;
-EXTERN GS_Color* emu_debug_sprite_buffers[64];
+EXTERN u8* emu_frame_buffer;
+EXTERN u8* emu_debug_background_buffer;
+EXTERN u8* emu_debug_tile_buffer;
+EXTERN u8* emu_debug_sprite_buffers[64];
 
 EXTERN bool emu_audio_sync;
 EXTERN bool emu_debug_disable_breakpoints;

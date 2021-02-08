@@ -43,8 +43,8 @@ class GearsystemCore
 public:
     GearsystemCore();
     ~GearsystemCore();
-    void Init();
-    bool RunToVBlank(GS_Color* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool step = false, bool stopOnBreakpoints = false);
+    void Init(GS_Color_Format pixelFormat = GS_PIXEL_RGB888);
+    bool RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool step = false, bool stopOnBreakpoints = false);
     bool LoadROM(const char* szFilePath, Cartridge::ForceConfiguration* config = NULL);
     bool LoadROMFromBuffer(const u8* buffer, int size, Cartridge::ForceConfiguration* config = NULL);
     void SaveMemoryDump();
@@ -76,8 +76,6 @@ public:
     void SetRamModificationCallback(RamChangedCallback callback);
     Memory* GetMemory();
     Cartridge* GetCartridge();
-    void SetSG1000Palette(GS_Color* pSG1000Palette);
-    void Get16BitFrameBuffer(GS_Color* pFrameBuffer, u16* p16BitFrameBuffer);
     Processor* GetProcessor();
     Audio* GetAudio();
     Video* GetVideo();
@@ -86,6 +84,7 @@ private:
     void InitMemoryRules();
     bool AddMemoryRules();
     void Reset();
+    void RenderFrameBuffer(u8* finalFrameBuffer);
 
 private:
     Memory* m_pMemory;
@@ -104,6 +103,7 @@ private:
     GameGearIOPorts* m_pGameGearIOPorts;
     bool m_bPaused;
     RamChangedCallback m_pRamChangedCallback;
+    GS_Color_Format m_pixelFormat;
 };
 
 #endif	/* CORE_H */

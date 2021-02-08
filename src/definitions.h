@@ -115,11 +115,14 @@ typedef void (*RamChangedCallback) (void);
 
 #define GS_SAVESTATE_MAGIC 0x28011983
 
-struct GS_Color
+enum GS_Color_Format
 {
-    u8 red;
-    u8 green;
-    u8 blue;
+    GS_PIXEL_RGB565,
+    GS_PIXEL_RGB555,
+    GS_PIXEL_RGB888,
+    GS_PIXEL_BGR565,
+    GS_PIXEL_BGR555,
+    GS_PIXEL_BGR888
 };
 
 enum GS_Keys

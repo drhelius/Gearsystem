@@ -26,7 +26,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_pMemory = pMemory;
     m_pProcessor = pProcessor;
     InitPointer(m_pInfoBuffer);
-    InitPointer(m_pColorFrameBuffer);
+    InitPointer(m_pFrameBuffer);
     InitPointer(m_pVdpVRAM);
     InitPointer(m_pVdpCRAM);
     m_bFirstByteInSequence = false;
@@ -55,7 +55,6 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iScreenWidth = 0;
     m_bSG1000 = false;
     m_iSG1000Mode = 0;
-    m_pSG1000Palette = const_cast<GS_Color*>(&kSG1000_palette[0]);
     m_bDisplayEnabled = false;
     m_bSpriteOvrRequest = false;
 }
@@ -63,6 +62,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
 Video::~Video()
 {
     SafeDeleteArray(m_pInfoBuffer);
+    SafeDeleteArray(m_pFrameBuffer);
     SafeDeleteArray(m_pVdpVRAM);
     SafeDeleteArray(m_pVdpCRAM);
 }
@@ -70,6 +70,7 @@ Video::~Video()
 void Video::Init()
 {
     m_pInfoBuffer = new u8[GS_RESOLUTION_MAX_WIDTH * GS_LINES_PER_FRAME_PAL];
+    m_pFrameBuffer = new u16[GS_RESOLUTION_MAX_WIDTH * GS_LINES_PER_FRAME_PAL];
     m_pVdpVRAM = new u8[0x4000];
     m_pVdpCRAM = new u8[0x40];
     Reset(false, false);
@@ -91,7 +92,10 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_ScrollX = 0;
     m_ScrollY = 0;
     for (int i = 0; i < (GS_RESOLUTION_MAX_WIDTH * GS_LINES_PER_FRAME_PAL); i++)
+    {
+        m_pFrameBuffer[i] = 0;
         m_pInfoBuffer[i] = 0;
+    }
     for (int i = 0; i < 0x4000; i++)
         m_pVdpVRAM[i] = 0;
     for (int i = 0; i < 0x40; i++)
@@ -161,41 +165,10 @@ void Video::Reset(bool bGameGear, bool bPAL)
     }
 }
 
-void Video::SetSG1000Palette(GS_Color* pSG1000Palette)
-{
-    m_pSG1000Palette = pSG1000Palette;
-}
-
-u8* Video::GetVRAM()
-{
-    return m_pVdpVRAM;
-}
-
-u8* Video::GetCRAM()
-{
-    return m_pVdpCRAM;
-}
-
-u8* Video::GetRegisters()
-{
-    return m_VdpRegister;
-}
-
-GS_Color* Video::GetSG1000Palette()
-{
-    return m_pSG1000Palette;
-}
-
-int Video::GetSG1000Mode()
-{
-    return m_iSG1000Mode;
-}
-
-bool Video::Tick(unsigned int clockCycles, GS_Color* pColorFrameBuffer)
+bool Video::Tick(unsigned int clockCycles)
 {
     int max_height = m_bExtendedMode224 ? 224 : 192;
     bool return_vblank = false;
-    m_pColorFrameBuffer = pColorFrameBuffer;
 
     m_iCycleCounter += clockCycles;
 
@@ -498,10 +471,7 @@ void Video::ScanLine(int line)
             for (int scx = 0; scx < m_iScreenWidth; scx++)
             {
                 int pixel = line_width + scx;
-
-                GS_Color final_color = {0,0,0};
-
-                m_pColorFrameBuffer[pixel] = final_color;
+                m_pFrameBuffer[pixel] = 0;
                 m_pInfoBuffer[pixel] = 0;
             }
         }
@@ -602,11 +572,11 @@ void Video::RenderBackgroundSMSGG(int line)
             if (m_bGameGear)
             {
                 if ((line >= y_offset) && (line < (y_offset + GS_RESOLUTION_GG_HEIGHT)))
-                    m_pColorFrameBuffer[pixel_screen] = ConvertTo8BitColor(palette_color);
+                    m_pFrameBuffer[pixel_screen] = ColorFromPalette(palette_color);
             }
             else
             {
-                m_pColorFrameBuffer[pixel_screen] = ConvertTo8BitColor(palette_color);
+                m_pFrameBuffer[pixel_screen] = ColorFromPalette(palette_color);
             }
         }
 
@@ -731,12 +701,12 @@ void Video::RenderSpritesSMSGG(int line)
             if (m_bGameGear)
             {
                 if ((line >= y_offset) && (line < (y_offset + GS_RESOLUTION_GG_HEIGHT)))
-                    m_pColorFrameBuffer[pixel_screen] = ConvertTo8BitColor(palette_color);
+                    m_pFrameBuffer[pixel_screen] = ColorFromPalette(palette_color);
             }
             else
             {
                 if (line < max_height)
-                    m_pColorFrameBuffer[pixel_screen] = ConvertTo8BitColor(palette_color);
+                    m_pFrameBuffer[pixel_screen] = ColorFromPalette(palette_color);
             }
 
             if ((m_pInfoBuffer[pixel_info] & 0x01) != 0)
@@ -807,7 +777,7 @@ void Video::RenderBackgroundSG1000(int line)
 
         int final_color = IsSetBit(pattern_line, 7 - tile_x_offset) ? fg_color : bg_color;
 
-        m_pColorFrameBuffer[pixel] = m_pSG1000Palette[(final_color > 0) ? final_color : backdrop_color];
+        m_pFrameBuffer[pixel] = (final_color > 0) ? final_color : backdrop_color;
         m_pInfoBuffer[pixel] = 0x00;
     }
 }
@@ -890,7 +860,7 @@ void Video::RenderSpritesSG1000(int line)
 
             if (sprite_pixel && (sprite_count < 5) && ((m_pInfoBuffer[pixel] & 0x08) == 0))
             {
-                m_pColorFrameBuffer[pixel] = m_pSG1000Palette[sprite_color];
+                m_pFrameBuffer[pixel] = sprite_color;
                 m_pInfoBuffer[pixel] |= 0x08;
             }
 
@@ -903,6 +873,127 @@ void Video::RenderSpritesSG1000(int line)
 
     if (sprite_collision)
         m_VdpStatus = SetBit(m_VdpStatus, 5);
+}
+
+void Video::Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size)
+{
+    bool bgr = (pixelFormat == GS_PIXEL_BGR888);
+
+    if(m_bSG1000)
+    {
+        for (int i = 0, j = 0; i < size; i ++, j += 3)
+        {
+            u16 src_color = srcFrameBuffer[i] * 3;
+
+            if (bgr)
+            {
+                dstFrameBuffer[j + 2] = kSG1000_palette_888[src_color];
+                dstFrameBuffer[j] = kSG1000_palette_888[src_color + 2];
+            }
+            else
+            {
+                dstFrameBuffer[j] = kSG1000_palette_888[src_color];
+                dstFrameBuffer[j + 2] = kSG1000_palette_888[src_color + 2];
+            }
+            dstFrameBuffer[j + 1] = kSG1000_palette_888[src_color + 1];
+        }
+    }
+    else
+    {
+        const u8* lut = m_bGameGear ? k4bitTo8bit : k2bitTo8bit;
+        int shift_g = m_bGameGear ? 4 : 2;
+        int shift_b = m_bGameGear ? 8 : 4;
+        int mask = m_bGameGear ? 0x0F : 0x03;
+
+        for (int i = 0, j = 0; i < size; i ++, j += 3)
+        {
+            u16 src_color = srcFrameBuffer[i];
+            u8 red, blue;
+            u8 green = (src_color >> shift_g) & mask;
+
+            if (bgr)
+            {
+                blue = src_color & mask;
+                red = (src_color >> shift_b) & mask;
+            }
+            else
+            {
+                red = src_color & mask;
+                blue = (src_color >> shift_b) & mask;
+            }
+
+            dstFrameBuffer[j] = lut[red];
+            dstFrameBuffer[j + 1] = lut[green];
+            dstFrameBuffer[j + 2] = lut[blue];
+        }
+    }
+}
+
+void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size)
+{
+    bool green_6bit = (pixelFormat == GS_PIXEL_RGB565) || (pixelFormat == GS_PIXEL_BGR565);
+    bool bgr = ((pixelFormat == GS_PIXEL_BGR555) || (pixelFormat == GS_PIXEL_BGR565));
+
+    if(m_bSG1000)
+    {
+        const u16* pal;
+
+        if (bgr)
+            pal = green_6bit ? kSG1000_palette_565_bgr : kSG1000_palette_555_bgr;
+        else
+            pal = green_6bit ? kSG1000_palette_565_rgb : kSG1000_palette_555_rgb;
+
+        for (int i = 0, j = 0; i < size; i ++, j += 2)
+        {
+            u16 src_color = srcFrameBuffer[i];
+
+            *(u16*)(&dstFrameBuffer[j]) = pal[src_color];
+        }
+    }
+    else
+    {
+        const u8* lut;
+        const u8* lut_g;
+        int shift_g, shift_b, mask;
+        int shift = green_6bit ? 11 : 10;
+
+        if (m_bGameGear)
+        {
+            lut = k4bitTo5bit;
+            lut_g = green_6bit ? k4bitTo6bit : k4bitTo5bit;
+            shift_g = 4;
+            shift_b = 8;
+            mask = 0x0F;
+        }
+        else
+        {
+            lut = k2bitTo5bit;
+            lut_g = green_6bit ? k2bitTo6bit : k2bitTo5bit;
+            shift_g = 2;
+            shift_b = 4;
+            mask = 0x03;
+        }
+
+        for (int i = 0, j = 0; i < size; i ++, j += 2)
+        {
+            u16 src_color = srcFrameBuffer[i];
+            u8 red, blue;
+            u8 green = (src_color >> shift_g) & mask;
+
+            if (bgr)
+            {
+                blue = src_color & mask;
+                red = (src_color >> shift_b) & mask;
+            }
+            else
+            {
+                red = src_color & mask;
+                blue = (src_color >> shift_b) & mask;
+            }
+
+            *(u16*)(&dstFrameBuffer[j]) = (lut[red] << shift) | (lut_g[green] << 5) | lut[blue];
+        }
+    }
 }
 
 void Video::SaveState(std::ostream& stream)

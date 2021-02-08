@@ -33,11 +33,17 @@ static bool debugging = false;
 static bool debug_step = false;
 static bool debug_next_frame = false;
 
+u16* frame_buffer;
+u16* debug_background_buffer;
+u16* debug_tile_buffer;
+u16* debug_sprite_buffers[64];
+
 static void save_ram(void);
 static void load_ram(void);
 static const char* get_mapper(Cartridge::CartridgeTypes type);
 static const char* get_zone(Cartridge::CartridgeZones zone);
 static void init_debug(void);
+static void destroy_debug(void);
 static void update_debug(void);
 static void update_debug_background_buffer_smsgg(void);
 static void update_debug_tile_buffer_smsgg(void);
@@ -52,13 +58,15 @@ void emu_init(const char* save_path)
 
     int screen_size = GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT;
 
-    emu_frame_buffer = new GS_Color[screen_size];
+    emu_frame_buffer = new u8[screen_size * 3];
+    frame_buffer = new u16[screen_size];
     
-    for (int i=0; i < screen_size; i++)
+    for (int i=0, j=0; i < screen_size; i++, j+=3)
     {
-        emu_frame_buffer[i].red = 0;
-        emu_frame_buffer[i].green = 0;
-        emu_frame_buffer[i].blue = 0;
+        frame_buffer[i] = 0;
+        emu_frame_buffer[j] = 0;
+        emu_frame_buffer[j+1] = 0;
+        emu_frame_buffer[j+2] = 0;
     }
 
     init_debug();
@@ -87,6 +95,8 @@ void emu_destroy(void)
     SafeDelete(sound_queue);
     SafeDelete(gearsystem);
     SafeDeleteArray(emu_frame_buffer);
+    SafeDeleteArray(frame_buffer);
+    destroy_debug();
 }
 
 void emu_load_rom(const char* file_path, bool save_in_rom_dir, Cartridge::ForceConfiguration config)
@@ -379,33 +389,53 @@ static const char* get_zone(Cartridge::CartridgeZones zone)
 
 static void init_debug(void)
 {
-    emu_debug_background_buffer = new GS_Color[256 * 256];
-    emu_debug_tile_buffer = new GS_Color[32 * 32 * 64];
+    emu_debug_background_buffer = new u8[256 * 256 * 3];
+    emu_debug_tile_buffer = new u8[32 * 32 * 64 * 3];
+    debug_background_buffer = new u16[256 * 256];    
+    debug_tile_buffer = new u16[32 * 32 * 64];
 
-    for (int i=0; i < (32 * 32 * 64); i++)
+    for (int i=0,j=0; i < (32 * 32 * 64); i++,j+=3)
     {
-        emu_debug_tile_buffer[i].red = 0;
-        emu_debug_tile_buffer[i].green = 0;
-        emu_debug_tile_buffer[i].blue = 0;
+        debug_tile_buffer[i] = 0;
+        emu_debug_tile_buffer[j] = 0;
+        emu_debug_tile_buffer[j+1] = 0;
+        emu_debug_tile_buffer[j+2] = 0;
     }
 
     for (int s = 0; s < 64; s++)
     {
-        emu_debug_sprite_buffers[s] = new GS_Color[16 * 16];
+        emu_debug_sprite_buffers[s] = new u8[16 * 16 * 3];
+        debug_sprite_buffers[s] = new u16[16 * 16];
 
-        for (int i=0; i < (16 * 16); i++)
+        for (int i=0,j=0; i < (16 * 16); i++,j+=3)
         {
-            emu_debug_sprite_buffers[s][i].red = 0;
-            emu_debug_sprite_buffers[s][i].green = 0;
-            emu_debug_sprite_buffers[s][i].blue = 0;
+            debug_sprite_buffers[s][i] = 0;
+            emu_debug_sprite_buffers[s][j] = 0;
+            emu_debug_sprite_buffers[s][j+1] = 0;
+            emu_debug_sprite_buffers[s][j+2] = 0;
         }
     }
 
-    for (int i=0; i < (256 * 256); i++)
+    for (int i=0,j=0; i < (256 * 256); i++,j+=3)
     {
-        emu_debug_background_buffer[i].red = 0;
-        emu_debug_background_buffer[i].green = 0;
-        emu_debug_background_buffer[i].blue = 0;
+        debug_background_buffer[i] = 0;
+        emu_debug_background_buffer[j] = 0;
+        emu_debug_background_buffer[j+1] = 0;
+        emu_debug_background_buffer[j+2] = 0;
+    }
+}
+
+static void destroy_debug(void) 
+{
+    SafeDeleteArray(emu_debug_background_buffer);
+    SafeDeleteArray(emu_debug_tile_buffer);
+    SafeDeleteArray(debug_background_buffer);
+    SafeDeleteArray(debug_tile_buffer);
+
+    for (int s = 0; s < 64; s++)
+    {
+        SafeDeleteArray(emu_debug_sprite_buffers[s]);
+        SafeDeleteArray(debug_sprite_buffers[s]);
     }
 }
 
@@ -422,6 +452,16 @@ static void update_debug(void)
         update_debug_background_buffer_smsgg();
         update_debug_tile_buffer_smsgg();
         update_debug_sprite_buffers_smsgg();
+    }
+
+    Video* video = gearsystem->GetVideo();
+
+    video->Render24bit(debug_background_buffer, emu_debug_background_buffer, GS_PIXEL_RGB888, 256 * 256);
+    video->Render24bit(debug_tile_buffer, emu_debug_tile_buffer, GS_PIXEL_RGB888, 32 * 32 * 64);
+
+    for (int s = 0; s < 64; s++)
+    {
+        video->Render24bit(debug_sprite_buffers[s], emu_debug_sprite_buffers[s], GS_PIXEL_RGB888, 16 * 16);
     }
 }
 
@@ -464,7 +504,7 @@ static void update_debug_background_buffer_smsgg(void)
             int tile_data_addr = (tile_number * 32) + (4 * final_offset_y);
             int color_index = ((vram[tile_data_addr] >> offset_x) & 1) | (((vram[tile_data_addr + 1] >> offset_x) & 1) << 1) | (((vram[tile_data_addr + 2] >> offset_x) & 1) << 2) | (((vram[tile_data_addr + 3] >> offset_x) & 1) << 3);
 
-            emu_debug_background_buffer[pixel] = video->ConvertTo8BitColor(color_index + tile_palette);
+            debug_background_buffer[pixel] = video->ColorFromPalette(color_index + tile_palette);
         }
     }
 }
@@ -475,7 +515,6 @@ static void update_debug_background_buffer_sg1000(void)
     u8* vram = video->GetVRAM();
     u8* regs = video->GetRegisters();
     int mode = video->GetSG1000Mode();
-    GS_Color* pal = video->GetSG1000Palette();
 
     int pattern_table_addr = 0;
     int color_table_addr = 0;
@@ -530,7 +569,7 @@ static void update_debug_background_buffer_sg1000(void)
             int fg_color = color_line >> 4;
             int final_color = IsSetBit(pattern_line, offset_x) ? fg_color : bg_color;
 
-            emu_debug_background_buffer[pixel] = pal[(final_color > 0) ? final_color : backdrop_color];
+            debug_background_buffer[pixel] = (final_color > 0) ? final_color : backdrop_color;
         }
     }
 }
@@ -558,7 +597,7 @@ static void update_debug_tile_buffer_smsgg(void)
             int tile_data_addr = (tile_number * 32) + (4 * offset_y);
             int color_index = ((vram[tile_data_addr] >> offset_x) & 1) | (((vram[tile_data_addr + 1] >> offset_x) & 1) << 1) | (((vram[tile_data_addr + 2] >> offset_x) & 1) << 2) | (((vram[tile_data_addr + 3] >> offset_x) & 1) << 3);
 
-            emu_debug_tile_buffer[pixel] = video->ConvertTo8BitColor(color_index + tile_palette);
+            debug_tile_buffer[pixel] = video->ColorFromPalette(color_index + tile_palette);
         }
     }
 }
@@ -589,17 +628,11 @@ static void update_debug_tile_buffer_sg1000(void)
             int tile_data_addr = pattern_table_addr + (tile_number * 8) + (1 * offset_y);
             bool color = IsSetBit(vram[tile_data_addr], offset_x);
 
-            GS_Color black;
-            black.red = 0;
-            black.green = 0;
-            black.blue = 0;
+            u16 black = 0;
 
-            GS_Color white;
-            black.red = 255;
-            black.green = 255;
-            black.blue = 255;
+            u16 white = 15;
 
-            emu_debug_tile_buffer[pixel] = color ? white : black;
+            debug_tile_buffer[pixel] = color ? white : black;
         }
     }
 }
@@ -638,7 +671,7 @@ static void update_debug_sprite_buffers_smsgg(void)
 
             int color_index = ((vram[line_addr] >> pixel_x) & 1) | (((vram[line_addr + 1] >> pixel_x) & 1) << 1) | (((vram[line_addr + 2] >> pixel_x) & 1) << 2) | (((vram[line_addr + 3] >> pixel_x) & 1) << 3);
 
-            emu_debug_sprite_buffers[s][pixel + padding] = video->ConvertTo8BitColor(color_index + 16);
+            debug_sprite_buffers[s][pixel + padding] = video->ColorFromPalette(color_index + 16);
         }
     }
 }
@@ -649,7 +682,6 @@ static void update_debug_sprite_buffers_sg1000(void)
     Video* video = core->GetVideo();
     u8* regs = video->GetRegisters();
     u8* vram = video->GetVRAM();
-    GS_Color* pal = video->GetSG1000Palette();
     GS_RuntimeInfo runtime;
     emu_get_runtime(runtime);
 
@@ -682,7 +714,7 @@ static void update_debug_sprite_buffers_sg1000(void)
                 else
                     sprite_pixel = IsSetBit(vram[sprite_line_addr + 16], 15 - pixel_x);
 
-                emu_debug_sprite_buffers[s][pixel] = pal[sprite_pixel ? sprite_color : 0];
+                debug_sprite_buffers[s][pixel] = sprite_pixel ? sprite_color : 0;
             }
         }
     }

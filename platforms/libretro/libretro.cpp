@@ -45,8 +45,7 @@ static bool allow_up_down = false;
 static bool libretro_supports_bitmasks;
 
 static GearsystemCore* core;
-static GS_Color *frame_buf;
-static u16* frame_buf_16bit;
+static u8* frame_buffer;
 static Cartridge::ForceConfiguration config;
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
@@ -67,14 +66,6 @@ static const struct retro_variable vars[] = {
     { NULL }
 };
 
-#if defined(IS_BIG_ENDIAN)
-// blue, green, red
-static GS_Color sg1000_palette[16] = {{0, 0, 0},{0, 0, 0},{66, 200, 33},{120, 220, 94},{237, 85, 84},{252, 118, 125},{77, 82, 212},{245, 235, 66},{84, 85, 252},{120, 121, 255},{84, 193, 212},{128, 206, 230},{59, 176, 33},{186, 91, 201},{204, 204, 204},{255, 255, 255}};
-#elif defined(IS_LITTLE_ENDIAN)
-// red, green, blue
-static GS_Color sg1000_palette[16] = {{0, 0, 0},{0, 0, 0},{33, 200, 66},{94, 220, 120},{84, 85, 237},{125, 118, 252},{212, 82, 77},{66, 235, 245},{252, 85, 84},{255, 121, 120},{212, 193, 84},{230, 206, 128},{33, 176, 59},{201, 91, 186},{204, 204, 204},{255, 255, 255}};
-#endif
-
 static retro_environment_t environ_cb;
 
 void retro_init(void)
@@ -87,11 +78,14 @@ void retro_init(void)
     }
 
     core = new GearsystemCore();
-    core->Init();
-    core->SetSG1000Palette(sg1000_palette);
 
-    frame_buf = new GS_Color[GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT];
-    frame_buf_16bit = new u16[GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT];
+#ifdef PS2
+    core->Init(GS_PIXEL_BGR555);
+#else
+    core->Init(GS_PIXEL_RGB565);
+#endif
+
+    frame_buffer = new u8[GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT * 2];
 
     audio_sample_count = 0;
 
@@ -105,8 +99,7 @@ void retro_init(void)
 
 void retro_deinit(void)
 {
-    SafeDeleteArray(frame_buf);
-    SafeDeleteArray(frame_buf_16bit);
+    SafeDeleteArray(frame_buffer);
     SafeDelete(core);
 }
 
@@ -366,8 +359,7 @@ void retro_run(void)
 
     update_input();
 
-    core->RunToVBlank(frame_buf, audio_buf, &audio_sample_count);
-    core->Get16BitFrameBuffer(frame_buf, frame_buf_16bit);
+    core->RunToVBlank(frame_buffer, audio_buf, &audio_sample_count);
 
     GS_RuntimeInfo runtime_info;
     core->GetRuntimeInfo(runtime_info);
@@ -387,7 +379,7 @@ void retro_run(void)
         environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &info.geometry);
     }
 
-    video_cb((uint8_t*)frame_buf_16bit, runtime_info.screen_width, runtime_info.screen_height, runtime_info.screen_width * sizeof(u16));
+    video_cb((uint8_t*)frame_buffer, runtime_info.screen_width, runtime_info.screen_height, runtime_info.screen_width * sizeof(u8) * 2);
 
     if (audio_sample_count > 0)
         audio_batch_cb(audio_buf, audio_sample_count / 2);
