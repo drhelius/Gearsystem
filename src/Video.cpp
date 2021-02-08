@@ -73,6 +73,7 @@ void Video::Init()
     m_pFrameBuffer = new u16[GS_RESOLUTION_MAX_WIDTH * GS_LINES_PER_FRAME_PAL];
     m_pVdpVRAM = new u8[0x4000];
     m_pVdpCRAM = new u8[0x40];
+    InitPalettes();
     Reset(false, false);
 }
 
@@ -939,9 +940,9 @@ void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
         const u16* pal;
 
         if (bgr)
-            pal = green_6bit ? kSG1000_palette_565_bgr : kSG1000_palette_555_bgr;
+            pal = green_6bit ? m_SG1000_palette_565_bgr : m_SG1000_palette_555_bgr;
         else
-            pal = green_6bit ? kSG1000_palette_565_rgb : kSG1000_palette_555_rgb;
+            pal = green_6bit ? m_SG1000_palette_565_rgb : m_SG1000_palette_555_rgb;
 
         for (int i = 0, j = 0; i < size; i ++, j += 2)
         {
@@ -993,6 +994,26 @@ void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
 
             *(u16*)(&dstFrameBuffer[j]) = (lut[red] << shift) | (lut_g[green] << 5) | lut[blue];
         }
+    }
+}
+
+void Video::InitPalettes()
+{
+    for (int i=0,j=0; i<16; i++,j+=3)
+    {
+        u8 red = kSG1000_palette_888[j];
+        u8 green = kSG1000_palette_888[j+1];
+        u8 blue = kSG1000_palette_888[j+2];
+
+        u8 red_5 = red * 31 / 255;
+        u8 green_5 = green * 31 / 255;
+        u8 green_6 = green * 63 / 255;
+        u8 blue_5 = blue * 31 / 255;
+
+        m_SG1000_palette_565_rgb[i] = red_5 << 11 | green_6 << 5 | blue_5;
+        m_SG1000_palette_555_rgb[i] = red_5 << 10 | green_5 << 5 | blue_5;
+        m_SG1000_palette_565_bgr[i] = blue_5 << 11 | green_6 << 5 | red_5;
+        m_SG1000_palette_555_bgr[i] = blue_5 << 10 | green_5 << 5 | red_5;
     }
 }
 

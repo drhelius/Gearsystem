@@ -65,6 +65,7 @@ private:
     void ParseSpritesSMSGG(int line);
     void RenderSpritesSMSGG(int line);
     void RenderSpritesSG1000(int line);
+    void InitPalettes();
 
 private:
     Memory* m_pMemory;
@@ -124,6 +125,11 @@ private:
     int m_NextLineSprites[8];
     bool m_bDisplayEnabled;
     bool m_bSpriteOvrRequest;
+
+    u16 m_SG1000_palette_565_rgb[16];
+    u16 m_SG1000_palette_555_rgb[16];
+    u16 m_SG1000_palette_565_bgr[16];
+    u16 m_SG1000_palette_555_bgr[16];
 };
 
 inline u8* Video::GetVRAM()
@@ -184,10 +190,6 @@ const u8 kVdpHCounter[228] = {
 };
 
 const u8 kSG1000_palette_888[48] = {0,0,0, 0,0,0, 33,200,66, 94,220,120, 84,85,237, 125,118,252, 212,82,77, 66,235,245, 252,85,84, 255,121,120, 212,193,84, 230,206,128, 33,176,59, 201,91,186, 204,204,204, 255,255,255};
-const u16 kSG1000_palette_565_rgb[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0xFFFF};
-const u16 kSG1000_palette_555_rgb[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0x7FFF};
-const u16 kSG1000_palette_565_bgr[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0xFFFF};
-const u16 kSG1000_palette_555_bgr[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0x7FFF};
 const u8 k2bitTo8bit[4] = {0,85,170,255};
 const u8 k2bitTo5bit[4] = {0,10,21,31};
 const u8 k2bitTo6bit[4] = {0,21,42,63};
