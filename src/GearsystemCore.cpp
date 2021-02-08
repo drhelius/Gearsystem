@@ -147,8 +147,9 @@ bool GearsystemCore::LoadROM(const char* szFilePath, Cartridge::ForceConfigurati
         Reset();
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
         bool romTypeOK = AddMemoryRules();
+#ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
         m_pProcessor->Disassemble(m_pProcessor->GetState()->PC->GetValue());
-
+#endif
         if (!romTypeOK)
         {
             Log("There was a problem with the cartridge header. File: %s...", szFilePath);

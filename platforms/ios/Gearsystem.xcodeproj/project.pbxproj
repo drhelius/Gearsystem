@@ -111,7 +111,6 @@
 		66AB415F1A1030C1006C951A /* CodemastersMemoryRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CodemastersMemoryRule.cpp; path = ../../src/CodemastersMemoryRule.cpp; sourceTree = "<group>"; };
 		66AB41601A1030C1006C951A /* CodemastersMemoryRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CodemastersMemoryRule.h; path = ../../src/CodemastersMemoryRule.h; sourceTree = "<group>"; };
 		66AB41611A1030C1006C951A /* definitions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = definitions.h; path = ../../src/definitions.h; sourceTree = "<group>"; };
-		66AB41621A1030C1006C951A /* EightBitRegister.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EightBitRegister.h; path = ../../src/EightBitRegister.h; sourceTree = "<group>"; };
 		66AB41631A1030C1006C951A /* game_db.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = game_db.h; path = ../../src/game_db.h; sourceTree = "<group>"; };
 		66AB41641A1030C1006C951A /* GameGearIOPorts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GameGearIOPorts.cpp; path = ../../src/GameGearIOPorts.cpp; sourceTree = "<group>"; };
 		66AB41651A1030C1006C951A /* GameGearIOPorts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GameGearIOPorts.h; path = ../../src/GameGearIOPorts.h; sourceTree = "<group>"; };
@@ -317,7 +316,6 @@
 				66AB415F1A1030C1006C951A /* CodemastersMemoryRule.cpp */,
 				66AB41601A1030C1006C951A /* CodemastersMemoryRule.h */,
 				66AB41611A1030C1006C951A /* definitions.h */,
-				66AB41621A1030C1006C951A /* EightBitRegister.h */,
 				66AB41631A1030C1006C951A /* game_db.h */,
 				66AB41641A1030C1006C951A /* GameGearIOPorts.cpp */,
 				66AB41651A1030C1006C951A /* GameGearIOPorts.h */,
@@ -596,7 +594,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
-					GEARSYSTEM_DISABLE_DISASSEMBLER,
+					"GEARSYSTEM_DISABLE_DISASSEMBLER=1",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -647,7 +645,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = GEARSYSTEM_DISABLE_DISASSEMBLER;
+				GCC_PREPROCESSOR_DEFINITIONS = "GEARSYSTEM_DISABLE_DISASSEMBLER=1";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -682,7 +680,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.geardome.gearsystem;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = "";
-				VALID_ARCHS = "armv7 armv7s arm64";
+				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Debug;
 		};
@@ -707,7 +705,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.geardome.gearsystem;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = "";
-				VALID_ARCHS = "armv7 armv7s arm64";
+				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
 			name = Release;
 		};

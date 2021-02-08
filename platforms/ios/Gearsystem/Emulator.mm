@@ -114,13 +114,17 @@
         theSoundQueue->write(theSampleBufffer, sampleCount);
     }
 
-    for (int y = 0; y < scr_h * 3; ++y)
+    for (int y = 0; y < scr_h; ++y)
     {
-        int y_256 = y * 256 * 3;
-        int y_gb_width = y * scr_w * 3;
-        for (int x = 0; x < scr_w * 3; ++x)
+        int y_256 = y * 256;
+        int y_gb_width = y * scr_w;
+        for (int x = 0; x < scr_w; ++x)
         {
-            theTexture[y_256 + x] = theFrameBuffer[y_gb_width + x];
+            int a = (y_256 + x) * 3;
+            int b = (y_gb_width + x) * 3;
+            theTexture[a] = theFrameBuffer[b];
+            theTexture[a+1] = theFrameBuffer[b+1];
+            theTexture[a+2] = theFrameBuffer[b+2];
         }
     }
 }
