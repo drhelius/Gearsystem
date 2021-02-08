@@ -47,7 +47,7 @@ static const char *output_file = "gearsystem.cfg";
 
 GearsystemCore* theGearsystemCore;
 Sound_Queue* theSoundQueue;
-GS_Color* theFrameBuffer;
+u8* theFrameBuffer;
 GLuint theGSTexture;
 s16 theSampleBufffer[GS_AUDIO_BUFFER_SIZE];
 
@@ -455,15 +455,11 @@ void init(void){
     theSoundQueue = new Sound_Queue();
     theSoundQueue->start(44100, 2);
 
-    theFrameBuffer = new GS_Color[GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT];
+    theFrameBuffer = new u8[GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT * 3];
 
-    for (int y = 0; y < GS_RESOLUTION_MAX_HEIGHT; ++y)
+    for (int i = 0; i < GS_RESOLUTION_MAX_HEIGHT * GS_RESOLUTION_MAX_WIDTH * 3; ++i)
     {
-        for (int x = 0; x < GS_RESOLUTION_MAX_WIDTH; ++x)
-        {
-            int pixel = (y * GS_RESOLUTION_MAX_WIDTH) + x;
-            theFrameBuffer[pixel].red = theFrameBuffer[pixel].green = theFrameBuffer[pixel].blue = 0x00;
-        }
+        theFrameBuffer[i] = 0;
     }
 }
 
