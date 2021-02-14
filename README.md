@@ -12,12 +12,12 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 
 ## Downloads
 
-- **Windows**: [Gearsystem-3.2.0-Windows.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.2.0/Gearsystem-3.2.0-Windows.zip)
+- **Windows**: [Gearsystem-3.3.0-Windows.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.3.0/Gearsystem-3.3.0-Windows.zip)
   - NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572)
 - **macOS**:
   - `brew install --cask gearsystem`
-  - Or install manually: [Gearsystem-3.2.0-macOS.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.2.0/Gearsystem-3.2.0-macOS.zip)
-- **Linux**: [Gearsystem-3.2.0-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.2.0/Gearsystem-3.2.0-Linux.tar.xz)
+  - Or install manually: [Gearsystem-3.3.0-macOS.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.3.0/Gearsystem-3.3.0-macOS.zip)
+- **Linux**: [Gearsystem-3.3.0-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.3.0/Gearsystem-3.3.0-Linux.tar.xz)
   - NOTE: You may need to install `libsdl2` and `libglew`
 - **iOS**: Build Gearsystem with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use your iCloud Drive.
 - **RetroArch**: [Libretro core documentation](https://libretro.readthedocs.io/en/latest/library/gearsystem/).
@@ -35,17 +35,18 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 
 - Accurate Z80 core, including undocumented opcodes and behaviour like R and [MEMPTR](https://gist.github.com/drhelius/8497817) registers.
 - Multi-Mapper support: SEGA, Codemasters, Korean, MSX, SG-1000, and ROM only cartridges.
-- External RAM support with save files.
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
 - Accurate VDP emulation including timing and SMS2 only 224 mode support.
 - Internal database for rom detection.
-- Audio emulation using SDL Audio and [Sms_Snd_Emu library](http://blargg.8bitalley.com/libs/audio.html#Sms_Snd_Emu).
+- Sound emulation using SDL Audio and [Sms_Snd_Emu library](http://blargg.8bitalley.com/libs/audio.html#Sms_Snd_Emu).
+- Save battery powered RAM cartridges to file.
 - Save states.
-- Compressed rom support (ZIP deflate).
-- Game Genie and Pro Action Replay cheat support.
-- Supported platforms: Windows, Linux, macOS, Raspberry Pi, iOS and RetroArch (libretro).
+- Compressed rom support (ZIP).
+- *Game Genie* and *Pro Action Replay* cheat support.
+- Supported platforms (standalone): Windows, Linux, macOS, Raspberry Pi and iOS.
+- Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch Emscripten, Classic Mini systemts (NES, SNES, C64 ...) and QNX.
 - Full debugger with disassembler, breakpoints, debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
-- Portable mode by creating a file named `portable.ini` in the same directory as the application binary.
+- Windows and Linux *Portable Mode* by creating a file named `portable.ini` in the same directory as the application binary.
 
 <img src="http://www.geardome.com/files/gearsystem/gearsystem_debug_01.png" width="687" height="494">
 
@@ -60,7 +61,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 ### macOS
 
 - Install Xcode and run `xcode-select --install` in the terminal for the compiler to be available on the command line.
-- Run this commands to generate a Mac *app* bundle:
+- Run these commands to generate a Mac *app* bundle:
 
 ``` shell
 brew install sdl2
@@ -88,8 +89,8 @@ make
 
 ### iOS
 
-- Install Xcode for macOS. You need iOS 13 SDK or later.
-- Build the project `platforms/ios/Gearsystem.xcodeproj`
+- Install latest Xcode for macOS.
+- Build the project `platforms/ios/Gearsystem.xcodeproj`.
 - Run it on real hardware using your iOS developer certificate. Make sure it builds on *Release* for better performance.
 
 ### Libretro
@@ -140,7 +141,6 @@ sudo make install
 - Use `export SDL_AUDIODRIVER=ALSA` before running the emulator for the best performance.
 - Gearsystem generates a `gearsystem.cfg` configuration file where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
-
 ## Accuracy Tests
 
 Zexall Z80 instruction exerciser ([from SMS Power!](http://www.smspower.org/Homebrew/ZEXALL-SMS))
@@ -171,7 +171,6 @@ SMS VDP Test  ([from SMS Power!](http://www.smspower.org/Homebrew/SMSVDPTest-SMS
 Thank you to all the people who have already contributed to Gearsystem!
 
 [![Contributors](https://contrib.rocks/image?repo=drhelius/gearsystem)]("https://github.com/drhelius/gearsystem/graphs/contributors)
-
 
 ## License
 
