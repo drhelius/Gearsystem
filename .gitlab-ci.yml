@@ -38,8 +38,12 @@ include:
   # Android
   - project: 'libretro-infrastructure/ci-templates'
     file: '/android-jni.yml'
-    
-  # iOS 9
+
+  # iOS
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/ios-arm64.yml'
+
+  # iOS (armv7)
   - project: 'libretro-infrastructure/ci-templates'
     file: '/ios9.yml'
 
