@@ -54,9 +54,9 @@ jobs:
       uses: microsoft/setup-msbuild@v1.0.2
     - name: Get git version
       id: gitversion
-      run: echo '::set-output name=gitversion::\"$(git describe --abbrev=4 --dirty --always --tags)\"'
+      run: echo "::set-output name=gitversion::$(git describe --abbrev=4 --dirty --always --tags)"
     - name: msbuild
-      run: msbuild Gearsystem.sln /t:Clean,Build /p:EmulatorBuild="${{ steps.gitversion.outputs.gitversion }}" /p:Configuration=Release
+      run: msbuild Gearsystem.sln /t:Clean,Build /p:EmulatorBuild="'${{ steps.gitversion.outputs.gitversion }}'" /p:Configuration=Release
       working-directory: platforms/windows
     - name: Archive binary
       uses: actions/upload-artifact@v2
