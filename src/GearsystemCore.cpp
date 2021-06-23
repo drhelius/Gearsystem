@@ -762,7 +762,8 @@ void GearsystemCore::ClearCheats()
 {
     m_pCartridge->ClearGameGenieCheats();
     m_pProcessor->ClearProActionReplayCheats();
-    m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
+    if (m_pCartridge->IsReady())
+        m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
 }
 
 void GearsystemCore::SetRamModificationCallback(RamChangedCallback callback)
