@@ -105,7 +105,7 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
             m_Port3F_HC = value & 0x05;
 
             m_Port3F =  ((value & 0x80) | (value & 0x20) << 1) & 0xC0;
-            if (m_pCartridge->GetZone() == Cartridge::CartridgeExportSMS)
+            if (m_pCartridge->GetZone() == Cartridge::CartridgeJapanSMS)
                 m_Port3F ^= 0xC0;
         }
     }
