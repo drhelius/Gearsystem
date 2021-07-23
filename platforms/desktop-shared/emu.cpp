@@ -308,6 +308,48 @@ void emu_debug_next_frame(void)
     gearsystem->Pause(false);
 }
 
+void emu_load_bootrom_sms(const char* file_path)
+{
+    gearsystem->GetMemory()->LoadBootromSMS(file_path);
+}
+
+void emu_load_bootrom_gg(const char* file_path)
+{
+    gearsystem->GetMemory()->LoadBootromGG(file_path);
+}
+
+void emu_enable_bootrom_sms(bool enable)
+{
+    gearsystem->GetMemory()->EnableBootromSMS(enable);
+}
+
+void emu_enable_bootrom_gg(bool enable)
+{
+    gearsystem->GetMemory()->EnableBootromGG(enable);
+}
+
+void emu_set_media_slot(int slot)
+{
+    Memory::MediaSlots media_slot = Memory::MediaSlots::CartridgeSlot;
+
+    switch (slot)
+    {
+        case 1:
+            media_slot = Memory::MediaSlots::CardSlot;
+            break;
+        case 2:
+            media_slot = Memory::MediaSlots::ExpansionSlot;
+            break;
+        case 3:
+            media_slot = Memory::MediaSlots::NoSlot;
+            break;
+        default:
+            media_slot = Memory::MediaSlots::CartridgeSlot;
+    }
+
+    gearsystem->GetMemory()->SetMediaSlot(media_slot);
+}
+
 static void save_ram(void)
 {
 #ifdef DEBUG_GEARSYSTEM

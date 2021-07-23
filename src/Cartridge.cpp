@@ -408,17 +408,6 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
         return false;
 }
 
-unsigned int Cartridge::Pow2Ceil(u16 n)
-{
-    --n;
-    n |= n >> 1;
-    n |= n >> 2;
-    n |= n >> 4;
-    n |= n >> 8;
-    ++n;
-    return n;
-}
-
 bool Cartridge::TestValidROM(u16 location)
 {
     if (location + 0x10 > m_iROMSize)

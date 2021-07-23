@@ -75,6 +75,9 @@
     <ClCompile Include="..\..\src\Audio.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\BootromMemoryRule.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\Cartridge.cpp">
       <Filter>core</Filter>
     </ClCompile>
@@ -201,6 +204,9 @@
       <Filter>desktop_shared\mini</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Audio.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\BootromMemoryRule.h">
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Cartridge.h">

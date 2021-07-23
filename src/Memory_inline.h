@@ -22,12 +22,26 @@
 
 inline u8 Memory::Read(u16 address)
 {
-    return m_pCurrentMemoryRule->PerformRead(address);
+    if (m_MediaSlot == m_DesiredMediaSlot)
+        return m_pCurrentMemoryRule->PerformRead(address);
+
+    if (m_MediaSlot == BiosSlot)
+        return m_pBootromMemoryRule->PerformRead(address);
+
+    if (address < 0xC000)
+        return 0xFF;
+    else
+        return m_pBootromMemoryRule->PerformRead(address);
 }
 
 inline void Memory::Write(u16 address, u8 value)
 {
-    m_pCurrentMemoryRule->PerformWrite(address, value);
+    if (m_MediaSlot == m_DesiredMediaSlot)
+        m_pCurrentMemoryRule->PerformWrite(address, value);
+    else if (m_MediaSlot == BiosSlot)
+        m_pBootromMemoryRule->PerformWrite(address, value);
+    else if (address >= 0xC000)
+        m_pBootromMemoryRule->PerformWrite(address, value);
 }
 
 inline u8 Memory::Retrieve(u16 address)

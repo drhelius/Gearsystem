@@ -17,36 +17,28 @@
  *
  */
 
-#ifndef GAMEGEARIOPORTS_H
-#define	GAMEGEARIOPORTS_H
+#ifndef BOOTROMMEMORYRULE_H
+#define	BOOTROMMEMORYRULE_H
 
-#include "IOPorts.h"
+#include "MemoryRule.h"
 
-class Audio;
-class Video;
-class Input;
-class Cartridge;
-class Memory;
-
-class GameGearIOPorts : public IOPorts
+class BootromMemoryRule : public MemoryRule
 {
 public:
-    GameGearIOPorts(Audio* pAudio, Video* pVideo, Input* pInput, Cartridge* pCartridge, Memory* pMemory);
-    virtual ~GameGearIOPorts();
-    void Reset();
-    virtual u8 DoInput(u8 port);
-    virtual void DoOutput(u8 port, u8 value);
-    virtual void SaveState(std::ostream& stream);
-    virtual void LoadState(std::istream& stream);
+    BootromMemoryRule(Memory* pMemory, Cartridge* pCartridge);
+    virtual ~BootromMemoryRule();
+    virtual u8 PerformRead(u16 address);
+    virtual void PerformWrite(u16 address, u8 value);
+    virtual void Reset();
+    virtual u8* GetPage(int index);
+    virtual int GetBank(int index);
+
 private:
-    Audio* m_pAudio;
-    Video* m_pVideo;
-    Input* m_pInput;
-    Memory* m_pMemory;
-    Cartridge* m_pCartridge;
-    u8 m_Port3F;
-    u8 m_Port3F_HC;
-    u8 m_Port2;
+    int m_iMapperSlot[3];
+    int m_iMapperSlotAddress[3];
+    u8* m_pBootrom;
+    u8* m_pBootromBanks;
+    int m_iBankMax;
 };
 
-#endif	/* GAMEGEARIOPORTS_H */
+#endif	/* BOOTROMMEMORYRULE_H */

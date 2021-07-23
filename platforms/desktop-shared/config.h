@@ -48,6 +48,11 @@ struct config_Emulator
     int region = 0;
     bool show_info = false;
     std::string recent_roms[config_max_recent_roms];
+    bool sms_bootrom;
+    std::string sms_bootrom_path;
+    bool gg_bootrom;
+    std::string gg_bootrom_path;
+    int media = 0;
 };
 
 struct config_Video

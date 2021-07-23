@@ -96,7 +96,6 @@ public:
     void ClearGameGenieCheats();
 
 private:
-    unsigned int Pow2Ceil(u16 n);
     bool GatherMetadata(u32 crc);
     void GetInfoFromDB(u32 crc);
     bool LoadFromZipFile(const u8* buffer, int size);

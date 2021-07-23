@@ -33,6 +33,7 @@
 #include "SG1000MemoryRule.h"
 #include "SmsIOPorts.h"
 #include "GameGearIOPorts.h"
+#include "BootromMemoryRule.h"
 
 GearsystemCore::GearsystemCore()
 {
@@ -50,12 +51,14 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pMSXMemoryRule);
     InitPointer(m_pSmsIOPorts);
     InitPointer(m_pGameGearIOPorts);
+    InitPointer(m_pBootromMemoryRule);
     m_bPaused = true;
     m_pixelFormat = GS_PIXEL_RGB888;
 }
 
 GearsystemCore::~GearsystemCore()
 {
+    SafeDelete(m_pBootromMemoryRule);
     SafeDelete(m_pGameGearIOPorts);
     SafeDelete(m_pSmsIOPorts);
     SafeDelete(m_pRomOnlyMemoryRule);
@@ -84,8 +87,8 @@ void GearsystemCore::Init(GS_Color_Format pixelFormat)
     m_pVideo = new Video(m_pMemory, m_pProcessor);
     m_pInput = new Input(m_pProcessor);
     m_pCartridge = new Cartridge();
-    m_pSmsIOPorts = new SmsIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge);
-    m_pGameGearIOPorts = new GameGearIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge);
+    m_pSmsIOPorts = new SmsIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge, m_pMemory);
+    m_pGameGearIOPorts = new GameGearIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge, m_pMemory);
 
     m_pMemory->Init();
     m_pProcessor->Init();
@@ -779,8 +782,10 @@ void GearsystemCore::InitMemoryRules()
     m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pMemory, m_pCartridge);
     m_pKoreanMemoryRule = new KoreanMemoryRule(m_pMemory, m_pCartridge);
     m_pMSXMemoryRule = new MSXMemoryRule(m_pMemory, m_pCartridge);
+    m_pBootromMemoryRule = new BootromMemoryRule(m_pMemory, m_pCartridge);
 
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
+    m_pMemory->SetBootromRule(m_pBootromMemoryRule);
     m_pProcessor->SetIOPOrts(m_pSmsIOPorts);
 }
 
@@ -833,7 +838,7 @@ bool GearsystemCore::AddMemoryRules()
 
 void GearsystemCore::Reset()
 {
-    m_pMemory->Reset();
+    m_pMemory->Reset(m_pCartridge->IsGameGear());
     m_pProcessor->Reset();
     m_pAudio->Reset(m_pCartridge->IsPAL());
     m_pVideo->Reset(m_pCartridge->IsGameGear(), m_pCartridge->IsPAL());
@@ -842,6 +847,9 @@ void GearsystemCore::Reset()
     m_pCodemastersMemoryRule->Reset();
     m_pSG1000MemoryRule->Reset();
     m_pRomOnlyMemoryRule->Reset();
+    m_pKoreanMemoryRule->Reset();
+    m_pMSXMemoryRule->Reset();
+    m_pBootromMemoryRule->Reset();
     m_pGameGearIOPorts->Reset();
     m_pSmsIOPorts->Reset();
     m_bPaused = false;

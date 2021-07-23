@@ -114,6 +114,11 @@ void config_read(void)
     config_emulator.zone = read_int("Emulator", "Zone", 0);
     config_emulator.mapper = read_int("Emulator", "Mapper", 0);
     config_emulator.region = read_int("Emulator", "Region", 0);
+    config_emulator.sms_bootrom = read_bool("Emulator", "SMSBootrom", false);
+    config_emulator.sms_bootrom_path = read_string("Emulator", "SMSBootromPath");
+    config_emulator.gg_bootrom = read_bool("Emulator", "GGBootrom", false);
+    config_emulator.gg_bootrom_path = read_string("Emulator", "GGBootromPath");
+    config_emulator.media = read_int("Emulator", "Media", 0);
 
     for (int i = 0; i < config_max_recent_roms; i++)
     {
@@ -193,6 +198,11 @@ void config_write(void)
     write_int("Emulator", "Zone", config_emulator.zone);
     write_int("Emulator", "Mapper", config_emulator.mapper);
     write_int("Emulator", "Region", config_emulator.region);
+    write_bool("Emulator", "SMSBootrom", config_emulator.sms_bootrom);
+    write_string("Emulator", "SMSBootromPath", config_emulator.sms_bootrom_path);
+    write_bool("Emulator", "GGBootrom", config_emulator.gg_bootrom);
+    write_string("Emulator", "GGBootromPath", config_emulator.gg_bootrom_path);
+    write_int("Emulator", "Media", config_emulator.media);
 
     for (int i = 0; i < config_max_recent_roms; i++)
     {

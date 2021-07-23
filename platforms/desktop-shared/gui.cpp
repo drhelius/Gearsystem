@@ -43,6 +43,8 @@ static std::list<std::string> cheat_list;
 static bool shortcut_open_rom = false;
 static ImFont* default_font[4];
 static bool show_main_menu = true;
+static char sms_bootrom_path[4096] = "";
+static char gg_bootrom_path[4096] = "";
 
 static void main_menu(void);
 static void main_window(void);
@@ -51,6 +53,8 @@ static void file_dialog_load_ram(void);
 static void file_dialog_save_ram(void);
 static void file_dialog_load_state(void);
 static void file_dialog_save_state(void);
+static void file_dialog_load_sms_bootrom(void);
+static void file_dialog_load_gg_bootrom(void);
 static void file_dialog_load_symbols(void);
 static void keyboard_configuration_item(const char* text, SDL_Scancode* key, int player);
 static void gamepad_configuration_item(const char* text, int* button, int player);
@@ -92,6 +96,18 @@ void gui_init(void)
     gui_default_font = default_font[config_debug.font_size];
 
     emu_audio_volume(config_audio.enable ? 1.0f: 0.0f);
+
+    strcpy(sms_bootrom_path, config_emulator.sms_bootrom_path.c_str());
+    strcpy(gg_bootrom_path, config_emulator.gg_bootrom_path.c_str());
+
+    if (strlen(sms_bootrom_path) > 0)
+        emu_load_bootrom_sms(sms_bootrom_path);
+    if (strlen(gg_bootrom_path) > 0)
+        emu_load_bootrom_gg(gg_bootrom_path);
+
+    emu_enable_bootrom_sms(config_emulator.sms_bootrom);
+    emu_enable_bootrom_gg(config_emulator.gg_bootrom);
+    emu_set_media_slot(config_emulator.media);
 }
 
 void gui_destroy(void)
@@ -207,6 +223,8 @@ static void main_menu(void)
     bool save_state = false;
     bool open_about = false;
     bool open_symbols = false;
+    bool open_sms_bootrom = false;
+    bool open_gg_bootrom = false;
     
     if (show_main_menu && ImGui::BeginMainMenuBar())
     {
@@ -338,7 +356,7 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Mapper"))
             {
-                ImGui::PushItemWidth(140.0f);
+                ImGui::PushItemWidth(130.0f);
                 ImGui::Combo("##emu_mapper", &config_emulator.mapper, "Auto\0ROM Only\0SEGA\0Codemasters\0Korean\0SG-1000\0MSX\0\0");
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
@@ -354,6 +372,63 @@ static void main_menu(void)
                         config_emulator.ffwd = false;
                         config_audio.sync = true;
                     }
+                }
+                ImGui::PopItemWidth();
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Media Slot"))
+            {
+                ImGui::PushItemWidth(130.0f);
+                if (ImGui::Combo("##emu_media", &config_emulator.media, "Cartridge\0Card\0Expansion\0None\0\0"))
+                {
+                    emu_set_media_slot(config_emulator.media);
+                }
+                ImGui::PopItemWidth();
+                ImGui::EndMenu();
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::BeginMenu("Master System BIOS"))
+            {
+                if (ImGui::MenuItem("Enable", "", &config_emulator.sms_bootrom))
+                {
+                    emu_enable_bootrom_sms(config_emulator.sms_bootrom);
+                }
+                if (ImGui::IsItemHovered())
+                    ImGui::SetTooltip("When the BIOS is enabled it will execute as in original hardware,\ncausing invalid roms to lock or preventing some other to boot.\n\nSet 'Media Slot' to 'None'in order to boot the games included in BIOS.");
+                if (ImGui::MenuItem("Load BIOS..."))
+                {
+                    open_sms_bootrom = true;
+                }
+                ImGui::PushItemWidth(350);
+                if (ImGui::InputText("##sms_bootrom_path", sms_bootrom_path, IM_ARRAYSIZE(sms_bootrom_path), ImGuiInputTextFlags_AutoSelectAll))
+                {
+                    config_emulator.sms_bootrom_path.assign(sms_bootrom_path);
+                    emu_load_bootrom_sms(sms_bootrom_path);
+                }
+                ImGui::PopItemWidth();
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Game Gear BIOS"))
+            {
+                if (ImGui::MenuItem("Enable", "", &config_emulator.gg_bootrom))
+                {
+                    emu_enable_bootrom_gg(config_emulator.gg_bootrom);
+                }
+                if (ImGui::IsItemHovered())
+                    ImGui::SetTooltip("When the BIOS is enabled it will execute as in original hardware,\ncausing invalid roms to lock or preventing some other to boot.\n\nSet 'Media Slot' to 'None'in order to boot the games included in BIOS.");
+                if (ImGui::MenuItem("Load BIOS..."))
+                {
+                    open_gg_bootrom = true;
+                }
+                ImGui::PushItemWidth(350);
+                if (ImGui::InputText("##gg_bootrom_path", gg_bootrom_path, IM_ARRAYSIZE(gg_bootrom_path), ImGuiInputTextFlags_AutoSelectAll))
+                {
+                    config_emulator.gg_bootrom_path.assign(gg_bootrom_path);
+                    emu_load_bootrom_gg(sms_bootrom_path);
                 }
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
@@ -740,6 +815,12 @@ static void main_menu(void)
     if (save_state)
         ImGui::OpenPopup("Save State As...");
 
+    if (open_sms_bootrom)
+        ImGui::OpenPopup("Load Master System BIOS From...");
+
+    if (open_gg_bootrom)
+        ImGui::OpenPopup("Load Game Gear BIOS From...");
+
     if (open_symbols)
         ImGui::OpenPopup("Load Symbols File...");
 
@@ -755,6 +836,8 @@ static void main_menu(void)
     file_dialog_save_ram();
     file_dialog_load_state();
     file_dialog_save_state();
+    file_dialog_load_sms_bootrom();
+    file_dialog_load_gg_bootrom();
     file_dialog_load_symbols();
 }
 
@@ -916,6 +999,28 @@ static void file_dialog_save_state(void)
         }
 
         emu_save_state_file(state_path.c_str());
+    }
+}
+
+static void file_dialog_load_sms_bootrom(void)
+{
+    if(file_dialog.showFileDialog("Load Master System BIOS From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".sms,.bin,*.*", &dialog_in_use))
+    {
+        strcpy(sms_bootrom_path, file_dialog.selected_path.c_str());
+        config_emulator.sms_bootrom_path.assign(file_dialog.selected_path);
+
+        emu_load_bootrom_sms(sms_bootrom_path);
+    }
+}
+
+static void file_dialog_load_gg_bootrom(void)
+{
+    if(file_dialog.showFileDialog("Load Game Gear BIOS From...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), ".gg,.bin,*.*", &dialog_in_use))
+    {
+        strcpy(gg_bootrom_path, file_dialog.selected_path.c_str());
+        config_emulator.gg_bootrom_path.assign(file_dialog.selected_path);
+
+        emu_load_bootrom_gg(gg_bootrom_path);
     }
 }
 

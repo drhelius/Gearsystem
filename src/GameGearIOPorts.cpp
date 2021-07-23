@@ -22,13 +22,15 @@
 #include "Video.h"
 #include "Input.h"
 #include "Cartridge.h"
+#include "Memory.h"
 
-GameGearIOPorts::GameGearIOPorts(Audio* pAudio, Video* pVideo, Input* pInput, Cartridge* pCartridge)
+GameGearIOPorts::GameGearIOPorts(Audio* pAudio, Video* pVideo, Input* pInput, Cartridge* pCartridge, Memory* pMemory)
 {
     m_pAudio = pAudio;
     m_pVideo = pVideo;
     m_pInput = pInput;
     m_pCartridge = pCartridge;
+    m_pMemory = pMemory;
     m_Port3F = 0;
     m_Port3F_HC = 0;
 }
@@ -41,6 +43,7 @@ void GameGearIOPorts::Reset()
 {
     m_Port3F = 0;
     m_Port3F_HC = 0;
+    m_Port2 = 0;
 }
 
 u8 GameGearIOPorts::DoInput(u8 port)
@@ -58,6 +61,8 @@ u8 GameGearIOPorts::DoInput(u8 port)
             }
             case 0x01:
                 return 0x7F;
+            case 0x02:
+                return m_Port2;
             case 0x03:
             case 0x05:
                 return 0x00;
@@ -124,6 +129,10 @@ void GameGearIOPorts::DoOutput(u8 port, u8 value)
             // SN76489 PSG
             m_pAudio->WriteGGStereoRegister(value);
         }
+        else if (port == 0x02)
+        {
+            m_Port2 = value;
+        }
     }
     else if (port < 0x40)
     {
@@ -132,6 +141,7 @@ void GameGearIOPorts::DoOutput(u8 port, u8 value)
         if ((port & 0x01) == 0x00)
         {
             Log("--> ** Output to memory control port $%X: %X", port, value);
+            m_pMemory->SetPort3E(value);
         }
         else
         {

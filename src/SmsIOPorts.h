@@ -26,11 +26,12 @@ class Audio;
 class Video;
 class Input;
 class Cartridge;
+class Memory;
 
 class SmsIOPorts : public IOPorts
 {
 public:
-    SmsIOPorts(Audio* pAudio, Video* pVideo, Input* pInput, Cartridge* pCartridge);
+    SmsIOPorts(Audio* pAudio, Video* pVideo, Input* pInput, Cartridge* pCartridge, Memory* pMemory);
     ~SmsIOPorts();
     void Reset();
     u8 DoInput(u8 port);
@@ -42,6 +43,7 @@ private:
     Video* m_pVideo;
     Input* m_pInput;
     Cartridge* m_pCartridge;
+    Memory* m_pMemory;
     u8 m_Port3F;
     u8 m_Port3F_HC;
 };
@@ -50,6 +52,7 @@ private:
 #include "Audio.h"
 #include "Input.h"
 #include "Cartridge.h"
+#include "Memory.h"
 
 inline u8 SmsIOPorts::DoInput(u8 port)
 {
@@ -97,6 +100,7 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
         if ((port & 0x01) == 0x00)
         {
             Log("--> ** Output to memory control port $%X: %X", port, value);
+            m_pMemory->SetPort3E(value);
         }
         else
         {

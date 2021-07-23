@@ -36,12 +36,24 @@ public:
         int bank;
     };
 
+    enum MediaSlots
+    {
+        CartridgeSlot,
+        BiosSlot,
+        ExpansionSlot,
+        CardSlot,
+        RamSlot,
+        IoSlot,
+        NoSlot
+    };
+
 public:
     Memory();
     ~Memory();
     void Init();
-    void Reset();
+    void Reset(bool bGameGear);
     void SetCurrentRule(MemoryRule* pRule);
+    void SetBootromRule(MemoryRule* pRule);
     MemoryRule* GetCurrentRule();
     u8* GetMemoryMap();
     u8 Read(u16 address);
@@ -57,14 +69,39 @@ public:
     std::vector<stDisassembleRecord*>* GetBreakpoints();
     stDisassembleRecord* GetRunToBreakpoint();
     void SetRunToBreakpoint(stDisassembleRecord* pBreakpoint);
+    void EnableBootromSMS(bool enable);
+    void EnableBootromGG(bool enable);
+    void LoadBootromSMS(const char* szFilePath);
+    void LoadBootromGG(const char* szFilePath);
+    bool IsBootromEnabled();
+    void SetPort3E(u8 port3E);
+    u8* GetBootrom();
+    int GetBootromBankCount();
+    void SetMediaSlot(MediaSlots slot);
+
+private:
+    void LoadBootroom(const char* szFilePath, bool gg);
 
 private:
     MemoryRule* m_pCurrentMemoryRule;
+    MemoryRule* m_pBootromMemoryRule;
     u8* m_pMap;
     stDisassembleRecord** m_pDisassembledMap;
     stDisassembleRecord** m_pDisassembledROMMap;
     std::vector<stDisassembleRecord*> m_Breakpoints;
     stDisassembleRecord* m_pRunToBreakpoint;
+    bool m_bBootromSMSEnabled;
+    bool m_bBootromGGEnabled;
+    bool m_bBootromSMSLoaded;
+    bool m_bBootromGGLoaded;
+    u8* m_pBootromSMS;
+    u8* m_pBootromGG;
+    MediaSlots m_MediaSlot;
+    MediaSlots m_DesiredMediaSlot;
+    MediaSlots m_StoredMediaSlot;
+    bool m_bGameGear;
+    int m_iBootromBankCountSMS;
+    int m_iBootromBankCountGG;
 };
 
 #include "Memory_inline.h"

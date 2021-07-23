@@ -16,6 +16,7 @@
     <ClCompile Include="..\..\src\audio\Effects_Buffer.cpp" />
     <ClCompile Include="..\..\src\audio\Multi_Buffer.cpp" />
     <ClCompile Include="..\..\src\audio\Sms_Apu.cpp" />
+    <ClCompile Include="..\..\src\BootromMemoryRule.cpp" />
     <ClCompile Include="..\..\src\Cartridge.cpp" />
     <ClCompile Include="..\..\src\CodemastersMemoryRule.cpp" />
     <ClCompile Include="..\..\src\GameGearIOPorts.cpp" />
@@ -61,6 +62,7 @@
     <ClInclude Include="..\..\src\audio\Multi_Buffer.h" />
     <ClInclude Include="..\..\src\audio\Sms_Apu.h" />
     <ClInclude Include="..\..\src\audio\Sms_Oscs.h" />
+    <ClInclude Include="..\..\src\BootromMemoryRule.h" />
     <ClInclude Include="..\..\src\Cartridge.h" />
     <ClInclude Include="..\..\src\CodemastersMemoryRule.h" />
     <ClInclude Include="..\..\src\definitions.h" />

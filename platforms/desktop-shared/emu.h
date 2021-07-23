@@ -67,6 +67,11 @@ EXTERN GearsystemCore* emu_get_core(void);
 EXTERN void emu_debug_step(void);
 EXTERN void emu_debug_continue(void);
 EXTERN void emu_debug_next_frame(void);
+EXTERN void emu_load_bootrom_sms(const char* file_path);
+EXTERN void emu_load_bootrom_gg(const char* file_path);
+EXTERN void emu_enable_bootrom_sms(bool enable);
+EXTERN void emu_enable_bootrom_gg(bool enable);
+EXTERN void emu_set_media_slot(int slot);
 
 #undef EMU_IMPORT
 #undef EXTERN

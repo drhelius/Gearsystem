@@ -37,6 +37,7 @@ class MSXMemoryRule;
 class MemoryRule;
 class SmsIOPorts;
 class GameGearIOPorts;
+class BootromMemoryRule;
 
 class GearsystemCore
 {
@@ -101,6 +102,7 @@ private:
     MSXMemoryRule* m_pMSXMemoryRule;
     SmsIOPorts* m_pSmsIOPorts;
     GameGearIOPorts* m_pGameGearIOPorts;
+    BootromMemoryRule* m_pBootromMemoryRule;
     bool m_bPaused;
     RamChangedCallback m_pRamChangedCallback;
     GS_Color_Format m_pixelFormat;
