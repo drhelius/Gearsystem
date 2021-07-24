@@ -32,9 +32,15 @@
 
 #include "../../src/gearsystem.h"
 
+#ifdef _WIN32
+static const char slash = '\\';
+#else
+static const char slash = '/';
+#endif
+
 static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;
-static char retro_base_directory[4096];
+static char retro_system_directory[4096];
 static char retro_game_path[4096];
 
 static s16 audio_buf[GS_AUDIO_BUFFER_SIZE];
@@ -42,6 +48,8 @@ static int audio_sample_count = 0;
 static int current_screen_width = 0;
 static int current_screen_height = 0;
 static bool allow_up_down = false;
+static bool bootrom_sms = false;
+static bool bootrom_gg = false;
 static bool libretro_supports_bitmasks;
 
 static GearsystemCore* core;
@@ -62,6 +70,8 @@ static const struct retro_variable vars[] = {
     { "gearsystem_region", "Region (restart); Auto|Master System Japan|Master System Export|Game Gear Japan|Game Gear Export|Game Gear International" },
     { "gearsystem_mapper", "Mapper (restart); Auto|ROM Only|SEGA|Codemasters|Korean|SG-1000" },
     { "gearsystem_timing", "Timing (restart); Auto|NTSC (60 Hz)|PAL (50 Hz)" },
+    { "gearsystem_bios_sms", "Master System BIOS (restart); Disabled|Enabled" },
+    { "gearsystem_bios_gg", "Game Gear BIOS (restart); Disabled|Enabled" },
     { "gearsystem_up_down_allowed", "Allow Up+Down / Left+Right; Disabled|Enabled" },
     { NULL }
 };
@@ -72,9 +82,11 @@ void retro_init(void)
 {
     const char *dir = NULL;
 
-    if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
-    {
-        snprintf(retro_base_directory, sizeof(retro_base_directory), "%s", dir);
+    if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir) {
+        snprintf(retro_system_directory, sizeof(retro_system_directory), "%s", dir);
+    }
+    else {
+        snprintf(retro_system_directory, sizeof(retro_system_directory), "%s", ".");
     }
 
     core = new GearsystemCore();
@@ -196,6 +208,20 @@ void retro_set_input_state(retro_input_state_t cb)
 void retro_set_video_refresh(retro_video_refresh_t cb)
 {
     video_cb = cb;
+}
+
+static void load_bootroms(void)
+{
+    char bootrom_sms_path[4112];
+    char bootrom_gg_path[4112];
+
+    sprintf(bootrom_sms_path, "%s%cbios.sms", retro_system_directory, slash);
+    sprintf(bootrom_gg_path, "%s%cbios.gg", retro_system_directory, slash);
+
+    core->GetMemory()->LoadBootromSMS(bootrom_sms_path);
+    core->GetMemory()->LoadBootromGG(bootrom_gg_path);
+    core->GetMemory()->EnableBootromSMS(bootrom_sms);
+    core->GetMemory()->EnableBootromGG(bootrom_gg);
 }
 
 static void update_input(void)
@@ -347,6 +373,28 @@ static void check_variables(void)
         else
             config.region = Cartridge::CartridgeUnknownRegion;
     }
+
+    var.key = "gearsystem_bios_sms";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Enabled") == 0)
+            bootrom_sms = true;
+        else
+            bootrom_sms = false;
+    }
+
+    var.key = "gearsystem_bios_gg";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Enabled") == 0)
+            bootrom_gg = true;
+        else
+            bootrom_gg = false;
+    }
 }
 
 void retro_run(void)
@@ -390,13 +438,14 @@ void retro_run(void)
 void retro_reset(void)
 {
     check_variables();
+    load_bootroms();
     core->ResetROMPreservingRAM(&config);
 }
 
 bool retro_load_game(const struct retro_game_info *info)
 {
     check_variables();
-
+    load_bootroms();
     core->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size, &config);
 
     struct retro_input_descriptor desc[] = {
