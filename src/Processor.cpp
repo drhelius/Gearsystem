@@ -364,9 +364,25 @@ bool Processor::Disassemble(u16 address)
         map[offset]->name[0] = 0;
         map[offset]->bytes[0] = 0;
         map[offset]->size = 0;
+        for (int i = 0; i < 6; i++)
+            map[offset]->opcodes[i] = 0;
+        map[offset]->jump = false;
+        map[offset]->jump_address = 0;
     }
 
-    if (map[offset]->size == 0)
+    u8 opcodes[6];
+    bool changed = false;
+    int maxSize = std::min(map[offset]->size, 4);
+
+    for (int i = 0; i < maxSize; i++)
+    {
+        opcodes[i] = m_pMemory->Read(address + i);
+
+        if (opcodes[i] != map[offset]->opcodes[i])
+            changed = true;
+    }
+
+    if ((map[offset]->size == 0) || changed)
     {
         map[offset]->bank = bank;
         map[offset]->address = address;
@@ -445,6 +461,9 @@ bool Processor::Disassemble(u16 address)
             {
                 strcat(map[offset]->bytes, "   ");
             }
+
+            if (i < maxSize)
+                map[offset]->opcodes[i] = bytes[i];
         }
 
         first += prefixed ? 1 : 0;
@@ -461,13 +480,17 @@ bool Processor::Disassemble(u16 address)
                 sprintf(map[offset]->name, info.name, bytes[first + 1]);
                 break;
             case 3:
-                sprintf(map[offset]->name, info.name, (bytes[first + 2] << 8) | bytes[first + 1]);
+                map[offset]->jump = true;
+                map[offset]->jump_address = (bytes[first + 2] << 8) | bytes[first + 1];
+                sprintf(map[offset]->name, info.name, map[offset]->jump_address);
                 break;
             case 4:
                 sprintf(map[offset]->name, info.name, (s8)bytes[first + 1]);
                 break;
             case 5:
-                sprintf(map[offset]->name, info.name, address + info.size + (s8)bytes[first + 1], (s8)bytes[first + 1]);
+                map[offset]->jump = true;
+                map[offset]->jump_address = address + info.size + (s8)bytes[first + 1];
+                sprintf(map[offset]->name, info.name, map[offset]->jump_address, (s8)bytes[first + 1]);
                 break;
             case 6:
                 sprintf(map[offset]->name, info.name, (s8)bytes[first + 1], bytes[first + 2]);

@@ -17,6 +17,7 @@
  *
  */
 
+#include <math.h>
 #include "imgui/imgui.h"
 #include "imgui/imgui_memory_editor.h"
 #include "FileBrowser/ImGuiFileBrowser.h"
@@ -57,6 +58,11 @@ static ImVec4 dark_gray = ImVec4(0.1f,0.1f,0.1f,1.0f);
 static std::vector<DebugSymbol> symbols;
 static Memory::stDisassembleRecord* selected_record = NULL;
 static char brk_address[8] = "";
+static char goto_address[5] = "";
+static bool goto_address_requested = false;
+static u16 goto_address_target = 0;
+static bool goto_back_requested = false;
+static int goto_back = 0;
 
 static void debug_window_processor(void);
 static void debug_window_memory(void);
@@ -69,6 +75,7 @@ static void debug_window_vram_palettes(void);
 static void debug_window_vram_regs(void);
 static void add_symbol(const char* line);
 static void add_breakpoint(void);
+static void request_goto_address(u16 addr);
 static ImVec4 color_444_to_float(u16 color);
 static ImVec4 color_222_to_float(u8 color);
 
@@ -158,6 +165,11 @@ void gui_debug_reset_breakpoints(void)
 {
     emu_get_core()->GetMemory()->GetBreakpoints()->clear();
     brk_address[0] = 0;
+}
+
+void gui_debug_go_back(void)
+{
+    goto_back_requested = true;
 }
 
 static void debug_window_memory(void)
@@ -302,14 +314,6 @@ static void debug_window_disassembler(void)
 
     int pc = proc_state->PC->GetValue();
 
-    static bool follow_pc = true;
-    static bool show_mem = true;
-    static bool show_symbols = true;
-
-    ImGui::Checkbox("Follow PC", &follow_pc); ImGui::SameLine();
-    ImGui::Checkbox("Show Memory", &show_mem);  ImGui::SameLine();
-    ImGui::Checkbox("Show Symbols", &show_symbols);
-
     if (ImGui::Button("Step Over"))
         emu_debug_step();
     ImGui::SameLine();
@@ -321,6 +325,55 @@ static void debug_window_disassembler(void)
     ImGui::SameLine();
     if (ImGui::Button("Run To Cursor"))
         gui_debug_runtocursor();
+
+    static bool follow_pc = true;
+    static bool show_mem = true;
+    static bool show_symbols = true;
+
+    ImGui::Checkbox("Follow PC", &follow_pc); ImGui::SameLine();
+    ImGui::Checkbox("Show Memory", &show_mem);  ImGui::SameLine();
+    ImGui::Checkbox("Show Symbols", &show_symbols);
+
+    ImGui::Separator();
+
+    ImGui::Text("Go To Address: ");
+    ImGui::SameLine();
+    ImGui::PushItemWidth(45);
+    if (ImGui::InputTextWithHint("##goto_address", "XXXX", goto_address, IM_ARRAYSIZE(goto_address), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue))
+    {
+        try
+        {
+            request_goto_address(std::stoul(goto_address, 0, 16));
+            follow_pc = false;
+        }
+        catch(const std::invalid_argument& ia)
+        {
+        }
+        goto_address[0] = 0;
+    }
+    ImGui::PopItemWidth();
+    ImGui::SameLine();
+    if (ImGui::Button("Go", ImVec2(30, 0)))
+    {
+        try
+        {
+            request_goto_address(std::stoul(goto_address, 0, 16));
+            follow_pc = false;
+        }
+        catch(const std::invalid_argument& ia)
+        {
+        }
+        goto_address[0] = 0;
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Back", ImVec2(50, 0)))
+    {
+        goto_back_requested = true;
+        follow_pc = false;
+    }
+
+    ImGui::Separator();
 
     if (ImGui::CollapsingHeader("Breakpoints"))
     {
@@ -391,6 +444,7 @@ static void debug_window_disassembler(void)
     {
         int dis_size = 0;
         int pc_pos = 0;
+        int goto_address_pos = 0;
         
         std::vector<DisassmeblerLine> vec(0x10000);
         
@@ -438,6 +492,9 @@ static void debug_window_disassembler(void)
                 if (vec[dis_size].record->address == pc)
                     pc_pos = dis_size;
 
+                if (goto_address_requested && (vec[dis_size].record->address <= goto_address_target))
+                    goto_address_pos = dis_size;
+
                 vec[dis_size].is_breakpoint = false;
 
                 for (long unsigned int b = 0; b < breakpoints->size(); b++)
@@ -460,6 +517,19 @@ static void debug_window_disassembler(void)
             ImGui::SetScrollY((pc_pos * ImGui::GetTextLineHeightWithSpacing()) - offset);
         }
 
+        if (goto_address_requested)
+        {
+            goto_address_requested = false;
+            goto_back = ImGui::GetScrollY();
+            ImGui::SetScrollY((goto_address_pos * ImGui::GetTextLineHeightWithSpacing()) + 2);
+        }
+
+        if (goto_back_requested)
+        {
+            goto_back_requested = false;
+            ImGui::SetScrollY(goto_back);
+        }
+
         ImGuiListClipper clipper(dis_size, ImGui::GetTextLineHeightWithSpacing());
 
         while (clipper.Step())
@@ -476,9 +546,14 @@ static void debug_window_disassembler(void)
 
                 bool is_selected = (selected_record == vec[item].record);
 
-                if (ImGui::Selectable("", is_selected))
+                if (ImGui::Selectable("", is_selected, ImGuiSelectableFlags_AllowDoubleClick))
                 {
-                    if (is_selected)
+                    if (ImGui::IsMouseDoubleClicked(0) && vec[item].record->jump)
+                    {
+                        follow_pc = false;
+                        request_goto_address(vec[item].record->jump_address);
+                    }
+                    else if (is_selected)
                     {
                         InitPointer(selected_record);
                         brk_address[0] = 0;
@@ -1335,19 +1410,25 @@ static void add_symbol(const char* line)
 
         std::size_t separator = str.find(":");
 
-        if (separator != std::string::npos)
+        try
         {
-            s.address = (u16)std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
+            if (separator != std::string::npos)
+            {
+                s.address = (u16)std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
 
-            s.bank = std::stoul(str.substr(0, separator), 0 , 16);
+                s.bank = std::stoul(str.substr(0, separator), 0 , 16);
+            }
+            else
+            {
+                s.address = (u16)std::stoul(str, 0, 16);
+                s.bank = 0;
+            }
+
+            symbols.push_back(s);
         }
-        else
+        catch(const std::invalid_argument& ia)
         {
-            s.address = (u16)std::stoul(str, 0, 16);
-            s.bank = 0;
         }
-
-        symbols.push_back(s);
     }
 }
 
@@ -1358,25 +1439,32 @@ static void add_breakpoint(void)
     int target_bank = 0;
     int target_offset = 0;
 
-    if ((input_len == 7) && (brk_address[2] == ':'))
+    try
     {
-        std::string str(brk_address);   
-        std::size_t separator = str.find(":");
-
-        if (separator != std::string::npos)
+        if ((input_len == 7) && (brk_address[2] == ':'))
         {
-            target_address = (u16)std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
+            std::string str(brk_address);   
+            std::size_t separator = str.find(":");
 
-            target_bank = std::stoul(str.substr(0, separator), 0 , 16);
-            target_bank &= 0xFF;
+            if (separator != std::string::npos)
+            {
+                target_address = (u16)std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
+
+                target_bank = std::stoul(str.substr(0, separator), 0 , 16);
+                target_bank &= 0xFF;
+            }
+        } 
+        else if (input_len == 4)
+        {
+            target_bank = 0; 
+            target_address = (u16)std::stoul(brk_address, 0, 16);
         }
-    } 
-    else if (input_len == 4)
-    {
-        target_bank = 0; 
-        target_address = (u16)std::stoul(brk_address, 0, 16);
+        else
+        {
+            return;
+        }
     }
-    else
+    catch(const std::invalid_argument& ia)
     {
         return;
     }
@@ -1438,4 +1526,10 @@ static ImVec4 color_222_to_float(u8 color)
     ret.y = (1.0f / 3.0f) * ((color >> 2) & 0x3);
     ret.z = (1.0f / 3.0f) * ((color >> 4) & 0x3);
     return ret;
+}
+
+static void request_goto_address(u16 address)
+{
+    goto_address_requested = true;
+    goto_address_target = address;
 }
