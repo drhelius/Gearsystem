@@ -493,6 +493,12 @@ void GearsystemCore::LoadRam(const char* szPath, bool fullPath)
 
 void GearsystemCore::SaveState(int index)
 {
+    if (m_pMemory->GetCurrentSlot() == Memory::MediaSlots::BiosSlot)
+    {
+        Log("Save states disabled when running BIOS");
+        return;
+    }
+
     Log("Creating save state %d...", index);
 
     SaveState(NULL, index);
@@ -502,6 +508,12 @@ void GearsystemCore::SaveState(int index)
 
 void GearsystemCore::SaveState(const char* szPath, int index)
 {
+    if (m_pMemory->GetCurrentSlot() == Memory::MediaSlots::BiosSlot)
+    {
+        Log("Save states disabled when running BIOS");
+        return;
+    }
+
     Log("Creating save state...");
 
     using namespace std;
@@ -551,6 +563,12 @@ void GearsystemCore::SaveState(const char* szPath, int index)
 
 bool GearsystemCore::SaveState(u8* buffer, size_t& size)
 {
+    if (m_pMemory->GetCurrentSlot() == Memory::MediaSlots::BiosSlot)
+    {
+        Log("Save states disabled when running BIOS");
+        return false;
+    }
+
     bool ret = false;
 
     if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()))
@@ -579,6 +597,12 @@ bool GearsystemCore::SaveState(u8* buffer, size_t& size)
 
 bool GearsystemCore::SaveState(std::ostream& stream, size_t& size)
 {
+    if (m_pMemory->GetCurrentSlot() == Memory::MediaSlots::BiosSlot)
+    {
+        Log("Save states disabled when running BIOS");
+        return false;
+    }
+
     if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
         Log("Gathering save state data...");
@@ -614,6 +638,12 @@ bool GearsystemCore::SaveState(std::ostream& stream, size_t& size)
 
 void GearsystemCore::LoadState(int index)
 {
+    if (m_pMemory->GetCurrentSlot() == Memory::MediaSlots::BiosSlot)
+    {
+        Log("Save states disabled when running BIOS");
+        return;
+    }
+
     Log("Loading save state %d...", index);
 
     LoadState(NULL, index);
@@ -623,6 +653,12 @@ void GearsystemCore::LoadState(int index)
 
 void GearsystemCore::LoadState(const char* szPath, int index)
 {
+    if (m_pMemory->GetCurrentSlot() == Memory::MediaSlots::BiosSlot)
+    {
+        Log("Save states disabled when running BIOS");
+        return;
+    }
+
     Log("Loading save state...");
 
     using namespace std;
@@ -678,6 +714,12 @@ void GearsystemCore::LoadState(const char* szPath, int index)
 
 bool GearsystemCore::LoadState(const u8* buffer, size_t size)
 {
+    if (m_pMemory->GetCurrentSlot() == Memory::MediaSlots::BiosSlot)
+    {
+        Log("Save states disabled when running BIOS");
+        return false;
+    }
+
     if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()) && (size > 0) && IsValidPointer(buffer))
     {
         Log("Gathering load state data [%d bytes]...", size);
@@ -698,6 +740,12 @@ bool GearsystemCore::LoadState(const u8* buffer, size_t size)
 
 bool GearsystemCore::LoadState(std::istream& stream)
 {
+    if (m_pMemory->GetCurrentSlot() == Memory::MediaSlots::BiosSlot)
+    {
+        Log("Save states disabled when running BIOS");
+        return false;
+    }
+
     if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
         using namespace std;

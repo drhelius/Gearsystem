@@ -346,3 +346,8 @@ void Memory::SetMediaSlot(MediaSlots slot)
 {
     m_StoredMediaSlot = slot;
 }
+
+Memory::MediaSlots Memory::GetCurrentSlot()
+{
+    return m_MediaSlot;
+}

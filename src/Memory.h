@@ -78,6 +78,7 @@ public:
     u8* GetBootrom();
     int GetBootromBankCount();
     void SetMediaSlot(MediaSlots slot);
+    MediaSlots GetCurrentSlot();
 
 private:
     void LoadBootroom(const char* szFilePath, bool gg);

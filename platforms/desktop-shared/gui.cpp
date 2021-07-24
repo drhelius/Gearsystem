@@ -397,7 +397,7 @@ static void main_menu(void)
                     emu_enable_bootrom_sms(config_emulator.sms_bootrom);
                 }
                 if (ImGui::IsItemHovered())
-                    ImGui::SetTooltip("When the BIOS is enabled it will execute as in original hardware,\ncausing invalid roms to lock or preventing some other to boot.\n\nSet 'Media Slot' to 'None'in order to boot the games included in BIOS.");
+                    ImGui::SetTooltip("When the BIOS is enabled it will execute as in original hardware,\ncausing invalid roms to lock or preventing some other to boot.\n\nSet 'Media Slot' to 'None' in order to boot the games included in BIOS.");
                 if (ImGui::MenuItem("Load BIOS..."))
                 {
                     open_sms_bootrom = true;
@@ -419,7 +419,7 @@ static void main_menu(void)
                     emu_enable_bootrom_gg(config_emulator.gg_bootrom);
                 }
                 if (ImGui::IsItemHovered())
-                    ImGui::SetTooltip("When the BIOS is enabled it will execute as in original hardware,\ncausing invalid roms to lock or preventing some other to boot.\n\nSet 'Media Slot' to 'None'in order to boot the games included in BIOS.");
+                    ImGui::SetTooltip("When the BIOS is enabled it will execute as in original hardware,\ncausing invalid roms to lock or preventing some other to boot.\n\nSet 'Media Slot' to 'None' in order to boot the games included in BIOS.");
                 if (ImGui::MenuItem("Load BIOS..."))
                 {
                     open_gg_bootrom = true;
