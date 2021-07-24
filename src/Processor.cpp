@@ -27,6 +27,7 @@
 Processor::Processor(Memory* pMemory)
 {
     m_pMemory = pMemory;
+    m_pMemory->SetProcessor(this);
     InitPointer(m_pIOPorts);
     InitOPCodeFunctors();
     m_bIFF1 = false;
@@ -43,6 +44,7 @@ Processor::Processor(Memory* pMemory)
     m_bInputLastCycle = false;
     m_ProActionReplayList.clear();
     m_bBreakpointHit = false;
+    m_bRequestMemBreakpoint = false;
 
     m_ProcessorState.AF = &AF;
     m_ProcessorState.BC = &BC;
@@ -106,6 +108,7 @@ void Processor::Reset()
     m_bInputLastCycle = false;
     m_ProActionReplayList.clear();
     m_bBreakpointHit = false;
+    m_bRequestMemBreakpoint = false;
 }
 
 void Processor::SetIOPOrts(IOPorts* pIOPorts)
@@ -126,6 +129,7 @@ unsigned int Processor::RunFor(u8 tstates)
     {
         m_iTStates = 0;
         m_bBreakpointHit = false;
+        m_bRequestMemBreakpoint = false;
 
         if (!m_bInputLastCycle)
         {
@@ -161,7 +165,8 @@ unsigned int Processor::RunFor(u8 tstates)
         ExecuteOPCode();
 
         #ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
-        m_bBreakpointHit = Disassemble(PC.GetValue());
+        if (Disassemble(PC.GetValue()) || m_bRequestMemBreakpoint)
+            m_bBreakpointHit = true;
         #endif
 
         executed += m_iTStates;
@@ -501,7 +506,7 @@ bool Processor::Disassemble(u16 address)
     }
 
     Memory::stDisassembleRecord* runtobreakpoint = m_pMemory->GetRunToBreakpoint();
-    std::vector<Memory::stDisassembleRecord*>* breakpoints = m_pMemory->GetBreakpoints();
+    std::vector<Memory::stDisassembleRecord*>* breakpoints = m_pMemory->GetBreakpointsCPU();
 
     if (IsValidPointer(runtobreakpoint))
     {
@@ -515,7 +520,9 @@ bool Processor::Disassemble(u16 address)
     }
     else
     {
-        for (long unsigned int b = 0; b < breakpoints->size(); b++)
+        long unsigned int size = breakpoints->size();
+
+        for (long unsigned int b = 0; b < size; b++)
         {
             if ((*breakpoints)[b] == map[offset])
             {
@@ -535,6 +542,11 @@ bool Processor::BreakpointHit()
 bool Processor::Halted()
 {
     return m_bHalt;
+}
+
+void Processor::RequestMemoryBreakpoint()
+{
+    m_bRequestMemBreakpoint = true;
 }
 
 void Processor::SaveState(std::ostream& stream)

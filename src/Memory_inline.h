@@ -22,6 +22,10 @@
 
 inline u8 Memory::Read(u16 address)
 {
+    #ifndef GEARBOY_DISABLE_DISASSEMBLER
+    CheckBreakpoints(address, false);
+    #endif
+
     if (m_MediaSlot == m_DesiredMediaSlot)
         return m_pCurrentMemoryRule->PerformRead(address);
 
@@ -36,6 +40,10 @@ inline u8 Memory::Read(u16 address)
 
 inline void Memory::Write(u16 address, u8 value)
 {
+    #ifndef GEARBOY_DISABLE_DISASSEMBLER
+    CheckBreakpoints(address, true);
+    #endif
+
     if (m_MediaSlot == m_DesiredMediaSlot)
         m_pCurrentMemoryRule->PerformWrite(address, value);
     else if (m_MediaSlot == BiosSlot)

@@ -148,6 +148,7 @@ bool GearsystemCore::LoadROM(const char* szFilePath, Cartridge::ForceConfigurati
         if (IsValidPointer(config))
             m_pCartridge->ForceConfig(*config);
         Reset();
+        m_pMemory->ResetDisassembledMemory();
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
         bool romTypeOK = AddMemoryRules();
 #ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
@@ -171,6 +172,7 @@ bool GearsystemCore::LoadROMFromBuffer(const u8* buffer, int size, Cartridge::Fo
         if (IsValidPointer(config))
             m_pCartridge->ForceConfig(*config);
         Reset();
+        m_pMemory->ResetDisassembledMemory();
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
         bool romTypeOK = AddMemoryRules();
 

@@ -34,7 +34,8 @@ EXTERN u8* emu_debug_tile_buffer;
 EXTERN u8* emu_debug_sprite_buffers[64];
 
 EXTERN bool emu_audio_sync;
-EXTERN bool emu_debug_disable_breakpoints;
+EXTERN bool emu_debug_disable_breakpoints_cpu;
+EXTERN bool emu_debug_disable_breakpoints_mem;
 EXTERN int emu_debug_tile_palette;
 
 EXTERN void emu_init(const char* save_path);

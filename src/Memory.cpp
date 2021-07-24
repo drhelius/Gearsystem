@@ -21,9 +21,11 @@
 #include <iomanip>
 #include <fstream>
 #include "Memory.h"
+#include "Processor.h"
 
 Memory::Memory()
 {
+    InitPointer(m_pProcessor);
     InitPointer(m_pMap);
     InitPointer(m_pCurrentMemoryRule);
     InitPointer(m_pDisassembledMap);
@@ -69,6 +71,11 @@ Memory::~Memory()
     }
 }
 
+void Memory::SetProcessor(Processor* pProcessor)
+{
+    m_pProcessor = pProcessor;
+}
+
 void Memory::Init()
 {
     m_pMap = new u8[0x10000];
@@ -85,7 +92,8 @@ void Memory::Init()
         InitPointer(m_pDisassembledROMMap[i]);
     }
 #endif
-    m_Breakpoints.clear();
+    m_BreakpointsCPU.clear();
+    m_BreakpointsMem.clear();
     InitPointer(m_pRunToBreakpoint);
     Reset(false);
 }
@@ -99,19 +107,10 @@ void Memory::Reset(bool bGameGear)
     for (int i = 0; i < 0x10000; i++)
     {
         m_pMap[i] = 0x00;
-        if (IsValidPointer(m_pDisassembledMap))
-        {
-            SafeDelete(m_pDisassembledMap[i]);
-        }
     }
 
-    if (IsValidPointer(m_pDisassembledROMMap))
-    {
-        for (int i = 0; i < MAX_ROM_SIZE; i++)
-        {
-            SafeDelete(m_pDisassembledROMMap[i]);
-        }
-    }
+    if (IsBootromEnabled())
+        ResetRomDisassembledMemory();
 }
 
 void Memory::SetCurrentRule(MemoryRule* pRule)
@@ -187,9 +186,14 @@ void Memory::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (m_pMap), 0x10000);
 }
 
-std::vector<Memory::stDisassembleRecord*>* Memory::GetBreakpoints()
+std::vector<Memory::stDisassembleRecord*>* Memory::GetBreakpointsCPU()
 {
-    return &m_Breakpoints;
+    return &m_BreakpointsCPU;
+}
+
+std::vector<Memory::stMemoryBreakpoint>* Memory::GetBreakpointsMem()
+{
+    return &m_BreakpointsMem;
 }
 
 Memory::stDisassembleRecord* Memory::GetRunToBreakpoint()
@@ -300,6 +304,8 @@ bool Memory::IsBootromEnabled()
 
 void Memory::SetPort3E(u8 port3E)
 {
+    MediaSlots oldSlot = m_MediaSlot;
+
     if (!IsSetBit(port3E, 6))
     {
         m_MediaSlot = CartridgeSlot;
@@ -330,6 +336,11 @@ void Memory::SetPort3E(u8 port3E)
         m_MediaSlot = IoSlot;
         Log("Port 3E: IO");
     }
+
+    if (oldSlot != m_MediaSlot)
+    {
+        ResetRomDisassembledMemory();
+    }
 }
 
 u8* Memory::GetBootrom()
@@ -350,4 +361,87 @@ void Memory::SetMediaSlot(MediaSlots slot)
 Memory::MediaSlots Memory::GetCurrentSlot()
 {
     return m_MediaSlot;
+}
+
+void Memory::CheckBreakpoints(u16 address, bool write)
+{
+    long unsigned int size = m_BreakpointsMem.size();
+
+    for (long unsigned int b = 0; b < size; b++)
+    {
+        if (write && !m_BreakpointsMem[b].write)
+            continue;
+
+        if (!write && !m_BreakpointsMem[b].read)
+            continue;
+
+        bool proceed = false;
+
+        if (m_BreakpointsMem[b].range)
+        {
+            if ((address >= m_BreakpointsMem[b].address1) && (address <= m_BreakpointsMem[b].address2))
+            {
+                proceed = true;
+            }
+        }
+        else
+        {
+            if (m_BreakpointsMem[b].address1 == address)
+            {
+                proceed = true;
+            }
+        }
+
+        if (proceed)
+        {
+            m_pProcessor->RequestMemoryBreakpoint();
+            break;
+        }
+    }
+}
+
+void Memory::ResetDisassembledMemory()
+{
+    #ifndef GEARBOY_DISABLE_DISASSEMBLER
+
+    if (IsValidPointer(m_pDisassembledROMMap))
+    {
+        for (int i = 0; i < MAX_ROM_SIZE; i++)
+        {
+            SafeDelete(m_pDisassembledROMMap[i]);
+        }
+    }
+    if (IsValidPointer(m_pDisassembledMap))
+    {
+        for (int i = 0; i < 0x10000; i++)
+        {
+            SafeDelete(m_pDisassembledMap[i]);
+        }
+    }
+
+    #endif
+}
+
+void Memory::ResetRomDisassembledMemory()
+{
+    #ifndef GEARBOY_DISABLE_DISASSEMBLER
+
+    m_BreakpointsCPU.clear();
+
+    if (IsValidPointer(m_pDisassembledROMMap))
+    {
+        for (int i = 0; i < MAX_ROM_SIZE; i++)
+        {
+            SafeDelete(m_pDisassembledROMMap[i]);
+        }
+    }
+    if (IsValidPointer(m_pDisassembledMap))
+    {
+        for (int i = 0; i < 0xC000; i++)
+        {
+            SafeDelete(m_pDisassembledMap[i]);
+        }
+    }
+
+    #endif
 }

@@ -71,6 +71,7 @@ public:
     ProcessorState* GetState();
     bool Disassemble(u16 address);
     bool BreakpointHit();
+    void RequestMemoryBreakpoint();
     bool Halted();
 
 private:
@@ -109,6 +110,7 @@ private:
     u8 m_PrefixedCBValue;
     bool m_bInputLastCycle;
     bool m_bBreakpointHit;
+    bool m_bRequestMemBreakpoint;
 
     struct ProActionReplayCode
     {
