@@ -68,8 +68,8 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 static const struct retro_variable vars[] = {
     { "gearsystem_system", "System (restart); Auto|Master System / Mark III|Game Gear|SG-1000 / Multivision" },
     { "gearsystem_region", "Region (restart); Auto|Master System Japan|Master System Export|Game Gear Japan|Game Gear Export|Game Gear International" },
-    { "gearsystem_mapper", "Mapper (restart); Auto|ROM Only|SEGA|Codemasters|Korean|SG-1000" },
-    { "gearsystem_timing", "Timing (restart); Auto|NTSC (60 Hz)|PAL (50 Hz)" },
+    { "gearsystem_mapper", "Mapper (restart); Auto|ROM|SEGA|Codemasters|Korean|SG-1000" },
+    { "gearsystem_timing", "Refresh Rate (restart); Auto|NTSC (60 Hz)|PAL (50 Hz)" },
     { "gearsystem_bios_sms", "Master System BIOS (restart); Disabled|Enabled" },
     { "gearsystem_bios_gg", "Game Gear BIOS (restart); Disabled|Enabled" },
     { "gearsystem_up_down_allowed", "Allow Up+Down / Left+Right; Disabled|Enabled" },
@@ -345,7 +345,7 @@ static void check_variables(void)
     {
         if (strcmp(var.value, "Auto") == 0)
             config.type = Cartridge::CartridgeNotSupported;
-        else if (strcmp(var.value, "ROM Only") == 0)
+        else if (strcmp(var.value, "ROM") == 0)
             config.type = Cartridge::CartridgeRomOnlyMapper;
         else if (strcmp(var.value, "SEGA") == 0)
             config.type = Cartridge::CartridgeSegaMapper;
