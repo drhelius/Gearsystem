@@ -570,6 +570,19 @@ static void main_menu(void)
                 ImGui::EndMenu();
             }
 
+            ImGui::Separator();
+
+            if (ImGui::BeginMenu("3D Glasses"))
+            {
+                ImGui::PushItemWidth(160.0f);
+                if (ImGui::Combo("##glasess", &config_video.glasses, "Both Eyes / OFF\0Only Left Eye\0Only Right Eye\0\0"))
+                {
+                    emu_set_3d_glasses_config(config_video.glasses);
+                }
+                ImGui::PopItemWidth();
+                ImGui::EndMenu();
+            }
+
             ImGui::EndMenu();
         }
 

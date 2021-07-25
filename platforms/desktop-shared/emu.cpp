@@ -331,24 +331,42 @@ void emu_enable_bootrom_gg(bool enable)
 
 void emu_set_media_slot(int slot)
 {
-    Memory::MediaSlots media_slot = Memory::MediaSlots::CartridgeSlot;
+    Memory::MediaSlots media_slot = Memory::CartridgeSlot;
 
     switch (slot)
     {
         case 1:
-            media_slot = Memory::MediaSlots::CardSlot;
+            media_slot = Memory::CardSlot;
             break;
         case 2:
-            media_slot = Memory::MediaSlots::ExpansionSlot;
+            media_slot = Memory::ExpansionSlot;
             break;
         case 3:
-            media_slot = Memory::MediaSlots::NoSlot;
+            media_slot = Memory::NoSlot;
             break;
         default:
-            media_slot = Memory::MediaSlots::CartridgeSlot;
+            media_slot = Memory::CartridgeSlot;
     }
 
     gearsystem->GetMemory()->SetMediaSlot(media_slot);
+}
+
+void emu_set_3d_glasses_config(int config)
+{
+    GearsystemCore::GlassesConfig glasses = GearsystemCore::GlassesBothEyes;
+
+    switch (config)
+    {
+        case 1:
+            glasses = GearsystemCore::GlassesLeftEye;
+            break;
+        case 2:
+            glasses = GearsystemCore::GlassesRightEye;
+            break;
+        default:
+            glasses = GearsystemCore::GlassesBothEyes;
+    }
+    gearsystem->SetGlassesConfig(glasses);
 }
 
 static void save_ram(void)

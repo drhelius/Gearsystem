@@ -25,7 +25,7 @@
 class CodemastersMemoryRule : public MemoryRule
 {
 public:
-    CodemastersMemoryRule(Memory* pMemory, Cartridge* pCartridge);
+    CodemastersMemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput);
     virtual ~CodemastersMemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);

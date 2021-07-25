@@ -37,6 +37,8 @@ public:
     u8 GetPortDC();
     u8 GetPortDD();
     u8 GetPort00();
+    u8 GetGlassesRegistry();
+    void SetGlassesRegistry(u8 value);
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
 
@@ -50,6 +52,7 @@ private:
     u8 m_IOPortDC;
     u8 m_IOPortDD;
     u8 m_IOPort00;
+    u8 m_GlassesRegistry;
     int m_iInputCycles;
     bool m_bGameGear;
 };

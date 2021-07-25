@@ -21,7 +21,7 @@
 #include "Memory.h"
 #include "Cartridge.h"
 
-SG1000MemoryRule::SG1000MemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
+SG1000MemoryRule::SG1000MemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput) : MemoryRule(pMemory, pCartridge, pInput)
 {
     Reset();
 }

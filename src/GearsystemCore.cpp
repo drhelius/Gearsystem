@@ -54,6 +54,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pBootromMemoryRule);
     m_bPaused = true;
     m_pixelFormat = GS_PIXEL_RGB888;
+    m_GlassesConfig = GlassesConfig::GlassesBothEyes;
 }
 
 GearsystemCore::~GearsystemCore()
@@ -281,6 +282,11 @@ Audio* GearsystemCore::GetAudio()
 Video* GearsystemCore::GetVideo()
 {
     return m_pVideo;
+}
+
+void GearsystemCore::SetGlassesConfig(GlassesConfig config)
+{
+    m_GlassesConfig = config;
 }
 
 void GearsystemCore::KeyPressed(GS_Joypads joypad, GS_Keys key)
@@ -826,13 +832,13 @@ void GearsystemCore::SetRamModificationCallback(RamChangedCallback callback)
 
 void GearsystemCore::InitMemoryRules()
 {
-    m_pSG1000MemoryRule = new SG1000MemoryRule(m_pMemory, m_pCartridge);
-    m_pCodemastersMemoryRule = new CodemastersMemoryRule(m_pMemory, m_pCartridge);
-    m_pSegaMemoryRule = new SegaMemoryRule(m_pMemory, m_pCartridge);
-    m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pMemory, m_pCartridge);
-    m_pKoreanMemoryRule = new KoreanMemoryRule(m_pMemory, m_pCartridge);
-    m_pMSXMemoryRule = new MSXMemoryRule(m_pMemory, m_pCartridge);
-    m_pBootromMemoryRule = new BootromMemoryRule(m_pMemory, m_pCartridge);
+    m_pSG1000MemoryRule = new SG1000MemoryRule(m_pMemory, m_pCartridge, m_pInput);
+    m_pCodemastersMemoryRule = new CodemastersMemoryRule(m_pMemory, m_pCartridge, m_pInput);
+    m_pSegaMemoryRule = new SegaMemoryRule(m_pMemory, m_pCartridge, m_pInput);
+    m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pMemory, m_pCartridge, m_pInput);
+    m_pKoreanMemoryRule = new KoreanMemoryRule(m_pMemory, m_pCartridge, m_pInput);
+    m_pMSXMemoryRule = new MSXMemoryRule(m_pMemory, m_pCartridge, m_pInput);
+    m_pBootromMemoryRule = new BootromMemoryRule(m_pMemory, m_pCartridge, m_pInput);
 
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
     m_pMemory->SetBootromRule(m_pBootromMemoryRule);
@@ -908,6 +914,16 @@ void GearsystemCore::Reset()
 void GearsystemCore::RenderFrameBuffer(u8* finalFrameBuffer)
 {
     int size = GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT;
+
+    if (m_GlassesConfig != GlassesConfig::GlassesBothEyes)
+    {
+        bool left = IsSetBit(m_pInput->GetGlassesRegistry(), 0);
+
+        if ((m_GlassesConfig == GlassesConfig::GlassesLeftEye) && !left)
+            return;
+        else if ((m_GlassesConfig == GlassesConfig::GlassesRightEye) && left)
+            return;
+    }
 
     switch (m_pixelFormat)
     {

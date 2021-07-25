@@ -21,7 +21,7 @@
 #include "Memory.h"
 #include "Cartridge.h"
 
-RomOnlyMemoryRule::RomOnlyMemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
+RomOnlyMemoryRule::RomOnlyMemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput) : MemoryRule(pMemory, pCartridge, pInput)
 {
     Reset();
 }

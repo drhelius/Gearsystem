@@ -25,7 +25,7 @@
 class MSXMemoryRule : public MemoryRule
 {
 public:
-    MSXMemoryRule(Memory* pMemory, Cartridge* pCartridge);
+    MSXMemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput);
     virtual ~MSXMemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);

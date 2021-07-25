@@ -55,6 +55,7 @@ static bool libretro_supports_bitmasks;
 static GearsystemCore* core;
 static u8* frame_buffer;
 static Cartridge::ForceConfiguration config;
+static GearsystemCore::GlassesConfig glasses_config;
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 {
@@ -72,6 +73,7 @@ static const struct retro_variable vars[] = {
     { "gearsystem_timing", "Refresh Rate (restart); Auto|NTSC (60 Hz)|PAL (50 Hz)" },
     { "gearsystem_bios_sms", "Master System BIOS (restart); Disabled|Enabled" },
     { "gearsystem_bios_gg", "Game Gear BIOS (restart); Disabled|Enabled" },
+    { "gearsystem_glasses", "3D Glasses; Both Eyes / OFF|Left Eye|Right Eye" },
     { "gearsystem_up_down_allowed", "Allow Up+Down / Left+Right; Disabled|Enabled" },
     { NULL }
 };
@@ -105,6 +107,8 @@ void retro_init(void)
     config.zone = Cartridge::CartridgeUnknownZone;
     config.region = Cartridge::CartridgeUnknownRegion;
     config.system = Cartridge::CartridgeUnknownSystem;
+
+    glasses_config = GearsystemCore::GlassesBothEyes;
 
     libretro_supports_bitmasks = environ_cb(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, NULL);
 }
@@ -394,6 +398,23 @@ static void check_variables(void)
             bootrom_gg = true;
         else
             bootrom_gg = false;
+    }
+
+    var.key = "gearsystem_glasses";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Both Eyes / OFF") == 0)
+            glasses_config = GearsystemCore::GlassesBothEyes;
+        else if (strcmp(var.value, "Left Eye") == 0)
+            glasses_config = GearsystemCore::GlassesLeftEye;
+        else if (strcmp(var.value, "Right Eye") == 0)
+            glasses_config = GearsystemCore::GlassesRightEye;
+        else
+            glasses_config = GearsystemCore::GlassesBothEyes;
+
+        core->SetGlassesConfig(glasses_config);
     }
 }
 

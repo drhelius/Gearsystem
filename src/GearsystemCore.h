@@ -42,6 +42,14 @@ class BootromMemoryRule;
 class GearsystemCore
 {
 public:
+    enum GlassesConfig
+    {
+        GlassesBothEyes,
+        GlassesLeftEye,
+        GlassesRightEye
+    };
+
+public:
     GearsystemCore();
     ~GearsystemCore();
     void Init(GS_Color_Format pixelFormat = GS_PIXEL_RGB888);
@@ -80,6 +88,7 @@ public:
     Processor* GetProcessor();
     Audio* GetAudio();
     Video* GetVideo();
+    void SetGlassesConfig(GlassesConfig config);
 
 private:
     void InitMemoryRules();
@@ -106,6 +115,7 @@ private:
     bool m_bPaused;
     RamChangedCallback m_pRamChangedCallback;
     GS_Color_Format m_pixelFormat;
+    GlassesConfig m_GlassesConfig;
 };
 
 #endif	/* CORE_H */

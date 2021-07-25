@@ -135,6 +135,7 @@ void config_read(void)
     config_video.scanlines = read_bool("Video", "Scanlines", true);
     config_video.scanlines_intensity = read_float("Video", "ScanlinesIntensity", 0.40f);
     config_video.sync = read_bool("Video", "Sync", true);
+    config_video.glasses = read_int("Video", "3DGlasses", 0);
     
     config_audio.enable = read_bool("Audio", "Enable", true);
     config_audio.sync = read_bool("Audio", "Sync", true);
@@ -219,6 +220,7 @@ void config_write(void)
     write_bool("Video", "Scanlines", config_video.scanlines);
     write_float("Video", "ScanlinesIntensity", config_video.scanlines_intensity);
     write_bool("Video", "Sync", config_video.sync);
+    write_int("Video", "3DGlasses", config_video.glasses);
 
     write_bool("Audio", "Enable", config_audio.enable);
     write_bool("Audio", "Sync", config_audio.sync);

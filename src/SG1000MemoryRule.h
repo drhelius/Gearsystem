@@ -25,7 +25,7 @@
 class SG1000MemoryRule : public MemoryRule
 {
 public:
-    SG1000MemoryRule(Memory* pMemory, Cartridge* pCartridge);
+    SG1000MemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput);
     virtual ~SG1000MemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);

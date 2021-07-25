@@ -19,10 +19,11 @@
 
 #include "MemoryRule.h"
 
-MemoryRule::MemoryRule(Memory* pMemory, Cartridge* pCartridge)
+MemoryRule::MemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput)
 {
     m_pMemory = pMemory;
     m_pCartridge = pCartridge;
+    m_pInput = pInput;
 }
 
 MemoryRule::~MemoryRule()

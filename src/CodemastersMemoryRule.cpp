@@ -21,7 +21,7 @@
 #include "Memory.h"
 #include "Cartridge.h"
 
-CodemastersMemoryRule::CodemastersMemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
+CodemastersMemoryRule::CodemastersMemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput) : MemoryRule(pMemory, pCartridge, pInput)
 {
     m_pCartRAM = new u8[0x2000];
     Reset();

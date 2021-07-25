@@ -21,7 +21,7 @@
 #include "Memory.h"
 #include "Cartridge.h"
 
-BootromMemoryRule::BootromMemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
+BootromMemoryRule::BootromMemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput) : MemoryRule(pMemory, pCartridge, pInput)
 {
     Reset();
 }

@@ -20,8 +20,9 @@
 #include "SegaMemoryRule.h"
 #include "Memory.h"
 #include "Cartridge.h"
+#include "Input.h"
 
-SegaMemoryRule::SegaMemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
+SegaMemoryRule::SegaMemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput) : MemoryRule(pMemory, pCartridge, pInput)
 {
     m_pRAMBanks = new u8[0x8000];
     Reset();
@@ -130,6 +131,14 @@ void SegaMemoryRule::PerformWrite(u16 address, u8 value)
             {
                 m_iMapperSlot[2] = value & (m_pCartridge->GetROMBankCount() - 1);
                 m_iMapperSlotAddress[2] = m_iMapperSlot[2] * 0x4000;
+                break;
+            }
+            case 0xFFF8:
+            case 0xFFF9:
+            case 0xFFFA:
+            case 0xFFFB:
+            {
+                m_pInput->SetGlassesRegistry(value);
                 break;
             }
         }

@@ -66,6 +66,7 @@ struct config_Video
     bool scanlines = true;
     float scanlines_intensity = 0.40f;
     bool sync = true;
+    int glasses = 0;
 };
 
 struct config_Audio

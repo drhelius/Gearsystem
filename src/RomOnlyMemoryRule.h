@@ -25,7 +25,7 @@
 class RomOnlyMemoryRule : public MemoryRule
 {
 public:
-    RomOnlyMemoryRule(Memory* pMemory, Cartridge* pCartridge);
+    RomOnlyMemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput);
     virtual ~RomOnlyMemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);

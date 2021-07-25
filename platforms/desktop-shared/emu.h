@@ -73,6 +73,7 @@ EXTERN void emu_load_bootrom_gg(const char* file_path);
 EXTERN void emu_enable_bootrom_sms(bool enable);
 EXTERN void emu_enable_bootrom_gg(bool enable);
 EXTERN void emu_set_media_slot(int slot);
+EXTERN void emu_set_3d_glasses_config(int config);
 
 #undef EMU_IMPORT
 #undef EXTERN

@@ -25,7 +25,7 @@
 class BootromMemoryRule : public MemoryRule
 {
 public:
-    BootromMemoryRule(Memory* pMemory, Cartridge* pCartridge);
+    BootromMemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput);
     virtual ~BootromMemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);

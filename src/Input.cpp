@@ -46,6 +46,7 @@ void Input::Reset(bool bGameGear)
     m_IOPortDC = 0xFF;
     m_IOPortDD = 0xFF;
     m_IOPort00 = 0xFF;
+    m_GlassesRegistry = 0;
     m_iInputCycles = 0;
 }
 
@@ -94,6 +95,16 @@ u8 Input::GetPortDD()
 u8 Input::GetPort00()
 {
     return m_IOPort00;
+}
+
+u8 Input::GetGlassesRegistry()
+{
+    return m_GlassesRegistry;
+}
+
+void Input::SetGlassesRegistry(u8 value)
+{
+    m_GlassesRegistry = value;
 }
 
 void Input::Update()

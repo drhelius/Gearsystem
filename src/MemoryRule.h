@@ -24,11 +24,12 @@
 
 class Memory;
 class Cartridge;
+class Input;
 
 class MemoryRule
 {
 public:
-    MemoryRule(Memory* pMemory, Cartridge* pCartridge);
+    MemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput);
     virtual ~MemoryRule();
     virtual u8 PerformRead(u16 address) = 0;
     virtual void PerformWrite(u16 address, u8 value) = 0;
@@ -48,6 +49,7 @@ public:
 protected:
     Memory* m_pMemory;
     Cartridge* m_pCartridge;
+    Input* m_pInput;
     RamChangedCallback m_pRamChangedCallback;
 };
 

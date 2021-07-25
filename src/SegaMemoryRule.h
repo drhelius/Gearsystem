@@ -25,7 +25,7 @@
 class SegaMemoryRule : public MemoryRule
 {
 public:
-    SegaMemoryRule(Memory* pMemory, Cartridge* pCartridge);
+    SegaMemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput);
     virtual ~SegaMemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);

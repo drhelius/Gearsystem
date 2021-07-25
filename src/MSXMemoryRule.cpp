@@ -21,7 +21,7 @@
 #include "Memory.h"
 #include "Cartridge.h"
 
-MSXMemoryRule::MSXMemoryRule(Memory* pMemory, Cartridge* pCartridge) : MemoryRule(pMemory, pCartridge)
+MSXMemoryRule::MSXMemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput) : MemoryRule(pMemory, pCartridge, pInput)
 {
     Reset();
 }
