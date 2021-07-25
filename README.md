@@ -33,20 +33,21 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 
 ## Features
 
-- Accurate Z80 core, including undocumented opcodes and behaviour like R and [MEMPTR](https://gist.github.com/drhelius/8497817) registers.
-- Multi-Mapper support: SEGA, Codemasters, Korean, MSX, SG-1000, and ROM only cartridges.
+- Accurate Z80 core, including undocumented opcodes and behavior like R and [MEMPTR](https://gist.github.com/drhelius/8497817) registers.
+- Supported cartridges: ROM, ROM + RAM, SEGA, Codemasters, Korean, MSX, SG-1000.
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
-- Accurate VDP emulation including timing and SMS2 only 224 mode support.
+- Accurate VDP emulation including timing and Master System 2 only 224 video mode support.
 - Internal database for rom detection.
 - Sound emulation using SDL Audio and [Sms_Snd_Emu library](http://blargg.8bitalley.com/libs/audio.html#Sms_Snd_Emu).
-- Save battery powered RAM cartridges to file.
+- Battery powered RAM save support.
 - Save states.
 - Compressed rom support (ZIP).
 - *Game Genie* and *Pro Action Replay* cheat support.
 - Supported platforms (standalone): Windows, Linux, BSD, macOS, Raspberry Pi and iOS.
-- Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch Emscripten, Classic Mini systemts (NES, SNES, C64 ...) and QNX.
-- Full debugger with disassembler, breakpoints, debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
+- Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch, Emscripten, Classic Mini systems (NES, SNES, C64, ...), OpenDingux and QNX.
+- Full debugger with on-the-fly disassembler, cpu breakpoints, memory access breakpoints, code navigation (goto address, JP JR and CALL double clicking), debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
 - Windows and Linux *Portable Mode* by creating a file named `portable.ini` in the same directory as the application binary.
+- Support for modern game controllers through [gamecontrollerdb.txt](https://github.com/gabomdq/SDL_GameControllerDB) file located in the same directory as the application binary.
 
 <img src="http://www.geardome.com/files/gearsystem/gearsystem_debug_01.png" width="687" height="494">
 
