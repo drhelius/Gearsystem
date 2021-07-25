@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2B00A04326ACF27E00B518D0 /* BootromMemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B00A03E26ACF19000B518D0 /* BootromMemoryRule.cpp */; };
 		2BC6E4192484212C00BD52B3 /* MSXMemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2BC6E4182484212C00BD52B3 /* MSXMemoryRule.cpp */; };
 		663EBD051A103B0F00F32DC8 /* GLViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 663EBD031A103B0F00F32DC8 /* GLViewController.xib */; };
 		6661D2F01A10B5D4009CFFF5 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6661D2EF1A10B518009CFFF5 /* libSDL2.a */; };
@@ -74,6 +75,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		2B00A03E26ACF19000B518D0 /* BootromMemoryRule.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = BootromMemoryRule.cpp; path = ../../src/BootromMemoryRule.cpp; sourceTree = "<group>"; };
+		2B00A04126ACF19000B518D0 /* BootromMemoryRule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BootromMemoryRule.h; path = ../../src/BootromMemoryRule.h; sourceTree = "<group>"; };
 		2BC6E4152484212C00BD52B3 /* MSXMemoryRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MSXMemoryRule.h; path = ../../src/MSXMemoryRule.h; sourceTree = "<group>"; };
 		2BC6E4182484212C00BD52B3 /* MSXMemoryRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MSXMemoryRule.cpp; path = ../../src/MSXMemoryRule.cpp; sourceTree = "<group>"; };
 		663EBD041A103B0F00F32DC8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/GLViewController.xib; sourceTree = "<group>"; };
@@ -305,6 +308,8 @@
 		66AB413C1A102C0D006C951A /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				2B00A03E26ACF19000B518D0 /* BootromMemoryRule.cpp */,
+				2B00A04126ACF19000B518D0 /* BootromMemoryRule.h */,
 				2BC6E4182484212C00BD52B3 /* MSXMemoryRule.cpp */,
 				2BC6E4152484212C00BD52B3 /* MSXMemoryRule.h */,
 				66A7B47822C82E0F00E7B287 /* KoreanMemoryRule.cpp */,
@@ -427,7 +432,7 @@
 		66AB40FF1A102A95006C951A /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1020;
+				LastUpgradeCheck = 1250;
 				ORGANIZATIONNAME = "Ignacio Sánchez Ginés";
 				TargetAttributes = {
 					66AB41061A102A95006C951A = {
@@ -498,6 +503,7 @@
 			files = (
 				66D7D0DC20516FEA0059268B /* Sound_Queue.cpp in Sources */,
 				66AB418E1A1030C2006C951A /* GearsystemCore.cpp in Sources */,
+				2B00A04326ACF27E00B518D0 /* BootromMemoryRule.cpp in Sources */,
 				66AB418C1A1030C2006C951A /* CodemastersMemoryRule.cpp in Sources */,
 				66AB41101A102A95006C951A /* AppDelegate.mm in Sources */,
 				66AB418B1A1030C2006C951A /* Cartridge.cpp in Sources */,
@@ -578,6 +584,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -603,7 +610,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -634,6 +641,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -652,7 +660,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -674,7 +682,7 @@
 					"dependencies/SDL-2.0.4-9174/include",
 				);
 				INFOPLIST_FILE = Gearsystem/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.geardome.gearsystem;
@@ -699,7 +707,7 @@
 					"dependencies/SDL-2.0.4-9174/include",
 				);
 				INFOPLIST_FILE = Gearsystem/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.geardome.gearsystem;
