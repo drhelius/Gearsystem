@@ -467,7 +467,7 @@ bool Processor::Disassemble(u16 address)
                 strcat(map[offset]->bytes, "   ");
             }
 
-            if (i < maxSize)
+            if (i < 4)
                 map[offset]->opcodes[i] = bytes[i];
         }
 
