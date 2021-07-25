@@ -369,7 +369,7 @@ bool Processor::Disassemble(u16 address)
         map[offset]->name[0] = 0;
         map[offset]->bytes[0] = 0;
         map[offset]->size = 0;
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < 4; i++)
             map[offset]->opcodes[i] = 0;
         map[offset]->jump = false;
         map[offset]->jump_address = 0;
