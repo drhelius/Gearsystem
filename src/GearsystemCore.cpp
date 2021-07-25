@@ -54,7 +54,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pBootromMemoryRule);
     m_bPaused = true;
     m_pixelFormat = GS_PIXEL_RGB888;
-    m_GlassesConfig = GlassesConfig::GlassesBothEyes;
+    m_GlassesConfig = GearsystemCore::GlassesBothEyes;
 }
 
 GearsystemCore::~GearsystemCore()
@@ -913,17 +913,17 @@ void GearsystemCore::Reset()
 
 void GearsystemCore::RenderFrameBuffer(u8* finalFrameBuffer)
 {
-    int size = GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT;
-
-    if (m_GlassesConfig != GlassesConfig::GlassesBothEyes)
+    if (m_GlassesConfig != GearsystemCore::GlassesBothEyes)
     {
         bool left = IsSetBit(m_pInput->GetGlassesRegistry(), 0);
 
-        if ((m_GlassesConfig == GlassesConfig::GlassesLeftEye) && !left)
+        if ((m_GlassesConfig == GearsystemCore::GlassesLeftEye) && !left)
             return;
-        else if ((m_GlassesConfig == GlassesConfig::GlassesRightEye) && left)
+        else if ((m_GlassesConfig == GearsystemCore::GlassesRightEye) && left)
             return;
     }
+
+    int size = GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT;
 
     switch (m_pixelFormat)
     {
