@@ -274,7 +274,7 @@ static void update_input(void)
         else
             core->KeyReleased(static_cast<GS_Joypads>(player), Key_Right);
 
-        if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B))
+        if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_B))
             core->KeyPressed(static_cast<GS_Joypads>(player), Key_1);
         else
             core->KeyReleased(static_cast<GS_Joypads>(player), Key_1);
