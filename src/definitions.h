@@ -209,6 +209,15 @@ inline u8 FlipBit(const u8 value, const u8 bit)
     return value ^ (0x01 << bit);
 }
 
+inline u8 ReverseBits(const u8 value)
+{
+    u8 ret = value;
+    ret = (ret & 0xF0) >> 4 | (ret & 0x0F) << 4;
+    ret = (ret & 0xCC) >> 2 | (ret & 0x33) << 2;
+    ret = (ret & 0xAA) >> 1 | (ret & 0x55) << 1;
+    return ret;
+}
+
 inline int AsHex(const char c)
 {
    return c >= 'A' ? c - 'A' + 0xA : c - '0';

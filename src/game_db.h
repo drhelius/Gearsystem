@@ -25,6 +25,7 @@
 #define GS_DB_SG1000_MAPPER 2
 #define GS_DB_MSX_MAPPER 3
 #define GS_DB_KOREAN_MAPPER 4
+#define GS_DB_JANGGUN_MAPPER 5
 
 struct GS_GameDBEntry
 {
@@ -125,6 +126,9 @@ const GS_GameDBEntry kGameDatabase[] =
     {0x9195C34C, GS_DB_MSX_MAPPER, false, false, false, "Super Boy 3 (KR)"},
     {0xE316C06D, GS_DB_MSX_MAPPER, false, false, false, "Nemesis (KR)"},
     {0x0A77FA5E, GS_DB_MSX_MAPPER, false, false, false, "Nemesis 2 (KR)"},
+
+    // JANGGUN MAPPER
+    //{0x192949D5, GS_DB_JANGGUN_MAPPER, false, false, false, "Janggun-ui Adeul (KR)"},
 
     // SG-1000 with RAM without battery
     {0x092F29D6, GS_DB_SG1000_MAPPER, false, false, true, "Castle, The (J)"},

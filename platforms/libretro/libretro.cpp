@@ -69,7 +69,7 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 static const struct retro_variable vars[] = {
     { "gearsystem_system", "System (restart); Auto|Master System / Mark III|Game Gear|SG-1000 / Multivision" },
     { "gearsystem_region", "Region (restart); Auto|Master System Japan|Master System Export|Game Gear Japan|Game Gear Export|Game Gear International" },
-    { "gearsystem_mapper", "Mapper (restart); Auto|ROM|SEGA|Codemasters|Korean|SG-1000" },
+    { "gearsystem_mapper", "Mapper (restart); Auto|ROM|SEGA|Codemasters|Korean|MSX|Janggun|SG-1000" },
     { "gearsystem_timing", "Refresh Rate (restart); Auto|NTSC (60 Hz)|PAL (50 Hz)" },
     { "gearsystem_bios_sms", "Master System BIOS (restart); Disabled|Enabled" },
     { "gearsystem_bios_gg", "Game Gear BIOS (restart); Disabled|Enabled" },
@@ -359,6 +359,10 @@ static void check_variables(void)
             config.type = Cartridge::CartridgeKoreanMapper;
         else if (strcmp(var.value, "SG-1000") == 0)
             config.type = Cartridge::CartridgeSG1000Mapper;
+        else if (strcmp(var.value, "MSX") == 0)
+            config.type = Cartridge::CartridgeMSXMapper;
+        else if (strcmp(var.value, "Janggun") == 0)
+            config.type = Cartridge::CartridgeJanggunMapper;
         else
             config.type = Cartridge::CartridgeNotSupported;
     }

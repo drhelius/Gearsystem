@@ -22,6 +22,7 @@
     <ClCompile Include="..\..\src\GameGearIOPorts.cpp" />
     <ClCompile Include="..\..\src\GearsystemCore.cpp" />
     <ClCompile Include="..\..\src\Input.cpp" />
+    <ClCompile Include="..\..\src\JanggunMemoryRule.cpp" />
     <ClCompile Include="..\..\src\KoreanMemoryRule.cpp" />
     <ClCompile Include="..\..\src\Memory.cpp" />
     <ClCompile Include="..\..\src\MemoryRule.cpp" />
@@ -73,6 +74,7 @@
     <ClInclude Include="..\..\src\GearsystemCore.h" />
     <ClInclude Include="..\..\src\Input.h" />
     <ClInclude Include="..\..\src\IOPorts.h" />
+    <ClInclude Include="..\..\src\JanggunMemoryRule.h" />
     <ClInclude Include="..\..\src\KoreanMemoryRule.h" />
     <ClInclude Include="..\..\src\Memory.h" />
     <ClInclude Include="..\..\src\MemoryRule.h" />

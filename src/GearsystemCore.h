@@ -34,6 +34,7 @@ class RomOnlyMemoryRule;
 class SG1000MemoryRule;
 class KoreanMemoryRule;
 class MSXMemoryRule;
+class JanggunMemoryRule;
 class MemoryRule;
 class SmsIOPorts;
 class GameGearIOPorts;
@@ -109,6 +110,7 @@ private:
     RomOnlyMemoryRule* m_pRomOnlyMemoryRule;
     KoreanMemoryRule* m_pKoreanMemoryRule;
     MSXMemoryRule* m_pMSXMemoryRule;
+    JanggunMemoryRule* m_pJanggunMemoryRule;
     SmsIOPorts* m_pSmsIOPorts;
     GameGearIOPorts* m_pGameGearIOPorts;
     BootromMemoryRule* m_pBootromMemoryRule;

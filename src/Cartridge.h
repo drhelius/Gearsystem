@@ -34,6 +34,7 @@ public:
         CartridgeSG1000Mapper,
         CartridgeKoreanMapper,
         CartridgeMSXMapper,
+        CartridgeJanggunMapper,
         CartridgeNotSupported
     };
     

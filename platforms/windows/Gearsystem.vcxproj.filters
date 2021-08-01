@@ -93,6 +93,9 @@
     <ClCompile Include="..\..\src\Input.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\JanggunMemoryRule.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\KoreanMemoryRule.cpp">
       <Filter>core</Filter>
     </ClCompile>
@@ -237,6 +240,9 @@
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\IOPorts.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\JanggunMemoryRule.h">
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\KoreanMemoryRule.h">

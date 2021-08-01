@@ -177,6 +177,14 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             m_Type = config.type;
             Log("Forcing Mapper: Korean");
             break;
+        case Cartridge::CartridgeMSXMapper:
+            m_Type = config.type;
+            Log("Forcing Mapper: MSX");
+            break;
+        case Cartridge::CartridgeJanggunMapper:
+            m_Type = config.type;
+            Log("Forcing Mapper: Janggun");
+            break;
         default:
             break;
     }
@@ -536,6 +544,12 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeKoreanMapper:
             Log("Korean mapper found");
             break;
+        case Cartridge::CartridgeMSXMapper:
+            Log("MSX mapper found");
+            break;
+        case Cartridge::CartridgeJanggunMapper:
+            Log("Janggun mapper found");
+            break;
         case Cartridge::CartridgeNotSupported:
             Log("Cartridge not supported!!");
             break;
@@ -586,6 +600,10 @@ void Cartridge::GetInfoFromDB(u32 crc)
             else if (kGameDatabase[i].mapper == GS_DB_MSX_MAPPER)
             {
                 m_Type = Cartridge::CartridgeMSXMapper;
+            }
+            else if (kGameDatabase[i].mapper == GS_DB_JANGGUN_MAPPER)
+            {
+                m_Type = Cartridge::CartridgeJanggunMapper;
             }
 
             if (kGameDatabase[i].sms_mode)

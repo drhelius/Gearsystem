@@ -30,6 +30,7 @@
 #include "RomOnlyMemoryRule.h"
 #include "KoreanMemoryRule.h"
 #include "MSXMemoryRule.h"
+#include "JanggunMemoryRule.h"
 #include "SG1000MemoryRule.h"
 #include "SmsIOPorts.h"
 #include "GameGearIOPorts.h"
@@ -49,6 +50,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pRomOnlyMemoryRule);
     InitPointer(m_pKoreanMemoryRule);
     InitPointer(m_pMSXMemoryRule);
+    InitPointer(m_pJanggunMemoryRule);
     InitPointer(m_pSmsIOPorts);
     InitPointer(m_pGameGearIOPorts);
     InitPointer(m_pBootromMemoryRule);
@@ -68,6 +70,7 @@ GearsystemCore::~GearsystemCore()
     SafeDelete(m_pSegaMemoryRule);
     SafeDelete(m_pKoreanMemoryRule);
     SafeDelete(m_pMSXMemoryRule);
+    SafeDelete(m_pJanggunMemoryRule);
     SafeDelete(m_pCartridge);
     SafeDelete(m_pInput);
     SafeDelete(m_pVideo);
@@ -838,6 +841,7 @@ void GearsystemCore::InitMemoryRules()
     m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pKoreanMemoryRule = new KoreanMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pMSXMemoryRule = new MSXMemoryRule(m_pMemory, m_pCartridge, m_pInput);
+    m_pJanggunMemoryRule = new JanggunMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pBootromMemoryRule = new BootromMemoryRule(m_pMemory, m_pCartridge, m_pInput);
 
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
@@ -870,6 +874,9 @@ bool GearsystemCore::AddMemoryRules()
             break;
         case Cartridge::CartridgeMSXMapper:
             m_pMemory->SetCurrentRule(m_pMSXMemoryRule);
+            break;
+        case Cartridge::CartridgeJanggunMapper:
+            m_pMemory->SetCurrentRule(m_pJanggunMemoryRule);
             break;
         case Cartridge::CartridgeNotSupported:
             notSupported = true;
@@ -905,6 +912,7 @@ void GearsystemCore::Reset()
     m_pRomOnlyMemoryRule->Reset();
     m_pKoreanMemoryRule->Reset();
     m_pMSXMemoryRule->Reset();
+    m_pJanggunMemoryRule->Reset();
     m_pBootromMemoryRule->Reset();
     m_pGameGearIOPorts->Reset();
     m_pSmsIOPorts->Reset();

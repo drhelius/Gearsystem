@@ -34,7 +34,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 ## Features
 
 - Accurate Z80 core, including undocumented opcodes and behavior like R and [MEMPTR](https://gist.github.com/drhelius/8497817) registers.
-- Supported cartridges: ROM, ROM + RAM, SEGA, Codemasters, Korean, MSX, SG-1000.
+- Supported cartridges: ROM, ROM + RAM, SEGA, Codemasters, Korean, MSX + Nemesis, Janggun, SG-1000.
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
 - Accurate VDP emulation including timing and Master System 2 only 224 video mode support.
 - Internal database for rom detection.
