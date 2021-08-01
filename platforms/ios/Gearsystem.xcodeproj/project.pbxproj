@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		2B00A04326ACF27E00B518D0 /* BootromMemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B00A03E26ACF19000B518D0 /* BootromMemoryRule.cpp */; };
 		2BC6E4192484212C00BD52B3 /* MSXMemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2BC6E4182484212C00BD52B3 /* MSXMemoryRule.cpp */; };
+		2BFA980B26B716290096B6C6 /* JanggunMemoryRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2BFA980A26B715E70096B6C6 /* JanggunMemoryRule.cpp */; };
 		663EBD051A103B0F00F32DC8 /* GLViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 663EBD031A103B0F00F32DC8 /* GLViewController.xib */; };
 		6661D2F01A10B5D4009CFFF5 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6661D2EF1A10B518009CFFF5 /* libSDL2.a */; };
 		666602A31A7ECF0300DEB660 /* texturemanager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 666602A21A7ECF0300DEB660 /* texturemanager.mm */; };
@@ -79,6 +80,8 @@
 		2B00A04126ACF19000B518D0 /* BootromMemoryRule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BootromMemoryRule.h; path = ../../src/BootromMemoryRule.h; sourceTree = "<group>"; };
 		2BC6E4152484212C00BD52B3 /* MSXMemoryRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MSXMemoryRule.h; path = ../../src/MSXMemoryRule.h; sourceTree = "<group>"; };
 		2BC6E4182484212C00BD52B3 /* MSXMemoryRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MSXMemoryRule.cpp; path = ../../src/MSXMemoryRule.cpp; sourceTree = "<group>"; };
+		2BFA980726B715E70096B6C6 /* JanggunMemoryRule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = JanggunMemoryRule.h; path = ../../src/JanggunMemoryRule.h; sourceTree = "<group>"; };
+		2BFA980A26B715E70096B6C6 /* JanggunMemoryRule.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = JanggunMemoryRule.cpp; path = ../../src/JanggunMemoryRule.cpp; sourceTree = "<group>"; };
 		663EBD041A103B0F00F32DC8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/GLViewController.xib; sourceTree = "<group>"; };
 		6661D2E91A10B518009CFFF5 /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = "dependencies/SDL-2.0.4-9174/Xcode-iOS/SDL/SDL.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		666602A01A7ECF0300DEB660 /* texture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = texture.h; sourceTree = "<group>"; };
@@ -308,6 +311,8 @@
 		66AB413C1A102C0D006C951A /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				2BFA980A26B715E70096B6C6 /* JanggunMemoryRule.cpp */,
+				2BFA980726B715E70096B6C6 /* JanggunMemoryRule.h */,
 				2B00A03E26ACF19000B518D0 /* BootromMemoryRule.cpp */,
 				2B00A04126ACF19000B518D0 /* BootromMemoryRule.h */,
 				2BC6E4182484212C00BD52B3 /* MSXMemoryRule.cpp */,
@@ -526,6 +531,7 @@
 				66AB41131A102A95006C951A /* MasterViewController.mm in Sources */,
 				66AB41A91A1030D4006C951A /* Blip_Buffer.cpp in Sources */,
 				66AB41941A1030C2006C951A /* opcodes.cpp in Sources */,
+				2BFA980B26B716290096B6C6 /* JanggunMemoryRule.cpp in Sources */,
 				66AB41991A1030C2006C951A /* Video.cpp in Sources */,
 				66AB410D1A102A95006C951A /* main.m in Sources */,
 				66AB418D1A1030C2006C951A /* GameGearIOPorts.cpp in Sources */,
