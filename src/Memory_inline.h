@@ -22,7 +22,7 @@
 
 inline u8 Memory::Read(u16 address)
 {
-    #ifndef GEARBOY_DISABLE_DISASSEMBLER
+    #ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
     CheckBreakpoints(address, false);
     #endif
 
@@ -40,7 +40,7 @@ inline u8 Memory::Read(u16 address)
 
 inline void Memory::Write(u16 address, u8 value)
 {
-    #ifndef GEARBOY_DISABLE_DISASSEMBLER
+    #ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
     CheckBreakpoints(address, true);
     #endif
 

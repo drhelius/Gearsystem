@@ -402,7 +402,7 @@ void Memory::CheckBreakpoints(u16 address, bool write)
 
 void Memory::ResetDisassembledMemory()
 {
-    #ifndef GEARBOY_DISABLE_DISASSEMBLER
+    #ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
 
     if (IsValidPointer(m_pDisassembledROMMap))
     {
@@ -424,7 +424,7 @@ void Memory::ResetDisassembledMemory()
 
 void Memory::ResetRomDisassembledMemory()
 {
-    #ifndef GEARBOY_DISABLE_DISASSEMBLER
+    #ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
 
     m_BreakpointsCPU.clear();
 
