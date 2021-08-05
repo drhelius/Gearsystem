@@ -19,9 +19,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
   - Or install manually: [Gearsystem-3.3.0-macOS.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.3.0/Gearsystem-3.3.0-macOS.zip)
 - **Linux**: [Gearsystem-3.3.0-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.3.0/Gearsystem-3.3.0-Linux.tar.xz)
   - NOTE: You may need to install `libsdl2` and `libglew`
-- **iOS**: Build Gearsystem with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use your iCloud Drive.
 - **RetroArch**: [Libretro core documentation](https://libretro.readthedocs.io/en/latest/library/gearsystem/).
-- **Raspberry Pi**: Build Gearsystem from sources. Optimized projects are provided for Raspberry Pi 1, 2, 3 and 4.
 
 ## Supported Machines
 
@@ -38,7 +36,7 @@ Please, consider [sponsoring](https://github.com/sponsors/drhelius) and followin
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
 - Accurate VDP emulation including timing and Master System 2 only 224 video mode support.
 - Internal database for rom detection.
-- Sound emulation using SDL Audio and [Sms_Snd_Emu library](http://blargg.8bitalley.com/libs/audio.html#Sms_Snd_Emu).
+- Sound emulation using SDL Audio and [Sms_Snd_Emu library](https://www.slack.net/~ant/libs/audio.html#Sms_Snd_Emu).
 - Battery powered RAM save support.
 - Save states.
 - Compressed rom support (ZIP).
