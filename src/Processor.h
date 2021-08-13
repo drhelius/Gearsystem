@@ -70,6 +70,7 @@ public:
     void ClearProActionReplayCheats();
     ProcessorState* GetState();
     bool Disassemble(u16 address);
+    void DisassembleNextOpcode();
     bool BreakpointHit();
     void RequestMemoryBreakpoint();
     bool Halted();

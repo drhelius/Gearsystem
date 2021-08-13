@@ -155,9 +155,9 @@ bool GearsystemCore::LoadROM(const char* szFilePath, Cartridge::ForceConfigurati
         m_pMemory->ResetDisassembledMemory();
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
         bool romTypeOK = AddMemoryRules();
-#ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
-        m_pProcessor->Disassemble(m_pProcessor->GetState()->PC->GetValue());
-#endif
+
+        m_pProcessor->DisassembleNextOpcode();
+
         if (!romTypeOK)
         {
             Log("There was a problem with the cartridge header. File: %s...", szFilePath);
@@ -179,6 +179,8 @@ bool GearsystemCore::LoadROMFromBuffer(const u8* buffer, int size, Cartridge::Fo
         m_pMemory->ResetDisassembledMemory();
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
         bool romTypeOK = AddMemoryRules();
+
+        m_pProcessor->DisassembleNextOpcode();
 
         if (!romTypeOK)
         {
@@ -330,9 +332,9 @@ void GearsystemCore::ResetROM(Cartridge::ForceConfiguration* config)
         Reset();
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
         AddMemoryRules();
-#ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
-        m_pProcessor->Disassemble(m_pProcessor->GetState()->PC->GetValue());
-#endif
+// #ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
+//         m_pProcessor->Disassemble(m_pProcessor->GetState()->PC->GetValue());
+// #endif
     }
 }
 
