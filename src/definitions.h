@@ -38,7 +38,7 @@
 #endif
 
 #define GEARSYSTEM_TITLE "Gearsystem"
-#define GEARSYSTEM_VERSION "3.3.1"
+#define GEARSYSTEM_VERSION "3.4.0"
 
 #ifndef EMULATOR_BUILD
 #define EMULATOR_BUILD "undefined"
