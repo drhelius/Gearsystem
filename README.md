@@ -14,12 +14,12 @@ If you find a bug or want new features, you can help me [openning an issue](http
 
 ## Downloads
 
-- **Windows**: [Gearsystem-3.4.0-Windows.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.4.0/Gearsystem-3.4.0-Windows.zip)
+- **Windows**: [Gearsystem-3.4.1-Windows.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.4.1/Gearsystem-3.4.1-Windows.zip)
   - NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572)
 - **macOS**:
   - `brew install --cask gearsystem`
-  - Or install manually: [Gearsystem-3.4.0-macOS.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.4.0/Gearsystem-3.4.0-macOS.zip)
-- **Linux**: [Gearsystem-3.4.0-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.4.0/Gearsystem-3.4.0-Linux.tar.xz)
+  - Or install manually: [Gearsystem-3.4.1-macOS.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.4.1/Gearsystem-3.4.1-macOS.zip)
+- **Linux**: [Gearsystem-3.4.1-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.4.1/Gearsystem-3.4.1-Linux.tar.xz)
   - NOTE: You may need to install `libsdl2` and `libglew`
 - **RetroArch**: [Libretro core documentation](https://libretro.readthedocs.io/en/latest/library/gearsystem/).
 
