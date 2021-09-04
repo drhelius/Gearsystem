@@ -315,7 +315,7 @@ void Processor::UndocumentedOPCode()
 
 void Processor::DisassembleNextOpcode()
 {
-#ifndef GEARCOLECO_DISABLE_DISASSEMBLER
+#ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
     if (Disassemble(PC.GetValue()) || m_bRequestMemBreakpoint)
         m_bBreakpointHit = true;
 #endif
