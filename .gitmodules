@@ -1,0 +1,3 @@
+[submodule "platforms/desktop-shared/SDL_GameControllerDB"]
+	path = platforms/desktop-shared/SDL_GameControllerDB
+	url = https://github.com/gabomdq/SDL_GameControllerDB
