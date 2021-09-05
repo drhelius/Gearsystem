@@ -818,7 +818,7 @@ void Video::RenderSpritesSG1000(int line)
             continue;
 
         sprite_count++;
-        if (!SetBit(m_VdpStatus, 6) && (sprite_count > 4))
+        if (!IsSetBit(m_VdpStatus, 6) && (sprite_count > 4))
         {
             m_VdpStatus = SetBit(m_VdpStatus, 6);
             m_VdpStatus = (m_VdpStatus & 0xE0) | sprite;
