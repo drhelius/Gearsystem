@@ -1,0 +1,1 @@
+../desktop-shared/SDL_GameControllerDB/gamecontrollerdb.txt
