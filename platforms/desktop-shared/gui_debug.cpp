@@ -1283,6 +1283,9 @@ static void debug_window_vram_sprites(void)
 
     for (int s = 0; s < 64; s++)
     {
+        if ((p[s].x == 0) && (p[s].y == 0))
+            continue;
+
         float mouse_x = io.MousePos.x - p[s].x;
         float mouse_y = io.MousePos.y - p[s].y;
 
