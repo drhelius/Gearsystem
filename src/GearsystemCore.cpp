@@ -332,9 +332,7 @@ void GearsystemCore::ResetROM(Cartridge::ForceConfiguration* config)
         Reset();
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
         AddMemoryRules();
-// #ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
-//         m_pProcessor->Disassemble(m_pProcessor->GetState()->PC->GetValue());
-// #endif
+        m_pProcessor->DisassembleNextOpcode();
     }
 }
 
