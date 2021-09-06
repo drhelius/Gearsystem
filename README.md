@@ -21,7 +21,7 @@ If you find a bug or want new features, you can help me [openning an issue](http
   - Or install manually: [Gearsystem-3.4.1-macOS.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.4.1/Gearsystem-3.4.1-macOS.zip)
 - **Linux**: [Gearsystem-3.4.1-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.4.1/Gearsystem-3.4.1-Linux.tar.xz)
   - NOTE: You may need to install `libsdl2` and `libglew`
-- **RetroArch**: [Libretro core documentation](https://libretro.readthedocs.io/en/latest/library/gearsystem/).
+- **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearsystem/).
 
 ## Supported Machines
 
