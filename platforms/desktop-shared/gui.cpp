@@ -72,6 +72,22 @@ static Cartridge::CartridgeZones get_zone(int index);
 static Cartridge::CartridgeSystem get_system(int index);
 static Cartridge::CartridgeRegions get_region(int index);
 
+struct GuiShortCutEventMapping
+{
+    gui_ShortCutEvent event;
+    config_Key* key;
+};
+
+static GuiShortCutEventMapping gui_shortcut_event_map[] =
+{
+    { gui_ShortcutDebugContinue, &config_debug.key_continue },
+    { gui_ShortcutDebugNextFrame, &config_debug.key_step_frame },
+    { gui_ShortcutDebugRuntocursor, &config_debug.key_run_to_cursor },
+    { gui_ShortcutDebugBreakpoint, &config_debug.key_toggle_breakpoint },
+    { gui_ShortcutDebugStep, &config_debug.key_step_over },
+    { gui_ShortcutDebugGoBack, &config_debug.key_go_back }
+};
+
 void gui_init(void)
 {
     IMGUI_CHECKVERSION();
@@ -186,6 +202,21 @@ void gui_shortcut(gui_ShortCutEvent event)
     }
 }
 
+bool gui_process_input(int key, int mod)
+{
+    for (int i = 0; i < SDL_arraysize(gui_shortcut_event_map); i++)
+    {
+        const GuiShortCutEventMapping& shortcutMap = gui_shortcut_event_map[i];
+        if (key == shortcutMap.key->scancode && (((mod & shortcutMap.key->modifier) != 0) || (mod == 0 && shortcutMap.key->modifier == 0)))
+        {
+            gui_shortcut(shortcutMap.event);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void gui_load_rom(const char* path)
 {
     Cartridge::ForceConfiguration config;
@@ -214,6 +245,39 @@ void gui_load_rom(const char* path)
         for (int i=0; i < (GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT); i++)
         {
             emu_frame_buffer[i] = 0;
+        }
+    }
+}
+
+static void make_shortcut_string(char* buffer, int bufferSize, gui_ShortCutEvent shortcut)
+{
+    for (int i = 0; i < SDL_arraysize(gui_shortcut_event_map); i++)
+    {
+        const GuiShortCutEventMapping& shortcutMap = gui_shortcut_event_map[i];
+        if (shortcutMap.event == shortcut)
+        {
+            const char* scancodeName = SDL_GetScancodeName(shortcutMap.key->scancode);
+            const char* modifierName = "";
+            SDL_Keymod mod = shortcutMap.key->modifier;
+            if (mod & KMOD_CTRL)
+            {
+                modifierName = "CTRL + ";
+            }
+            else if (mod & KMOD_ALT)
+            {
+                modifierName = "ALT + ";
+            }
+            else if (mod & KMOD_SHIFT)
+            {
+                modifierName = "SHIFT + ";
+            }
+            else if (mod & KMOD_GUI)
+            {
+                modifierName = GUI_KEY " + ";
+            }
+
+            snprintf(buffer, bufferSize, "%s%s", modifierName, scancodeName);
+            break;
         }
     }
 }
@@ -724,36 +788,45 @@ static void main_menu(void)
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Step Over", "CTRL + F10", (void*)0, config_debug.debug))
+            constexpr int MAX_SHORTCUT_NAME = 32;
+            char shortcut[MAX_SHORTCUT_NAME];
+
+            make_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugStep);
+            if (ImGui::MenuItem("Step Over", shortcut, (void*)0, config_debug.debug))
             {
                 emu_debug_step();
             }
 
-            if (ImGui::MenuItem("Step Frame", "CTRL + F6", (void*)0, config_debug.debug))
+            make_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugNextFrame);
+            if (ImGui::MenuItem("Step Frame", shortcut, (void*)0, config_debug.debug))
             {
                 emu_debug_next_frame();
             }
 
-            if (ImGui::MenuItem("Continue", "CTRL + F5", (void*)0, config_debug.debug))
+            make_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugContinue);
+            if (ImGui::MenuItem("Continue", shortcut, (void*)0, config_debug.debug))
             {
                 emu_debug_continue();
             }
 
-            if (ImGui::MenuItem("Run To Cursor", "CTRL + F8", (void*)0, config_debug.debug))
+            make_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugRuntocursor);
+            if (ImGui::MenuItem("Run To Cursor", shortcut, (void*)0, config_debug.debug))
             {
                 gui_debug_runtocursor();
             }
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Go Back", "CTRL + BACKSPACE", (void*)0, config_debug.debug))
+            make_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugGoBack);
+            if (ImGui::MenuItem("Go Back", shortcut, (void*)0, config_debug.debug))
             {
                 gui_debug_go_back();
             }
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Toggle Breakpoint", "CTRL + F9", (void*)0, config_debug.debug))
+            make_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugBreakpoint);
+            if (ImGui::MenuItem("Toggle Breakpoint", shortcut, (void*)0, config_debug.debug))
             {
                 gui_debug_toggle_breakpoint();
             }

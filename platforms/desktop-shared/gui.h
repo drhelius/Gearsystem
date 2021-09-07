@@ -65,6 +65,7 @@ EXTERN void gui_init(void);
 EXTERN void gui_destroy(void);
 EXTERN void gui_render(void);
 EXTERN void gui_shortcut(gui_ShortCutEvent event);
+EXTERN bool gui_process_input(int key, int mod);
 EXTERN void gui_load_rom(const char* path);
 
 #undef GUI_IMPORT

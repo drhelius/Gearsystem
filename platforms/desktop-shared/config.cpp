@@ -26,6 +26,7 @@
 #include "config.h"
 
 static bool check_portable(void);
+static config_Key read_key(const char* group, const char* key, config_Key default_value);
 static int read_int(const char* group, const char* key, int default_value);
 static void write_int(const char* group, const char* key, int integer);
 static float read_float(const char* group, const char* key, float default_value);
@@ -105,6 +106,12 @@ void config_read(void)
     config_debug.show_processor = read_bool("Debug", "Processor", true);
     config_debug.show_video = read_bool("Debug", "Video", false);
     config_debug.font_size = read_int("Debug", "FontSize", 0);
+    config_debug.key_step_over = read_key("Debug", "KeyStepOver", { SDL_SCANCODE_F10, static_cast<SDL_Keymod>(KMOD_CTRL) });
+    config_debug.key_step_frame = read_key("Debug", "KeyStepFrame", { SDL_SCANCODE_F6, static_cast<SDL_Keymod>(KMOD_CTRL) });
+    config_debug.key_continue = read_key("Debug", "KeyContinue", { SDL_SCANCODE_F5, static_cast<SDL_Keymod>(KMOD_CTRL) });
+    config_debug.key_run_to_cursor = read_key("Debug", "KeyRunToCursor", { SDL_SCANCODE_F8, static_cast<SDL_Keymod>(KMOD_CTRL) });
+    config_debug.key_go_back = read_key("Debug", "KeyGoBack", { SDL_SCANCODE_BACKSPACE, static_cast<SDL_Keymod>(KMOD_CTRL) });
+    config_debug.key_toggle_breakpoint = read_key("Debug", "KeyToggleBreakpoint", { SDL_SCANCODE_F9, static_cast<SDL_Keymod>(KMOD_CTRL) });
     
     config_emulator.ffwd_speed = read_int("Emulator", "FFWD", 1);
     config_emulator.save_slot = read_int("Emulator", "SaveSlot", 0);
@@ -286,6 +293,63 @@ static bool check_portable(void)
     }
 
     return false;
+}
+
+static SDL_Keymod string_to_kmod(const std::string& value)
+{
+    struct KModMap
+    {
+        const char* keymodName;
+        SDL_Keymod keymod;
+    };
+
+    static const KModMap kmod_map[] =
+    {
+        { "NONE", KMOD_NONE },
+        { "LSHIFT", KMOD_LSHIFT },
+        { "RSHIFT", KMOD_RSHIFT },
+        { "SHIFT", static_cast<SDL_Keymod>(KMOD_LSHIFT | KMOD_RSHIFT) },
+        { "LCTRL", KMOD_LCTRL },
+        { "RCTRL", KMOD_RCTRL },
+        { "CTRL", static_cast<SDL_Keymod>(KMOD_LCTRL | KMOD_RCTRL) },
+        { "LALT", KMOD_LALT },
+        { "RALT", KMOD_RALT },
+        { "ALT", static_cast<SDL_Keymod>(KMOD_LALT | KMOD_RALT) },
+        { "L" GUI_KEY, KMOD_LGUI },
+        { "R" GUI_KEY, KMOD_RGUI },
+        { GUI_KEY, static_cast<SDL_Keymod>(KMOD_LGUI | KMOD_RGUI) }
+    };
+
+    for (int i = 0; i < SDL_arraysize(kmod_map); i++)
+    {
+        if (!stricmp(kmod_map[i].keymodName, value.c_str()))
+        {
+            return kmod_map[i].keymod;
+        }
+    }
+
+    return KMOD_NONE;
+}
+
+static config_Key read_key(const char* group, const char* key, config_Key default_value)
+{
+    config_Key ret = { SDL_SCANCODE_UNKNOWN, KMOD_NONE };
+
+    std::string value = config_ini_data[group][key];
+    if(value.empty())
+    {
+        ret = default_value;
+    }
+    else
+    {
+        ret.scancode = SDL_GetScancodeFromName(value.c_str());
+        std::string modKey = key + std::string("Modifier");
+        value = config_ini_data[group][modKey];
+        if(!value.empty())
+            ret.modifier = string_to_kmod(value);
+    }
+
+    return ret;
 }
 
 static int read_int(const char* group, const char* key, int default_value)

@@ -34,6 +34,14 @@
 
 static const int config_max_recent_roms = 10;
 
+#ifdef __APPLE__
+#define GUI_KEY "CMD"
+#elif _WIN64 || defined(_WIN32)
+#define GUI_KEY "WIN"
+#else
+#define GUI_KEY "META"
+#endif
+
 struct config_Emulator
 {
     bool paused = false;
@@ -96,6 +104,12 @@ struct config_Input
     int gamepad_y_axis;
 };
 
+struct config_Key
+{
+    SDL_Scancode scancode;
+    SDL_Keymod modifier;
+};
+
 struct config_Debug
 {
     bool debug = false;
@@ -105,6 +119,13 @@ struct config_Debug
     bool show_memory = true;
     bool show_video = false;
     int font_size = 0;
+
+    config_Key key_step_over;
+    config_Key key_step_frame;
+    config_Key key_continue;
+    config_Key key_run_to_cursor;
+    config_Key key_go_back;
+    config_Key key_toggle_breakpoint;
 };
 
 EXTERN mINI::INIFile* config_ini_file;
