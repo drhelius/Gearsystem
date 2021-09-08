@@ -204,7 +204,7 @@ void gui_shortcut(gui_ShortCutEvent event)
 
 bool gui_process_input(int key, int mod)
 {
-    for (int i = 0; i < SDL_arraysize(gui_shortcut_event_map); i++)
+    for (uint32_t i = 0; i < SDL_arraysize(gui_shortcut_event_map); i++)
     {
         const GuiShortCutEventMapping& shortcutMap = gui_shortcut_event_map[i];
         if (key == shortcutMap.key->scancode && (((mod & shortcutMap.key->modifier) != 0) || (mod == 0 && shortcutMap.key->modifier == 0)))
@@ -251,7 +251,7 @@ void gui_load_rom(const char* path)
 
 static void make_shortcut_string(char* buffer, int bufferSize, gui_ShortCutEvent shortcut)
 {
-    for (int i = 0; i < SDL_arraysize(gui_shortcut_event_map); i++)
+    for (uint32_t i = 0; i < SDL_arraysize(gui_shortcut_event_map); i++)
     {
         const GuiShortCutEventMapping& shortcutMap = gui_shortcut_event_map[i];
         if (shortcutMap.event == shortcut)

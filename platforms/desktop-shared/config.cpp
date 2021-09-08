@@ -320,9 +320,9 @@ static SDL_Keymod string_to_kmod(const std::string& value)
         { GUI_KEY, static_cast<SDL_Keymod>(KMOD_LGUI | KMOD_RGUI) }
     };
 
-    for (int i = 0; i < SDL_arraysize(kmod_map); i++)
+    for (uint32_t i = 0; i < SDL_arraysize(kmod_map); i++)
     {
-        if (!stricmp(kmod_map[i].keymodName, value.c_str()))
+        if (!SDL_strcasecmp(kmod_map[i].keymodName, value.c_str()))
         {
             return kmod_map[i].keymod;
         }
