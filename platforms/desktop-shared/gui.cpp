@@ -72,22 +72,6 @@ static Cartridge::CartridgeZones get_zone(int index);
 static Cartridge::CartridgeSystem get_system(int index);
 static Cartridge::CartridgeRegions get_region(int index);
 
-struct GuiShortCutEventMapping
-{
-    gui_ShortCutEvent event;
-    config_Key* key;
-};
-
-static GuiShortCutEventMapping gui_shortcut_event_map[] =
-{
-    { gui_ShortcutDebugContinue, &config_debug.key_continue },
-    { gui_ShortcutDebugNextFrame, &config_debug.key_step_frame },
-    { gui_ShortcutDebugRuntocursor, &config_debug.key_run_to_cursor },
-    { gui_ShortcutDebugBreakpoint, &config_debug.key_toggle_breakpoint },
-    { gui_ShortcutDebugStep, &config_debug.key_step_over },
-    { gui_ShortcutDebugGoBack, &config_debug.key_go_back }
-};
-
 void gui_init(void)
 {
     IMGUI_CHECKVERSION();
@@ -204,12 +188,16 @@ void gui_shortcut(gui_ShortCutEvent event)
 
 bool gui_process_input(int key, int mod)
 {
-    for (uint32_t i = 0; i < SDL_arraysize(gui_shortcut_event_map); i++)
+    // Mask out numlock, capslock, and mode scancodes because we don't care about them.
+    mod &= ~(KMOD_NUM | KMOD_CAPS | KMOD_MODE);
+
+    // Find a matching gui event and handle it.
+    for (uint32_t i = 0; i < gui_ShortCutEventMax; i++)
     {
-        const GuiShortCutEventMapping& shortcutMap = gui_shortcut_event_map[i];
-        if (key == shortcutMap.key->scancode && (((mod & shortcutMap.key->modifier) != 0) || (mod == 0 && shortcutMap.key->modifier == 0)))
+        const config_Key& shortcut = config_shortcuts.shortcuts[i];
+        if (key == shortcut.scancode && (((mod & shortcut.modifier) != 0) || (mod == 0 && shortcut.modifier == 0)))
         {
-            gui_shortcut(shortcutMap.event);
+            gui_shortcut(static_cast<gui_ShortCutEvent>(i));
             return true;
         }
     }
@@ -249,39 +237,6 @@ void gui_load_rom(const char* path)
     }
 }
 
-static void make_shortcut_string(char* buffer, int bufferSize, gui_ShortCutEvent shortcut)
-{
-    for (uint32_t i = 0; i < SDL_arraysize(gui_shortcut_event_map); i++)
-    {
-        const GuiShortCutEventMapping& shortcutMap = gui_shortcut_event_map[i];
-        if (shortcutMap.event == shortcut)
-        {
-            const char* scancodeName = SDL_GetScancodeName(shortcutMap.key->scancode);
-            const char* modifierName = "";
-            SDL_Keymod mod = shortcutMap.key->modifier;
-            if (mod & KMOD_CTRL)
-            {
-                modifierName = "CTRL + ";
-            }
-            else if (mod & KMOD_ALT)
-            {
-                modifierName = "ALT + ";
-            }
-            else if (mod & KMOD_SHIFT)
-            {
-                modifierName = "SHIFT + ";
-            }
-            else if (mod & KMOD_GUI)
-            {
-                modifierName = GUI_KEY " + ";
-            }
-
-            snprintf(buffer, bufferSize, "%s%s", modifierName, scancodeName);
-            break;
-        }
-    }
-}
-
 static void main_menu(void)
 {
     bool open_rom = false;
@@ -294,13 +249,17 @@ static void main_menu(void)
     bool open_sms_bootrom = false;
     bool open_gg_bootrom = false;
     
+    constexpr int MAX_SHORTCUT_NAME = 32;
+    char shortcut[MAX_SHORTCUT_NAME];
+
     if (show_main_menu && ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu(GEARSYSTEM_TITLE))
         {
             gui_in_use = true;
 
-            if (ImGui::MenuItem("Open ROM...", "Ctrl+O"))
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutOpenROM);
+            if (ImGui::MenuItem("Open ROM...", shortcut))
             {
                 open_rom = true;
             }
@@ -323,19 +282,22 @@ static void main_menu(void)
 
             ImGui::Separator();
             
-            if (ImGui::MenuItem("Reset", "Ctrl+R"))
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutReset);
+            if (ImGui::MenuItem("Reset", shortcut))
             {
                 menu_reset();
             }
 
-            if (ImGui::MenuItem("Pause", "Ctrl+P", &config_emulator.paused))
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutPause);
+            if (ImGui::MenuItem("Pause", shortcut, &config_emulator.paused))
             {
                 menu_pause();
             }
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Fast Forward", "Ctrl+F", &config_emulator.ffwd))
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutFFWD);
+            if (ImGui::MenuItem("Fast Forward", shortcut, &config_emulator.ffwd))
             {
                 menu_ffwd();
             }
@@ -382,12 +344,14 @@ static void main_menu(void)
                 ImGui::EndMenu();
             }
 
-            if (ImGui::MenuItem("Save State", "Ctrl+S")) 
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutSaveState);
+            if (ImGui::MenuItem("Save State", shortcut)) 
             {
                 emu_save_state_slot(config_emulator.save_slot + 1);
             }
 
-            if (ImGui::MenuItem("Load State", "Ctrl+L"))
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutLoadState);
+            if (ImGui::MenuItem("Load State", shortcut))
             {
                 emu_load_state_slot(config_emulator.save_slot + 1);
             }
@@ -581,7 +545,8 @@ static void main_menu(void)
                 application_trigger_fullscreen(application_fullscreen);
             }
 
-            ImGui::MenuItem("Show Menu", "CTRL+M", &show_main_menu);
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutShowMainMenu);
+            ImGui::MenuItem("Show Menu", shortcut, &show_main_menu);
 
             ImGui::Separator();
 
@@ -788,28 +753,25 @@ static void main_menu(void)
 
             ImGui::Separator();
 
-            constexpr int MAX_SHORTCUT_NAME = 32;
-            char shortcut[MAX_SHORTCUT_NAME];
-
-            make_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugStep);
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugStep);
             if (ImGui::MenuItem("Step Over", shortcut, (void*)0, config_debug.debug))
             {
                 emu_debug_step();
             }
 
-            make_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugNextFrame);
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugNextFrame);
             if (ImGui::MenuItem("Step Frame", shortcut, (void*)0, config_debug.debug))
             {
                 emu_debug_next_frame();
             }
 
-            make_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugContinue);
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugContinue);
             if (ImGui::MenuItem("Continue", shortcut, (void*)0, config_debug.debug))
             {
                 emu_debug_continue();
             }
 
-            make_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugRuntocursor);
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugRuntocursor);
             if (ImGui::MenuItem("Run To Cursor", shortcut, (void*)0, config_debug.debug))
             {
                 gui_debug_runtocursor();
@@ -817,7 +779,7 @@ static void main_menu(void)
 
             ImGui::Separator();
 
-            make_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugGoBack);
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugGoBack);
             if (ImGui::MenuItem("Go Back", shortcut, (void*)0, config_debug.debug))
             {
                 gui_debug_go_back();
@@ -825,7 +787,7 @@ static void main_menu(void)
 
             ImGui::Separator();
 
-            make_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugBreakpoint);
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugBreakpoint);
             if (ImGui::MenuItem("Toggle Breakpoint", shortcut, (void*)0, config_debug.debug))
             {
                 gui_debug_toggle_breakpoint();

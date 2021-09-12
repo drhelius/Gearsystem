@@ -43,6 +43,7 @@
     <ClCompile Include="..\desktop-shared\FileBrowser\ImGuiFileBrowser.cpp" />
     <ClCompile Include="..\desktop-shared\gui.cpp" />
     <ClCompile Include="..\desktop-shared\gui_debug.cpp" />
+    <ClCompile Include="..\desktop-shared\gui_events.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui_demo.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui_draw.cpp" />
@@ -107,6 +108,7 @@
     <ClInclude Include="..\desktop-shared\gui.h" />
     <ClInclude Include="..\desktop-shared\gui_debug.h" />
     <ClInclude Include="..\desktop-shared\gui_debug_constants.h" />
+    <ClInclude Include="..\desktop-shared\gui_events.h" />
     <ClInclude Include="..\desktop-shared\imgui\fonts\RobotoMedium.h" />
     <ClInclude Include="..\desktop-shared\imgui\imconfig.h" />
     <ClInclude Include="..\desktop-shared\imgui\imgui.h" />
@@ -120,6 +122,7 @@
     <ClInclude Include="..\desktop-shared\renderer.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\desktop-shared\gui_events.def" />
     <None Include="..\desktop-shared\Makefile.common" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -150,6 +150,9 @@
     <ClCompile Include="..\..\src\MSXMemoryRule.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="..\desktop-shared\gui_events.cpp">
+      <Filter>desktop_shared</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\audio-shared\Sound_Queue.h">
@@ -347,9 +350,15 @@
     <ClInclude Include="..\..\src\MSXMemoryRule.h">
       <Filter>core</Filter>
     </ClInclude>
+    <ClInclude Include="..\desktop-shared\gui_events.h">
+      <Filter>desktop_shared</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\desktop-shared\Makefile.common">
+      <Filter>desktop_shared</Filter>
+    </None>
+    <None Include="..\desktop-shared\gui_events.def">
       <Filter>desktop_shared</Filter>
     </None>
   </ItemGroup>

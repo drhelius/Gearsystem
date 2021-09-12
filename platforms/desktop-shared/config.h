@@ -25,6 +25,7 @@
 #define MINI_CASE_SENSITIVE
 #include "mINI/ini.h"
 #include "imgui/imgui.h"
+#include "gui_events.h"
 
 #ifdef CONFIG_IMPORT
     #define EXTERN
@@ -33,14 +34,6 @@
 #endif
 
 static const int config_max_recent_roms = 10;
-
-#ifdef __APPLE__
-#define GUI_KEY "CMD"
-#elif _WIN64 || defined(_WIN32)
-#define GUI_KEY "WIN"
-#else
-#define GUI_KEY "META"
-#endif
 
 struct config_Emulator
 {
@@ -110,6 +103,11 @@ struct config_Key
     SDL_Keymod modifier;
 };
 
+struct config_GuiShortCuts
+{
+    config_Key shortcuts[gui_ShortCutEventMax];
+};
+
 struct config_Debug
 {
     bool debug = false;
@@ -119,13 +117,6 @@ struct config_Debug
     bool show_memory = true;
     bool show_video = false;
     int font_size = 0;
-
-    config_Key key_step_over;
-    config_Key key_step_frame;
-    config_Key key_continue;
-    config_Key key_run_to_cursor;
-    config_Key key_go_back;
-    config_Key key_toggle_breakpoint;
 };
 
 EXTERN mINI::INIFile* config_ini_file;
@@ -138,6 +129,7 @@ EXTERN config_Video config_video;
 EXTERN config_Audio config_audio;
 EXTERN config_Input config_input[2];
 EXTERN config_Debug config_debug;
+EXTERN config_GuiShortCuts config_shortcuts;
 
 EXTERN void config_init(void);
 EXTERN void config_destroy(void);

@@ -437,35 +437,7 @@ static void sdl_shortcuts_gui(const SDL_Event* event)
     {
         int key = event->key.keysym.scancode;
         int mod = event->key.keysym.mod;
-        bool handled = gui_process_input(key, mod);
-
-        if (!handled && (mod & KMOD_CTRL))
-        {
-            switch (key)
-            {
-                case SDL_SCANCODE_O:
-                    gui_shortcut(gui_ShortcutOpenROM);
-                    break;
-                case SDL_SCANCODE_R:
-                    gui_shortcut(gui_ShortcutReset);
-                    break;
-                case SDL_SCANCODE_P:
-                    gui_shortcut(gui_ShortcutPause);
-                    break;
-                case SDL_SCANCODE_F:
-                    gui_shortcut(gui_ShortcutFFWD);
-                    break;
-                case SDL_SCANCODE_L:
-                    gui_shortcut(gui_ShortcutLoadState);
-                    break;
-                case SDL_SCANCODE_S:
-                    gui_shortcut(gui_ShortcutSaveState);
-                    break;
-                case SDL_SCANCODE_M:
-                    gui_shortcut(gui_ShortcutShowMainMenu);
-                    break;
-            }
-        }
+        gui_process_input(key, mod);
     }
 }
 

@@ -21,6 +21,7 @@
 #define	GUI_H
 
 #include "imgui/imgui.h"
+#include "gui_events.h"
 
 #ifdef GUI_IMPORT
     #define EXTERN
@@ -39,23 +40,6 @@
   (byte & 0x04 ? '1' : '0'), \
   (byte & 0x02 ? '1' : '0'), \
   (byte & 0x01 ? '1' : '0') 
-
-enum gui_ShortCutEvent
-{
-    gui_ShortcutOpenROM = 0,
-    gui_ShortcutReset,
-    gui_ShortcutPause,
-    gui_ShortcutFFWD,
-    gui_ShortcutSaveState,
-    gui_ShortcutLoadState,
-    gui_ShortcutDebugStep,
-    gui_ShortcutDebugContinue,
-    gui_ShortcutDebugNextFrame,
-    gui_ShortcutDebugBreakpoint,
-    gui_ShortcutDebugRuntocursor,
-    gui_ShortcutDebugGoBack,
-    gui_ShortcutShowMainMenu
-};
 
 EXTERN bool gui_in_use;
 EXTERN ImFont* gui_default_font;
