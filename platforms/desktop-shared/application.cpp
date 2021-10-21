@@ -433,52 +433,11 @@ static void sdl_events_emu(const SDL_Event* event)
 
 static void sdl_shortcuts_gui(const SDL_Event* event)
 {
-    if ((event->type == SDL_KEYDOWN) && (event->key.keysym.mod & KMOD_CTRL))
+    if (event->type == SDL_KEYDOWN)
     {
         int key = event->key.keysym.scancode;
-        
-        switch (key)
-        {
-            case SDL_SCANCODE_O:
-                gui_shortcut(gui_ShortcutOpenROM);
-                break;
-            case SDL_SCANCODE_R:
-                gui_shortcut(gui_ShortcutReset);
-                break;
-            case SDL_SCANCODE_P:
-                gui_shortcut(gui_ShortcutPause);
-                break;
-            case SDL_SCANCODE_F:
-                gui_shortcut(gui_ShortcutFFWD);
-                break;
-            case SDL_SCANCODE_L:
-                gui_shortcut(gui_ShortcutLoadState);
-                break;
-            case SDL_SCANCODE_S:
-                gui_shortcut(gui_ShortcutSaveState);
-                break;
-            case SDL_SCANCODE_M:
-                gui_shortcut(gui_ShortcutShowMainMenu);
-                break;
-            case SDL_SCANCODE_F5:
-                gui_shortcut(gui_ShortcutDebugContinue);
-                break;
-            case SDL_SCANCODE_F6:
-                gui_shortcut(gui_ShortcutDebugNextFrame);
-                break;
-            case SDL_SCANCODE_F8:
-                gui_shortcut(gui_ShortcutDebugRuntocursor);
-                break;
-            case SDL_SCANCODE_F9:
-                gui_shortcut(gui_ShortcutDebugBreakpoint);
-                break;
-            case SDL_SCANCODE_F10:
-                gui_shortcut(gui_ShortcutDebugStep);
-                break;
-            case SDL_SCANCODE_BACKSPACE:
-                gui_shortcut(gui_ShortcutDebugGoBack);
-                break;
-        }
+        int mod = event->key.keysym.mod;
+        gui_process_input(key, mod);
     }
 }
 

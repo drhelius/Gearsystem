@@ -26,6 +26,7 @@
 #include "config.h"
 
 static bool check_portable(void);
+static config_Key read_shortcut_key(const char* group, const char* key, config_Key default_value);
 static int read_int(const char* group, const char* key, int default_value);
 static void write_int(const char* group, const char* key, int integer);
 static float read_float(const char* group, const char* key, float default_value);
@@ -34,6 +35,52 @@ static bool read_bool(const char* group, const char* key, bool default_value);
 static void write_bool(const char* group, const char* key, bool boolean);
 static std::string read_string(const char* group, const char* key);
 static void write_string(const char* group, const char* key, std::string value);
+
+struct KModMap
+{
+    const char* keymodName;
+    SDL_Keymod keymod;
+};
+
+static const KModMap modifiers_map[] =
+{
+    { "NONE", KMOD_NONE },
+    { "LSHIFT", KMOD_LSHIFT },
+    { "RSHIFT", KMOD_RSHIFT },
+    { "SHIFT", static_cast<SDL_Keymod>(KMOD_LSHIFT | KMOD_RSHIFT) },
+    { "LCTRL", KMOD_LCTRL },
+    { "RCTRL", KMOD_RCTRL },
+    { "CTRL", static_cast<SDL_Keymod>(KMOD_LCTRL | KMOD_RCTRL) },
+    { "LALT", KMOD_LALT },
+    { "RALT", KMOD_RALT },
+    { "ALT", static_cast<SDL_Keymod>(KMOD_LALT | KMOD_RALT) },
+    { "L" GUI_EVENT_PLATFORM_KEY_UPPERCASE, KMOD_LGUI },
+    { "R" GUI_EVENT_PLATFORM_KEY_UPPERCASE, KMOD_RGUI },
+    { GUI_EVENT_PLATFORM_KEY_UPPERCASE, static_cast<SDL_Keymod>(KMOD_LGUI | KMOD_RGUI) }
+};
+
+static const char* config_modifiers[] =
+{
+    "LShift",
+    "RShift",
+    "Shift",
+    "LCtrl",
+    "RCtrl",
+    "Ctrl",
+    "LAlt",
+    "RAlt",
+    "Alt",
+    "L" GUI_EVENT_PLATFORM_KEY_CAMELCASE,
+    "R" GUI_EVENT_PLATFORM_KEY_CAMELCASE,
+    GUI_EVENT_PLATFORM_KEY_CAMELCASE
+};
+
+static void config_setShortcut(gui_ShortCutEvent event, uint32_t modifier, SDL_Scancode scancode)
+{
+    assert(event >= 0 && event < gui_ShortCutEventMax);
+    config_shortcuts.shortcuts[event].modifier = static_cast<SDL_Keymod>(modifier);
+    config_shortcuts.shortcuts[event].scancode = scancode;
+}
 
 void config_init(void)
 {
@@ -79,6 +126,21 @@ void config_init(void)
     config_input[1].gamepad_x_axis = 0;
     config_input[1].gamepad_y_axis = 1;
 
+    // Initialise default shortcuts.
+    config_setShortcut(gui_ShortcutOpenROM, KMOD_CTRL, SDL_SCANCODE_O);
+    config_setShortcut(gui_ShortcutReset, KMOD_CTRL, SDL_SCANCODE_R);
+    config_setShortcut(gui_ShortcutPause, KMOD_CTRL, SDL_SCANCODE_P);
+    config_setShortcut(gui_ShortcutFFWD, KMOD_CTRL, SDL_SCANCODE_F);
+    config_setShortcut(gui_ShortcutSaveState, KMOD_CTRL, SDL_SCANCODE_S);
+    config_setShortcut(gui_ShortcutLoadState, KMOD_CTRL, SDL_SCANCODE_L);
+    config_setShortcut(gui_ShortcutDebugStep, KMOD_CTRL, SDL_SCANCODE_F10);
+    config_setShortcut(gui_ShortcutDebugContinue, KMOD_CTRL, SDL_SCANCODE_F5);
+    config_setShortcut(gui_ShortcutDebugNextFrame, KMOD_CTRL, SDL_SCANCODE_F6);
+    config_setShortcut(gui_ShortcutDebugBreakpoint, KMOD_CTRL, SDL_SCANCODE_F9);
+    config_setShortcut(gui_ShortcutDebugRuntocursor, KMOD_CTRL, SDL_SCANCODE_F8);
+    config_setShortcut(gui_ShortcutDebugGoBack, KMOD_CTRL, SDL_SCANCODE_BACKSPACE);
+    config_setShortcut(gui_ShortcutShowMainMenu, KMOD_CTRL, SDL_SCANCODE_M);
+
     config_ini_file = new mINI::INIFile(config_emu_file_path);
 }
 
@@ -105,7 +167,15 @@ void config_read(void)
     config_debug.show_processor = read_bool("Debug", "Processor", true);
     config_debug.show_video = read_bool("Debug", "Video", false);
     config_debug.font_size = read_int("Debug", "FontSize", 0);
-    
+
+    for (int i = 0; i < gui_ShortCutEventMax; i++)
+    {
+        // The shortcut was configured with a default setting at startup, so pass that in as the default in case the setting doesn't exist in the .ini
+        gui_ShortCutEvent event = static_cast<gui_ShortCutEvent>(i);
+        const char* name = gui_event_get_name(event);
+        config_shortcuts.shortcuts[i] = read_shortcut_key("Shortcuts", name, config_shortcuts.shortcuts[i]);
+    }
+
     config_emulator.ffwd_speed = read_int("Emulator", "FFWD", 1);
     config_emulator.save_slot = read_int("Emulator", "SaveSlot", 0);
     config_emulator.start_paused = read_bool("Emulator", "StartPaused", false);
@@ -261,6 +331,18 @@ void config_write(void)
     write_int("InputB", "GamepadX", config_input[1].gamepad_x_axis);
     write_int("InputB", "GamepadY", config_input[1].gamepad_y_axis);
 
+    for (int i = 0; i < gui_ShortCutEventMax; i++)
+    {
+        gui_ShortCutEvent event = static_cast<gui_ShortCutEvent>(i);
+        const char* name = gui_event_get_name(event);
+
+        constexpr int MAX_SHORTCUT_NAME = 32;
+        char shortcut[MAX_SHORTCUT_NAME];
+        gui_event_get_shortcut_string(shortcut, sizeof(shortcut), event);
+
+        write_string("Shortcuts", name, shortcut);
+    }
+
     if (config_ini_file->write(config_ini_data, true))
     {
         Log("Settings saved");
@@ -286,6 +368,61 @@ static bool check_portable(void)
     }
 
     return false;
+}
+
+static SDL_Keymod string_to_kmod(const std::string& value)
+{
+    for (uint32_t i = 0; i < SDL_arraysize(modifiers_map); i++)
+    {
+        const KModMap& map = modifiers_map[i];
+        if (!SDL_strcasecmp(map.keymodName, value.c_str()))
+        {
+            return map.keymod;
+        }
+    }
+
+    return KMOD_NONE;
+}
+
+static config_Key read_shortcut_key(const char* group, const char* key, config_Key default_value)
+{
+    config_Key ret = { SDL_SCANCODE_UNKNOWN, KMOD_NONE };
+
+    std::string value = config_ini_data[group][key];
+    if(value.empty())
+    {
+        ret = default_value;
+    }
+    else
+    {
+        // Parse any modifiers.
+        const char* modifier = nullptr;
+        const char* key = value.c_str();
+
+        for (int i = 0; i < SDL_arraysize(config_modifiers); i++)
+        {
+            const char* mod = config_modifiers[i];
+            size_t modLen = strlen(mod);
+
+            // If shortcut starts with "<Mod>+" then it is a valid modifier.
+            if (!strncmp(key, mod, modLen) && key[modLen] == '+')
+            {
+                modifier = mod;
+                break;
+            }
+        }
+
+        if (modifier != nullptr)
+        {
+            key += strlen(modifier) + 1;
+        }
+
+        ret.scancode = SDL_GetScancodeFromName(key);
+        if(modifier)
+            ret.modifier = string_to_kmod(modifier);
+    }
+
+    return ret;
 }
 
 static int read_int(const char* group, const char* key, int default_value)
@@ -369,3 +506,4 @@ static void write_string(const char* group, const char* key, std::string value)
     config_ini_data[group][key] = value;
     Log("Save setting: [%s][%s]=%s", group, key, value.c_str());
 }
+

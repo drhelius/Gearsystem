@@ -186,6 +186,25 @@ void gui_shortcut(gui_ShortCutEvent event)
     }
 }
 
+bool gui_process_input(int key, int mod)
+{
+    // Mask out numlock, capslock, and mode scancodes because we don't care about them.
+    mod &= ~(KMOD_NUM | KMOD_CAPS | KMOD_MODE);
+
+    // Find a matching gui event and handle it.
+    for (uint32_t i = 0; i < gui_ShortCutEventMax; i++)
+    {
+        const config_Key& shortcut = config_shortcuts.shortcuts[i];
+        if (key == shortcut.scancode && (((mod & shortcut.modifier) != 0) || (mod == 0 && shortcut.modifier == 0)))
+        {
+            gui_shortcut(static_cast<gui_ShortCutEvent>(i));
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void gui_load_rom(const char* path)
 {
     Cartridge::ForceConfiguration config;
@@ -230,13 +249,17 @@ static void main_menu(void)
     bool open_sms_bootrom = false;
     bool open_gg_bootrom = false;
     
+    constexpr int MAX_SHORTCUT_NAME = 32;
+    char shortcut[MAX_SHORTCUT_NAME];
+
     if (show_main_menu && ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu(GEARSYSTEM_TITLE))
         {
             gui_in_use = true;
 
-            if (ImGui::MenuItem("Open ROM...", "Ctrl+O"))
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutOpenROM);
+            if (ImGui::MenuItem("Open ROM...", shortcut))
             {
                 open_rom = true;
             }
@@ -259,19 +282,22 @@ static void main_menu(void)
 
             ImGui::Separator();
             
-            if (ImGui::MenuItem("Reset", "Ctrl+R"))
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutReset);
+            if (ImGui::MenuItem("Reset", shortcut))
             {
                 menu_reset();
             }
 
-            if (ImGui::MenuItem("Pause", "Ctrl+P", &config_emulator.paused))
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutPause);
+            if (ImGui::MenuItem("Pause", shortcut, &config_emulator.paused))
             {
                 menu_pause();
             }
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Fast Forward", "Ctrl+F", &config_emulator.ffwd))
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutFFWD);
+            if (ImGui::MenuItem("Fast Forward", shortcut, &config_emulator.ffwd))
             {
                 menu_ffwd();
             }
@@ -318,12 +344,14 @@ static void main_menu(void)
                 ImGui::EndMenu();
             }
 
-            if (ImGui::MenuItem("Save State", "Ctrl+S")) 
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutSaveState);
+            if (ImGui::MenuItem("Save State", shortcut)) 
             {
                 emu_save_state_slot(config_emulator.save_slot + 1);
             }
 
-            if (ImGui::MenuItem("Load State", "Ctrl+L"))
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutLoadState);
+            if (ImGui::MenuItem("Load State", shortcut))
             {
                 emu_load_state_slot(config_emulator.save_slot + 1);
             }
@@ -517,7 +545,8 @@ static void main_menu(void)
                 application_trigger_fullscreen(application_fullscreen);
             }
 
-            ImGui::MenuItem("Show Menu", "CTRL+M", &show_main_menu);
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutShowMainMenu);
+            ImGui::MenuItem("Show Menu", shortcut, &show_main_menu);
 
             ImGui::Separator();
 
@@ -724,36 +753,42 @@ static void main_menu(void)
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Step Over", "CTRL + F10", (void*)0, config_debug.debug))
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugStep);
+            if (ImGui::MenuItem("Step Over", shortcut, (void*)0, config_debug.debug))
             {
                 emu_debug_step();
             }
 
-            if (ImGui::MenuItem("Step Frame", "CTRL + F6", (void*)0, config_debug.debug))
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugNextFrame);
+            if (ImGui::MenuItem("Step Frame", shortcut, (void*)0, config_debug.debug))
             {
                 emu_debug_next_frame();
             }
 
-            if (ImGui::MenuItem("Continue", "CTRL + F5", (void*)0, config_debug.debug))
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugContinue);
+            if (ImGui::MenuItem("Continue", shortcut, (void*)0, config_debug.debug))
             {
                 emu_debug_continue();
             }
 
-            if (ImGui::MenuItem("Run To Cursor", "CTRL + F8", (void*)0, config_debug.debug))
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugRuntocursor);
+            if (ImGui::MenuItem("Run To Cursor", shortcut, (void*)0, config_debug.debug))
             {
                 gui_debug_runtocursor();
             }
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Go Back", "CTRL + BACKSPACE", (void*)0, config_debug.debug))
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugGoBack);
+            if (ImGui::MenuItem("Go Back", shortcut, (void*)0, config_debug.debug))
             {
                 gui_debug_go_back();
             }
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Toggle Breakpoint", "CTRL + F9", (void*)0, config_debug.debug))
+            gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutDebugBreakpoint);
+            if (ImGui::MenuItem("Toggle Breakpoint", shortcut, (void*)0, config_debug.debug))
             {
                 gui_debug_toggle_breakpoint();
             }

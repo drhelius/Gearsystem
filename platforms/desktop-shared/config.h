@@ -25,6 +25,7 @@
 #define MINI_CASE_SENSITIVE
 #include "mINI/ini.h"
 #include "imgui/imgui.h"
+#include "gui_events.h"
 
 #ifdef CONFIG_IMPORT
     #define EXTERN
@@ -96,6 +97,17 @@ struct config_Input
     int gamepad_y_axis;
 };
 
+struct config_Key
+{
+    SDL_Scancode scancode;
+    SDL_Keymod modifier;
+};
+
+struct config_GuiShortCuts
+{
+    config_Key shortcuts[gui_ShortCutEventMax];
+};
+
 struct config_Debug
 {
     bool debug = false;
@@ -117,6 +129,7 @@ EXTERN config_Video config_video;
 EXTERN config_Audio config_audio;
 EXTERN config_Input config_input[2];
 EXTERN config_Debug config_debug;
+EXTERN config_GuiShortCuts config_shortcuts;
 
 EXTERN void config_init(void);
 EXTERN void config_destroy(void);
