@@ -214,6 +214,7 @@ void gui_load_rom(const char* path)
     config.type = get_mapper(config_emulator.mapper);
     config.zone = get_zone(config_emulator.zone);
 
+    push_recent_rom(path);
     emu_resume();
     emu_load_rom(path, config_emulator.save_in_rom_folder, config);
     cheat_list.clear();
@@ -1010,7 +1011,6 @@ static void file_dialog_open_rom(void)
 {
     if(file_dialog.showFileDialog("Open ROM...", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 400), "*.*,.sms,.gg,.sg,.mv,.rom,.bin,.zip", &dialog_in_use))
     {
-        push_recent_rom(file_dialog.selected_path.c_str());
         gui_load_rom(file_dialog.selected_path.c_str());
     }
 }
@@ -1306,7 +1306,18 @@ static void popup_modal_about(void)
 
 static void push_recent_rom(std::string path)
 {
-    for (int i = (config_max_recent_roms - 1); i > 0; i--)
+    int slot = 0;
+    for (slot = 0; slot < config_max_recent_roms; slot++)
+    {
+        if (config_emulator.recent_roms[slot].compare(path) == 0)
+        {
+            break;
+        }
+    }
+
+    slot = std::min(slot, config_max_recent_roms - 1);
+
+    for (int i = slot; i > 0; i--)
     {
         config_emulator.recent_roms[i] = config_emulator.recent_roms[i - 1];
     }
