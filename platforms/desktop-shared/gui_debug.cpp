@@ -1590,6 +1590,7 @@ static void add_breakpoint_cpu(void)
     }
     else
     {
+        target_offset = target_address;
         map = memoryMap;
         rom = false;
     }
