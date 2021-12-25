@@ -45,6 +45,8 @@ static ImFont* default_font[4];
 static bool show_main_menu = true;
 static char sms_bootrom_path[4096] = "";
 static char gg_bootrom_path[4096] = "";
+static char savefiles_path[4096] = "";
+static char savestates_path[4096] = "";
 
 static void main_menu(void);
 static void main_window(void);
@@ -53,6 +55,8 @@ static void file_dialog_load_ram(void);
 static void file_dialog_save_ram(void);
 static void file_dialog_load_state(void);
 static void file_dialog_save_state(void);
+static void file_dialog_choose_save_file_path(void);
+static void file_dialog_choose_savestate_path(void);
 static void file_dialog_load_sms_bootrom(void);
 static void file_dialog_load_gg_bootrom(void);
 static void file_dialog_load_symbols(void);
@@ -99,6 +103,8 @@ void gui_init(void)
 
     strcpy(sms_bootrom_path, config_emulator.sms_bootrom_path.c_str());
     strcpy(gg_bootrom_path, config_emulator.gg_bootrom_path.c_str());
+    strcpy(savefiles_path, config_emulator.savefiles_path.c_str());
+    strcpy(savestates_path, config_emulator.savestates_path.c_str());
 
     if (strlen(sms_bootrom_path) > 0)
         emu_load_bootrom_sms(sms_bootrom_path);
@@ -216,7 +222,7 @@ void gui_load_rom(const char* path)
 
     push_recent_rom(path);
     emu_resume();
-    emu_load_rom(path, config_emulator.save_in_rom_folder, config);
+    emu_load_rom(path, config);
     cheat_list.clear();
     emu_clear_cheats();
 
@@ -247,6 +253,8 @@ static void main_menu(void)
     bool save_state = false;
     bool open_about = false;
     bool open_symbols = false;
+    bool choose_save_file_path = false;
+    bool choose_savestates_path = false;
     bool open_sms_bootrom = false;
     bool open_gg_bootrom = false;
     
@@ -473,7 +481,61 @@ static void main_menu(void)
 
             ImGui::MenuItem("Start Paused", "", &config_emulator.start_paused);
             
-            ImGui::MenuItem("Save Files In ROM Folder", "", &config_emulator.save_in_rom_folder);
+            ImGui::Separator();
+
+            if (ImGui::BeginMenu("Save File Location"))
+            {
+                ImGui::PushItemWidth(220.0f);
+                if (ImGui::Combo("##savefile_option", &config_emulator.savefiles_dir_option, "Save Files In Custom Folder\0Save Files In ROM Folder\0\0"))
+                {
+                    emu_savefiles_dir_option = config_emulator.savefiles_dir_option;
+                }
+
+                if (config_emulator.savefiles_dir_option == 0)
+                {
+                    if (ImGui::MenuItem("Choose Save File Folder..."))
+                    {
+                        choose_save_file_path = true;
+                    }
+
+                    ImGui::PushItemWidth(350);
+                    if (ImGui::InputText("##savefile_path", savefiles_path, IM_ARRAYSIZE(savefiles_path), ImGuiInputTextFlags_AutoSelectAll))
+                    {
+                        config_emulator.savefiles_path.assign(savefiles_path);
+                        strcpy(emu_savefiles_path, savefiles_path);
+                    }
+                    ImGui::PopItemWidth();
+                }
+
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Save State Location"))
+            {
+                ImGui::PushItemWidth(220.0f);
+                if (ImGui::Combo("##savestate_option", &config_emulator.savestates_dir_option, "Savestates In Custom Folder\0Savestates In ROM Folder\0\0"))
+                {
+                    emu_savestates_dir_option = config_emulator.savestates_dir_option;
+                }
+
+                if (config_emulator.savestates_dir_option == 0)
+                {
+                    if (ImGui::MenuItem("Choose Savestate Folder..."))
+                    {
+                        choose_savestates_path = true;
+                    }
+
+                    ImGui::PushItemWidth(350);
+                    if (ImGui::InputText("##savestate_path", savestates_path, IM_ARRAYSIZE(savestates_path), ImGuiInputTextFlags_AutoSelectAll))
+                    {
+                        config_emulator.savestates_path.assign(savestates_path);
+                        strcpy(emu_savestates_path, savestates_path);
+                    }
+                    ImGui::PopItemWidth();
+                }
+
+                ImGui::EndMenu();
+            }
 
             ImGui::Separator();
 
@@ -884,6 +946,12 @@ static void main_menu(void)
     if (save_state)
         ImGui::OpenPopup("Save State As...");
 
+    if (choose_save_file_path)
+        ImGui::OpenPopup("Choose Save File Folder...");
+
+    if (choose_savestates_path)
+        ImGui::OpenPopup("Choose Savestate Folder...");
+
     if (open_sms_bootrom)
         ImGui::OpenPopup("Load Master System BIOS From...");
 
@@ -905,6 +973,8 @@ static void main_menu(void)
     file_dialog_save_ram();
     file_dialog_load_state();
     file_dialog_save_state();
+    file_dialog_choose_save_file_path();
+    file_dialog_choose_savestate_path();
     file_dialog_load_sms_bootrom();
     file_dialog_load_gg_bootrom();
     file_dialog_load_symbols();
@@ -1028,7 +1098,7 @@ static void file_dialog_load_ram(void)
         config.type = get_mapper(config_emulator.mapper);
         config.zone = get_zone(config_emulator.zone);
         
-        emu_load_ram(file_dialog.selected_path.c_str(), config_emulator.save_in_rom_folder, config);
+        emu_load_ram(file_dialog.selected_path.c_str(), config);
     }
 }
 
@@ -1036,14 +1106,14 @@ static void file_dialog_save_ram(void)
 {
     if(file_dialog.showFileDialog("Save RAM As...", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE, ImVec2(700, 310), ".sav", &dialog_in_use))
     {
-        std::string state_path = file_dialog.selected_path;
+        std::string save_path = file_dialog.selected_path;
 
-        if (state_path.rfind(file_dialog.ext) != (state_path.size()-file_dialog.ext.size()))
+        if (save_path.rfind(file_dialog.ext) != (save_path.size()-file_dialog.ext.size()))
         {
-            state_path += file_dialog.ext;
+            save_path += file_dialog.ext;
         }
 
-        emu_save_ram(state_path.c_str());
+        emu_save_ram(save_path.c_str());
     }
 }
 
@@ -1067,6 +1137,24 @@ static void file_dialog_save_state(void)
         }
 
         emu_save_state_file(state_path.c_str());
+    }
+}
+
+static void file_dialog_choose_save_file_path(void)
+{
+    if(file_dialog.showFileDialog("Choose Save File Folder...", imgui_addons::ImGuiFileBrowser::DialogMode::SELECT, ImVec2(700, 310), "*.*", &dialog_in_use))
+    {
+        strcpy(savefiles_path, file_dialog.selected_path.c_str());
+        config_emulator.savefiles_path.assign(file_dialog.selected_path);
+    }
+}
+
+static void file_dialog_choose_savestate_path(void)
+{
+    if(file_dialog.showFileDialog("Choose Savestate Folder...", imgui_addons::ImGuiFileBrowser::DialogMode::SELECT, ImVec2(700, 310), "*.*", &dialog_in_use))
+    {
+        strcpy(savestates_path, file_dialog.selected_path.c_str());
+        config_emulator.savestates_path.assign(file_dialog.selected_path);
     }
 }
 
@@ -1338,7 +1426,7 @@ static void menu_reset(void)
     config.type = get_mapper(config_emulator.mapper);
     config.zone = get_zone(config_emulator.zone);
 
-    emu_reset(config_emulator.save_in_rom_folder, config);
+    emu_reset(config);
 
     if (config_emulator.start_paused)
     {

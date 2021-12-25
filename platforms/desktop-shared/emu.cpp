@@ -25,9 +25,7 @@
 
 static GearsystemCore* gearsystem;
 static Sound_Queue* sound_queue;
-static bool save_files_in_rom_dir = false;
 static s16* audio_buffer;
-static char base_save_path[260];
 static bool audio_enabled;
 static bool debugging = false;
 static bool debug_step = false;
@@ -52,10 +50,8 @@ static void update_debug_background_buffer_sg1000(void);
 static void update_debug_tile_buffer_sg1000(void);
 static void update_debug_sprite_buffers_sg1000(void);
 
-void emu_init(const char* save_path)
+void emu_init(void)
 {
-    strcpy(base_save_path, save_path);
-
     int screen_size = GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT;
 
     emu_frame_buffer = new u8[screen_size * 3];
@@ -87,6 +83,10 @@ void emu_init(const char* save_path)
     emu_debug_disable_breakpoints_cpu = false;
     emu_debug_disable_breakpoints_mem = false;
     emu_debug_tile_palette = 0;
+    emu_savefiles_dir_option = 0;
+    emu_savestates_dir_option = 0;
+    emu_savefiles_path[0] = 0;
+    emu_savestates_path[0] = 0;
 }
 
 void emu_destroy(void)
@@ -100,9 +100,8 @@ void emu_destroy(void)
     destroy_debug();
 }
 
-void emu_load_rom(const char* file_path, bool save_in_rom_dir, Cartridge::ForceConfiguration config)
+void emu_load_rom(const char* file_path, Cartridge::ForceConfiguration config)
 {
-    save_files_in_rom_dir = save_in_rom_dir;
     save_ram();
     gearsystem->LoadROM(file_path, &config);
     load_ram();
@@ -167,9 +166,8 @@ bool emu_is_empty(void)
     return !gearsystem->GetCartridge()->IsReady();
 }
 
-void emu_reset(bool save_in_rom_dir, Cartridge::ForceConfiguration config)
+void emu_reset(Cartridge::ForceConfiguration config)
 {
-    save_files_in_rom_dir = save_in_rom_dir;
     save_ram();
     gearsystem->ResetROM(&config);
     load_ram();
@@ -208,11 +206,10 @@ void emu_save_ram(const char* file_path)
         gearsystem->SaveRam(file_path, true);
 }
 
-void emu_load_ram(const char* file_path, bool save_in_rom_dir, Cartridge::ForceConfiguration config)
+void emu_load_ram(const char* file_path, Cartridge::ForceConfiguration config)
 {
     if (!emu_is_empty())
     {
-        save_files_in_rom_dir = save_in_rom_dir;
         save_ram();
         gearsystem->ResetROM(&config);
         gearsystem->LoadRam(file_path, true);
@@ -222,13 +219,23 @@ void emu_load_ram(const char* file_path, bool save_in_rom_dir, Cartridge::ForceC
 void emu_save_state_slot(int index)
 {
     if (!emu_is_empty())
-        gearsystem->SaveState(index);
+    {
+        if ((emu_savestates_dir_option == 0) && (strcmp(emu_savestates_path, "")))
+            gearsystem->SaveState(emu_savestates_path, index);
+        else
+            gearsystem->SaveState(index);
+    }
 }
 
 void emu_load_state_slot(int index)
 {
     if (!emu_is_empty())
-        gearsystem->LoadState(index);
+    {
+        if ((emu_savestates_dir_option == 0) && (strcmp(emu_savestates_path, "")))
+            gearsystem->LoadState(emu_savestates_path, index);
+        else
+            gearsystem->LoadState(index);
+    }
 }
 
 void emu_save_state_file(const char* file_path)
@@ -375,18 +382,18 @@ static void save_ram(void)
     emu_dissasemble_rom();
 #endif
 
-    if (save_files_in_rom_dir)
-        gearsystem->SaveRam();
+    if ((emu_savefiles_dir_option == 0) && (strcmp(emu_savefiles_path, "")))
+        gearsystem->SaveRam(emu_savefiles_path);
     else
-        gearsystem->SaveRam(base_save_path);
+        gearsystem->SaveRam();
 }
 
 static void load_ram(void)
 {
-    if (save_files_in_rom_dir)
-        gearsystem->LoadRam();
+    if ((emu_savefiles_dir_option == 0) && (strcmp(emu_savefiles_path, "")))
+        gearsystem->LoadRam(emu_savefiles_path);
     else
-        gearsystem->LoadRam(base_save_path);
+        gearsystem->LoadRam();
 }
 
 static const char* get_mapper(Cartridge::CartridgeTypes type)

@@ -40,7 +40,6 @@ struct config_Emulator
     bool paused = false;
     int save_slot = 0;
     bool start_paused = false;
-    bool save_in_rom_folder = false;
     bool ffwd = false;
     int ffwd_speed = 1;
     int system = 0;
@@ -54,6 +53,10 @@ struct config_Emulator
     bool gg_bootrom;
     std::string gg_bootrom_path;
     int media = 0;
+    int savefiles_dir_option = 0;
+    std::string savefiles_path;
+    int savestates_dir_option = 0;
+    std::string savestates_path;
 };
 
 struct config_Video
