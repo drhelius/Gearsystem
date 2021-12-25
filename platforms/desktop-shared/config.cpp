@@ -399,7 +399,7 @@ static config_Key read_shortcut_key(const char* group, const char* key, config_K
         const char* modifier = nullptr;
         const char* key = value.c_str();
 
-        for (int i = 0; i < SDL_arraysize(config_modifiers); i++)
+        for (long unsigned int i = 0; i < SDL_arraysize(config_modifiers); i++)
         {
             const char* mod = config_modifiers[i];
             size_t modLen = strlen(mod);
