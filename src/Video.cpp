@@ -602,6 +602,9 @@ void Video::ParseSpritesSMSGG(int line)
 
         int sprite_y = m_pVdpVRAM[sprite_index] + 1;
         int sprite_height = IsSetBit(m_VdpRegister[1], 1) ? 16 : 8;
+        bool sprite_zoom = IsSetBit(m_VdpRegister[1], 0);
+        if (sprite_zoom)
+            sprite_height <<= 1;
         int sprite_y2 = sprite_y + sprite_height;
 
         int sprite_y_offscreen = ((sprite_y > 240) && (sprite_y <= 256)) ? sprite_y - 256 : sprite_y;
@@ -642,7 +645,15 @@ void Video::RenderSpritesSMSGG(int line)
     int scy_adjust = m_bGameGear ? y_offset : 0;
     int line_width_info = line * m_iScreenWidth;
     int line_width_screen = (line - scy_adjust) * m_iScreenWidth;
-    int sprite_height = IsSetBit(m_VdpRegister[1], 1) ? 16 : 8;
+    int sprite_width = 8;
+    bool sprite_height_16 = IsSetBit(m_VdpRegister[1], 1);
+    int sprite_height = sprite_height_16 ? 16 : 8;
+    bool sprite_zoom = IsSetBit(m_VdpRegister[1], 0);
+    if (sprite_zoom)
+    {
+        sprite_width <<= 1;
+        sprite_height <<= 1;
+    }
     int sprite_shift = IsSetBit(m_VdpRegister[0], 3) ? 8 : 0;
     u16 sprite_tiles_address = (m_VdpRegister[6] << 11) & 0x2000;
 
@@ -671,10 +682,10 @@ void Video::RenderSpritesSMSGG(int line)
             continue;
 
         int sprite_tile = m_pVdpVRAM[sprite_info_address + 1];
-        sprite_tile &= (sprite_height == 16) ? 0xFE : 0xFF;
-        int sprite_tile_addr = sprite_tiles_address + (sprite_tile << 5) + ((line - sprite_y) << 2);
+        sprite_tile &= sprite_height_16 ? 0xFE : 0xFF;
+        int sprite_tile_addr = sprite_tiles_address + (sprite_tile << 5) +  (((line - sprite_y) >> (sprite_zoom ? 1 : 0)) << 2);
 
-        for (int tile_x = 0; tile_x < 8; tile_x++)
+        for (int tile_x = 0; tile_x < sprite_width; tile_x++)
         {
             int sprite_pixel_x = sprite_x + tile_x;
             if (sprite_pixel_x >= scx_end)
@@ -688,7 +699,13 @@ void Video::RenderSpritesSMSGG(int line)
             int pixel_screen = line_width_screen + x_diff;
             int pixel_info = line_width_info + x_diff;
 
-            int tile_pixel_x = 7 - tile_x;
+            int tile_x_adjusted = tile_x >> (sprite_zoom ? 1 : 0);
+            int tile_pixel_x = 0;
+
+            if (tile_x_adjusted < 8)
+                tile_pixel_x = 7 - tile_x_adjusted;
+            else
+                tile_pixel_x = 15 - tile_x_adjusted;
 
             int palette_color = ((m_pVdpVRAM[sprite_tile_addr] >> tile_pixel_x) & 0x01) +
                     (((m_pVdpVRAM[sprite_tile_addr + 1] >> tile_pixel_x) & 0x01) << 1) +
