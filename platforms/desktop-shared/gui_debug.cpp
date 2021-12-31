@@ -355,10 +355,10 @@ static void debug_window_disassembler(void)
     {
         try
         {
-            request_goto_address(std::stoul(goto_address, 0, 16));
+            request_goto_address((u16)std::stoul(goto_address, 0, 16));
             follow_pc = false;
         }
-        catch(const std::invalid_argument& ia)
+        catch(const std::invalid_argument&)
         {
         }
         goto_address[0] = 0;
@@ -369,10 +369,10 @@ static void debug_window_disassembler(void)
     {
         try
         {
-            request_goto_address(std::stoul(goto_address, 0, 16));
+            request_goto_address((u16)std::stoul(goto_address, 0, 16));
             follow_pc = false;
         }
-        catch(const std::invalid_argument& ia)
+        catch(const std::invalid_argument&)
         {
         }
         goto_address[0] = 0;
@@ -620,14 +620,14 @@ static void debug_window_disassembler(void)
         if (goto_address_requested)
         {
             goto_address_requested = false;
-            goto_back = ImGui::GetScrollY();
+            goto_back = (int)ImGui::GetScrollY();
             ImGui::SetScrollY((goto_address_pos * ImGui::GetTextLineHeightWithSpacing()) + 2);
         }
 
         if (goto_back_requested)
         {
             goto_back_requested = false;
-            ImGui::SetScrollY(goto_back);
+            ImGui::SetScrollY((float)goto_back);
         }
 
         ImGuiListClipper clipper(dis_size, ImGui::GetTextLineHeightWithSpacing());
@@ -1529,7 +1529,7 @@ static void add_symbol(const char* line)
 
             symbols.push_back(s);
         }
-        catch(const std::invalid_argument& ia)
+        catch(const std::invalid_argument&)
         {
         }
     }
@@ -1567,7 +1567,7 @@ static void add_breakpoint_cpu(void)
             return;
         }
     }
-    catch(const std::invalid_argument& ia)
+    catch(const std::invalid_argument&)
     {
         return;
     }
@@ -1644,7 +1644,7 @@ static void add_breakpoint_cpu(void)
 
 static void add_breakpoint_mem(void)
 {
-    int input_len = strlen(brk_address_mem);
+    int input_len = (int)strlen(brk_address_mem);
     u16 address1 = 0;
     u16 address2 = 0;
     bool range = false;
@@ -1658,21 +1658,21 @@ static void add_breakpoint_mem(void)
 
             if (separator != std::string::npos)
             {
-                address1 = std::stoul(str.substr(0, separator), 0 , 16);
-                address2 = std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
+                address1 = (u16)std::stoul(str.substr(0, separator), 0 , 16);
+                address2 = (u16)std::stoul(str.substr(separator + 1 , std::string::npos), 0, 16);
                 range = true;
             }
         }
         else if (input_len == 4)
         {
-            address1 = std::stoul(brk_address_mem, 0, 16);
+            address1 = (u16)std::stoul(brk_address_mem, 0, 16);
         }
         else
         {
             return;
         }
     }
-    catch(const std::invalid_argument& ia)
+    catch(const std::invalid_argument&)
     {
         return;
     }
