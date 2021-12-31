@@ -362,4 +362,7 @@
       <Filter>desktop_shared</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="Gearsystem.manifest" />
+  </ItemGroup>
 </Project>

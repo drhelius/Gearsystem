@@ -125,6 +125,9 @@
     <None Include="..\desktop-shared\gui_events.def" />
     <None Include="..\desktop-shared\Makefile.common" />
   </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="Gearsystem.manifest" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B12702AD-ABFB-343A-A199-8E24837244A3}</ProjectGuid>
     <RootNamespace>Gearsystem</RootNamespace>
