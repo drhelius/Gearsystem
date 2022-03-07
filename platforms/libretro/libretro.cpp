@@ -500,7 +500,12 @@ bool retro_load_game(const struct retro_game_info *info)
 {
     check_variables();
     load_bootroms();
-    core->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size, &config);
+
+    if (!core->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size, &config))
+    {
+        log_cb(RETRO_LOG_ERROR, "Invalid or corrupted ROM.\n");
+        return false;
+    }
 
     enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
     if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
