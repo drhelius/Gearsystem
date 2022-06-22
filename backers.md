@@ -9,3 +9,4 @@ Gearsystem is an open source project with its ongoing development made possible 
 - [Michael Mellor](https://github.com/dinglyburrow)
 - [Francisco Javier Trujillo](https://github.com/fjtrujy)
 - [Orange Kryptonite](https://github.com/OrangeKryptonite)
+- [Libretro / RetroArch team](https://github.com/libretro)
