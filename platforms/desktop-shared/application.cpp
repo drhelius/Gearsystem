@@ -460,6 +460,8 @@ static void sdl_shortcuts_gui(const SDL_Event* event)
 
 static void run_emulator(void)
 {
+    static char prevtitle[256];
+
     if (!emu_is_empty())
     {
         static int i = 0;
@@ -471,7 +473,11 @@ static void run_emulator(void)
 
             char title[256];
             sprintf(title, "%s %s - %s", GEARSYSTEM_TITLE, GEARSYSTEM_VERSION, emu_get_core()->GetCartridge()->GetFileName());
-            SDL_SetWindowTitle(sdl_window, title);
+
+            if (strcmp(title, prevtitle)) {
+                SDL_SetWindowTitle(sdl_window, title);
+                strcpy(prevtitle, title);
+            }
         }
     }
     config_emulator.paused = emu_is_paused();
