@@ -12,3 +12,4 @@ Gearsystem is an open source project with its ongoing development made possible 
 - [Danny Van den Heuvel](https://github.com/Danny-VdH)
 - [Rupert Carmichael](https://github.com/carmiker)
 - [Libretro / RetroArch team](https://github.com/libretro)
+- [Nicholas Piegdon](https://github.com/npiegdon)
