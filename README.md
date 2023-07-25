@@ -1,6 +1,6 @@
 # Gearsystem
 
-[![Build](https://github.com/drhelius/Gearsystem/workflows/Gearsystem%20CI/badge.svg)](https://github.com/drhelius/Gearsystem/actions)
+![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/drhelius/Gearsystem/gearsystem.yml)
 ![GitHub tag (with filter)](https://img.shields.io/github/v/tag/drhelius/Gearsystem?label=version)
 ![commits)](https://img.shields.io/github/commit-activity/t/drhelius/Gearsystem)
 ![GitHub contributors](https://img.shields.io/github/contributors/drhelius/Gearsystem)
