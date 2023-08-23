@@ -1,18 +1,18 @@
 # Gearsystem
 
-![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/drhelius/Gearsystem/gearsystem.yml)
-![GitHub tag (with filter)](https://img.shields.io/github/v/tag/drhelius/Gearsystem?label=version)
-![commits)](https://img.shields.io/github/commit-activity/t/drhelius/Gearsystem)
-![GitHub contributors](https://img.shields.io/github/contributors/drhelius/Gearsystem)
-![GitHub Sponsors](https://img.shields.io/github/sponsors/drhelius)
-![GitHub](https://img.shields.io/github/license/drhelius/Gearsystem)
-![Twitter Follow](https://img.shields.io/twitter/follow/drhelius)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/drhelius/Gearsystem/gearsystem.yml)](https://github.com/drhelius/Gearsystem/actions/workflows/gearsystem.yml)
+[![GitHub Releases)](https://img.shields.io/github/v/tag/drhelius/Gearsystem?label=version)](https://github.com/drhelius/Gearsystem/releases)
+[![commits)](https://img.shields.io/github/commit-activity/t/drhelius/Gearsystem)](https://github.com/drhelius/Gearsystem/commits/master)
+[![GitHub contributors](https://img.shields.io/github/contributors/drhelius/Gearsystem)](https://github.com/drhelius/Gearsystem/graphs/contributors)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/drhelius)](https://github.com/sponsors/drhelius)
+[![GitHub](https://img.shields.io/github/license/drhelius/Gearsystem)](https://github.com/drhelius/Gearsystem/blob/master/LICENSE)
+[![Twitter Follow](https://img.shields.io/twitter/follow/drhelius)](https://twitter.com/drhelius)
 
 Gearsystem is a very accurate, cross-platform Sega Master System / Game Gear / SG-1000 emulator written in C++ that runs on Windows, macOS, Linux, BSD, iOS, Raspberry Pi and RetroArch.
 
 This is an open source project with its ongoing development made possible thanks to the support by these awesome [backers](backers.md). If you find it useful, please, consider [sponsoring](https://github.com/sponsors/drhelius).
 
-Don't hesitate to report bugs or ask for new features by [openning an issue](https://github.com/drhelius/Gearboy/issues).
+Don't hesitate to report bugs or ask for new features by [openning an issue](https://github.com/drhelius/Gearsystem/issues).
 
 ----------
 
