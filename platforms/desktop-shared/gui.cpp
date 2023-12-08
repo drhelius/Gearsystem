@@ -42,7 +42,6 @@ static ImVec4 custom_palette[4];
 static std::list<std::string> cheat_list;
 static bool shortcut_open_rom = false;
 static ImFont* default_font[4];
-static bool show_main_menu = true;
 static char sms_bootrom_path[4096] = "";
 static char gg_bootrom_path[4096] = "";
 static char savefiles_path[4096] = "";
@@ -185,7 +184,7 @@ void gui_shortcut(gui_ShortCutEvent event)
             gui_debug_go_back();
         break;
     case gui_ShortcutShowMainMenu:
-        show_main_menu = !show_main_menu;
+        config_emulator.show_menu = !config_emulator.show_menu;
         break;
     default:
         break;
@@ -261,7 +260,7 @@ static void main_menu(void)
     constexpr int MAX_SHORTCUT_NAME = 32;
     char shortcut[MAX_SHORTCUT_NAME];
 
-    if (show_main_menu && ImGui::BeginMainMenuBar())
+    if (config_emulator.show_menu && ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu(GEARSYSTEM_TITLE))
         {
@@ -605,13 +604,13 @@ static void main_menu(void)
         {
             gui_in_use = true;
 
-            if (ImGui::MenuItem("Full Screen", "F11", &application_fullscreen))
+            if (ImGui::MenuItem("Full Screen", "F11", &config_emulator.fullscreen))
             {
-                application_trigger_fullscreen(application_fullscreen);
+                application_trigger_fullscreen(config_emulator.fullscreen);
             }
 
             gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutShowMainMenu);
-            ImGui::MenuItem("Show Menu", shortcut, &show_main_menu);
+            ImGui::MenuItem("Show Menu", shortcut, &config_emulator.show_menu);
 
             ImGui::Separator();
 
@@ -986,7 +985,7 @@ static void main_window(void)
     emu_get_runtime(runtime);
 
     int w = (int)ImGui::GetIO().DisplaySize.x;
-    int h = (int)ImGui::GetIO().DisplaySize.y - (show_main_menu ? main_menu_height : 0);
+    int h = (int)ImGui::GetIO().DisplaySize.y - (config_emulator.show_menu ? main_menu_height : 0);
 
     int selected_ratio = config_debug.debug ? 0 : config_video.ratio;
     float ratio = (float)runtime.screen_width / (float)runtime.screen_height;
@@ -1033,7 +1032,7 @@ static void main_window(void)
     int main_window_height = h_corrected * factor;
 
     int window_x = (w - (w_corrected * factor)) / 2;
-    int window_y = ((h - (h_corrected * factor)) / 2) + (show_main_menu ? main_menu_height : 0);
+    int window_y = ((h - (h_corrected * factor)) / 2) + (config_emulator.show_menu ? main_menu_height : 0);
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
