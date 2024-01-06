@@ -230,6 +230,19 @@ static void sdl_events(void)
             sdl_shortcuts_gui(&event);
         }
     }
+
+    bool hide_cursor = false;
+
+    if (gui_main_window_hovered && !config_debug.debug)
+        hide_cursor = true;
+
+    if (!config_emulator.show_menu && !config_debug.debug)
+        hide_cursor = true;
+
+    if (hide_cursor)
+        ImGui::SetMouseCursor(ImGuiMouseCursor_None);
+    else
+        ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
 }
 
 static void sdl_events_emu(const SDL_Event* event)

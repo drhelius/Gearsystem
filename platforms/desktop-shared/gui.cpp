@@ -128,6 +128,8 @@ void gui_render(void)
     
     main_menu();
 
+    gui_main_window_hovered = false;
+
     if((!config_debug.debug && !emu_is_empty()) || (config_debug.debug && config_debug.show_screen))
         main_window();
 
@@ -260,8 +262,12 @@ static void main_menu(void)
     constexpr int MAX_SHORTCUT_NAME = 32;
     char shortcut[MAX_SHORTCUT_NAME];
 
+    gui_main_menu_hovered = false;
+
     if (config_emulator.show_menu && ImGui::BeginMainMenuBar())
     {
+        gui_main_menu_hovered = ImGui::IsWindowHovered();
+
         if (ImGui::BeginMenu(GEARSYSTEM_TITLE))
         {
             gui_in_use = true;
@@ -1046,6 +1052,7 @@ static void main_window(void)
         ImGui::SetNextWindowPos(ImVec2(648, 30), ImGuiCond_FirstUseEver);
 
         ImGui::Begin("Output###debug_output", &config_debug.show_screen, flags);
+        gui_main_window_hovered = ImGui::IsWindowHovered();
     }
     else
     {
@@ -1056,6 +1063,7 @@ static void main_window(void)
         flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav;
 
         ImGui::Begin(GEARSYSTEM_TITLE, 0, flags);
+        gui_main_window_hovered = ImGui::IsWindowHovered();
     }
 
     ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2((float)main_window_width, (float)main_window_height));
