@@ -48,6 +48,7 @@ static bool allow_up_down = false;
 static bool bootrom_sms = false;
 static bool bootrom_gg = false;
 static bool libretro_supports_bitmasks;
+static float aspect_ratio = 0.0f;
 
 static GearsystemCore* core;
 static u8* frame_buffer;
@@ -68,6 +69,7 @@ static const struct retro_variable vars[] = {
     { "gearsystem_region", "Region (restart); Auto|Master System Japan|Master System Export|Game Gear Japan|Game Gear Export|Game Gear International" },
     { "gearsystem_mapper", "Mapper (restart); Auto|ROM|SEGA|Codemasters|Korean|MSX|Janggun|SG-1000" },
     { "gearsystem_timing", "Refresh Rate (restart); Auto|NTSC (60 Hz)|PAL (50 Hz)" },
+    { "gearsystem_aspect_ratio", "Aspect Ratio (restart); Auto|4:3|16:9" },
     { "gearsystem_bios_sms", "Master System BIOS (restart); Disabled|Enabled" },
     { "gearsystem_bios_gg", "Game Gear BIOS (restart); Disabled|Enabled" },
     { "gearsystem_glasses", "3D Glasses; Both Eyes / OFF|Left Eye|Right Eye" },
@@ -182,7 +184,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
     info->geometry.base_height  = runtime_info.screen_height;
     info->geometry.max_width    = runtime_info.screen_width;
     info->geometry.max_height   = runtime_info.screen_height;
-    info->geometry.aspect_ratio = 0.0f;
+    info->geometry.aspect_ratio = aspect_ratio;
     info->timing.fps            = runtime_info.region == Region_NTSC ? 60.0 : 50.0;
     info->timing.sample_rate    = 44100.0;
 }
@@ -406,6 +408,21 @@ static void check_variables(void)
             config.region = Cartridge::CartridgePAL;
         else
             config.region = Cartridge::CartridgeUnknownRegion;
+    }
+
+    var.key = "gearsystem_aspect_ratio";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Auto") == 0)
+            aspect_ratio = 0.0f;
+        else if (strcmp(var.value, "4:3") == 0)
+            aspect_ratio = 4.0f / 3.0f;
+        else if (strcmp(var.value, "16:9") == 0)
+            aspect_ratio = 16.0f / 9.0f;
+        else
+            aspect_ratio = 0.0f;
     }
 
     var.key = "gearsystem_bios_sms";
