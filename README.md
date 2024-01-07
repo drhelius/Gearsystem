@@ -50,11 +50,19 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 - Supported platforms (standalone): Windows, Linux, BSD, macOS, Raspberry Pi and iOS.
 - Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch, Emscripten, Classic Mini systems (NES, SNES, C64, ...), OpenDingux, RetroFW and QNX.
 - Full debugger with just-in-time disassembler, cpu breakpoints, memory access breakpoints, code navigation (goto address, JP JR and CALL double clicking), debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
-- Windows and Linux *Portable Mode* by creating a file named `portable.ini` in the same directory as the application binary.
+- Windows and Linux *Portable Mode*.
 - Rom loading from the command line by adding the rom path as an argument.
 - Support for modern game controllers through [gamecontrollerdb.txt](https://github.com/gabomdq/SDL_GameControllerDB) file located in the same directory as the application binary.
 
 <img src="http://www.geardome.com/files/gearsystem/gearsystem_debug_01.png" width="687" height="494">
+
+## Tips
+
+- *Portable Mode*: Create an empty file named `portable.ini` in the same directory as the application binary to enable portable mode.
+- *Debug Symbols*: The emulator always tries to load a symbol file at the same time a rom is being loaded. For example, for ```path_to_rom_file.sms``` it tries to load ```path_to_rom_file.sym```. It is also possible to load a symbol file using the GUI or using the CLI.
+- *Command Line Usage*: ```gearsystem [rom_file] [symbol_file]```
+- *Mouse Cursor*: Automatically hides when hovering main output window or when Main Menu is disabled.
+- *BIOS*: Gearsystem can run with or without a BIOS. You can optionally load a BIOS and enable it. It is possible to run the title included in the BIOS by setting *Media Slot* to *None* in the *Emulator* menu. This will emulate a machine without any media plugged in.
 
 ## Build Instructions
 
