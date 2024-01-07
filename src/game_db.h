@@ -129,7 +129,7 @@ const GS_GameDBEntry kGameDatabase[] =
     {0x0A77FA5E, GS_DB_MSX_MAPPER, false, false, false, "Nemesis 2 (KR)"},
 
     // JANGGUN MAPPER
-    //{0x192949D5, GS_DB_JANGGUN_MAPPER, false, false, false, "Janggun-ui Adeul (KR)"},
+    {0x192949D5, GS_DB_JANGGUN_MAPPER, false, false, false, "Janggun-ui Adeul (KR)"},
 
     // SG-1000 with RAM without battery
     {0x092F29D6, GS_DB_SG1000_MAPPER, false, false, true, "Castle, The (J)"},
