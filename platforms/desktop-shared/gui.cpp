@@ -46,6 +46,8 @@ static char sms_bootrom_path[4096] = "";
 static char gg_bootrom_path[4096] = "";
 static char savefiles_path[4096] = "";
 static char savestates_path[4096] = "";
+static int main_window_width = 0;
+static int main_window_height = 0;
 
 static void main_menu(void);
 static void main_window(void);
@@ -618,6 +620,14 @@ static void main_menu(void)
             gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutShowMainMenu);
             ImGui::MenuItem("Show Menu", shortcut, &config_emulator.show_menu);
 
+            if (ImGui::MenuItem("Resize Window to Content"))
+            {
+                if (!config_debug.debug && (config_video.ratio != 3))
+                {
+                    application_trigger_fit_to_content(main_window_width, main_window_height + main_menu_height);
+                }
+            }
+
             ImGui::Separator();
 
             if (ImGui::BeginMenu("Scale"))
@@ -630,8 +640,8 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Aspect Ratio"))
             {
-                ImGui::PushItemWidth(140.0f);
-                ImGui::Combo("##ratio", &config_video.ratio, "Square Pixels\0Standard (4:3)\0Wide (16:9)\0Fit Window\0\0");
+                ImGui::PushItemWidth(160.0f);
+                ImGui::Combo("##ratio", &config_video.ratio, "Square Pixels\0Standard (4:3)\0Wide (16:9)\0Fit Content to Window\0\0");
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
@@ -1034,8 +1044,8 @@ static void main_window(void)
         factor = (factor_w < factor_h) ? factor_w : factor_h;
     }
 
-    int main_window_width = w_corrected * factor;
-    int main_window_height = h_corrected * factor;
+    main_window_width = w_corrected * factor;
+    main_window_height = h_corrected * factor;
 
     int window_x = (w - (w_corrected * factor)) / 2;
     int window_y = ((h - (h_corrected * factor)) / 2) + (config_emulator.show_menu ? main_menu_height : 0);
