@@ -85,7 +85,7 @@ make dist
 
 ### Linux
 
-- Ubuntu / Debian / Raspberry Pi Raspbian:
+- Ubuntu / Debian / Raspberry Pi (Raspbian):
 
 ``` shell
 sudo apt-get install build-essential libsdl2-dev libglew-dev
@@ -113,7 +113,7 @@ gmake
 
 ### Libretro
 
-- Ubuntu / Debian / Raspberry Pi Raspbian:
+- Ubuntu / Debian / Raspberry Pi (Raspbian):
 
 ``` shell
 sudo apt-get install build-essential
