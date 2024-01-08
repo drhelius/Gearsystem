@@ -144,7 +144,7 @@ void Video::Reset(bool bGameGear, bool bPAL)
         m_Timing[TIMING_HINT] = 30;
         m_Timing[TIMING_VCOUNT] = 28;
         m_Timing[TIMING_FLAG_VINT] = 27;
-        m_Timing[TIMING_RENDER] = 195;
+        m_Timing[TIMING_RENDER] = 186;
         m_Timing[TIMING_DISPLAY] = 20;
         m_Timing[TIMING_SPRITEOVR] = 27;
     }
