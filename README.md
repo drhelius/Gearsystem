@@ -47,7 +47,7 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 - Save states.
 - Compressed rom support (ZIP).
 - *Game Genie* and *Pro Action Replay* cheat support.
-- Supported platforms (standalone): Windows, Linux, BSD, macOS.
+- Supported platforms (standalone): Windows, Linux, BSD and macOS.
 - Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch, Emscripten, Classic Mini systems (NES, SNES, C64, ...), OpenDingux, RetroFW and QNX.
 - Full debugger with just-in-time disassembler, cpu breakpoints, memory access breakpoints, code navigation (goto address, JP JR and CALL double clicking), debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
 - Windows and Linux *Portable Mode*.
@@ -85,7 +85,7 @@ make dist
 
 ### Linux
 
-- Ubuntu / Debian:
+- Ubuntu / Debian / Raspberry Pi Raspbian:
 
 ``` shell
 sudo apt-get install build-essential libsdl2-dev libglew-dev
@@ -111,27 +111,21 @@ cd platforms/bsd
 gmake
 ```
 
-### iOS
-
-- Install latest Xcode for macOS.
-- Build the project `platforms/ios/Gearsystem.xcodeproj`.
-- Run it on real hardware using your iOS developer certificate. Make sure it builds on *Release* for better performance.
-
 ### Libretro
 
 - Ubuntu / Debian / Raspberry Pi Raspbian:
 
 ``` shell
-sudo apt-get install build-essential libsdl2-dev libglew-dev
-cd platforms/linux
+sudo apt-get install build-essential
+cd platforms/libretro
 make
 ```
 
 - Fedora:
 
 ``` shell
-sudo dnf install @development-tools gcc-c++ SDL2-devel glew-devel
-cd platforms/linux
+sudo dnf install @development-tools gcc-c++
+cd platforms/libretro
 make
 ```
 
