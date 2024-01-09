@@ -63,6 +63,7 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 - *Command Line Usage*: ```gearsystem [rom_file] [symbol_file]```
 - *Mouse Cursor*: Automatically hides when hovering main output window or when Main Menu is disabled.
 - *BIOS*: Gearsystem can run with or without a BIOS. You can optionally load a BIOS and enable it. It is possible to run the title included in the BIOS by setting *Media Slot* to *None* in the *Emulator* menu. This will emulate a machine without any media plugged in.
+- *Overscan*: For a precise representation of the original image using Overscan Top+Bottom and 4:3 Pixel Aspect Ratio is recommended. Game Gear will ignore any overscan settings.
 
 ## Build Instructions
 
