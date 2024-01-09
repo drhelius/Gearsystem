@@ -34,27 +34,30 @@
 #define RENDERER_IMPORT
 #include "renderer.h"
 
-static uint32_t fbo_texture[3];
-static uint32_t system_texture[3];
+static uint32_t fbo_texture;
+static uint32_t system_texture;
 static uint32_t scanlines_texture;
-static uint32_t current_system_texture;
-static uint32_t frame_buffer_object[3];
-static uint32_t current_fbo;
+static uint32_t frame_buffer_object;
 static GS_RuntimeInfo current_runtime;
 static bool first_frame;
-static u32 scanlines[16] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x000000FF, 0x000000FF, 0x000000FF, 0x000000FF};
+static u32 scanlines[16] = {
+    0x00000000, 0x00000000, 0x00000000, 0x00000000,
+    0x00000000, 0x00000000, 0x00000000, 0x00000000,
+    0x000000FF, 0x000000FF, 0x000000FF, 0x000000FF,
+    0x000000FF, 0x000000FF, 0x000000FF, 0x000000FF};
 static const int FRAME_BUFFER_SCALE = 4;
+static const int FRAME_BUFFER_WIDTH = GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN * FRAME_BUFFER_SCALE;
+static const int FRAME_BUFFER_HEIGHT = GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN * FRAME_BUFFER_SCALE;
 
 static void init_ogl_gui(void);
 static void init_ogl_emu(void);
 static void init_ogl_debug(void);
-static void init_texture(int index, int w, int h);
 static void init_scanlines_texture(void);
 static void render_gui(void);
 static void render_emu_normal(void);
 static void render_emu_mix(void);
 static void render_emu_bilinear(void);
-static void render_quad(int viewportWidth, int viewportHeight);
+static void render_quad(void);
 static void update_system_texture(void);
 static void update_debug_textures(void);
 static void render_scanlines(void);
@@ -85,9 +88,9 @@ void renderer_init(void)
 
 void renderer_destroy(void)
 {
-    glDeleteFramebuffers(3, frame_buffer_object); 
-    glDeleteTextures(3, fbo_texture);
-    glDeleteTextures(3, system_texture);
+    glDeleteFramebuffers(1, &frame_buffer_object); 
+    glDeleteTextures(1, &fbo_texture);
+    glDeleteTextures(1, &system_texture);
     glDeleteTextures(1, &scanlines_texture);
     glDeleteTextures(1, &renderer_emu_debug_vram_background);
     glDeleteTextures(1, &renderer_emu_debug_vram_tiles);
@@ -104,24 +107,7 @@ void renderer_render(void)
 {
     emu_get_runtime(current_runtime);
 
-    int res = 0;
-
-    switch (current_runtime.screen_height)
-    {
-        case GS_RESOLUTION_GG_HEIGHT:
-            res = 0;
-            break;
-        case GS_RESOLUTION_SMS_HEIGHT:
-            res = 1;
-            break;
-        case GS_RESOLUTION_SMS_HEIGHT_EXTENDED:
-            res = 2;
-            break;
-    }
-
-    current_fbo = frame_buffer_object[res];
-    current_system_texture = system_texture[res];
-    renderer_emu_texture = fbo_texture[res];
+    renderer_emu_texture = fbo_texture;
 
     if (config_debug.debug)
     {
@@ -161,13 +147,23 @@ static void init_ogl_emu(void)
 {
     glEnable(GL_TEXTURE_2D);
 
-    glGenFramebuffers(3, frame_buffer_object);
-    glGenTextures(3, fbo_texture);
-    glGenTextures(3, system_texture);
+    glGenFramebuffers(1, &frame_buffer_object);
+    glGenTextures(1, &fbo_texture);
+    glGenTextures(1, &system_texture);
 
-    init_texture(0, GS_RESOLUTION_GG_WIDTH, GS_RESOLUTION_GG_HEIGHT);
-    init_texture(1, GS_RESOLUTION_SMS_WIDTH, GS_RESOLUTION_SMS_HEIGHT);
-    init_texture(2, GS_RESOLUTION_SMS_WIDTH, GS_RESOLUTION_SMS_HEIGHT_EXTENDED);
+    glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_object);
+    glBindTexture(GL_TEXTURE_2D, fbo_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbo_texture, 0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glBindTexture(GL_TEXTURE_2D, system_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN, GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_frame_buffer);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
     init_scanlines_texture();
 }
@@ -196,23 +192,6 @@ static void init_ogl_debug(void)
     }
 }
 
-static void init_texture(int index, int w, int h)
-{
-    glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_object[index]);
-    glBindTexture(GL_TEXTURE_2D, fbo_texture[index]);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w * FRAME_BUFFER_SCALE, h * FRAME_BUFFER_SCALE, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbo_texture[index], 0);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    glBindTexture(GL_TEXTURE_2D, system_texture[index]);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_frame_buffer);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-}
-
 static void init_scanlines_texture(void)
 {
     glGenTextures(1, &scanlines_texture);
@@ -231,20 +210,20 @@ static void render_gui(void)
 
 static void render_emu_normal(void)
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, current_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_object);
 
     glDisable(GL_BLEND);
 
     update_system_texture();
 
-    render_quad(current_runtime.screen_width * FRAME_BUFFER_SCALE, current_runtime.screen_height * FRAME_BUFFER_SCALE);
+    render_quad();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 static void render_emu_mix(void)
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, current_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_object);
 
     float alpha = 0.15f + (0.20f * (1.0f - config_video.mix_frames_intensity));
 
@@ -266,7 +245,7 @@ static void render_emu_mix(void)
 
     update_system_texture();
 
-    render_quad(current_runtime.screen_width * FRAME_BUFFER_SCALE, current_runtime.screen_height * FRAME_BUFFER_SCALE);
+    render_quad();
 
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glDisable(GL_BLEND);
@@ -276,7 +255,7 @@ static void render_emu_mix(void)
 
 static void update_system_texture(void)
 {
-    glBindTexture(GL_TEXTURE_2D, current_system_texture);
+    glBindTexture(GL_TEXTURE_2D, system_texture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, current_runtime.screen_width, current_runtime.screen_height,
             GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) emu_frame_buffer);
 
@@ -332,34 +311,34 @@ static void render_emu_bilinear(void)
     }
 }
 
-static void render_quad(int viewportWidth, int viewportHeight)
+static void render_quad(void)
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    glOrtho(0, viewportWidth, 0, viewportHeight, -1, 1);
+    glOrtho(0, 1.0, 0, 1.0, -1, 1);
 
     glMatrixMode(GL_MODELVIEW);
-    glViewport(0, 0, viewportWidth, viewportHeight);
+    glViewport(0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT);
 
     glBegin(GL_QUADS);
     glTexCoord2d(0.0, 0.0);
     glVertex2d(0.0, 0.0);
     glTexCoord2d(1.0, 0.0);
-    glVertex2d(viewportWidth, 0.0);
+    glVertex2d(1.0, 0.0);
     glTexCoord2d(1.0, 1.0);
-    glVertex2d(viewportWidth, viewportHeight);
+    glVertex2d(1.0, 1.0);
     glTexCoord2d(0.0, 1.0);
-    glVertex2d(0.0, viewportHeight);
+    glVertex2d(0.0, 1.0);
     glEnd();
 }
 
 static void render_scanlines(void)
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, current_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_object);
     glEnable(GL_BLEND);
 
-    glColor4f(1.0f, 1.0f, 1.0f, config_video.scanlines_intensity / 4.0f);
+    glColor4f(1.0f, 1.0f, 1.0f, config_video.scanlines_intensity);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glBindTexture(GL_TEXTURE_2D, scanlines_texture);
@@ -375,14 +354,16 @@ static void render_scanlines(void)
     glMatrixMode(GL_MODELVIEW);
     glViewport(0, 0, viewportWidth, viewportHeight);
 
+    float tex_v = (float)current_runtime.screen_height;
+
     glBegin(GL_QUADS);
     glTexCoord2d(0.0, 0.0);
     glVertex2d(0.0, 0.0);
-    glTexCoord2d(current_runtime.screen_width, 0.0);
+    glTexCoord2d(1.0, 0.0);
     glVertex2d(viewportWidth, 0.0);
-    glTexCoord2d(current_runtime.screen_width, current_runtime.screen_height);
+    glTexCoord2d(1.0, tex_v);
     glVertex2d(viewportWidth, viewportHeight);
-    glTexCoord2d(0.0, current_runtime.screen_height);
+    glTexCoord2d(0.0, tex_v);
     glVertex2d(0.0, viewportHeight);
     glEnd();
 

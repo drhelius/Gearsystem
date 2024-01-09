@@ -57,6 +57,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor)
     m_iSG1000Mode = 0;
     m_bDisplayEnabled = false;
     m_bSpriteOvrRequest = false;
+    m_Overscan = OverscanDisabled;
 }
 
 Video::~Video()
@@ -467,12 +468,18 @@ void Video::ScanLine(int line)
         // DISPLAY OFF
         if (line < max_height)
         {
+            u16 color = 0;
+            if (m_bSG1000)
+                color = m_VdpRegister[7] & 0x0F;
+            else
+                color = ColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
+
             int line_width = line * m_iScreenWidth;
 
             for (int scx = 0; scx < m_iScreenWidth; scx++)
             {
                 int pixel = line_width + scx;
-                m_pFrameBuffer[pixel] = 0;
+                m_pFrameBuffer[pixel] = color;
                 m_pInfoBuffer[pixel] = 0;
             }
         }
@@ -893,15 +900,78 @@ void Video::RenderSpritesSG1000(int line)
         m_VdpStatus = SetBit(m_VdpStatus, 5);
 }
 
-void Video::Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size)
+void Video::Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size, bool overscan)
 {
     bool bgr = (pixelFormat == GS_PIXEL_BGR888);
+    if (m_bGameGear)
+        overscan = false;
+
+    int overscan_h = 0;
+    int overscan_v = 0;
+    int overscan_content_v = 0;
+    int overscan_content_h = 0;
+    int overscan_total_width = GS_RESOLUTION_MAX_WIDTH;
+    int overscan_total_height = 0;
+    bool overscan_enabled = false;
+    int overscan_color = 0;
+    int buffer_size = size * 3;
+
+    if (overscan && (m_Overscan != OverscanDisabled))
+    {
+        overscan_enabled = true;
+        overscan_content_v = m_bExtendedMode224 ? GS_RESOLUTION_SMS_HEIGHT_EXTENDED : GS_RESOLUTION_SMS_HEIGHT;
+        overscan_v = m_bPAL ? GS_RESOLUTION_SMS_OVERSCAN_V_PAL : GS_RESOLUTION_SMS_OVERSCAN_V;
+        overscan_v -= m_bExtendedMode224 ? 16 : 0;
+        overscan_total_height = overscan_content_v + (overscan_v * 2);
+    }
+    if (overscan && (m_Overscan == OverscanFull))
+    {
+        overscan_content_h = GS_RESOLUTION_MAX_WIDTH;
+        overscan_h = GS_RESOLUTION_SMS_OVERSCAN_H;
+        overscan_total_width = overscan_content_h + (overscan_h * 2);
+    }
 
     if(m_bSG1000)
     {
-        for (int i = 0, j = 0; i < size; i ++, j += 3)
+        int x = 0;
+        int y = 0;
+        overscan_color = m_VdpRegister[7] & 0x0F;
+
+        for (int i = 0, j = 0; j < buffer_size; j += 3)
         {
-            u16 src_color = srcFrameBuffer[i] * 3;
+            u16 src_color = 0;
+            if (overscan_enabled)
+            {
+                if ((overscan_h > 0) && (x < overscan_h || x >= (overscan_h + overscan_content_h)))
+                {
+                    src_color = overscan_color;
+                }
+                else if ((overscan_v > 0) && (y < overscan_v || y >= (overscan_v + overscan_content_v)))
+                {
+                    src_color = overscan_color;
+                }
+                else
+                {
+                    src_color = srcFrameBuffer[i] * 3;
+                    i++;
+                }
+
+                x++;
+                if (x >= overscan_total_width)
+                {
+                    x = 0;
+                    y++;
+                    if (y >= overscan_total_height)
+                    {
+                        y = 0;
+                    }
+                }
+            }
+            else
+            {
+                src_color = srcFrameBuffer[i] * 3;
+                i++;
+            }
 
             if (bgr)
             {
@@ -922,10 +992,46 @@ void Video::Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
         int shift_g = m_bGameGear ? 4 : 2;
         int shift_b = m_bGameGear ? 8 : 4;
         int mask = m_bGameGear ? 0x0F : 0x03;
+        int x = 0;
+        int y = 0;
+        overscan_color = ColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
 
-        for (int i = 0, j = 0; i < size; i ++, j += 3)
+        for (int i = 0, j = 0; j < buffer_size; j += 3)
         {
-            u16 src_color = srcFrameBuffer[i];
+            u16 src_color = 0;
+            if (overscan_enabled)
+            {
+                if ((overscan_h > 0) && (x < overscan_h || x >= (overscan_h + overscan_content_h)))
+                {
+                    src_color = overscan_color;
+                }
+                else if ((overscan_v > 0) && (y < overscan_v || y >= (overscan_v + overscan_content_v)))
+                {
+                    src_color = overscan_color;
+                }
+                else
+                {
+                    src_color = srcFrameBuffer[i];
+                    i++;
+                }
+
+                x++;
+                if (x >= overscan_total_width)
+                {
+                    x = 0;
+                    y++;
+                    if (y >= overscan_total_height)
+                    {
+                        y = 0;
+                    }
+                }
+            }
+            else
+            {
+                src_color = srcFrameBuffer[i];
+                i++;
+            }
+
             u8 red, blue;
             u8 green = (src_color >> shift_g) & mask;
 
@@ -947,13 +1053,44 @@ void Video::Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
     }
 }
 
-void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size)
+void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size, bool overscan)
 {
     bool green_6bit = (pixelFormat == GS_PIXEL_RGB565) || (pixelFormat == GS_PIXEL_BGR565);
     bool bgr = ((pixelFormat == GS_PIXEL_BGR555) || (pixelFormat == GS_PIXEL_BGR565));
 
+    if (m_bGameGear)
+        overscan = false;
+
+    int overscan_h = 0;
+    int overscan_v = 0;
+    int overscan_content_v = 0;
+    int overscan_content_h = 0;
+    int overscan_total_width = GS_RESOLUTION_MAX_WIDTH;
+    int overscan_total_height = 0;
+    bool overscan_enabled = false;
+    int overscan_color = 0;
+    int buffer_size = size * 2;
+
+    if (overscan && (m_Overscan != OverscanDisabled))
+    {
+        overscan_enabled = true;
+        overscan_content_v = m_bExtendedMode224 ? GS_RESOLUTION_SMS_HEIGHT_EXTENDED : GS_RESOLUTION_SMS_HEIGHT;
+        overscan_v = m_bPAL ? GS_RESOLUTION_SMS_OVERSCAN_V_PAL : GS_RESOLUTION_SMS_OVERSCAN_V;
+        overscan_v -= m_bExtendedMode224 ? 16 : 0;
+        overscan_total_height = overscan_content_v + (overscan_v * 2);
+    }
+    if (overscan && (m_Overscan == OverscanFull))
+    {
+        overscan_content_h = GS_RESOLUTION_MAX_WIDTH;
+        overscan_h = GS_RESOLUTION_SMS_OVERSCAN_H;
+        overscan_total_width = overscan_content_h + (overscan_h * 2);
+    }
+
     if(m_bSG1000)
     {
+        int x = 0;
+        int y = 0;
+        overscan_color = m_VdpRegister[7] & 0x0F;
         const u16* pal;
 
         if (bgr)
@@ -961,15 +1098,50 @@ void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
         else
             pal = green_6bit ? m_SG1000_palette_565_rgb : m_SG1000_palette_555_rgb;
 
-        for (int i = 0, j = 0; i < size; i ++, j += 2)
+        for (int i = 0, j = 0; j < buffer_size; j += 2)
         {
-            u16 src_color = srcFrameBuffer[i];
+            u16 src_color = 0;
+            if (overscan_enabled)
+            {
+                if ((overscan_h > 0) && (x < overscan_h || x >= (overscan_h + overscan_content_h)))
+                {
+                    src_color = overscan_color;
+                }
+                else if ((overscan_v > 0) && (y < overscan_v || y >= (overscan_v + overscan_content_v)))
+                {
+                    src_color = overscan_color;
+                }
+                else
+                {
+                    src_color = srcFrameBuffer[i];
+                    i++;
+                }
+
+                x++;
+                if (x >= overscan_total_width)
+                {
+                    x = 0;
+                    y++;
+                    if (y >= overscan_total_height)
+                    {
+                        y = 0;
+                    }
+                }
+            }
+            else
+            {
+                src_color = srcFrameBuffer[i];
+                i++;
+            }
 
             *(u16*)(&dstFrameBuffer[j]) = pal[src_color];
         }
     }
     else
     {
+        int x = 0;
+        int y = 0;
+        overscan_color = ColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
         const u8* lut;
         const u8* lut_g;
         int shift_g, shift_b, mask;
@@ -992,9 +1164,42 @@ void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
             mask = 0x03;
         }
 
-        for (int i = 0, j = 0; i < size; i ++, j += 2)
+        for (int i = 0, j = 0; j < buffer_size; j += 2)
         {
-            u16 src_color = srcFrameBuffer[i];
+            u16 src_color = 0;
+            if (overscan_enabled)
+            {
+                if ((overscan_h > 0) && (x < overscan_h || x >= (overscan_h + overscan_content_h)))
+                {
+                    src_color = overscan_color;
+                }
+                else if ((overscan_v > 0) && (y < overscan_v || y >= (overscan_v + overscan_content_v)))
+                {
+                    src_color = overscan_color;
+                }
+                else
+                {
+                    src_color = srcFrameBuffer[i];
+                    i++;
+                }
+
+                x++;
+                if (x >= overscan_total_width)
+                {
+                    x = 0;
+                    y++;
+                    if (y >= overscan_total_height)
+                    {
+                        y = 0;
+                    }
+                }
+            }
+            else
+            {
+                src_color = srcFrameBuffer[i];
+                i++;
+            }
+
             u8 red, blue;
             u8 green = (src_color >> shift_g) & mask;
 
@@ -1012,6 +1217,16 @@ void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
             *(u16*)(&dstFrameBuffer[j]) = (lut[red] << shift) | (lut_g[green] << 5) | lut[blue];
         }
     }
+}
+
+void Video::SetOverscan(Overscan overscan)
+{
+    m_Overscan = overscan;
+}
+
+Video::Overscan Video::GetOverscan()
+{
+    return m_Overscan;
 }
 
 void Video::InitPalettes()

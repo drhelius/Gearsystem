@@ -31,7 +31,6 @@ static bool debugging = false;
 static bool debug_step = false;
 static bool debug_next_frame = false;
 
-u16* frame_buffer;
 u16* debug_background_buffer;
 u16* debug_tile_buffer;
 u16* debug_sprite_buffers[64];
@@ -52,14 +51,12 @@ static void update_debug_sprite_buffers_sg1000(void);
 
 void emu_init(void)
 {
-    int screen_size = GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT;
+    int screen_size = GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN * GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN;
 
     emu_frame_buffer = new u8[screen_size * 3];
-    frame_buffer = new u16[screen_size];
-    
+
     for (int i=0, j=0; i < screen_size; i++, j+=3)
     {
-        frame_buffer[i] = 0;
         emu_frame_buffer[j] = 0;
         emu_frame_buffer[j+1] = 0;
         emu_frame_buffer[j+2] = 0;
@@ -96,7 +93,6 @@ void emu_destroy(void)
     SafeDelete(sound_queue);
     SafeDelete(gearsystem);
     SafeDeleteArray(emu_frame_buffer);
-    SafeDeleteArray(frame_buffer);
     destroy_debug();
 }
 
@@ -374,6 +370,24 @@ void emu_set_3d_glasses_config(int config)
             glasses = GearsystemCore::GlassesBothEyes;
     }
     gearsystem->SetGlassesConfig(glasses);
+}
+
+void emu_set_overscan(int overscan)
+{
+    switch (overscan)
+    {
+        case 0:
+            gearsystem->GetVideo()->SetOverscan(Video::OverscanDisabled);
+            break;
+        case 1:
+            gearsystem->GetVideo()->SetOverscan(Video::OverscanTopBottom);
+            break;
+        case 2:
+            gearsystem->GetVideo()->SetOverscan(Video::OverscanFull);
+            break;
+        default:
+            gearsystem->GetVideo()->SetOverscan(Video::OverscanDisabled);
+    }
 }
 
 static void save_ram(void)

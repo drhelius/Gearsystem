@@ -251,8 +251,22 @@ bool GearsystemCore::GetRuntimeInfo(GS_RuntimeInfo& runtime_info)
 {
     if (m_pCartridge->IsReady())
     {
-        runtime_info.screen_width = m_pCartridge->IsGameGear() ? GS_RESOLUTION_GG_WIDTH : GS_RESOLUTION_SMS_WIDTH;
-        runtime_info.screen_height = m_pCartridge->IsGameGear() ? GS_RESOLUTION_GG_HEIGHT : (m_pVideo->IsExtendedMode224() ? GS_RESOLUTION_SMS_HEIGHT_EXTENDED : GS_RESOLUTION_SMS_HEIGHT);
+        if (m_pCartridge->IsGameGear())
+        {
+            runtime_info.screen_width = GS_RESOLUTION_GG_WIDTH;
+            runtime_info.screen_height = GS_RESOLUTION_GG_HEIGHT;
+        }
+        else
+        {
+            runtime_info.screen_width = GS_RESOLUTION_SMS_WIDTH;
+            runtime_info.screen_height = m_pVideo->IsExtendedMode224() ? GS_RESOLUTION_SMS_HEIGHT_EXTENDED : GS_RESOLUTION_SMS_HEIGHT;
+
+            if (m_pVideo->GetOverscan() == Video::OverscanFull)
+                runtime_info.screen_width = GS_RESOLUTION_SMS_WIDTH + (2 * GS_RESOLUTION_SMS_OVERSCAN_H);
+            if (m_pVideo->GetOverscan() != Video::OverscanDisabled)
+                runtime_info.screen_height = GS_RESOLUTION_SMS_HEIGHT + (2 * (m_pCartridge->IsPAL() ? GS_RESOLUTION_SMS_OVERSCAN_V_PAL : GS_RESOLUTION_SMS_OVERSCAN_V));
+        }
+
         runtime_info.region = m_pCartridge->IsPAL() ? Region_PAL : Region_NTSC;
         return true;
     }
@@ -931,7 +945,7 @@ void GearsystemCore::RenderFrameBuffer(u8* finalFrameBuffer)
             return;
     }
 
-    int size = GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT;
+    int size = GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN * GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN;
 
     switch (m_pixelFormat)
     {
@@ -940,13 +954,13 @@ void GearsystemCore::RenderFrameBuffer(u8* finalFrameBuffer)
         case GS_PIXEL_RGB565:
         case GS_PIXEL_BGR565:
         {
-            m_pVideo->Render16bit(m_pVideo->GetFrameBuffer(), finalFrameBuffer, m_pixelFormat, size);
+            m_pVideo->Render16bit(m_pVideo->GetFrameBuffer(), finalFrameBuffer, m_pixelFormat, size, true);
             break;
         }
         case GS_PIXEL_RGB888:
         case GS_PIXEL_BGR888:
         {
-            m_pVideo->Render24bit(m_pVideo->GetFrameBuffer(), finalFrameBuffer, m_pixelFormat, size);
+            m_pVideo->Render24bit(m_pVideo->GetFrameBuffer(), finalFrameBuffer, m_pixelFormat, size, true);
             break;
         }
     }

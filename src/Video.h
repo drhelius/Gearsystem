@@ -33,6 +33,14 @@ class Processor;
 class Video
 {
 public:
+    enum Overscan
+    {
+        OverscanDisabled,
+        OverscanTopBottom,
+        OverscanFull
+    };
+
+public:
     Video(Memory* pMemory, Processor* pProcessor);
     ~Video();
     void Init();
@@ -55,8 +63,10 @@ public:
     int GetSG1000Mode();
     u16 ColorFromPalette(int palette_color);
     u16* GetFrameBuffer();
-    void Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size);
-    void Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size);
+    void Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size, bool overscan = false);
+    void Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size, bool overscan = false);
+    void SetOverscan(Overscan overscan);
+    Overscan GetOverscan();
 
 private:
     void ScanLine(int line);
@@ -90,6 +100,7 @@ private:
     int m_iLinesPerFrame;
     bool m_bPAL;
     bool m_bExtendedMode224;
+    Overscan m_Overscan;
 
     struct LineEvents 
     {

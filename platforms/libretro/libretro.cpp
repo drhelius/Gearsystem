@@ -69,7 +69,8 @@ static const struct retro_variable vars[] = {
     { "gearsystem_region", "Region (restart); Auto|Master System Japan|Master System Export|Game Gear Japan|Game Gear Export|Game Gear International" },
     { "gearsystem_mapper", "Mapper (restart); Auto|ROM|SEGA|Codemasters|Korean|MSX|Janggun|SG-1000" },
     { "gearsystem_timing", "Refresh Rate (restart); Auto|NTSC (60 Hz)|PAL (50 Hz)" },
-    { "gearsystem_aspect_ratio", "Aspect Ratio (restart); Auto|4:3|16:9" },
+    { "gearsystem_aspect_ratio", "Aspect Ratio (restart); 1:1 PAR|4:3 PAR|16:9 PAR" },
+    { "gearsystem_overscan", "Overscan; Disabled|Top+Bottom|Full" },
     { "gearsystem_bios_sms", "Master System BIOS (restart); Disabled|Enabled" },
     { "gearsystem_bios_gg", "Game Gear BIOS (restart); Disabled|Enabled" },
     { "gearsystem_glasses", "3D Glasses; Both Eyes / OFF|Left Eye|Right Eye" },
@@ -98,7 +99,7 @@ void retro_init(void)
     core->Init(GS_PIXEL_RGB565);
 #endif
 
-    frame_buffer = new u8[GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT * 2];
+    frame_buffer = new u8[GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN * GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN * 2];
 
     audio_sample_count = 0;
 
@@ -180,10 +181,10 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
     current_screen_width = runtime_info.screen_width;
     current_screen_height = runtime_info.screen_height;
 
-    info->geometry.base_width   = runtime_info.screen_width;
-    info->geometry.base_height  = runtime_info.screen_height;
-    info->geometry.max_width    = runtime_info.screen_width;
-    info->geometry.max_height   = runtime_info.screen_height;
+    info->geometry.base_width   = current_screen_width;
+    info->geometry.base_height  = current_screen_height;
+    info->geometry.max_width    = GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN;
+    info->geometry.max_height   = GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN;
     info->geometry.aspect_ratio = aspect_ratio;
     info->timing.fps            = runtime_info.region == Region_NTSC ? 60.0 : 50.0;
     info->timing.sample_rate    = 44100.0;
@@ -415,14 +416,29 @@ static void check_variables(void)
 
     if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
     {
-        if (strcmp(var.value, "Auto") == 0)
+        if (strcmp(var.value, "1:1 PAR") == 0)
             aspect_ratio = 0.0f;
-        else if (strcmp(var.value, "4:3") == 0)
+        else if (strcmp(var.value, "4:3 PAR") == 0)
             aspect_ratio = 4.0f / 3.0f;
-        else if (strcmp(var.value, "16:9") == 0)
+        else if (strcmp(var.value, "16:9 PAR") == 0)
             aspect_ratio = 16.0f / 9.0f;
         else
             aspect_ratio = 0.0f;
+    }
+
+    var.key = "gearsystem_overscan";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Disabled") == 0)
+            core->GetVideo()->SetOverscan(Video::OverscanDisabled);
+        else if (strcmp(var.value, "Top+Bottom") == 0)
+            core->GetVideo()->SetOverscan(Video::OverscanTopBottom);
+        else if (strcmp(var.value, "Full") == 0)
+            core->GetVideo()->SetOverscan(Video::OverscanFull);
+        else
+            core->GetVideo()->SetOverscan(Video::OverscanDisabled);
     }
 
     var.key = "gearsystem_bios_sms";

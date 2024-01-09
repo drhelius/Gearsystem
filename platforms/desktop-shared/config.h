@@ -60,20 +60,21 @@ struct config_Emulator
     int savestates_dir_option = 0;
     std::string savestates_path;
     std::string last_open_path;
-    int window_width = 770;
-    int window_height = 600;
+    int window_width = 640;
+    int window_height = 503;
 };
 
 struct config_Video
 {
     int scale = 0;
-    int ratio = 0;
+    int ratio = 1;
+    int overscan = 1;
     bool fps = false;
     bool bilinear = false;
     bool mix_frames = true;
-    float mix_frames_intensity = 0.30f;
+    float mix_frames_intensity = 0.10f;
     bool scanlines = true;
-    float scanlines_intensity = 0.40f;
+    float scanlines_intensity = 0.10f;
     bool sync = true;
     int glasses = 0;
 };
