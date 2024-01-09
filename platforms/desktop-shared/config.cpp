@@ -219,7 +219,7 @@ void config_read(void)
     config_video.fps = read_bool("Video", "FPS", false);
     config_video.bilinear = read_bool("Video", "Bilinear", false);
     config_video.mix_frames = read_bool("Video", "MixFrames", true);
-    config_video.mix_frames_intensity = read_float("Video", "MixFramesIntensity", 0.10f);
+    config_video.mix_frames_intensity = read_float("Video", "MixFramesIntensity", 0.50f);
     config_video.scanlines = read_bool("Video", "Scanlines", true);
     config_video.scanlines_intensity = read_float("Video", "ScanlinesIntensity", 0.10f);
     config_video.sync = read_bool("Video", "Sync", true);

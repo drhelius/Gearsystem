@@ -72,7 +72,7 @@ struct config_Video
     bool fps = false;
     bool bilinear = false;
     bool mix_frames = true;
-    float mix_frames_intensity = 0.10f;
+    float mix_frames_intensity = 0.50f;
     bool scanlines = true;
     float scanlines_intensity = 0.10f;
     bool sync = true;
