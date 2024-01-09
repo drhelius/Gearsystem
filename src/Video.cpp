@@ -423,7 +423,7 @@ void Video::WriteControl(u8 control)
                     m_bExtendedMode224 = ((m_VdpRegister[0] & 0x06) == 0x06) && ((m_VdpRegister[1] & 0x18) == 0x10);
 
                     m_iSG1000Mode = ((m_VdpRegister[0] & 0x06) << 8) | (m_VdpRegister[1] & 0x18);
-                    m_bSG1000 = (m_iSG1000Mode == 0x0200) || (m_iSG1000Mode == 0x0000) ;
+                    m_bSG1000 = !m_bGameGear && ((m_iSG1000Mode == 0x0200) || (m_iSG1000Mode == 0x0000));
                 }
                 else if (reg > 10)
                 {
