@@ -8,7 +8,7 @@ on:
 
 jobs:
   linux:
-    name: Linux
+    name: Linux (Ubuntu)
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -63,7 +63,8 @@ jobs:
       uses: microsoft/setup-msbuild@v1.3.1
     - name: Get git version
       id: gitversion
-      run: echo "::set-output name=gitversion::$(git describe --abbrev=7 --dirty --always --tags)"
+      shell: bash
+      run: echo "gitversion=$(git describe --abbrev=7 --dirty --always --tags)" >> $GITHUB_OUTPUT
     - name: msbuild
       run: msbuild Gearsystem.sln /t:Clean,Build /p:EmulatorBuild="${{ steps.gitversion.outputs.gitversion }}" /p:Configuration=Release
       working-directory: platforms/windows
