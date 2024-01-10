@@ -947,7 +947,7 @@ void Video::Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
             bool is_v_overscan = (overscan_v > 0) && (y < overscan_v || y >= (overscan_v + overscan_content_v));
 
             if (is_h_overscan || is_v_overscan)
-                src_color = overscan_color;
+                src_color = m_bSG1000 ? overscan_color * 3 : overscan_color;
             else
                 src_color = m_bSG1000 ? srcFrameBuffer[i++] * 3 : srcFrameBuffer[i++];
 
