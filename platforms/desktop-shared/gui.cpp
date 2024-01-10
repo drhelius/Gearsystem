@@ -115,7 +115,7 @@ void gui_init(void)
     emu_enable_bootrom_sms(config_emulator.sms_bootrom);
     emu_enable_bootrom_gg(config_emulator.gg_bootrom);
     emu_set_media_slot(config_emulator.media);
-    emu_set_overscan(config_video.overscan);
+    emu_set_overscan(config_debug.debug ? false : config_video.overscan);
 }
 
 void gui_destroy(void)
@@ -633,8 +633,8 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Scale"))
             {
-                ImGui::PushItemWidth(100.0f);
-                ImGui::Combo("##scale", &config_video.scale, "Auto\0Zoom X1\0Zoom X2\0Zoom X3\0\0");
+                ImGui::PushItemWidth(250.0f);
+                ImGui::Combo("##scale", &config_video.scale, "Integer Scale (Auto)\0Integer Scale (X1)\0Integer Scale (X2)\0Integer Scale (X3)\0Scale to Window Height\0Scale to Window Width & Height\0\0");
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
@@ -642,7 +642,7 @@ static void main_menu(void)
             if (ImGui::BeginMenu("Aspect Ratio"))
             {
                 ImGui::PushItemWidth(200.0f);
-                ImGui::Combo("##ratio", &config_video.ratio, "Square Pixels (1:1 PAR)\0Standard (4:3 PAR)\0Wide (16:9 PAR)\0Fit Content to Window\0\0");
+                ImGui::Combo("##ratio", &config_video.ratio, "Square Pixels (1:1 PAR)\0Standard (4:3 PAR)\0Wide (16:9 PAR)\0\0");
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
@@ -652,7 +652,7 @@ static void main_menu(void)
                 ImGui::PushItemWidth(120.0f);
                 if (ImGui::Combo("##overscan", &config_video.overscan, "Disabled\0Top+Bottom\0Full\0\0"))
                 {
-                    emu_set_overscan(config_video.overscan);
+                    emu_set_overscan(config_debug.debug ? false : config_video.overscan);
                 }
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
@@ -837,6 +837,8 @@ static void main_menu(void)
 
             if (ImGui::MenuItem("Enable", "", &config_debug.debug))
             {
+                emu_set_overscan(config_debug.debug ? false : config_video.overscan);
+
                 if (config_debug.debug)
                     emu_debug_step();
                 else
@@ -1018,49 +1020,62 @@ static void main_window(void)
     int selected_ratio = config_debug.debug ? 0 : config_video.ratio;
     float ratio = (float)runtime.screen_width / (float)runtime.screen_height;
 
-    switch (selected_ratio)
+    switch (config_video.ratio)
     {
-        case 0:
-            ratio = (float)runtime.screen_width / (float)runtime.screen_height;
-            break;
         case 1:
             ratio = 4.0f / 3.0f;
             break;
         case 2:
             ratio = 16.0f / 9.0f;
             break;
-        case 3:
-            ratio = (float)w / (float)h;
-            break;
         default:
             ratio = (float)runtime.screen_width / (float)runtime.screen_height;
     }
 
-    int w_corrected = (int)(selected_ratio == 3 ? w : runtime.screen_height * ratio);
-    int h_corrected = (int)(selected_ratio == 3 ? h : runtime.screen_height);
-
-    int factor = 0;
-
-    if (config_video.scale > 0)
+    if (!config_debug.debug && config_video.scale == 5)
     {
-        factor = config_video.scale;
+        ratio = (float)w / (float)h;
     }
-    else if (config_debug.debug)
+
+    int w_corrected = (int)(runtime.screen_height * ratio);
+    int h_corrected = (int)(runtime.screen_height);
+    int scale_multiplier = 0;
+
+    if (config_debug.debug)
     {
-        factor = 1;
+        if ((config_video.scale > 0) && (config_video.scale < 4))
+            scale_multiplier = config_video.scale;
+        else
+            scale_multiplier = 1;
     }
     else
     {
-        int factor_w = w / w_corrected;
-        int factor_h = h / h_corrected;
-        factor = (factor_w < factor_h) ? factor_w : factor_h;
+        if ((config_video.scale > 0) && (config_video.scale < 4))
+        {
+            scale_multiplier = config_video.scale;
+        }
+        else if (config_video.scale == 0)
+        {
+            int factor_w = w / w_corrected;
+            int factor_h = h / h_corrected;
+            scale_multiplier = (factor_w < factor_h) ? factor_w : factor_h;
+        }
+        else if (config_video.scale == 4)
+        {
+            scale_multiplier = 1;
+            h_corrected = h;
+            w_corrected = h * ratio;
+        }
+        else if (config_video.scale == 5)
+        {
+            scale_multiplier = 1;
+            w_corrected = w;
+            h_corrected = h;
+        }
     }
 
-    main_window_width = w_corrected * factor;
-    main_window_height = h_corrected * factor;
-
-    int window_x = (w - (w_corrected * factor)) / 2;
-    int window_y = ((h - (h_corrected * factor)) / 2) + (config_emulator.show_menu ? main_menu_height : 0);
+    main_window_width = w_corrected * scale_multiplier;
+    main_window_height = h_corrected * scale_multiplier;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
@@ -1078,6 +1093,9 @@ static void main_window(void)
     }
     else
     {
+        int window_x = (w - (w_corrected * scale_multiplier)) / 2;
+        int window_y = ((h - (h_corrected * scale_multiplier)) / 2) + (config_emulator.show_menu ? main_menu_height : 0);
+
         ImGui::SetNextWindowSize(ImVec2((float)main_window_width, (float)main_window_height));
         ImGui::SetNextWindowPos(ImVec2((float)window_x, (float)window_y));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
