@@ -1020,7 +1020,7 @@ static void main_window(void)
     int selected_ratio = config_debug.debug ? 0 : config_video.ratio;
     float ratio = (float)runtime.screen_width / (float)runtime.screen_height;
 
-    switch (config_video.ratio)
+    switch (selected_ratio)
     {
         case 1:
             ratio = 4.0f / 3.0f;
