@@ -902,10 +902,8 @@ void Video::RenderSpritesSG1000(int line)
 
 void Video::Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size, bool overscan)
 {
-    bool bgr = (pixelFormat == GS_PIXEL_BGR888);
-    if (m_bGameGear)
-        overscan = false;
-
+    int x = 0;
+    int y = 0;
     int overscan_h = 0;
     int overscan_v = 0;
     int overscan_content_v = 0;
@@ -913,8 +911,16 @@ void Video::Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
     int overscan_total_width = GS_RESOLUTION_MAX_WIDTH;
     int overscan_total_height = 0;
     bool overscan_enabled = false;
-    int overscan_color = 0;
-    int buffer_size = size * 3;
+    int overscan_color = m_bSG1000 ? m_VdpRegister[7] & 0x0F : ColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
+    int buffer_size = size * 3;    
+    int shift_g = m_bGameGear ? 4 : 2;
+    int shift_b = m_bGameGear ? 8 : 4;
+    int mask = m_bGameGear ? 0x0F : 0x03;
+    bool bgr = (pixelFormat == GS_PIXEL_BGR888);
+    const u8* lut = m_bGameGear ? k4bitTo8bit : k2bitTo8bit;
+
+    if (m_bGameGear)
+        overscan = false;
 
     if (overscan && (m_Overscan != OverscanDisabled))
     {
@@ -924,6 +930,7 @@ void Video::Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
         overscan_v -= m_bExtendedMode224 ? 16 : 0;
         overscan_total_height = overscan_content_v + (overscan_v * 2);
     }
+
     if (overscan && (m_Overscan == OverscanFull))
     {
         overscan_content_h = GS_RESOLUTION_MAX_WIDTH;
@@ -931,136 +938,50 @@ void Video::Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
         overscan_total_width = overscan_content_h + (overscan_h * 2);
     }
 
-    if(m_bSG1000)
+    for (int i = 0, j = 0; j < buffer_size; j += 3)
     {
-        int x = 0;
-        int y = 0;
-        overscan_color = m_VdpRegister[7] & 0x0F;
-
-        for (int i = 0, j = 0; j < buffer_size; j += 3)
+        u16 src_color = 0;
+        if (overscan_enabled)
         {
-            u16 src_color = 0;
-            if (overscan_enabled)
-            {
-                if ((overscan_h > 0) && (x < overscan_h || x >= (overscan_h + overscan_content_h)))
-                {
-                    src_color = overscan_color;
-                }
-                else if ((overscan_v > 0) && (y < overscan_v || y >= (overscan_v + overscan_content_v)))
-                {
-                    src_color = overscan_color;
-                }
-                else
-                {
-                    src_color = srcFrameBuffer[i] * 3;
-                    i++;
-                }
+            bool is_h_overscan = (overscan_h > 0) && (x < overscan_h || x >= (overscan_h + overscan_content_h));
+            bool is_v_overscan = (overscan_v > 0) && (y < overscan_v || y >= (overscan_v + overscan_content_v));
 
-                x++;
-                if (x >= overscan_total_width)
+            if (is_h_overscan || is_v_overscan)
+                src_color = overscan_color;
+            else
+                src_color = m_bSG1000 ? srcFrameBuffer[i++] * 3 : srcFrameBuffer[i++];
+
+            if (++x == overscan_total_width)
+            {
+                x = 0;
+                if (++y == overscan_total_height)
                 {
-                    x = 0;
-                    y++;
-                    if (y >= overscan_total_height)
-                    {
-                        y = 0;
-                    }
+                    y = 0;
                 }
             }
-            else
-            {
-                src_color = srcFrameBuffer[i] * 3;
-                i++;
-            }
-
-            if (bgr)
-            {
-                dstFrameBuffer[j + 2] = kSG1000_palette_888[src_color];
-                dstFrameBuffer[j] = kSG1000_palette_888[src_color + 2];
-            }
-            else
-            {
-                dstFrameBuffer[j] = kSG1000_palette_888[src_color];
-                dstFrameBuffer[j + 2] = kSG1000_palette_888[src_color + 2];
-            }
-            dstFrameBuffer[j + 1] = kSG1000_palette_888[src_color + 1];
         }
-    }
-    else
-    {
-        const u8* lut = m_bGameGear ? k4bitTo8bit : k2bitTo8bit;
-        int shift_g = m_bGameGear ? 4 : 2;
-        int shift_b = m_bGameGear ? 8 : 4;
-        int mask = m_bGameGear ? 0x0F : 0x03;
-        int x = 0;
-        int y = 0;
-        overscan_color = ColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
+        else
+            src_color = m_bSG1000 ? srcFrameBuffer[i++] * 3 : srcFrameBuffer[i++];
 
-        for (int i = 0, j = 0; j < buffer_size; j += 3)
+        if (m_bSG1000)
         {
-            u16 src_color = 0;
-            if (overscan_enabled)
-            {
-                if ((overscan_h > 0) && (x < overscan_h || x >= (overscan_h + overscan_content_h)))
-                {
-                    src_color = overscan_color;
-                }
-                else if ((overscan_v > 0) && (y < overscan_v || y >= (overscan_v + overscan_content_v)))
-                {
-                    src_color = overscan_color;
-                }
-                else
-                {
-                    src_color = srcFrameBuffer[i];
-                    i++;
-                }
-
-                x++;
-                if (x >= overscan_total_width)
-                {
-                    x = 0;
-                    y++;
-                    if (y >= overscan_total_height)
-                    {
-                        y = 0;
-                    }
-                }
-            }
-            else
-            {
-                src_color = srcFrameBuffer[i];
-                i++;
-            }
-
-            u8 red, blue;
-            u8 green = (src_color >> shift_g) & mask;
-
-            if (bgr)
-            {
-                blue = src_color & mask;
-                red = (src_color >> shift_b) & mask;
-            }
-            else
-            {
-                red = src_color & mask;
-                blue = (src_color >> shift_b) & mask;
-            }
-
-            dstFrameBuffer[j] = lut[red];
-            dstFrameBuffer[j + 1] = lut[green];
-            dstFrameBuffer[j + 2] = lut[blue];
+            dstFrameBuffer[j + 0] = bgr ? kSG1000_palette_888[src_color + 2] : kSG1000_palette_888[src_color];
+            dstFrameBuffer[j + 1] = kSG1000_palette_888[src_color + 1];
+            dstFrameBuffer[j + 2] = bgr ? kSG1000_palette_888[src_color] : kSG1000_palette_888[src_color + 2];
+        }
+        else
+        {
+            dstFrameBuffer[j + 0] = lut[bgr ? (src_color >> shift_b) & mask : src_color & mask];
+            dstFrameBuffer[j + 1] = lut[(src_color >> shift_g) & mask];
+            dstFrameBuffer[j + 2] = lut[bgr ? src_color & mask : (src_color >> shift_b) & mask];
         }
     }
 }
 
 void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size, bool overscan)
 {
-    bool green_6bit = (pixelFormat == GS_PIXEL_RGB565) || (pixelFormat == GS_PIXEL_BGR565);
-    bool bgr = ((pixelFormat == GS_PIXEL_BGR555) || (pixelFormat == GS_PIXEL_BGR565));
-
-    if (m_bGameGear)
-        overscan = false;
-
+    int x = 0;
+    int y = 0;
     int overscan_h = 0;
     int overscan_v = 0;
     int overscan_content_v = 0;
@@ -1068,8 +989,25 @@ void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
     int overscan_total_width = GS_RESOLUTION_MAX_WIDTH;
     int overscan_total_height = 0;
     bool overscan_enabled = false;
-    int overscan_color = 0;
-    int buffer_size = size * 2;
+    int overscan_color = m_bSG1000 ? m_VdpRegister[7] & 0x0F : ColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
+    int buffer_size = size * 2;    
+    int shift_g = m_bGameGear ? 4 : 2;
+    int shift_b = m_bGameGear ? 8 : 4;
+    int mask = m_bGameGear ? 0x0F : 0x03;
+    bool bgr = ((pixelFormat == GS_PIXEL_BGR555) || (pixelFormat == GS_PIXEL_BGR565));
+    bool green_6bit = (pixelFormat == GS_PIXEL_RGB565) || (pixelFormat == GS_PIXEL_BGR565);
+    const u8* lut = m_bGameGear ? k4bitTo5bit : k2bitTo5bit;
+    const u8* lut_g = m_bGameGear ? (green_6bit ? k4bitTo6bit : k4bitTo5bit) : (green_6bit ? k2bitTo6bit : k2bitTo5bit);
+    int shift = green_6bit ? 11 : 10;
+    const u16* pal;
+
+    if (bgr)
+        pal = green_6bit ? m_SG1000_palette_565_bgr : m_SG1000_palette_555_bgr;
+    else
+        pal = green_6bit ? m_SG1000_palette_565_rgb : m_SG1000_palette_555_rgb;
+
+    if (m_bGameGear)
+        overscan = false;
 
     if (overscan && (m_Overscan != OverscanDisabled))
     {
@@ -1079,6 +1017,7 @@ void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
         overscan_v -= m_bExtendedMode224 ? 16 : 0;
         overscan_total_height = overscan_content_v + (overscan_v * 2);
     }
+
     if (overscan && (m_Overscan == OverscanFull))
     {
         overscan_content_h = GS_RESOLUTION_MAX_WIDTH;
@@ -1086,133 +1025,42 @@ void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
         overscan_total_width = overscan_content_h + (overscan_h * 2);
     }
 
-    if(m_bSG1000)
+    for (int i = 0, j = 0; j < buffer_size; j += 2)
     {
-        int x = 0;
-        int y = 0;
-        overscan_color = m_VdpRegister[7] & 0x0F;
-        const u16* pal;
-
-        if (bgr)
-            pal = green_6bit ? m_SG1000_palette_565_bgr : m_SG1000_palette_555_bgr;
-        else
-            pal = green_6bit ? m_SG1000_palette_565_rgb : m_SG1000_palette_555_rgb;
-
-        for (int i = 0, j = 0; j < buffer_size; j += 2)
+        u16 src_color = 0;
+        if (overscan_enabled)
         {
-            u16 src_color = 0;
-            if (overscan_enabled)
-            {
-                if ((overscan_h > 0) && (x < overscan_h || x >= (overscan_h + overscan_content_h)))
-                {
-                    src_color = overscan_color;
-                }
-                else if ((overscan_v > 0) && (y < overscan_v || y >= (overscan_v + overscan_content_v)))
-                {
-                    src_color = overscan_color;
-                }
-                else
-                {
-                    src_color = srcFrameBuffer[i];
-                    i++;
-                }
+            bool is_h_overscan = (overscan_h > 0) && (x < overscan_h || x >= (overscan_h + overscan_content_h));
+            bool is_v_overscan = (overscan_v > 0) && (y < overscan_v || y >= (overscan_v + overscan_content_v));
 
-                x++;
-                if (x >= overscan_total_width)
-                {
-                    x = 0;
-                    y++;
-                    if (y >= overscan_total_height)
-                    {
-                        y = 0;
-                    }
-                }
-            }
+            if (is_h_overscan || is_v_overscan)
+                src_color = overscan_color;
             else
-            {
-                src_color = srcFrameBuffer[i];
-                i++;
-            }
+                src_color = srcFrameBuffer[i++];
 
+            if (++x == overscan_total_width)
+            {
+                x = 0;
+                if (++y == overscan_total_height)
+                {
+                    y = 0;
+                }
+            }
+        }
+        else
+            src_color = srcFrameBuffer[i++];
+
+        if (m_bSG1000)
+        {
             *(u16*)(&dstFrameBuffer[j]) = pal[src_color];
         }
-    }
-    else
-    {
-        int x = 0;
-        int y = 0;
-        overscan_color = ColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
-        const u8* lut;
-        const u8* lut_g;
-        int shift_g, shift_b, mask;
-        int shift = green_6bit ? 11 : 10;
-
-        if (m_bGameGear)
-        {
-            lut = k4bitTo5bit;
-            lut_g = green_6bit ? k4bitTo6bit : k4bitTo5bit;
-            shift_g = 4;
-            shift_b = 8;
-            mask = 0x0F;
-        }
         else
         {
-            lut = k2bitTo5bit;
-            lut_g = green_6bit ? k2bitTo6bit : k2bitTo5bit;
-            shift_g = 2;
-            shift_b = 4;
-            mask = 0x03;
-        }
+            u8 red, green, blue;
 
-        for (int i = 0, j = 0; j < buffer_size; j += 2)
-        {
-            u16 src_color = 0;
-            if (overscan_enabled)
-            {
-                if ((overscan_h > 0) && (x < overscan_h || x >= (overscan_h + overscan_content_h)))
-                {
-                    src_color = overscan_color;
-                }
-                else if ((overscan_v > 0) && (y < overscan_v || y >= (overscan_v + overscan_content_v)))
-                {
-                    src_color = overscan_color;
-                }
-                else
-                {
-                    src_color = srcFrameBuffer[i];
-                    i++;
-                }
-
-                x++;
-                if (x >= overscan_total_width)
-                {
-                    x = 0;
-                    y++;
-                    if (y >= overscan_total_height)
-                    {
-                        y = 0;
-                    }
-                }
-            }
-            else
-            {
-                src_color = srcFrameBuffer[i];
-                i++;
-            }
-
-            u8 red, blue;
-            u8 green = (src_color >> shift_g) & mask;
-
-            if (bgr)
-            {
-                blue = src_color & mask;
-                red = (src_color >> shift_b) & mask;
-            }
-            else
-            {
-                red = src_color & mask;
-                blue = (src_color >> shift_b) & mask;
-            }
+            red = bgr ? (src_color >> shift_b) & mask : src_color & mask;
+            green = (src_color >> shift_g) & mask;
+            blue = bgr ? src_color & mask : (src_color >> shift_b) & mask;
 
             *(u16*)(&dstFrameBuffer[j]) = (lut[red] << shift) | (lut_g[green] << 5) | lut[blue];
         }
