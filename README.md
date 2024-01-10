@@ -42,7 +42,6 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
 - Accurate VDP emulation including timing and Master System 2 only 224 video mode support.
 - Internal database for rom detection.
-- Sound emulation using SDL Audio and [Sms_Snd_Emu library](https://www.slack.net/~ant/libs/audio.html#Sms_Snd_Emu).
 - Battery powered RAM save support.
 - Save states.
 - Compressed rom support (ZIP).
