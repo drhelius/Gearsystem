@@ -58,18 +58,18 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 
 ## Tips
 
+- *BIOS*: Gearsystem can run with or without a BIOS. You can optionally load a BIOS and enable it. It is possible to run the title included in the BIOS by setting *Media Slot* to *None* in the *Emulator* menu. This will emulate a machine without any media plugged in.
+- *Overscan*: For a precise representation of the original image using Overscan Top+Bottom and 4:3 Pixel Aspect Ratio is recommended. Game Gear will ignore any overscan settings.
+- *Mouse Cursor*: Automatically hides when hovering main output window or when Main Menu is disabled.
 - *Portable Mode*: Create an empty file named `portable.ini` in the same directory as the application binary to enable portable mode.
 - *Debug Symbols*: The emulator always tries to load a symbol file at the same time a rom is being loaded. For example, for ```path_to_rom_file.sms``` it tries to load ```path_to_rom_file.sym```. It is also possible to load a symbol file using the GUI or using the CLI.
 - *Command Line Usage*: ```gearsystem [rom_file] [symbol_file]```
-- *Mouse Cursor*: Automatically hides when hovering main output window or when Main Menu is disabled.
-- *BIOS*: Gearsystem can run with or without a BIOS. You can optionally load a BIOS and enable it. It is possible to run the title included in the BIOS by setting *Media Slot* to *None* in the *Emulator* menu. This will emulate a machine without any media plugged in.
-- *Overscan*: For a precise representation of the original image using Overscan Top+Bottom and 4:3 Pixel Aspect Ratio is recommended. Game Gear will ignore any overscan settings.
 
 ## Build Instructions
 
 ### Windows
 
-- Install Microsoft Visual Studio Community 2019 or later.
+- Install Microsoft Visual Studio Community 2022 or later.
 - Open the Gearsystem Visual Studio solution `platforms/windows/Gearsystem.sln` and build.
 - You may want to use the `platforms/windows/Makefile` to build the application using MinGW.
 
