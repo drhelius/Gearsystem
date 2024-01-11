@@ -339,9 +339,12 @@ ifeq ($(STATIC_LINKING), 1)
 else
 	$(CXX) $(fpic) $(SHARED) $(INCLUDES) -o $@ $(OBJECTS) $(LDFLAGS)
 endif
-  
-%.o: %.c
+
+%.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(fpic) -c -o $@ $<
+
+%.o: %.c
+	$(CC) $(CXXFLAGS) $(fpic) -c -o $@ $<
 
 clean:
 	rm -f $(OBJECTS) $(TARGET)
