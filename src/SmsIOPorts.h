@@ -44,6 +44,7 @@ private:
     Input* m_pInput;
     Cartridge* m_pCartridge;
     Memory* m_pMemory;
+
     u8 m_Port3F;
     u8 m_Port3F_HC;
 };
@@ -53,13 +54,14 @@ private:
 #include "Input.h"
 #include "Cartridge.h"
 #include "Memory.h"
+#include "YM2413.h"
 
 inline u8 SmsIOPorts::DoInput(u8 port)
 {
     if (port < 0x40)
     {
         // Reads return $FF (SMS2)
-        Log("--> ** Attempting to read from port $%X", port);
+        Log("--> ** Attempting to read from port $%02X", port);
         return 0xFF;
     }
     else if ((port >= 0x40) && (port < 0x80))
@@ -82,12 +84,20 @@ inline u8 SmsIOPorts::DoInput(u8 port)
     }
     else
     {
-        // Reads from even addresses return the I/O port A/B register
-        // Reads from odd address return the I/O port B/misc. register
-        if ((port & 0x01) == 0x00)
-            return m_pInput->GetPortDC();
+        if (m_pMemory->IsIOEnabled())
+        {
+            // Reads from even addresses return the I/O port A/B register
+            // Reads from odd address return the I/O port B/misc. register
+            if ((port & 0x01) == 0x00)
+                return m_pInput->GetPortDC();
+            else
+                return ((m_pInput->GetPortDD() & 0x3F) | (m_Port3F & 0xC0));
+        }
         else
-            return ((m_pInput->GetPortDD() & 0x3F) | (m_Port3F & 0xC0));
+        {
+            Log("--> ** Input from YM2413 port $%02X: %02X", port, m_pAudio->YM2413Read(port));
+            return m_pAudio->YM2413Read(port);
+        }
     }
 }
 
@@ -99,7 +109,7 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
         // Writes to odd addresses go to I/O control register.
         if ((port & 0x01) == 0x00)
         {
-            Log("--> ** Output to memory control port $%X: %X", port, value);
+            Log("--> ** Output to memory control port $%02X: %02X", port, value);
             m_pMemory->SetPort3E(value);
         }
         else
@@ -127,24 +137,24 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
         else
             m_pVideo->WriteControl(value);
     }
-#ifdef DEBUG_GEARSYSTEM
     else
     {
-        // Writes have no effect.
-        if ((port == 0xDE) || (port == 0xDF))
+        if ((port == 0xF0) || (port == 0xF1) || (port == 0xF2))
         {
-            Log("--> ** Output to keyboard port $%X: %X", port, value);
+            Log("--> ** Output to YM2413 port $%02X: %02X", port, value);
+            m_pAudio->YM2413Write(port, value);
         }
-        else if ((port == 0xF0) || (port == 0xF1) || (port == 0xF2))
+#ifdef DEBUG_GEARSYSTEM
+        else if ((port == 0xDE) || (port == 0xDF))
         {
-            Log("--> ** Output to YM2413 port $%X: %X", port, value);
+            Log("--> ** Output to keyboard port $%02X: %02X", port, value);
         }
         else
         {
-            Log("--> ** Output to port $%X: %X", port, value);
+            Log("--> ** Output to port $%02X: %02X", port, value);
         }
-    }
 #endif
+    }
 }
 
 #endif	/* SMSIOPORTS_H */

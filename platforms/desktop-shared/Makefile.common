@@ -1,5 +1,7 @@
 
+CC = gcc
 CXX = g++
+#CC = clang
 #CXX = clang++
 
 EXE = gearsystem
@@ -9,6 +11,7 @@ GIT_VERSION := "$(shell git describe --abbrev=7 --dirty --always --tags)"
 EMULATOR_SRC=../../src
 EMULATOR_DESKTOP_SHARED_SRC=../desktop-shared
 EMULATOR_AUDIO_SRC=$(EMULATOR_SRC)/audio
+EMULATOR_AUDIO_EMU2413_SRC=$(EMULATOR_AUDIO_SRC)/emu2413
 EMULATOR_AUDIO_SHARED_SRC=../audio-shared
 IMGUI_SRC=$(EMULATOR_DESKTOP_SHARED_SRC)/imgui
 IMGUI_FILEBROWSER_SRC=$(EMULATOR_DESKTOP_SHARED_SRC)/FileBrowser
@@ -17,9 +20,11 @@ SOURCES = $(EMULATOR_DESKTOP_SHARED_SRC)/main.cpp $(EMULATOR_DESKTOP_SHARED_SRC)
 
 SOURCES += $(IMGUI_SRC)/imgui_impl_sdl.cpp $(IMGUI_SRC)/imgui_impl_opengl2.cpp $(IMGUI_SRC)/imgui.cpp $(IMGUI_SRC)/imgui_demo.cpp $(IMGUI_SRC)/imgui_draw.cpp $(IMGUI_SRC)/imgui_widgets.cpp $(IMGUI_FILEBROWSER_SRC)/ImGuiFileBrowser.cpp
 
-SOURCES += $(EMULATOR_SRC)/Audio.cpp $(EMULATOR_SRC)/Cartridge.cpp $(EMULATOR_SRC)/CodemastersMemoryRule.cpp $(EMULATOR_SRC)/GameGearIOPorts.cpp $(EMULATOR_SRC)/GearsystemCore.cpp $(EMULATOR_SRC)/Input.cpp $(EMULATOR_SRC)/KoreanMemoryRule.cpp $(EMULATOR_SRC)/Memory.cpp $(EMULATOR_SRC)/MemoryRule.cpp $(EMULATOR_SRC)/MSXMemoryRule.cpp $(EMULATOR_SRC)/opcodes.cpp $(EMULATOR_SRC)/opcodes_cb.cpp $(EMULATOR_SRC)/opcodes_ed.cpp $(EMULATOR_SRC)/Processor.cpp $(EMULATOR_SRC)/RomOnlyMemoryRule.cpp $(EMULATOR_SRC)/SegaMemoryRule.cpp $(EMULATOR_SRC)/SG1000MemoryRule.cpp $(EMULATOR_SRC)/SmsIOPorts.cpp $(EMULATOR_SRC)/Video.cpp $(EMULATOR_SRC)/BootromMemoryRule.cpp $(EMULATOR_SRC)/JanggunMemoryRule.cpp
+SOURCES += $(EMULATOR_SRC)/Audio.cpp $(EMULATOR_SRC)/Cartridge.cpp $(EMULATOR_SRC)/CodemastersMemoryRule.cpp $(EMULATOR_SRC)/GameGearIOPorts.cpp $(EMULATOR_SRC)/GearsystemCore.cpp $(EMULATOR_SRC)/Input.cpp $(EMULATOR_SRC)/KoreanMemoryRule.cpp $(EMULATOR_SRC)/Memory.cpp $(EMULATOR_SRC)/MemoryRule.cpp $(EMULATOR_SRC)/MSXMemoryRule.cpp $(EMULATOR_SRC)/opcodes.cpp $(EMULATOR_SRC)/opcodes_cb.cpp $(EMULATOR_SRC)/opcodes_ed.cpp $(EMULATOR_SRC)/Processor.cpp $(EMULATOR_SRC)/RomOnlyMemoryRule.cpp $(EMULATOR_SRC)/SegaMemoryRule.cpp $(EMULATOR_SRC)/SG1000MemoryRule.cpp $(EMULATOR_SRC)/SmsIOPorts.cpp $(EMULATOR_SRC)/Video.cpp $(EMULATOR_SRC)/BootromMemoryRule.cpp $(EMULATOR_SRC)/JanggunMemoryRule.cpp $(EMULATOR_SRC)/YM2413.cpp
 
 SOURCES += $(EMULATOR_AUDIO_SRC)/Blip_Buffer.cpp $(EMULATOR_AUDIO_SRC)/Effects_Buffer.cpp $(EMULATOR_AUDIO_SRC)/Sms_Apu.cpp $(EMULATOR_AUDIO_SRC)/Multi_Buffer.cpp
+
+SOURCES += $(EMULATOR_AUDIO_EMU2413_SRC)/emu2413.cpp
 
 SOURCES += $(EMULATOR_AUDIO_SHARED_SRC)/Sound_Queue.cpp
 
@@ -27,20 +32,24 @@ OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 
 UNAME_S := $(shell uname -s)
 
-CXXFLAGS = -I../ -I../../
-CXXFLAGS += -Wall -Wextra -Wformat -std=c++11 -DEMULATOR_BUILD=\"$(GIT_VERSION)\"
+CPPFLAGS = -I../ -I../../
+CPPFLAGS += -Wall -Wextra -Wformat  -DEMULATOR_BUILD=\"$(GIT_VERSION)\"
+CXXFLAGS += -std=c++11
+CFLAGS += -std=c99
+LDFLAGS =
 LIBS =
 
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
-    CXXFLAGS +=-DDEBUG -g3
+    CPPFLAGS +=-DDEBUG -g3
 else
-    CXXFLAGS +=-DNDEBUG -O3 -flto=auto
+    CPPFLAGS +=-DNDEBUG -O3 -flto=auto
+	LDFLAGS += -flto=auto
 endif
 
 SANITIZE ?= 0
 ifeq ($(SANITIZE), 1)
-	CXXFLAGS +=-fsanitize=address
+	CPPFLAGS +=-fsanitize=address
     LIBS += -lasan
 endif
 
@@ -52,31 +61,27 @@ ifeq ($(UNAME_S), Linux) #LINUX
 	ECHO_MESSAGE = "Linux"
 	LIBS += -lGL -lGLEW -ldl `sdl2-config --libs`
 
-	CXXFLAGS += `sdl2-config --cflags`
-	CFLAGS += $(CXXFLAGS)
+	CPPFLAGS += `sdl2-config --cflags`
 else ifeq ($(UNAME_S), Darwin) #APPLE
 	ECHO_MESSAGE = "macOS"
 	LIBS += -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo `sdl2-config --libs`
 	LIBS += -L/usr/local/lib
 
-	CXXFLAGS += `sdl2-config --cflags`
-	CXXFLAGS += -I/usr/local/include -I/opt/local/include
-	CFLAGS += $(CXXFLAGS)
+	CPPFLAGS += `sdl2-config --cflags`
+	CPPFLAGS += -I/usr/local/include -I/opt/local/include
 else ifeq ($(findstring MINGW,$(UNAME_S)),MINGW)
 	ECHO_MESSAGE = "MinGW"
 	LIBS += -lgdi32 -lopengl32 -lglew32 -limm32 `pkg-config --static --libs sdl2`
 
-	CXXFLAGS += `pkg-config --cflags sdl2`
-	CFLAGS += $(CXXFLAGS)
+	CPPFLAGS += `pkg-config --cflags sdl2`
 else
 	ECHO_MESSAGE = "Generic Unix-like/BSD"
 	LIBS += `sdl2-config --libs` -lSDL2
 	LIBS += `pkg-config --libs glew` -lGLEW
 
 	CXXFLAGS += -std=gnu++11
-	CXXFLAGS += `sdl2-config --cflags`
-	CXXFLAGS += `pkg-config --cflags glew`
-	CFLAGS += $(CXXFLAGS)
+	CPPFLAGS += `sdl2-config --cflags`
+	CPPFLAGS += `pkg-config --cflags glew`
 endif
 
 ##---------------------------------------------------------------------
@@ -84,22 +89,25 @@ endif
 ##---------------------------------------------------------------------
 
 %.o:$(IMGUI_SRC)/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 %.o:$(IMGUI_FILEBROWSER_SRC)/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 %.o:$(EMULATOR_SRC)/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 %.o:$(EMULATOR_DESKTOP_SHARED_SRC)/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 %.o:$(EMULATOR_AUDIO_SRC)/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+%.o:$(EMULATOR_AUDIO_EMU2413_SRC)/%.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 %.o:$(EMULATOR_AUDIO_SHARED_SRC)/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 all: $(EXE)
 	@echo Build complete for $(ECHO_MESSAGE)

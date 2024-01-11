@@ -606,19 +606,19 @@ void Cartridge::GetInfoFromDB(u32 crc)
                 m_Type = Cartridge::CartridgeJanggunMapper;
             }
 
-            if (kGameDatabase[i].sms_mode)
+            if (kGameDatabase[i].features & GS_DB_FEATURE_SMS_MODE)
             {
                 Log("Forcing Master System mode");
                 m_bGameGear = false;
             }
 
-            if (kGameDatabase[i].pal)
+            if (kGameDatabase[i].features & GS_DB_FEATURE_PAL)
             {
                 Log("PAL cartridge: Running at 50Hz");
                 m_bPAL = true;
             }
 
-            if (kGameDatabase[i].no_battery)
+            if (kGameDatabase[i].features & GS_DB_FEATURE_NO_BATTERY)
             {
                 Log("Cartridge with SRAM but no battery");
                 m_bRAMWithoutBattery = true;

@@ -19,19 +19,25 @@
 
 #include "Audio.h"
 #include "Memory.h"
+#include "Cartridge.h"
 
-Audio::Audio()
+Audio::Audio(Cartridge * pCartridge)
 {
+    m_pCartridge = pCartridge;
     m_ElapsedCycles = 0;
     m_iSampleRate = 44100;
+    InitPointer(m_pYM2413);
     InitPointer(m_pApu);
     InitPointer(m_pBuffer);
     InitPointer(m_pSampleBuffer);
     m_bPAL = false;
+    m_bYM2413Enabled = false;
+    m_bPSGEnabled = true;
 }
 
 Audio::~Audio()
 {
+    SafeDelete(m_pYM2413);
     SafeDelete(m_pApu);
     SafeDelete(m_pBuffer);
     SafeDeleteArray(m_pSampleBuffer);
@@ -44,23 +50,25 @@ void Audio::Init()
     m_pApu = new Sms_Apu();
     m_pBuffer = new Stereo_Buffer();
 
-    // Clock rate for NTSC is 3579545
-    // Clock rate for PAL is 3546893
-    m_pBuffer->clock_rate(m_bPAL ? 3546893 : 3579545);
+    m_pBuffer->clock_rate(m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC);
     m_pBuffer->set_sample_rate(m_iSampleRate);
-
-    //m_pApu->treble_eq(-15.0);
     //m_pBuffer->bass_freq(100);
-
     m_pApu->output(m_pBuffer->center(), m_pBuffer->left(), m_pBuffer->right());
+    //m_pApu->treble_eq(-15.0);
+
+    m_pYM2413 = new YM2413();
+    m_pYM2413->Init(m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC);
 }
 
 void Audio::Reset(bool bPAL)
 {
     m_bPAL = bPAL;
+    m_bYM2413Enabled = false;
+    m_bPSGEnabled = true;
     m_pApu->reset();
     m_pBuffer->clear();
-    m_pBuffer->clock_rate(m_bPAL ? 3546893 : 3579545);
+    m_pBuffer->clock_rate(m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC);
+    m_pYM2413->Reset(m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC);
     m_ElapsedCycles = 0;
 }
 
@@ -104,7 +112,9 @@ void Audio::SaveState(std::ostream& stream)
 
     stream.write(reinterpret_cast<const char*> (&m_ElapsedCycles), sizeof(m_ElapsedCycles));
     stream.write(reinterpret_cast<const char*> (m_pSampleBuffer), sizeof(blip_sample_t) * GS_AUDIO_BUFFER_SIZE);
-
+    stream.write(reinterpret_cast<const char*> (&m_bYM2413Enabled), sizeof(m_bYM2413Enabled));
+    stream.write(reinterpret_cast<const char*> (&m_bPSGEnabled), sizeof(m_bPSGEnabled));
+    m_pYM2413->SaveState(stream);
 }
 
 void Audio::LoadState(std::istream& stream)
@@ -113,6 +123,9 @@ void Audio::LoadState(std::istream& stream)
 
     stream.read(reinterpret_cast<char*> (&m_ElapsedCycles), sizeof(m_ElapsedCycles));
     stream.read(reinterpret_cast<char*> (m_pSampleBuffer), sizeof(blip_sample_t) * GS_AUDIO_BUFFER_SIZE);
+    stream.read(reinterpret_cast< char*> (&m_bYM2413Enabled), sizeof(m_bYM2413Enabled));
+    stream.read(reinterpret_cast< char*> (&m_bPSGEnabled), sizeof(m_bPSGEnabled));
+    m_pYM2413->LoadState(stream);
 
     m_pApu->reset();
     m_pBuffer->clear();

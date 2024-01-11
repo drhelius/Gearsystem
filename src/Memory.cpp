@@ -43,6 +43,7 @@ Memory::Memory()
     m_bGameGear = false;
     m_iBootromBankCountSMS = 1;
     m_iBootromBankCountGG = 1;
+    m_bIOEnabled = true;
 }
 
 Memory::~Memory()
@@ -103,6 +104,7 @@ void Memory::Reset(bool bGameGear)
     m_bGameGear = bGameGear;
     m_MediaSlot = IsBootromEnabled() ? BiosSlot : CartridgeSlot;
     m_DesiredMediaSlot = IsBootromEnabled() ? m_StoredMediaSlot : CartridgeSlot;
+    m_bIOEnabled = true;
 
     for (int i = 0; i < 0x10000; i++)
     {
@@ -177,6 +179,7 @@ void Memory::SaveState(std::ostream& stream)
     using namespace std;
 
     stream.write(reinterpret_cast<const char*> (m_pMap), 0x10000);
+    stream.write(reinterpret_cast<const char*> (&m_bIOEnabled), sizeof (m_bIOEnabled));
 }
 
 void Memory::LoadState(std::istream& stream)
@@ -184,6 +187,7 @@ void Memory::LoadState(std::istream& stream)
     using namespace std;
 
     stream.read(reinterpret_cast<char*> (m_pMap), 0x10000);
+    stream.read(reinterpret_cast<char*> (&m_bIOEnabled), sizeof (m_bIOEnabled));
 }
 
 std::vector<Memory::stDisassembleRecord*>* Memory::GetBreakpointsCPU()
@@ -302,39 +306,49 @@ bool Memory::IsBootromEnabled()
     return (m_bBootromSMSEnabled && m_bBootromSMSLoaded && !m_bGameGear) || (m_bBootromGGEnabled && m_bBootromGGLoaded && m_bGameGear);
 }
 
+bool Memory::IsIOEnabled()
+{
+    return m_bIOEnabled;
+}
+
 void Memory::SetPort3E(u8 port3E)
 {
     MediaSlots oldSlot = m_MediaSlot;
 
-    if (!IsSetBit(port3E, 6))
+    bool expansion = !IsSetBit(port3E, 7);
+    bool cartridge = !IsSetBit(port3E, 6);
+    bool card = !IsSetBit(port3E, 5);
+    bool bios = !IsSetBit(port3E, 3);
+
+    if (!m_bGameGear)
+    {
+        bool io = !IsSetBit(port3E, 2);
+        if (io != m_bIOEnabled)
+        {
+            Log("Port 3E: IO %s", io ? "enabled" : "disabled");
+            m_bIOEnabled = io;
+        }
+    }
+
+    if (cartridge)
     {
         m_MediaSlot = CartridgeSlot;
         Log("Port 3E: Cartridge");
     }
-    else if (!IsSetBit(port3E, 3))
+    else if (bios)
     {
         m_MediaSlot = BiosSlot;
         Log("Port 3E: BIOS");
     }
-    else if (!IsSetBit(port3E, 7))
+    else if (expansion && !m_bGameGear)
     {
         m_MediaSlot = ExpansionSlot;
         Log("Port 3E: Expansion");
     }
-    else if (!IsSetBit(port3E, 5))
+    else if (card && !m_bGameGear)
     {
         m_MediaSlot = CardSlot;
         Log("Port 3E: Card");
-    }
-    else if (!IsSetBit(port3E, 4))
-    {
-        m_MediaSlot = RamSlot;
-        Log("Port 3E: RAM");
-    }
-    else if (!IsSetBit(port3E, 2))
-    {
-        m_MediaSlot = IoSlot;
-        Log("Port 3E: IO");
     }
 
     if (oldSlot != m_MediaSlot)

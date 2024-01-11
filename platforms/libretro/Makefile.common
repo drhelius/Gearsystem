@@ -18,6 +18,7 @@ SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
                $(SOURCE_DIR)/JanggunMemoryRule.cpp \
                $(SOURCE_DIR)/BootromMemoryRule.cpp \
                $(SOURCE_DIR)/SmsIOPorts.cpp \
+               $(SOURCE_DIR)/YM2413.cpp \
                $(SOURCE_DIR)/opcodes.cpp \
                $(SOURCE_DIR)/opcodes_cb.cpp \
                $(SOURCE_DIR)/opcodes_ed.cpp \
@@ -25,3 +26,4 @@ SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
                $(SOURCE_DIR)/audio/Effects_Buffer.cpp \
                $(SOURCE_DIR)/audio/Sms_Apu.cpp \
                $(SOURCE_DIR)/audio/Multi_Buffer.cpp
+               $(SOURCE_DIR)/audio/emu2413/emu2413.cpp \
