@@ -20,11 +20,13 @@
 #include "Video.h"
 #include "Memory.h"
 #include "Processor.h"
+#include "Cartridge.h"
 
-Video::Video(Memory* pMemory, Processor* pProcessor)
+Video::Video(Memory* pMemory, Processor* pProcessor, Cartridge* pCartridge)
 {
     m_pMemory = pMemory;
     m_pProcessor = pProcessor;
+    m_pCartridge = pCartridge;
     InitPointer(m_pInfoBuffer);
     InitPointer(m_pFrameBuffer);
     InitPointer(m_pVdpVRAM);
@@ -74,7 +76,16 @@ void Video::Init()
     m_pFrameBuffer = new u16[GS_RESOLUTION_MAX_WIDTH * GS_LINES_PER_FRAME_PAL];
     m_pVdpVRAM = new u8[0x4000];
     m_pVdpCRAM = new u8[0x40];
-    InitPalettes();
+    InitPalettes(kSG1000_palette_888_normal,
+        m_SG1000_palette_565_rgb_normal,
+        m_SG1000_palette_555_rgb_normal,
+        m_SG1000_palette_565_bgr_normal,
+        m_SG1000_palette_555_bgr_normal);
+    InitPalettes(kSG1000_palette_888_sms,
+        m_SG1000_palette_565_rgb_sms,
+        m_SG1000_palette_555_rgb_sms,
+        m_SG1000_palette_565_bgr_sms,
+        m_SG1000_palette_555_bgr_sms);
     Reset(false, false);
 }
 
@@ -918,6 +929,7 @@ void Video::Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
     int mask = m_bGameGear ? 0x0F : 0x03;
     bool bgr = (pixelFormat == GS_PIXEL_BGR888);
     const u8* lut = m_bGameGear ? k4bitTo8bit : k2bitTo8bit;
+    const u8* sg1000_palette = m_pCartridge->IsSG1000() ? kSG1000_palette_888_normal : kSG1000_palette_888_sms;
 
     if (m_bGameGear)
         overscan = false;
@@ -965,9 +977,9 @@ void Video::Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
 
         if (m_bSG1000)
         {
-            dstFrameBuffer[j + 0] = bgr ? kSG1000_palette_888[src_color + 2] : kSG1000_palette_888[src_color];
-            dstFrameBuffer[j + 1] = kSG1000_palette_888[src_color + 1];
-            dstFrameBuffer[j + 2] = bgr ? kSG1000_palette_888[src_color] : kSG1000_palette_888[src_color + 2];
+            dstFrameBuffer[j + 0] = bgr ? sg1000_palette[src_color + 2] : sg1000_palette[src_color];
+            dstFrameBuffer[j + 1] = sg1000_palette[src_color + 1];
+            dstFrameBuffer[j + 2] = bgr ? sg1000_palette[src_color] : sg1000_palette[src_color + 2];
         }
         else
         {
@@ -1001,10 +1013,20 @@ void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
     int shift = green_6bit ? 11 : 10;
     const u16* pal;
 
-    if (bgr)
-        pal = green_6bit ? m_SG1000_palette_565_bgr : m_SG1000_palette_555_bgr;
+    if (m_pCartridge->IsSG1000())
+    {
+        if (bgr)
+            pal = green_6bit ? m_SG1000_palette_565_bgr_normal : m_SG1000_palette_555_bgr_normal;
+        else
+            pal = green_6bit ? m_SG1000_palette_565_rgb_normal : m_SG1000_palette_555_rgb_normal;
+    }
     else
-        pal = green_6bit ? m_SG1000_palette_565_rgb : m_SG1000_palette_555_rgb;
+    {
+        if (bgr)
+            pal = green_6bit ? m_SG1000_palette_565_bgr_sms : m_SG1000_palette_555_bgr_sms;
+        else
+            pal = green_6bit ? m_SG1000_palette_565_rgb_sms : m_SG1000_palette_555_rgb_sms;
+    }
 
     if (m_bGameGear)
         overscan = false;
@@ -1077,23 +1099,23 @@ Video::Overscan Video::GetOverscan()
     return m_Overscan;
 }
 
-void Video::InitPalettes()
+void Video::InitPalettes(const u8* src, u16* dest_565_rgb, u16* dest_555_rgb, u16* dest_565_bgr, u16* dest_555_bgr)
 {
     for (int i=0,j=0; i<16; i++,j+=3)
     {
-        u8 red = kSG1000_palette_888[j];
-        u8 green = kSG1000_palette_888[j+1];
-        u8 blue = kSG1000_palette_888[j+2];
+        u8 red = src[j];
+        u8 green = src[j+1];
+        u8 blue = src[j+2];
 
         u8 red_5 = red * 31 / 255;
         u8 green_5 = green * 31 / 255;
         u8 green_6 = green * 63 / 255;
         u8 blue_5 = blue * 31 / 255;
 
-        m_SG1000_palette_565_rgb[i] = red_5 << 11 | green_6 << 5 | blue_5;
-        m_SG1000_palette_555_rgb[i] = red_5 << 10 | green_5 << 5 | blue_5;
-        m_SG1000_palette_565_bgr[i] = blue_5 << 11 | green_6 << 5 | red_5;
-        m_SG1000_palette_555_bgr[i] = blue_5 << 10 | green_5 << 5 | red_5;
+        dest_565_rgb[i] = red_5 << 11 | green_6 << 5 | blue_5;
+        dest_555_rgb[i] = red_5 << 10 | green_5 << 5 | blue_5;
+        dest_565_bgr[i] = blue_5 << 11 | green_6 << 5 | red_5;
+        dest_555_bgr[i] = blue_5 << 10 | green_5 << 5 | red_5;
     }
 }
 
