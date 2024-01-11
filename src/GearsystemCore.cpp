@@ -86,11 +86,12 @@ void GearsystemCore::Init(GS_Color_Format pixelFormat)
     m_pixelFormat = pixelFormat;
 
     m_pMemory = new Memory();
+    m_pCartridge = new Cartridge();
     m_pProcessor = new Processor(m_pMemory);
     m_pAudio = new Audio();
-    m_pVideo = new Video(m_pMemory, m_pProcessor);
+    m_pVideo = new Video(m_pMemory, m_pProcessor, m_pCartridge);
     m_pInput = new Input(m_pProcessor);
-    m_pCartridge = new Cartridge();
+
     m_pSmsIOPorts = new SmsIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge, m_pMemory);
     m_pGameGearIOPorts = new GameGearIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge, m_pMemory);
 
