@@ -1,3 +1,4 @@
+include ../desktop-shared/Makefile.sources
 include ../desktop-shared/Makefile.common
 
 DYLIB_PATH=/usr/local/opt/sdl2/lib
