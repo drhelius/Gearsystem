@@ -383,17 +383,6 @@ void GearsystemCore::ResetSound()
     m_pAudio->Reset(m_pCartridge->IsPAL());
 }
 
-void GearsystemCore::SetSoundSampleRate(int rate)
-{
-    Log("Gearsystem sound sample rate: %d", rate);
-    m_pAudio->SetSampleRate(rate);
-}
-
-void GearsystemCore::SetSoundVolume(float volume)
-{
-    m_pAudio->SetVolume(volume);
-}
-
 void GearsystemCore::SaveRam()
 {
     SaveRam(NULL);

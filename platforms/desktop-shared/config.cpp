@@ -227,6 +227,7 @@ void config_read(void)
     
     config_audio.enable = read_bool("Audio", "Enable", true);
     config_audio.sync = read_bool("Audio", "Sync", true);
+    config_audio.ym2413 = read_int("Audio", "YM2413", 0);
 
     config_input[0].key_left = (SDL_Scancode)read_int("InputA", "KeyLeft", SDL_SCANCODE_LEFT);
     config_input[0].key_right = (SDL_Scancode)read_int("InputA", "KeyRight", SDL_SCANCODE_RIGHT);
@@ -321,6 +322,7 @@ void config_write(void)
 
     write_bool("Audio", "Enable", config_audio.enable);
     write_bool("Audio", "Sync", config_audio.sync);
+    write_int("Audio", "YM2413", config_audio.ym2413);
 
     write_int("InputA", "KeyLeft", config_input[0].key_left);
     write_int("InputA", "KeyRight", config_input[0].key_right);

@@ -34,6 +34,8 @@ Audio::Audio(Cartridge * pCartridge)
     m_bPAL = false;
     m_bYM2413Enabled = false;
     m_bPSGEnabled = true;
+    m_bYM2413ForceDisabled = false;
+    m_bMute = true;
 }
 
 Audio::~Audio()
@@ -68,27 +70,19 @@ void Audio::Reset(bool bPAL)
 {
     m_bPAL = bPAL;
     m_bYM2413Enabled = false;
+    m_pYM2413->Enable(false);
     m_bPSGEnabled = true;
     m_pApu->reset();
-    m_pApu->volume(0.5);
+    m_pApu->volume(0.4);
     m_pBuffer->clear();
     m_pBuffer->clock_rate(m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC);
     m_pYM2413->Reset(m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC);
     m_ElapsedCycles = 0;
 }
 
-void Audio::SetSampleRate(int rate)
+void Audio::Mute(bool bMute)
 {
-    if (rate != m_iSampleRate)
-    {
-        m_iSampleRate = rate;
-        m_pBuffer->set_sample_rate(m_iSampleRate);
-    }
-}
-
-void Audio::SetVolume(float volume)
-{
-    m_pApu->volume(volume);
+    m_bMute = bMute;
 }
 
 void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
@@ -96,23 +90,35 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
     m_pApu->end_frame(m_ElapsedCycles);
     m_pBuffer->end_frame(m_ElapsedCycles);
 
-    int count = static_cast<int>(m_pBuffer->read_samples(m_pSampleBuffer, GS_AUDIO_BUFFER_SIZE));
+    int psg_count = static_cast<int>(m_pBuffer->read_samples(m_pSampleBuffer, GS_AUDIO_BUFFER_SIZE));
 
-    m_pYM2413->EndFrame(m_pYM2413Buffer);
+    int fm_count = m_pYM2413->EndFrame(m_pYM2413Buffer);
 
     if (IsValidPointer(pSampleBuffer) && IsValidPointer(pSampleCount))
     {
+        int count = m_bYM2413Enabled ? fm_count : psg_count;
+
         *pSampleCount = count;
 
         for (int i=0; i<count; i++)
         {
             pSampleBuffer[i] = 0;
-            pSampleBuffer[i] += m_bPSGEnabled ? m_pSampleBuffer[i] : 0;
-            pSampleBuffer[i] += m_bYM2413Enabled ? m_pYM2413Buffer[i] : 0;
+
+            if (!m_bMute)
+            {
+                pSampleBuffer[i] += m_bPSGEnabled ? m_pSampleBuffer[(i >= psg_count) ? psg_count-1 : i] : 0;
+                pSampleBuffer[i] += (m_bYM2413Enabled && !m_bYM2413ForceDisabled) ? m_pYM2413Buffer[i] : 0;
+            }
         }
     }
 
     m_ElapsedCycles = 0;
+}
+
+void Audio::DisableYM2413(bool bDisable)
+{
+    m_bYM2413ForceDisabled = bDisable;
+    m_pYM2413->Enable(bDisable ? false : m_bYM2413Enabled);
 }
 
 void Audio::SaveState(std::ostream& stream)
@@ -139,6 +145,6 @@ void Audio::LoadState(std::istream& stream)
     m_pYM2413->LoadState(stream);
 
     m_pApu->reset();
-    m_pApu->volume(0.5);
+    m_pApu->volume(0.4);
     m_pBuffer->clear();
 }

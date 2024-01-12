@@ -83,6 +83,7 @@ struct config_Audio
 {
     bool enable = true;
     bool sync = true;
+    int ym2413 = 0;
 };
 
 struct config_Input

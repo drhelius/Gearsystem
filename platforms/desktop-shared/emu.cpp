@@ -179,10 +179,10 @@ void emu_dissasemble_rom(void)
     gearsystem->SaveDisassembledROM();
 }
 
-void emu_audio_volume(float volume)
+void emu_audio_mute(bool mute)
 {
-    audio_enabled = (volume > 0.0f);
-    gearsystem->SetSoundVolume(volume);
+    audio_enabled = mute;
+    gearsystem->GetAudio()->Mute(mute);
 }
 
 void emu_audio_reset(void)
@@ -388,6 +388,11 @@ void emu_set_overscan(int overscan)
         default:
             gearsystem->GetVideo()->SetOverscan(Video::OverscanDisabled);
     }
+}
+
+void emu_disable_ym4231(bool disable)
+{
+    gearsystem->GetAudio()->DisableYM2413(disable);
 }
 
 static void save_ram(void)

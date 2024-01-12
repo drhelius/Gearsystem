@@ -93,6 +93,12 @@ void YM2413::Tick(unsigned int clockCycles)
 
 int YM2413::EndFrame(s16* pSampleBuffer)
 {
+    if (!m_bEnabled)
+    {
+        m_iBufferIndex = 0;
+        return 0;
+    }
+
     Sync();
 
     int ret = 0;
@@ -165,6 +171,7 @@ void YM2413::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*>(&m_RegisterF2), sizeof(u8));
     stream.write(reinterpret_cast<const char*>(m_pBuffer), sizeof(s16) * GS_AUDIO_BUFFER_SIZE);
     stream.write(reinterpret_cast<const char*>(&m_CurrentSample), sizeof(m_CurrentSample));
+    stream.write(reinterpret_cast<const char*>(&m_bEnabled), sizeof(m_bEnabled));
     stream.write(reinterpret_cast<const char*>(&m_pOPLL->chip_type), sizeof(m_pOPLL->chip_type));
     stream.write(reinterpret_cast<const char*>(&m_pOPLL->adr), sizeof(m_pOPLL->adr));
     stream.write(reinterpret_cast<const char*>(m_pOPLL->reg), sizeof(m_pOPLL->reg));
@@ -217,6 +224,7 @@ void YM2413::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*>(&m_RegisterF2), sizeof(u8));
     stream.read(reinterpret_cast<char*>(m_pBuffer), sizeof(s16) * GS_AUDIO_BUFFER_SIZE);
     stream.read(reinterpret_cast<char*>(&m_CurrentSample), sizeof(m_CurrentSample));
+    stream.read(reinterpret_cast<char*>(&m_bEnabled), sizeof(m_bEnabled));
     stream.read(reinterpret_cast<char*>(&m_pOPLL->chip_type), sizeof(m_pOPLL->chip_type));
     stream.read(reinterpret_cast<char*>(&m_pOPLL->adr), sizeof(m_pOPLL->adr));
     stream.read(reinterpret_cast<char*>(m_pOPLL->reg), sizeof(m_pOPLL->reg));

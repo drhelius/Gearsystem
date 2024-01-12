@@ -100,7 +100,7 @@ void gui_init(void)
 
     gui_default_font = default_font[config_debug.font_size];
 
-    emu_audio_volume(config_audio.enable ? 1.0f: 0.0f);
+    emu_audio_mute(!config_audio.enable);
 
     strcpy(sms_bootrom_path, config_emulator.sms_bootrom_path.c_str());
     strcpy(gg_bootrom_path, config_emulator.gg_bootrom_path.c_str());
@@ -116,6 +116,7 @@ void gui_init(void)
     emu_enable_bootrom_gg(config_emulator.gg_bootrom);
     emu_set_media_slot(config_emulator.media);
     emu_set_overscan(config_debug.debug ? false : config_video.overscan);
+    emu_disable_ym4231(config_audio.ym2413 == 1);
 }
 
 void gui_destroy(void)
@@ -814,7 +815,7 @@ static void main_menu(void)
 
             if (ImGui::MenuItem("Enable Audio", "", &config_audio.enable))
             {
-                emu_audio_volume(config_audio.enable ? 1.0f: 0.0f);
+                emu_audio_mute(!config_audio.enable);
             }
 
             if (ImGui::MenuItem("Sync With Emulator", "", &config_audio.sync))
@@ -826,6 +827,17 @@ static void main_menu(void)
                     config_video.sync = false;
                     SDL_GL_SetSwapInterval(0);
                 }
+            }
+
+            if (ImGui::BeginMenu("YM4231 FM Sound"))
+            {
+                ImGui::PushItemWidth(130.0f);
+                if (ImGui::Combo("##emu_ym4231", &config_audio.ym2413, "Auto\0Disabled\0\0"))
+                {
+                    emu_disable_ym4231(config_audio.ym2413 == 1);
+                }
+                ImGui::PopItemWidth();
+                ImGui::EndMenu();
             }
 
             ImGui::EndMenu();

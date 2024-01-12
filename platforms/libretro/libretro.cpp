@@ -73,6 +73,7 @@ static const struct retro_variable vars[] = {
     { "gearsystem_overscan", "Overscan; Disabled|Top+Bottom|Full" },
     { "gearsystem_bios_sms", "Master System BIOS (restart); Disabled|Enabled" },
     { "gearsystem_bios_gg", "Game Gear BIOS (restart); Disabled|Enabled" },
+    { "gearsystem_ym2413", "YM2413 (restart); Auto|Disabled"},
     { "gearsystem_glasses", "3D Glasses; Both Eyes / OFF|Left Eye|Right Eye" },
     { "gearsystem_up_down_allowed", "Allow Up+Down / Left+Right; Disabled|Enabled" },
     { NULL }
@@ -463,6 +464,19 @@ static void check_variables(void)
             bootrom_gg = false;
     }
 
+    var.key = "gearsystem_ym2413";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Auto") == 0)
+            core->GetAudio()->DisableYM2413(false);
+        else if (strcmp(var.value, "Disabled") == 0)
+            core->GetAudio()->DisableYM2413(true);
+        else
+            core->GetAudio()->DisableYM2413(false);
+    }
+
     var.key = "gearsystem_glasses";
     var.value = NULL;
 
@@ -490,6 +504,8 @@ void retro_run(void)
     }
 
     update_input();
+
+    audio_sample_count = 0;
 
     core->RunToVBlank(frame_buffer, audio_buf, &audio_sample_count);
 
