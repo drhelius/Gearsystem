@@ -32,6 +32,7 @@ private:
     int m_iClockRate;
     u8 m_RegisterF2;
     OPLL *m_pOPLL;
+    s16 m_CurrentSample;
 };
 
 #endif	/* YM2413_H */

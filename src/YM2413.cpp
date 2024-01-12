@@ -29,6 +29,7 @@ YM2413::YM2413()
     m_ElapsedCycles = 0;
     m_iClockRate = 0;
     m_RegisterF2 = 0;
+    m_CurrentSample = 0;
 }
 
 YM2413::~YM2413()
@@ -49,6 +50,7 @@ void YM2413::Reset(int clockRate)
 {
     m_iClockRate = clockRate;
     m_ElapsedCycles = 0;
+    m_CurrentSample = 0;
 
     OPLL_reset(m_pOPLL);
 
@@ -108,9 +110,10 @@ void YM2413::Sync()
     for (int i = 0; i < m_ElapsedCycles; i++)
     {
         m_iCycleCounter ++;
-        if (m_iCycleCounter >= 16)
+        if (m_iCycleCounter >= 72)
         {
-            m_iCycleCounter -= 16;
+            m_iCycleCounter -= 72;
+            m_CurrentSample = OPLL_calc(m_pOPLL);
         }
 
         m_iSampleCounter++;
@@ -119,10 +122,8 @@ void YM2413::Sync()
         {
             m_iSampleCounter -= cyclesPerSample;
 
-            s16 sample = OPLL_calc(m_pOPLL);
-
-            m_pBuffer[m_iBufferIndex] = sample;
-            m_pBuffer[m_iBufferIndex + 1] = sample;
+            m_pBuffer[m_iBufferIndex] = m_CurrentSample;
+            m_pBuffer[m_iBufferIndex + 1] = m_CurrentSample;
             m_iBufferIndex += 2;
 
             if (m_iBufferIndex >= GS_AUDIO_BUFFER_SIZE)
@@ -144,6 +145,8 @@ void YM2413::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*>(&m_ElapsedCycles), sizeof(int));
     stream.write(reinterpret_cast<const char*>(&m_iClockRate), sizeof(int));
     stream.write(reinterpret_cast<const char*>(&m_RegisterF2), sizeof(u8));
+    stream.write(reinterpret_cast<const char*>(m_pBuffer), sizeof(s16) * GS_AUDIO_BUFFER_SIZE);
+    stream.write(reinterpret_cast<const char*>(&m_CurrentSample), sizeof(s16));
 }
 
 void YM2413::LoadState(std::istream& stream)
@@ -154,4 +157,6 @@ void YM2413::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*>(&m_ElapsedCycles), sizeof(int));
     stream.read(reinterpret_cast<char*>(&m_iClockRate), sizeof(int));
     stream.read(reinterpret_cast<char*>(&m_RegisterF2), sizeof(u8));
+    stream.read(reinterpret_cast<char*>(m_pBuffer), sizeof(s16) * GS_AUDIO_BUFFER_SIZE);
+    stream.read(reinterpret_cast<char*>(&m_CurrentSample), sizeof(s16));
 }

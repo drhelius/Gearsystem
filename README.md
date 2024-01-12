@@ -41,6 +41,7 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 - Supported cartridges: ROM, ROM + RAM, SEGA, Codemasters, Korean, MSX + Nemesis, Janggun, SG-1000.
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
 - Accurate VDP emulation including timing and Master System 2 only 224 video mode support.
+- Support for YM2413 (OPLL) FM sound chip.
 - Internal database for rom detection.
 - Battery powered RAM save support.
 - Save states.

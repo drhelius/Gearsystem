@@ -70,7 +70,7 @@ void Audio::Reset(bool bPAL)
     m_bYM2413Enabled = false;
     m_bPSGEnabled = true;
     m_pApu->reset();
-    m_pApu->volume(0.3);
+    m_pApu->volume(0.5);
     m_pBuffer->clear();
     m_pBuffer->clock_rate(m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC);
     m_pYM2413->Reset(m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC);
@@ -98,7 +98,7 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
 
     int count = static_cast<int>(m_pBuffer->read_samples(m_pSampleBuffer, GS_AUDIO_BUFFER_SIZE));
 
-    int opll_count = m_pYM2413->EndFrame(m_pYM2413Buffer);
+    m_pYM2413->EndFrame(m_pYM2413Buffer);
 
     if (IsValidPointer(pSampleBuffer) && IsValidPointer(pSampleCount))
     {
