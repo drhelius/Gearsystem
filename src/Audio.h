@@ -92,7 +92,8 @@ inline void Audio::YM2413Write(u8 port, u8 value)
             m_bPSGEnabled = true;
             m_bYM2413Enabled = (value & 0x01) == 0x01;
         }
-        Log("Port 0xF2 - YM2413: %s, PSG: %s", m_bYM2413Enabled ? "Enabled" : "Disabled", m_bPSGEnabled ? "Enabled" : "Disabled");
+
+        m_pYM2413->Enable(m_bYM2413Enabled);
     }
 
     m_pYM2413->Write(port, value);

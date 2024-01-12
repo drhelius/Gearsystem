@@ -30,6 +30,7 @@ YM2413::YM2413()
     m_iClockRate = 0;
     m_RegisterF2 = 0;
     m_CurrentSample = 0;
+    m_bEnabled = false;
 }
 
 YM2413::~YM2413()
@@ -56,6 +57,7 @@ void YM2413::Reset(int clockRate)
     m_iBufferIndex = 0;
     m_RegisterF2 = 0;
     m_CurrentSample = 0;
+    m_bEnabled = false;
 
     OPLL_reset(m_pOPLL);
 
@@ -73,7 +75,7 @@ void YM2413::Write(u8 port, u8 value)
     {
         m_RegisterF2 = value & 0x03;
     }
-    else
+    else if (m_bEnabled)
     {
         OPLL_writeIO(m_pOPLL, port & 0x01, value);
     }
@@ -110,8 +112,19 @@ int YM2413::EndFrame(s16* pSampleBuffer)
     return ret;
 }
 
+void YM2413::Enable(bool bEnabled)
+{
+    m_bEnabled = bEnabled;
+}
+
 void YM2413::Sync()
 {
+    if (!m_bEnabled)
+    {
+        m_ElapsedCycles = 0;
+        return;
+    }
+
     for (int i = 0; i < m_ElapsedCycles; i++)
     {
         m_iCycleCounter ++;

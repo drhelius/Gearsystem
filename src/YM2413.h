@@ -17,6 +17,7 @@ public:
     u8 Read(u8 port);
     void Tick(unsigned int clockCycles);
     int EndFrame(s16* pSampleBuffer);
+    void Enable(bool bEnabled);
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
 
@@ -33,6 +34,7 @@ private:
     u8 m_RegisterF2;
     OPLL *m_pOPLL;
     s16 m_CurrentSample;
+    bool m_bEnabled;
 };
 
 #endif	/* YM2413_H */
