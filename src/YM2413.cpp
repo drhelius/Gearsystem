@@ -51,6 +51,11 @@ void YM2413::Reset(int clockRate)
     m_iClockRate = clockRate;
     m_ElapsedCycles = 0;
     m_CurrentSample = 0;
+    m_iCycleCounter = 0;
+    m_iSampleCounter = 0;
+    m_iBufferIndex = 0;
+    m_RegisterF2 = 0;
+    m_CurrentSample = 0;
 
     OPLL_reset(m_pOPLL);
 
@@ -146,7 +151,47 @@ void YM2413::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*>(&m_iClockRate), sizeof(int));
     stream.write(reinterpret_cast<const char*>(&m_RegisterF2), sizeof(u8));
     stream.write(reinterpret_cast<const char*>(m_pBuffer), sizeof(s16) * GS_AUDIO_BUFFER_SIZE);
-    stream.write(reinterpret_cast<const char*>(&m_CurrentSample), sizeof(s16));
+    stream.write(reinterpret_cast<const char*>(&m_CurrentSample), sizeof(m_CurrentSample));
+    stream.write(reinterpret_cast<const char*>(&m_pOPLL->chip_type), sizeof(m_pOPLL->chip_type));
+    stream.write(reinterpret_cast<const char*>(&m_pOPLL->adr), sizeof(m_pOPLL->adr));
+    stream.write(reinterpret_cast<const char*>(m_pOPLL->reg), sizeof(m_pOPLL->reg));
+    stream.write(reinterpret_cast<const char*>(&m_pOPLL->test_flag), sizeof(m_pOPLL->test_flag));
+    stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot_key_status), sizeof(m_pOPLL->slot_key_status));
+    stream.write(reinterpret_cast<const char*>(&m_pOPLL->rhythm_mode), sizeof(m_pOPLL->rhythm_mode));
+    stream.write(reinterpret_cast<const char*>(&m_pOPLL->eg_counter), sizeof(m_pOPLL->eg_counter));
+    stream.write(reinterpret_cast<const char*>(&m_pOPLL->pm_phase), sizeof(m_pOPLL->pm_phase));
+    stream.write(reinterpret_cast<const char*>(&m_pOPLL->am_phase), sizeof(m_pOPLL->am_phase));
+    stream.write(reinterpret_cast<const char*>(&m_pOPLL->lfo_am), sizeof(m_pOPLL->lfo_am));
+    stream.write(reinterpret_cast<const char*>(&m_pOPLL->noise), sizeof(m_pOPLL->noise));
+    stream.write(reinterpret_cast<const char*>(&m_pOPLL->short_noise), sizeof(m_pOPLL->short_noise));
+    stream.write(reinterpret_cast<const char*>(m_pOPLL->patch_number), sizeof(m_pOPLL->patch_number));
+    stream.write(reinterpret_cast<const char*>(m_pOPLL->patch), sizeof(m_pOPLL->patch));
+    stream.write(reinterpret_cast<const char*>(&m_pOPLL->mask), sizeof(m_pOPLL->mask));
+    stream.write(reinterpret_cast<const char*>(m_pOPLL->ch_out), sizeof(m_pOPLL->ch_out));
+    stream.write(reinterpret_cast<const char*>(m_pOPLL->mix_out), sizeof(m_pOPLL->mix_out));
+    for (int i = 0; i < 18; i++)
+    {
+        stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot[i].number), sizeof(m_pOPLL->slot[i].number));
+        stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot[i].type), sizeof(m_pOPLL->slot[i].type));
+        stream.write(reinterpret_cast<const char*>(m_pOPLL->slot[i].output), sizeof(m_pOPLL->slot[i].output));
+        stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot[i].pg_phase), sizeof(m_pOPLL->slot[i].pg_phase));
+        stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot[i].pg_out), sizeof(m_pOPLL->slot[i].pg_out));
+        stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot[i].pg_keep), sizeof(m_pOPLL->slot[i].pg_keep));
+        stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot[i].blk_fnum), sizeof(m_pOPLL->slot[i].blk_fnum));
+        stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot[i].fnum), sizeof(m_pOPLL->slot[i].fnum));
+        stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot[i].blk), sizeof(m_pOPLL->slot[i].blk));
+        stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot[i].eg_state), sizeof(m_pOPLL->slot[i].eg_state));
+        stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot[i].volume), sizeof(m_pOPLL->slot[i].volume));
+        stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot[i].key_flag), sizeof(m_pOPLL->slot[i].key_flag));
+        stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot[i].sus_flag), sizeof(m_pOPLL->slot[i].sus_flag));
+        stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot[i].tll), sizeof(m_pOPLL->slot[i].tll));
+        stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot[i].rks), sizeof(m_pOPLL->slot[i].rks));
+        stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot[i].eg_rate_h), sizeof(m_pOPLL->slot[i].eg_rate_h));
+        stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot[i].eg_rate_l), sizeof(m_pOPLL->slot[i].eg_rate_l));
+        stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot[i].eg_shift), sizeof(m_pOPLL->slot[i].eg_shift));
+        stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot[i].eg_out), sizeof(m_pOPLL->slot[i].eg_out));
+        stream.write(reinterpret_cast<const char*>(&m_pOPLL->slot[i].update_requests), sizeof(m_pOPLL->slot[i].update_requests));
+    }
 }
 
 void YM2413::LoadState(std::istream& stream)
@@ -158,5 +203,45 @@ void YM2413::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*>(&m_iClockRate), sizeof(int));
     stream.read(reinterpret_cast<char*>(&m_RegisterF2), sizeof(u8));
     stream.read(reinterpret_cast<char*>(m_pBuffer), sizeof(s16) * GS_AUDIO_BUFFER_SIZE);
-    stream.read(reinterpret_cast<char*>(&m_CurrentSample), sizeof(s16));
+    stream.read(reinterpret_cast<char*>(&m_CurrentSample), sizeof(m_CurrentSample));
+    stream.read(reinterpret_cast<char*>(&m_pOPLL->chip_type), sizeof(m_pOPLL->chip_type));
+    stream.read(reinterpret_cast<char*>(&m_pOPLL->adr), sizeof(m_pOPLL->adr));
+    stream.read(reinterpret_cast<char*>(m_pOPLL->reg), sizeof(m_pOPLL->reg));
+    stream.read(reinterpret_cast<char*>(&m_pOPLL->test_flag), sizeof(m_pOPLL->test_flag));
+    stream.read(reinterpret_cast<char*>(&m_pOPLL->slot_key_status), sizeof(m_pOPLL->slot_key_status));
+    stream.read(reinterpret_cast<char*>(&m_pOPLL->rhythm_mode), sizeof(m_pOPLL->rhythm_mode));
+    stream.read(reinterpret_cast<char*>(&m_pOPLL->eg_counter), sizeof(m_pOPLL->eg_counter));
+    stream.read(reinterpret_cast<char*>(&m_pOPLL->pm_phase), sizeof(m_pOPLL->pm_phase));
+    stream.read(reinterpret_cast<char*>(&m_pOPLL->am_phase), sizeof(m_pOPLL->am_phase));
+    stream.read(reinterpret_cast<char*>(&m_pOPLL->lfo_am), sizeof(m_pOPLL->lfo_am));
+    stream.read(reinterpret_cast<char*>(&m_pOPLL->noise), sizeof(m_pOPLL->noise));
+    stream.read(reinterpret_cast<char*>(&m_pOPLL->short_noise), sizeof(m_pOPLL->short_noise));
+    stream.read(reinterpret_cast<char*>(m_pOPLL->patch_number), sizeof(m_pOPLL->patch_number));
+    stream.read(reinterpret_cast<char*>(m_pOPLL->patch), sizeof(m_pOPLL->patch));
+    stream.read(reinterpret_cast<char*>(&m_pOPLL->mask), sizeof(m_pOPLL->mask));
+    stream.read(reinterpret_cast<char*>(m_pOPLL->ch_out), sizeof(m_pOPLL->ch_out));
+    stream.read(reinterpret_cast<char*>(m_pOPLL->mix_out), sizeof(m_pOPLL->mix_out));
+    for (int i = 0; i < 18; i++)
+    {
+        stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].number), sizeof(m_pOPLL->slot[i].number));
+        stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].type), sizeof(m_pOPLL->slot[i].type));
+        stream.read(reinterpret_cast<char*>(m_pOPLL->slot[i].output), sizeof(m_pOPLL->slot[i].output));
+        stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].pg_phase), sizeof(m_pOPLL->slot[i].pg_phase));
+        stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].pg_out), sizeof(m_pOPLL->slot[i].pg_out));
+        stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].pg_keep), sizeof(m_pOPLL->slot[i].pg_keep));
+        stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].blk_fnum), sizeof(m_pOPLL->slot[i].blk_fnum));
+        stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].fnum), sizeof(m_pOPLL->slot[i].fnum));
+        stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].blk), sizeof(m_pOPLL->slot[i].blk));
+        stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].eg_state), sizeof(m_pOPLL->slot[i].eg_state));
+        stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].volume), sizeof(m_pOPLL->slot[i].volume));
+        stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].key_flag), sizeof(m_pOPLL->slot[i].key_flag));
+        stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].sus_flag), sizeof(m_pOPLL->slot[i].sus_flag));
+        stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].tll), sizeof(m_pOPLL->slot[i].tll));
+        stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].rks), sizeof(m_pOPLL->slot[i].rks));
+        stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].eg_rate_h), sizeof(m_pOPLL->slot[i].eg_rate_h));
+        stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].eg_rate_l), sizeof(m_pOPLL->slot[i].eg_rate_l));
+        stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].eg_shift), sizeof(m_pOPLL->slot[i].eg_shift));
+        stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].eg_out), sizeof(m_pOPLL->slot[i].eg_out));
+        stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].update_requests), sizeof(m_pOPLL->slot[i].update_requests));
+    }
 }

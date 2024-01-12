@@ -139,5 +139,6 @@ void Audio::LoadState(std::istream& stream)
     m_pYM2413->LoadState(stream);
 
     m_pApu->reset();
+    m_pApu->volume(0.5);
     m_pBuffer->clear();
 }
