@@ -2,6 +2,7 @@
 #define YM2413_H
 
 #include "definitions.h"
+#include "audio/emu2413/emu2413.h"
 
 class YM2413
 {
@@ -20,6 +21,9 @@ public:
     void LoadState(std::istream& stream);
 
 private:
+    void Sync();
+
+private:
     int m_iCycleCounter;
     int m_iSampleCounter;
     s16* m_pBuffer;
@@ -27,6 +31,7 @@ private:
     int m_ElapsedCycles;
     int m_iClockRate;
     u8 m_RegisterF2;
+    OPLL *m_pOPLL;
 };
 
 #endif	/* YM2413_H */

@@ -95,7 +95,6 @@ inline u8 SmsIOPorts::DoInput(u8 port)
         }
         else
         {
-            Log("--> ** Input from YM2413 port $%02X: %02X", port, m_pAudio->YM2413Read(port));
             return m_pAudio->YM2413Read(port);
         }
     }
@@ -141,7 +140,6 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
     {
         if ((port == 0xF0) || (port == 0xF1) || (port == 0xF2))
         {
-            Log("--> ** Output to YM2413 port $%02X: %02X", port, value);
             m_pAudio->YM2413Write(port, value);
         }
 #ifdef DEBUG_GEARSYSTEM

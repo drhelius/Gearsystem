@@ -22,6 +22,7 @@
 YM2413::YM2413()
 {
     InitPointer(m_pBuffer);
+    InitPointer(m_pOPLL);
     m_iCycleCounter = 0;
     m_iSampleCounter = 0;
     m_iBufferIndex = 0;
@@ -32,12 +33,15 @@ YM2413::YM2413()
 
 YM2413::~YM2413()
 {
+    OPLL_delete(m_pOPLL);
     SafeDeleteArray(m_pBuffer);
 }
 
 void YM2413::Init(int clockRate)
 {
     m_pBuffer = new s16[GS_AUDIO_BUFFER_SIZE];
+    m_pOPLL = OPLL_new();
+    OPLL_setChipType(m_pOPLL, 0);
     Reset(clockRate);
 }
 
@@ -45,6 +49,8 @@ void YM2413::Reset(int clockRate)
 {
     m_iClockRate = clockRate;
     m_ElapsedCycles = 0;
+
+    OPLL_reset(m_pOPLL);
 
     for (int i = 0; i < GS_AUDIO_BUFFER_SIZE; i++)
     {
@@ -54,13 +60,15 @@ void YM2413::Reset(int clockRate)
 
 void YM2413::Write(u8 port, u8 value)
 {
+    Sync();
+
     if (port == 0xF2)
     {
         m_RegisterF2 = value & 0x03;
     }
     else
     {
-        //OPLL_writeIO(opll, port & 0x01, value);
+        OPLL_writeIO(m_pOPLL, port & 0x01, value);
     }
 }
 
@@ -71,20 +79,61 @@ u8 YM2413::Read(u8 port)
 
 void YM2413::Tick(unsigned int clockCycles)
 {
-    m_iCycleCounter += clockCycles;
     m_ElapsedCycles += clockCycles;
 }
 
 int YM2413::EndFrame(s16* pSampleBuffer)
 {
-    int iSamples = 0;
+    Sync();
 
-    for (int i = 0; i < iSamples; i++)
+    int ret = 0;
+
+    if (IsValidPointer(pSampleBuffer))
     {
-        pSampleBuffer[i] = m_pBuffer[i];
+        ret = m_iBufferIndex;
+
+        for (int i = 0; i < m_iBufferIndex; i++)
+        {
+            pSampleBuffer[i] = m_pBuffer[i];
+        }
     }
 
-    return iSamples;
+    m_iBufferIndex = 0;
+
+    return ret;
+}
+
+void YM2413::Sync()
+{
+    for (int i = 0; i < m_ElapsedCycles; i++)
+    {
+        m_iCycleCounter ++;
+        if (m_iCycleCounter >= 16)
+        {
+            m_iCycleCounter -= 16;
+        }
+
+        m_iSampleCounter++;
+        int cyclesPerSample = m_iClockRate / GS_AUDIO_SAMPLE_RATE;
+        if (m_iSampleCounter >= cyclesPerSample)
+        {
+            m_iSampleCounter -= cyclesPerSample;
+
+            s16 sample = OPLL_calc(m_pOPLL);
+
+            m_pBuffer[m_iBufferIndex] = sample;
+            m_pBuffer[m_iBufferIndex + 1] = sample;
+            m_iBufferIndex += 2;
+
+            if (m_iBufferIndex >= GS_AUDIO_BUFFER_SIZE)
+            {
+                Log("YM2413 Audio buffer overflow");
+                m_iBufferIndex = 0;
+            }
+        }
+    }
+
+    m_ElapsedCycles = 0;
 }
 
 void YM2413::SaveState(std::ostream& stream)

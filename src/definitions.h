@@ -117,6 +117,7 @@ typedef void (*RamChangedCallback) (void);
 #define GS_LINES_PER_FRAME_PAL 313
 #define GS_FRAMES_PER_SECOND_PAL 50
 
+#define GS_AUDIO_SAMPLE_RATE 44100
 #define GS_AUDIO_BUFFER_SIZE 4096
 
 #define GS_SAVESTATE_MAGIC 0x03121220

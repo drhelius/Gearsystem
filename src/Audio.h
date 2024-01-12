@@ -56,6 +56,7 @@ private:
     bool m_bYM2413Enabled;
     bool m_bPSGEnabled;
     Cartridge* m_pCartridge;
+    s16* m_pYM2413Buffer;
 };
 
 #include "Cartridge.h"
@@ -63,6 +64,7 @@ private:
 inline void Audio::Tick(unsigned int clockCycles)
 {
     m_ElapsedCycles += clockCycles;
+    m_pYM2413->Tick(clockCycles);
 }
 
 inline void Audio::WriteAudioRegister(u8 value)
