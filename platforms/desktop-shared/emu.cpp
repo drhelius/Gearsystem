@@ -181,7 +181,7 @@ void emu_dissasemble_rom(void)
 
 void emu_audio_mute(bool mute)
 {
-    audio_enabled = mute;
+    audio_enabled = !mute;
     gearsystem->GetAudio()->Mute(mute);
 }
 
