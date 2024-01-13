@@ -650,7 +650,7 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Overscan"))
             {
-                ImGui::PushItemWidth(170.0f);
+                ImGui::PushItemWidth(150.0f);
                 if (ImGui::Combo("##overscan", &config_video.overscan, "Disabled\0Top+Bottom\0Full (284 width)\0Full (320 width)\0\0"))
                 {
                     emu_set_overscan(config_debug.debug ? 0 : config_video.overscan);
