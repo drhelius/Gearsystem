@@ -69,7 +69,7 @@ static const struct retro_variable vars[] = {
     { "gearsystem_region", "Region (restart); Auto|Master System Japan|Master System Export|Game Gear Japan|Game Gear Export|Game Gear International" },
     { "gearsystem_mapper", "Mapper (restart); Auto|ROM|SEGA|Codemasters|Korean|MSX|Janggun|SG-1000" },
     { "gearsystem_timing", "Refresh Rate (restart); Auto|NTSC (60 Hz)|PAL (50 Hz)" },
-    { "gearsystem_aspect_ratio", "Aspect Ratio (restart); 1:1 PAR|4:3 PAR|16:9 PAR" },
+    { "gearsystem_aspect_ratio", "Aspect Ratio (restart); 1:1 PAR|4:3 DAR|16:9 DAR" },
     { "gearsystem_overscan", "Overscan; Disabled|Top+Bottom|Full (284 width)|Full (320 width)" },
     { "gearsystem_bios_sms", "Master System BIOS (restart); Disabled|Enabled" },
     { "gearsystem_bios_gg", "Game Gear BIOS (restart); Disabled|Enabled" },
@@ -419,9 +419,9 @@ static void check_variables(void)
     {
         if (strcmp(var.value, "1:1 PAR") == 0)
             aspect_ratio = 0.0f;
-        else if (strcmp(var.value, "4:3 PAR") == 0)
+        else if (strcmp(var.value, "4:3 DAR") == 0)
             aspect_ratio = 4.0f / 3.0f;
-        else if (strcmp(var.value, "16:9 PAR") == 0)
+        else if (strcmp(var.value, "16:9 DAR") == 0)
             aspect_ratio = 16.0f / 9.0f;
         else
             aspect_ratio = 0.0f;
