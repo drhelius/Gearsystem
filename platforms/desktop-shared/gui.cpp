@@ -116,7 +116,7 @@ void gui_init(void)
     emu_enable_bootrom_gg(config_emulator.gg_bootrom);
     emu_set_media_slot(config_emulator.media);
     emu_set_overscan(config_debug.debug ? false : config_video.overscan);
-    emu_disable_ym4231(config_audio.ym2413 == 1);
+    emu_disable_ym2413(config_audio.ym2413 == 1);
 }
 
 void gui_destroy(void)
