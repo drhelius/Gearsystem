@@ -829,12 +829,12 @@ static void main_menu(void)
                 }
             }
 
-            if (ImGui::BeginMenu("YM4231 FM Sound"))
+            if (ImGui::BeginMenu("YM2413 FM Sound"))
             {
                 ImGui::PushItemWidth(130.0f);
-                if (ImGui::Combo("##emu_ym4231", &config_audio.ym2413, "Auto\0Disabled\0\0"))
+                if (ImGui::Combo("##emu_ym2413", &config_audio.ym2413, "Auto\0Disabled\0\0"))
                 {
-                    emu_disable_ym4231(config_audio.ym2413 == 1);
+                    emu_disable_ym2413(config_audio.ym2413 == 1);
                 }
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
