@@ -390,7 +390,7 @@ void emu_set_overscan(int overscan)
     }
 }
 
-void emu_disable_ym4231(bool disable)
+void emu_disable_ym2413(bool disable)
 {
     gearsystem->GetAudio()->DisableYM2413(disable);
 }

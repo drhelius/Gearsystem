@@ -209,13 +209,12 @@ static int32_t rks_table[8 * 2][2];
 static OPLL_PATCH null_patch = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 static OPLL_PATCH default_patch[OPLL_TONE_NUM][(16 + 3) * 2];
 
-static inline int min(int i, int j) {
-  return (i < j) ? i : j;
-}
-
-static inline int max(int i, int j) {
-  return (i > j) ? i : j;
-}
+#ifndef min
+static inline int min(int i, int j) { return (i < j) ? i : j; }
+#endif
+#ifndef max
+static inline int max(int i, int j) { return (i > j) ? i : j; }
+#endif
 
 /***************************************************
 
