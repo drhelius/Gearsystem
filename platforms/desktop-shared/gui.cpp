@@ -115,7 +115,7 @@ void gui_init(void)
     emu_enable_bootrom_sms(config_emulator.sms_bootrom);
     emu_enable_bootrom_gg(config_emulator.gg_bootrom);
     emu_set_media_slot(config_emulator.media);
-    emu_set_overscan(config_debug.debug ? false : config_video.overscan);
+    emu_set_overscan(config_debug.debug ? 0 : config_video.overscan);
     emu_disable_ym2413(config_audio.ym2413 == 1);
 }
 
@@ -650,10 +650,10 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Overscan"))
             {
-                ImGui::PushItemWidth(120.0f);
-                if (ImGui::Combo("##overscan", &config_video.overscan, "Disabled\0Top+Bottom\0Full\0\0"))
+                ImGui::PushItemWidth(170.0f);
+                if (ImGui::Combo("##overscan", &config_video.overscan, "Disabled\0Top+Bottom\0Full (284 width)\0Full (320 width)\0\0"))
                 {
-                    emu_set_overscan(config_debug.debug ? false : config_video.overscan);
+                    emu_set_overscan(config_debug.debug ? 0 : config_video.overscan);
                 }
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
@@ -849,7 +849,7 @@ static void main_menu(void)
 
             if (ImGui::MenuItem("Enable", "", &config_debug.debug))
             {
-                emu_set_overscan(config_debug.debug ? false : config_video.overscan);
+                emu_set_overscan(config_debug.debug ? 0 : config_video.overscan);
 
                 if (config_debug.debug)
                     emu_debug_step();

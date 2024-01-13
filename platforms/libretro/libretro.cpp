@@ -70,7 +70,7 @@ static const struct retro_variable vars[] = {
     { "gearsystem_mapper", "Mapper (restart); Auto|ROM|SEGA|Codemasters|Korean|MSX|Janggun|SG-1000" },
     { "gearsystem_timing", "Refresh Rate (restart); Auto|NTSC (60 Hz)|PAL (50 Hz)" },
     { "gearsystem_aspect_ratio", "Aspect Ratio (restart); 1:1 PAR|4:3 PAR|16:9 PAR" },
-    { "gearsystem_overscan", "Overscan; Disabled|Top+Bottom|Full" },
+    { "gearsystem_overscan", "Overscan; Disabled|Top+Bottom|Full (284 width)|Full (320 width)" },
     { "gearsystem_bios_sms", "Master System BIOS (restart); Disabled|Enabled" },
     { "gearsystem_bios_gg", "Game Gear BIOS (restart); Disabled|Enabled" },
     { "gearsystem_ym2413", "YM2413 (restart); Auto|Disabled"},
@@ -436,8 +436,10 @@ static void check_variables(void)
             core->GetVideo()->SetOverscan(Video::OverscanDisabled);
         else if (strcmp(var.value, "Top+Bottom") == 0)
             core->GetVideo()->SetOverscan(Video::OverscanTopBottom);
-        else if (strcmp(var.value, "Full") == 0)
-            core->GetVideo()->SetOverscan(Video::OverscanFull);
+        else if (strcmp(var.value, "Full (284 width)") == 0)
+            core->GetVideo()->SetOverscan(Video::OverscanFull284);
+        else if (strcmp(var.value, "Full (320 width)") == 0)
+            core->GetVideo()->SetOverscan(Video::OverscanFull320);
         else
             core->GetVideo()->SetOverscan(Video::OverscanDisabled);
     }

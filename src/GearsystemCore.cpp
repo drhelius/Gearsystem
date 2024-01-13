@@ -261,8 +261,10 @@ bool GearsystemCore::GetRuntimeInfo(GS_RuntimeInfo& runtime_info)
             runtime_info.screen_width = GS_RESOLUTION_SMS_WIDTH;
             runtime_info.screen_height = m_pVideo->IsExtendedMode224() ? GS_RESOLUTION_SMS_HEIGHT_EXTENDED : GS_RESOLUTION_SMS_HEIGHT;
 
-            if (m_pVideo->GetOverscan() == Video::OverscanFull)
-                runtime_info.screen_width = GS_RESOLUTION_SMS_WIDTH + (2 * GS_RESOLUTION_SMS_OVERSCAN_H);
+            if (m_pVideo->GetOverscan() == Video::OverscanFull284)
+                runtime_info.screen_width = GS_RESOLUTION_SMS_WIDTH + GS_RESOLUTION_SMS_OVERSCAN_H_284_L + GS_RESOLUTION_SMS_OVERSCAN_H_284_R;
+            if (m_pVideo->GetOverscan() == Video::OverscanFull320)
+                runtime_info.screen_width = GS_RESOLUTION_SMS_WIDTH + GS_RESOLUTION_SMS_OVERSCAN_H_320_L + GS_RESOLUTION_SMS_OVERSCAN_H_320_R;
             if (m_pVideo->GetOverscan() != Video::OverscanDisabled)
                 runtime_info.screen_height = GS_RESOLUTION_SMS_HEIGHT + (2 * (m_pCartridge->IsPAL() ? GS_RESOLUTION_SMS_OVERSCAN_V_PAL : GS_RESOLUTION_SMS_OVERSCAN_V));
         }

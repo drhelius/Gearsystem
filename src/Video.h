@@ -38,7 +38,8 @@ public:
     {
         OverscanDisabled,
         OverscanTopBottom,
-        OverscanFull
+        OverscanFull284,
+        OverscanFull320
     };
 
 public:

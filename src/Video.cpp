@@ -915,7 +915,7 @@ void Video::Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
 {
     int x = 0;
     int y = 0;
-    int overscan_h = 0;
+    int overscan_h_l = 0;
     int overscan_v = 0;
     int overscan_content_v = 0;
     int overscan_content_h = 0;
@@ -943,11 +943,18 @@ void Video::Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
         overscan_total_height = overscan_content_v + (overscan_v * 2);
     }
 
-    if (overscan && (m_Overscan == OverscanFull))
+    if (overscan && (m_Overscan == OverscanFull320))
     {
         overscan_content_h = GS_RESOLUTION_MAX_WIDTH;
-        overscan_h = GS_RESOLUTION_SMS_OVERSCAN_H;
-        overscan_total_width = overscan_content_h + (overscan_h * 2);
+        overscan_h_l = GS_RESOLUTION_SMS_OVERSCAN_H_320_L;
+        overscan_total_width = overscan_content_h + overscan_h_l + GS_RESOLUTION_SMS_OVERSCAN_H_320_R;
+    }
+
+    if (overscan && (m_Overscan == OverscanFull284))
+    {
+        overscan_content_h = GS_RESOLUTION_MAX_WIDTH;
+        overscan_h_l = GS_RESOLUTION_SMS_OVERSCAN_H_284_L;
+        overscan_total_width = overscan_content_h + overscan_h_l + GS_RESOLUTION_SMS_OVERSCAN_H_284_R;
     }
 
     for (int i = 0, j = 0; j < buffer_size; j += 3)
@@ -955,7 +962,7 @@ void Video::Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
         u16 src_color = 0;
         if (overscan_enabled)
         {
-            bool is_h_overscan = (overscan_h > 0) && (x < overscan_h || x >= (overscan_h + overscan_content_h));
+            bool is_h_overscan = (overscan_h_l > 0) && (x < overscan_h_l || x >= (overscan_h_l + overscan_content_h));
             bool is_v_overscan = (overscan_v > 0) && (y < overscan_v || y >= (overscan_v + overscan_content_v));
 
             if (is_h_overscan || is_v_overscan)
@@ -994,7 +1001,7 @@ void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
 {
     int x = 0;
     int y = 0;
-    int overscan_h = 0;
+    int overscan_h_l = 0;
     int overscan_v = 0;
     int overscan_content_v = 0;
     int overscan_content_h = 0;
@@ -1040,11 +1047,18 @@ void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
         overscan_total_height = overscan_content_v + (overscan_v * 2);
     }
 
-    if (overscan && (m_Overscan == OverscanFull))
+    if (overscan && (m_Overscan == OverscanFull320))
     {
         overscan_content_h = GS_RESOLUTION_MAX_WIDTH;
-        overscan_h = GS_RESOLUTION_SMS_OVERSCAN_H;
-        overscan_total_width = overscan_content_h + (overscan_h * 2);
+        overscan_h_l = GS_RESOLUTION_SMS_OVERSCAN_H_320_L;
+        overscan_total_width = overscan_content_h + overscan_h_l + GS_RESOLUTION_SMS_OVERSCAN_H_320_R;
+    }
+
+    if (overscan && (m_Overscan == OverscanFull284))
+    {
+        overscan_content_h = GS_RESOLUTION_MAX_WIDTH;
+        overscan_h_l = GS_RESOLUTION_SMS_OVERSCAN_H_284_L;
+        overscan_total_width = overscan_content_h + overscan_h_l + GS_RESOLUTION_SMS_OVERSCAN_H_284_R;
     }
 
     for (int i = 0, j = 0; j < buffer_size; j += 2)
@@ -1052,7 +1066,7 @@ void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
         u16 src_color = 0;
         if (overscan_enabled)
         {
-            bool is_h_overscan = (overscan_h > 0) && (x < overscan_h || x >= (overscan_h + overscan_content_h));
+            bool is_h_overscan = (overscan_h_l > 0) && (x < overscan_h_l || x >= (overscan_h_l + overscan_content_h));
             bool is_v_overscan = (overscan_v > 0) && (y < overscan_v || y >= (overscan_v + overscan_content_v));
 
             if (is_h_overscan || is_v_overscan)

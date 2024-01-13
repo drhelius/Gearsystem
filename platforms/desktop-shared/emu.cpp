@@ -383,7 +383,10 @@ void emu_set_overscan(int overscan)
             gearsystem->GetVideo()->SetOverscan(Video::OverscanTopBottom);
             break;
         case 2:
-            gearsystem->GetVideo()->SetOverscan(Video::OverscanFull);
+            gearsystem->GetVideo()->SetOverscan(Video::OverscanFull284);
+            break;
+        case 3:
+            gearsystem->GetVideo()->SetOverscan(Video::OverscanFull320);
             break;
         default:
             gearsystem->GetVideo()->SetOverscan(Video::OverscanDisabled);
