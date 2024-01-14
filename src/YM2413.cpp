@@ -31,6 +31,7 @@ YM2413::YM2413()
     m_RegisterF2 = 0;
     m_CurrentSample = 0;
     m_bEnabled = false;
+    m_iCyclesPerSample = 0;
 }
 
 YM2413::~YM2413()
@@ -50,6 +51,7 @@ void YM2413::Init(int clockRate)
 void YM2413::Reset(int clockRate)
 {
     m_iClockRate = clockRate;
+    m_iCyclesPerSample = m_iClockRate / GS_AUDIO_SAMPLE_RATE;
     m_ElapsedCycles = 0;
     m_CurrentSample = 0;
     m_iCycleCounter = 0;
@@ -141,10 +143,9 @@ void YM2413::Sync()
         }
 
         m_iSampleCounter++;
-        int cyclesPerSample = m_iClockRate / GS_AUDIO_SAMPLE_RATE;
-        if (m_iSampleCounter >= cyclesPerSample)
+        if (m_iSampleCounter >= m_iCyclesPerSample)
         {
-            m_iSampleCounter -= cyclesPerSample;
+            m_iSampleCounter -= m_iCyclesPerSample;
 
             m_pBuffer[m_iBufferIndex] = m_CurrentSample;
             m_pBuffer[m_iBufferIndex + 1] = m_CurrentSample;
