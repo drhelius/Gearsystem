@@ -21,6 +21,7 @@
 #define	GUI_H
 
 #include "imgui/imgui.h"
+#include "nfd/nfd.h"
 #include "gui_events.h"
 
 #ifdef GUI_IMPORT

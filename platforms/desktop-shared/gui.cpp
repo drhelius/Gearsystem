@@ -79,6 +79,14 @@ static Cartridge::CartridgeRegions get_region(int index);
 
 void gui_init(void)
 {
+    if (NFD_Init() != NFD_OKAY)
+    {
+        Log("Error: %s", NFD_GetError());
+    }
+    else
+    {
+        Log("Success: Native File Dialogs is ready to use!");
+    }
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
@@ -122,6 +130,7 @@ void gui_init(void)
 void gui_destroy(void)
 {
     ImGui::DestroyContext();
+    NFD_Quit();
 }
 
 void gui_render(void)
@@ -280,6 +289,23 @@ static void main_menu(void)
             if (ImGui::MenuItem("Open ROM...", shortcut))
             {
                 open_rom = true;
+
+                nfdchar_t *outPath;
+                nfdfilteritem_t filterItem[3] = { { "Master System", "sms,rom,bin" }, { "Game Gear", "gg,rom,bin" }, { "SG-1000", "sg,rom,bin" } };
+                nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 3, NULL);
+                if (result == NFD_OKAY)
+                {
+                    Log("Success: %s", outPath);
+                    NFD_FreePath(outPath);
+                }
+                else if (result == NFD_CANCEL)
+                {
+                    puts("User pressed cancel.");
+                }
+                else 
+                {
+                    printf("Error: %s\n", NFD_GetError());
+                }
             }
 
             if (ImGui::BeginMenu("Open Recent"))

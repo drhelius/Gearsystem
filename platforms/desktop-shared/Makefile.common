@@ -10,11 +10,10 @@ PLATFORM = "undefined"
 
 OBJECTS := $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
 
-CPPFLAGS = -I../ -I../../
+CPPFLAGS += -I../ -I../../
 CPPFLAGS += -Wall -Wextra -Wformat  -DEMULATOR_BUILD=\"$(GIT_VERSION)\"
 CXXFLAGS += -std=c++11
 CFLAGS += -std=c99
-LDFLAGS =
 
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
