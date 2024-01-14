@@ -73,7 +73,7 @@ void Audio::Reset(bool bPAL)
     m_pYM2413->Enable(false);
     m_bPSGEnabled = true;
     m_pApu->reset();
-    m_pApu->volume(0.4);
+    m_pApu->volume(1.0);
     m_pBuffer->clear();
     m_pBuffer->clock_rate(m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC);
     m_pYM2413->Reset(m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC);
@@ -107,7 +107,7 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
             if (!m_bMute)
             {
                 pSampleBuffer[i] += m_bPSGEnabled ? m_pSampleBuffer[(i >= psg_count) ? psg_count-1 : i] : 0;
-                pSampleBuffer[i] += (m_bYM2413Enabled && !m_bYM2413ForceDisabled) ? m_pYM2413Buffer[i] : 0;
+                pSampleBuffer[i] += (m_bYM2413Enabled && !m_bYM2413ForceDisabled) ? m_pYM2413Buffer[i] * 4 : 0;
             }
         }
     }
@@ -145,6 +145,6 @@ void Audio::LoadState(std::istream& stream)
     m_pYM2413->LoadState(stream);
 
     m_pApu->reset();
-    m_pApu->volume(0.4);
+    m_pApu->volume(1.0);
     m_pBuffer->clear();
 }
