@@ -47,11 +47,14 @@ struct DisassmeblerLine
 };
 
 static MemoryEditor mem_edit;
-static ImVec4 cyan = ImVec4(0.0f,1.0f,1.0f,1.0f);
+static ImVec4 cyan = ImVec4(0.1f,0.9f,0.9f,1.0f);
 static ImVec4 magenta = ImVec4(1.0f,0.502f,0.957f,1.0f);
-static ImVec4 yellow = ImVec4(1.0f,1.0f,0.0f,1.0f);
-static ImVec4 red = ImVec4(1.0f,0.149f,0.447f,1.0f);
-static ImVec4 green = ImVec4(0.0f,1.0f,0.0f,1.0f);
+static ImVec4 yellow = ImVec4(1.0f,0.90f,0.05f,1.0f);
+static ImVec4 orange = ImVec4(0.992f,0.592f,0.122f,1.0f);
+static ImVec4 red = ImVec4(0.976f,0.149f,0.447f,1.0f);
+static ImVec4 green = ImVec4(0.1f,0.9f,0.1f,1.0f);
+static ImVec4 violet = ImVec4(0.682f,0.506f,1.0f,1.0f);
+static ImVec4 blue = ImVec4(0.2f,0.4f,1.0f,1.0f);
 static ImVec4 white = ImVec4(1.0f,1.0f,1.0f,1.0f);
 static ImVec4 gray = ImVec4(0.5f,0.5f,0.5f,1.0f);
 static ImVec4 dark_gray = ImVec4(0.1f,0.1f,0.1f,1.0f);
@@ -82,6 +85,7 @@ static void add_breakpoint_mem(void);
 static void request_goto_address(u16 addr);
 static ImVec4 color_444_to_float(u16 color);
 static ImVec4 color_222_to_float(u8 color);
+static bool is_return_instruction(u8 opcode1, u8 opcode2);
 
 void gui_debug_windows(void)
 {
@@ -726,6 +730,14 @@ static void debug_window_disassembler(void)
                     ImGui::TextColored(white, "%s", vec[item].record->name);
                 }
 
+                bool is_ret = is_return_instruction(vec[item].record->opcodes[0], vec[item].record->opcodes[1]);
+                if (is_ret)
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Separator, (vec[item].record->opcodes[0] == 0xC9) ? gray : dark_gray);
+                    ImGui::Separator();
+                    ImGui::PopStyleColor();
+                }
+
                 ImGui::PopID();
             }
         }
@@ -752,7 +764,7 @@ static void debug_window_processor(void)
 
     ImGui::Separator();
 
-    ImGui::TextColored(magenta, "  S Z Y H X P N C");
+    ImGui::TextColored(orange, "  S Z Y H X P N C");
     ImGui::Text("  " BYTE_TO_BINARY_PATTERN_ALL_SPACED, BYTE_TO_BINARY(proc_state->AF->GetLow()));
 
     ImGui::Columns(2, "registers");
@@ -1749,4 +1761,28 @@ static void request_goto_address(u16 address)
 {
     goto_address_requested = true;
     goto_address_target = address;
+}
+
+static bool is_return_instruction(u8 opcode1, u8 opcode2)
+{
+    switch (opcode1)
+    {
+        case 0xC9: // RET
+        case 0xC0: // RET NZ
+        case 0xC8: // RET Z
+        case 0xD0: // RET NC
+        case 0xD8: // RET C
+        case 0xE0: // RET PO
+        case 0xE8: // RET PE
+        case 0xF0: // RET P
+        case 0xF8: // RET M
+            return true;
+        case 0xED: // Extended instructions
+            if (opcode2 == 0x45 || opcode2 == 0x4D) // RETN, RETI
+                return true;
+            else
+                return false;
+        default:
+            return false;
+    }
 }
