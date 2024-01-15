@@ -62,8 +62,8 @@ all: $(TARGET)
 $(TARGET): $(OBJECTS)
 	$(CXX) -o $@ $(OBJECTS) $(LDFLAGS)
 
-%.o: %.mm
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+%.o: %.m
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 %.o: %.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
