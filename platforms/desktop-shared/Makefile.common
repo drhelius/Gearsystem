@@ -8,20 +8,19 @@ GIT_VERSION := "$(shell git describe --abbrev=7 --dirty --always --tags)"
 UNAME_S := $(shell uname -s)
 PLATFORM = "undefined"
 
-OBJECTS := $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
+OBJECTS += $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
 
-CPPFLAGS = -I../ -I../../
+CPPFLAGS += -I../ -I../../
 CPPFLAGS += -Wall -Wextra -Wformat  -DEMULATOR_BUILD=\"$(GIT_VERSION)\"
 CXXFLAGS += -std=c++11
 CFLAGS += -std=c99
-LDFLAGS =
 
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
     CPPFLAGS +=-DDEBUG -g3
 else
-    CPPFLAGS +=-DNDEBUG -O3 -flto=auto
-    LDFLAGS += -flto=auto
+    CPPFLAGS +=-DNDEBUG -O3 -flto
+    LDFLAGS += -flto
 endif
 
 SANITIZE ?= 0
@@ -62,6 +61,9 @@ all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
 	$(CXX) -o $@ $(OBJECTS) $(LDFLAGS)
+
+%.o: %.mm
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 %.o: %.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
