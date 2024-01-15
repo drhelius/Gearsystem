@@ -1,4 +1,8 @@
 include ../desktop-shared/Makefile.sources
+
+SOURCES_CXX += $(DESKTOP_SRC_DIR)/nfd/nfd_cocoa.cpp
+LDFLAGS += -framework AppKit -framework UniformTypeIdentifiers
+
 include ../desktop-shared/Makefile.common
 
 DYLIB_PATH=/usr/local/opt/sdl2/lib
