@@ -19,8 +19,8 @@ DEBUG ?= 0
 ifeq ($(DEBUG), 1)
     CPPFLAGS +=-DDEBUG -g3
 else
-    CPPFLAGS +=-DNDEBUG -O3 -flto=auto
-    LDFLAGS += -flto=auto
+    CPPFLAGS +=-DNDEBUG -O3 -flto
+    LDFLAGS += -flto
 endif
 
 SANITIZE ?= 0
@@ -62,8 +62,8 @@ all: $(TARGET)
 $(TARGET): $(OBJECTS)
 	$(CXX) -o $@ $(OBJECTS) $(LDFLAGS)
 
-%.o: %.m
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
+%.o: %.mm
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 %.o: %.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
