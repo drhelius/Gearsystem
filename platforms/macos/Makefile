@@ -1,6 +1,7 @@
 include ../desktop-shared/Makefile.sources
 
 SOURCES_C += $(DESKTOP_SRC_DIR)/nfd/nfd_cocoa.m
+OBJECTS += $(SOURCES_C:.m=.o)
 LDFLAGS += -framework AppKit -framework UniformTypeIdentifiers
 
 include ../desktop-shared/Makefile.common

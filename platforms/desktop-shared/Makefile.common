@@ -8,7 +8,7 @@ GIT_VERSION := "$(shell git describe --abbrev=7 --dirty --always --tags)"
 UNAME_S := $(shell uname -s)
 PLATFORM = "undefined"
 
-OBJECTS := $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o) $(SOURCES_C:.m=.o)
+OBJECTS += $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
 
 CPPFLAGS += -I../ -I../../
 CPPFLAGS += -Wall -Wextra -Wformat  -DEMULATOR_BUILD=\"$(GIT_VERSION)\"
