@@ -35,7 +35,7 @@ Audio::Audio(Cartridge * pCartridge)
     m_bYM2413Enabled = false;
     m_bPSGEnabled = true;
     m_bYM2413ForceDisabled = false;
-    m_bMute = true;
+    m_bMute = false;
 }
 
 Audio::~Audio()
