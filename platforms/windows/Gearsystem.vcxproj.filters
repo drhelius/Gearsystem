@@ -10,17 +10,11 @@
     <Filter Include="core">
       <UniqueIdentifier>{2d05f746-8df6-4807-b025-08418adf75c2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="desktop_shared\filebrowser">
-      <UniqueIdentifier>{7ade8661-08bc-442d-a68f-971dca1de6f2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="desktop_shared\imgui">
       <UniqueIdentifier>{de36acb0-032e-44dc-9bd7-fb3132b47243}</UniqueIdentifier>
     </Filter>
     <Filter Include="desktop_shared\mini">
       <UniqueIdentifier>{a70f55db-9af5-4013-8cf4-ff6f22441a6d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="desktop_shared\filebrowser\dirent">
-      <UniqueIdentifier>{efa46f63-c5a2-4b18-b4d3-0cc55a202e6b}</UniqueIdentifier>
     </Filter>
     <Filter Include="desktop_shared\imgui\fonts">
       <UniqueIdentifier>{07369a03-ee80-4388-a2ff-4c47697c855b}</UniqueIdentifier>
@@ -30,6 +24,9 @@
     </Filter>
     <Filter Include="core\audio\emu2413">
       <UniqueIdentifier>{26b53fb0-973d-4009-9eb1-a9e8296d7b7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="desktop_shared\nfd">
+      <UniqueIdentifier>{db3b4a89-bbfe-4ee9-a1a5-1ccfceb83f2d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -53,9 +50,6 @@
     </ClCompile>
     <ClCompile Include="..\desktop-shared\renderer.cpp">
       <Filter>desktop_shared</Filter>
-    </ClCompile>
-    <ClCompile Include="..\desktop-shared\FileBrowser\ImGuiFileBrowser.cpp">
-      <Filter>desktop_shared\filebrowser</Filter>
     </ClCompile>
     <ClCompile Include="..\desktop-shared\imgui\imgui.cpp">
       <Filter>desktop_shared\imgui</Filter>
@@ -162,6 +156,9 @@
     <ClCompile Include="..\..\src\YM2413.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="..\desktop-shared\nfd\nfd_win.cpp">
+      <Filter>desktop_shared\nfd</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\audio-shared\Sound_Queue.h">
@@ -181,12 +178,6 @@
     </ClInclude>
     <ClInclude Include="..\desktop-shared\renderer.h">
       <Filter>desktop_shared</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\FileBrowser\ImGuiFileBrowser.h">
-      <Filter>desktop_shared\filebrowser</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\FileBrowser\Dirent\dirent.h">
-      <Filter>desktop_shared\filebrowser\dirent</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\imconfig.h">
       <Filter>desktop_shared\imgui</Filter>

@@ -81,10 +81,7 @@ void gui_init(void)
     {
         Log("Error: %s", NFD_GetError());
     }
-    else
-    {
-        Log("Success: Native File Dialogs is ready to use!");
-    }
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
