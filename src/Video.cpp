@@ -72,7 +72,7 @@ Video::~Video()
 
 void Video::Init()
 {
-    m_pInfoBuffer = new u8[GS_RESOLUTION_MAX_WIDTH * GS_LINES_PER_FRAME_PAL];
+    m_pInfoBuffer = new u8[GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN * GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN];
     m_pFrameBuffer = new u16[GS_RESOLUTION_MAX_WIDTH * GS_LINES_PER_FRAME_PAL];
     m_pVdpVRAM = new u8[0x4000];
     m_pVdpCRAM = new u8[0x40];
@@ -104,11 +104,11 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_VdpStatus = 0;
     m_ScrollX = 0;
     m_ScrollY = 0;
-    for (int i = 0; i < (GS_RESOLUTION_MAX_WIDTH * GS_LINES_PER_FRAME_PAL); i++)
-    {
+
+    for (int i = 0; i < (GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN * GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN); i++)
         m_pFrameBuffer[i] = 0;
+    for (int i = 0; i < (GS_RESOLUTION_MAX_WIDTH * GS_LINES_PER_FRAME_PAL); i++)
         m_pInfoBuffer[i] = 0;
-    }
     for (int i = 0; i < 0x4000; i++)
         m_pVdpVRAM[i] = 0;
     for (int i = 0; i < 0x40; i++)

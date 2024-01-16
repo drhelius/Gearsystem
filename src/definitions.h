@@ -176,12 +176,8 @@ struct GS_RuntimeInfo
 #ifdef DEBUG_GEARSYSTEM
 
 #ifdef __ANDROID__
-    #include <android/log.h>
-    #define printf(...) __android_log_print(ANDROID_LOG_DEBUG, "GEARSYSTEM", __VA_ARGS__);
-#endif
-#ifdef __LIBRETRO__
-    #include "../platforms/libretro/libretro.h"
-    extern retro_log_printf_t gearsystem_log_cb;
+#include <android/log.h>
+#define printf(...) __android_log_print(ANDROID_LOG_DEBUG, "GEARSYSTEM", __VA_ARGS__);
 #endif
 
 #define Log(msg, ...) (Log_func(msg, ##__VA_ARGS__))
@@ -196,12 +192,6 @@ inline void Log_func(const char* const msg, ...)
     vsnprintf(szBuf, 512, msg, args);
     va_end(args);
 
-#ifdef __LIBRETRO__
-    if (gearsystem_log_cb != NULL)
-    {
-        gearsystem_log_cb(RETRO_LOG_INFO, "%s\n", szBuf);
-    }
-#endif
     printf("%d: %s\n", count, szBuf);
     fflush(stdout);
 

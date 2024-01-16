@@ -39,7 +39,6 @@ static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;
 static char retro_system_directory[4096];
 static char retro_game_path[4096];
-retro_log_printf_t gearsystem_log_cb = NULL;
 
 static s16 audio_buf[GS_AUDIO_BUFFER_SIZE];
 static int audio_sample_count = 0;
@@ -85,10 +84,7 @@ static retro_environment_t environ_cb;
 void retro_init(void)
 {
     if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging))
-    {
         log_cb = logging.log;
-        gearsystem_log_cb = logging.log;
-    }
     else
         log_cb = fallback_log;
 
@@ -102,7 +98,7 @@ void retro_init(void)
         snprintf(retro_system_directory, sizeof(retro_system_directory), "%s", ".");
     }
 
-    log_cb(RETRO_LOG_DEBUG, "%s (%s) libretro\n", GEARSYSTEM_TITLE, EMULATOR_BUILD);
+    log_cb(RETRO_LOG_INFO, "%s (%s) libretro\n", GEARSYSTEM_TITLE, EMULATOR_BUILD);
 
     core = new GearsystemCore();
 
@@ -139,7 +135,7 @@ unsigned retro_api_version(void)
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
 {
-    log_cb(RETRO_LOG_INFO, "Plugging device %u into port %u.\n", device, port);
+    log_cb(RETRO_LOG_DEBUG, "Plugging device %u into port %u.\n", device, port);
 
     struct retro_input_descriptor joypad[] = {
         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left" },
@@ -565,7 +561,7 @@ bool retro_load_game(const struct retro_game_info *info)
     enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
     if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
     {
-        log_cb(RETRO_LOG_INFO, "RGB565 is not supported.\n");
+        log_cb(RETRO_LOG_ERROR, "RGB565 is not supported.\n");
         return false;
     }
 
