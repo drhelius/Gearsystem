@@ -72,8 +72,8 @@ Video::~Video()
 
 void Video::Init()
 {
-    m_pInfoBuffer = new u8[GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN * GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN];
-    m_pFrameBuffer = new u16[GS_RESOLUTION_MAX_WIDTH * GS_LINES_PER_FRAME_PAL];
+    m_pFrameBuffer = new u16[GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN * GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN];
+    m_pInfoBuffer = new u8[GS_RESOLUTION_MAX_WIDTH * GS_LINES_PER_FRAME_PAL];
     m_pVdpVRAM = new u8[0x4000];
     m_pVdpCRAM = new u8[0x40];
     InitPalettes(kSG1000_palette_888_normal,
