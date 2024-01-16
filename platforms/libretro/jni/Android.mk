@@ -4,6 +4,8 @@ ROOT_DIR   := $(LOCAL_PATH)/../../..
 CORE_DIR   := $(ROOT_DIR)/platforms/libretro
 SOURCE_DIR := $(ROOT_DIR)/src
 
+DEBUG := 1
+
 include $(CORE_DIR)/Makefile.common
 
 COREFLAGS := -DHAVE_STDINT_H -DHAVE_INTTYPES_H -D__LIBRETRO__ -DGEARSYSTEM_DISABLE_DISASSEMBLER
