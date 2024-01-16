@@ -39,6 +39,7 @@ static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;
 static char retro_system_directory[4096];
 static char retro_game_path[4096];
+retro_log_printf_t gearsystem_log_cb = NULL;
 
 static s16 audio_buf[GS_AUDIO_BUFFER_SIZE];
 static int audio_sample_count = 0;
@@ -83,6 +84,14 @@ static retro_environment_t environ_cb;
 
 void retro_init(void)
 {
+    if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging))
+    {
+        log_cb = logging.log;
+        gearsystem_log_cb = logging.log;
+    }
+    else
+        log_cb = fallback_log;
+
     const char *dir = NULL;
 
     if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir) {
@@ -195,11 +204,6 @@ void retro_set_environment(retro_environment_t cb)
 {
     environ_cb = cb;
 
-    if (cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging))
-        log_cb = logging.log;
-    else
-        log_cb = fallback_log;
-
     static const struct retro_controller_description port_1[] = {
         { "Sega Master System / Game Gear", RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 0) },
     };
@@ -214,7 +218,7 @@ void retro_set_environment(retro_environment_t cb)
         { NULL, 0 },
     };
 
-    cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
+    environ_cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
 
     environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void *)vars);
 }
