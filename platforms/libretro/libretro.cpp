@@ -92,6 +92,7 @@ void retro_init(void)
     else
         log_cb = fallback_log;
 
+
     const char *dir = NULL;
 
     if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir) {
@@ -100,6 +101,8 @@ void retro_init(void)
     else {
         snprintf(retro_system_directory, sizeof(retro_system_directory), "%s", ".");
     }
+
+    log_cb(RETRO_LOG_DEBUG, "%s (%s) libretro\n", GEARSYSTEM_TITLE, EMULATOR_BUILD);
 
     core = new GearsystemCore();
 

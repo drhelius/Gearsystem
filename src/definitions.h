@@ -196,13 +196,13 @@ inline void Log_func(const char* const msg, ...)
     vsnprintf(szBuf, 512, msg, args);
     va_end(args);
 
-#ifdef __LIBRETRO__
-    if (gearsystem_log_cb != NULL)
-    {
-        gearsystem_log_cb(RETRO_LOG_INFO, "%s\n", szBuf);
-        return;
-    }
-#endif
+// #ifdef __LIBRETRO__
+//     if (gearsystem_log_cb != NULL)
+//     {
+//         gearsystem_log_cb(RETRO_LOG_INFO, "%s\n", szBuf);
+//         return;
+//     }
+// #endif
     printf("%d: %s\n", count, szBuf);
     fflush(stdout);
 

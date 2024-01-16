@@ -322,6 +322,11 @@ else
    CXXFLAGS += -O3
 endif
 
+GIT_VERSION ?= " $(shell git describe --abbrev=7 --dirty --always --tags || echo unknown)"
+ifneq ($(GIT_VERSION)," unknown")
+   CXXFLAGS += -DEMULATOR_BUILD=\"$(GIT_VERSION)\"
+endif
+
 include Makefile.common
 
 OBJECTS := $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
