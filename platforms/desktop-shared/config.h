@@ -62,6 +62,7 @@ struct config_Emulator
     std::string last_open_path;
     int window_width = 640;
     int window_height = 503;
+    bool status_messages = false;
 };
 
 struct config_Video

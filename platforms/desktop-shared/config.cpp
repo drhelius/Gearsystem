@@ -133,6 +133,7 @@ void config_init(void)
     config_setShortcut(gui_ShortcutFFWD, KMOD_CTRL, SDL_SCANCODE_F);
     config_setShortcut(gui_ShortcutSaveState, KMOD_CTRL, SDL_SCANCODE_S);
     config_setShortcut(gui_ShortcutLoadState, KMOD_CTRL, SDL_SCANCODE_L);
+    config_setShortcut(gui_ShortcutScreenshot, KMOD_CTRL, SDL_SCANCODE_X);
     config_setShortcut(gui_ShortcutDebugStep, KMOD_CTRL, SDL_SCANCODE_F10);
     config_setShortcut(gui_ShortcutDebugContinue, KMOD_CTRL, SDL_SCANCODE_F5);
     config_setShortcut(gui_ShortcutDebugNextFrame, KMOD_CTRL, SDL_SCANCODE_F6);
@@ -197,6 +198,7 @@ void config_read(void)
     config_emulator.last_open_path = read_string("Emulator", "LastOpenPath");
     config_emulator.window_width = read_int("Emulator", "WindowWidth", 640);
     config_emulator.window_height = read_int("Emulator", "WindowHeight", 503);
+    config_emulator.status_messages = read_bool("Emulator", "StatusMessages", false);
 
     if (config_emulator.savefiles_path.empty())
     {
@@ -301,6 +303,7 @@ void config_write(void)
     write_string("Emulator", "LastOpenPath", config_emulator.last_open_path);
     write_int("Emulator", "WindowWidth", config_emulator.window_width);
     write_int("Emulator", "WindowHeight", config_emulator.window_height);
+    write_bool("Emulator", "StatusMessages", config_emulator.status_messages);
 
     for (int i = 0; i < config_max_recent_roms; i++)
     {

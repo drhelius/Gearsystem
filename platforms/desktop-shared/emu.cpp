@@ -23,6 +23,12 @@
 #define EMU_IMPORT
 #include "emu.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#ifdef _WIN32
+#define STBIW_WINDOWS_UTF8
+#endif
+#include "stb/stb_image_write.h"
+
 static GearsystemCore* gearsystem;
 static Sound_Queue* sound_queue;
 static s16* audio_buffer;
@@ -396,6 +402,21 @@ void emu_set_overscan(int overscan)
 void emu_disable_ym2413(bool disable)
 {
     gearsystem->GetAudio()->DisableYM2413(disable);
+}
+
+void emu_save_screenshot(const char* file_path)
+{
+    if (!gearsystem->GetCartridge()->IsReady())
+        return;
+
+    GS_RuntimeInfo runtime;
+    emu_get_runtime(runtime);
+
+    Log("Saving screenshot to %s", file_path);
+
+    stbi_write_png(file_path, runtime.screen_width, runtime.screen_height, 3, emu_frame_buffer, runtime.screen_width * 3);
+
+    Log("Screenshot saved!");
 }
 
 static void save_ram(void)
