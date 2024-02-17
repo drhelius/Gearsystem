@@ -1,0 +1,30 @@
+id: io.github.drhelius.Gearsystem
+runtime: org.freedesktop.Platform
+runtime-version: '23.08'
+sdk: org.freedesktop.Sdk
+command: gearsystem
+finish-args:
+  - --share=ipc
+  - --socket=x11
+  - --device=dri
+  - --socket=pulseaudio
+modules:
+  - shared-modules/glu/glu-9.json
+  - shared-modules/glew/glew.json
+  - shared-modules/SDL2/SDL2-no-libdecor.json
+  - name: gearsystem
+    buildsystem: simple
+    build-commands:
+      - make
+      - make install prefix="$FLATPAK_DEST"
+    subdir: platforms/linux
+    sources:
+      # A reference to a specific commit is used whilst this is in development.
+      # Ideally this will use either a release archive or a specific tag/commit
+      # pair.
+      # There is also an option to use a type of "dir" and a path of "../.." to
+      # allow for builds from the current commit. This may be useful for
+      # "master" or "nightly" builds, but this may require further exploration.
+      - type: git
+        url: https://github.com/drhelius/Gearsystem.git
+        commit: 0fda5894b310110532a5594b815c20cf9a6cb1ed
