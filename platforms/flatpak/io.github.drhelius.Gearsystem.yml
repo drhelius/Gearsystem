@@ -74,6 +74,7 @@ modules:
     build-commands:
       - make
       - make install prefix="$FLATPAK_DEST"
+      - install -Dm644 io.github.drhelius.Gearsystem.desktop -t /app/share/applications
     subdir: platforms/flatpak
     sources:
       # A reference to a specific commit is used whilst this is in development.
@@ -84,3 +85,5 @@ modules:
       # "master" or "nightly" builds, but this may require further exploration.
       - type: dir
         path: ../..
+      - type: file
+        path: io.github.drhelius.Gearsystem.desktop
