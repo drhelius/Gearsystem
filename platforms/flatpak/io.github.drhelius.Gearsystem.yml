@@ -12,12 +12,24 @@ modules:
   - shared-modules/glu/glu-9.json
   - shared-modules/glew/glew.json
   - shared-modules/SDL2/SDL2-no-libdecor.json
+  - name: nfde
+    buildsystem: cmake
+    config-opts:
+      - -DNFD_PORTAL=ON
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DNFD_BUILD_TESTS=OFF
+      - -DCMAKE_INSTALL_INCLUDEDIR=include/nfd
+    sources:
+      - type: git
+        url: https://github.com/btzy/nativefiledialog-extended.git
+        tag: v1.1.1
+        commit: 5786fabceeaee4d892f3c7a16b243796244cdddc
   - name: gearsystem
     buildsystem: simple
     build-commands:
       - make
       - make install prefix="$FLATPAK_DEST"
-    subdir: platforms/linux
+    subdir: platforms/flatpak
     sources:
       # A reference to a specific commit is used whilst this is in development.
       # Ideally this will use either a release archive or a specific tag/commit
