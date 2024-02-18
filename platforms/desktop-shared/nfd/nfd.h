@@ -281,14 +281,14 @@ typedef nfdnfilteritem_t nfdfilteritem_t;
 #define NFD_PathSet_EnumNext NFD_PathSet_EnumNextN
 typedef nfdnchar_t nfdu8char_t;
 typedef nfdnfilteritem_t nfdu8filteritem_t;
-// #define NFD_FreePathU8 NFD_FreePathN
-// #define NFD_OpenDialogU8 NFD_OpenDialogN
-// #define NFD_OpenDialogMultipleU8 NFD_OpenDialogMultipleN
-// #define NFD_SaveDialogU8 NFD_SaveDialogN
-// #define NFD_PickFolderU8 NFD_PickFolderN
-// #define NFD_PathSet_GetPathU8 NFD_PathSet_GetPathN
-// #define NFD_PathSet_FreePathU8 NFD_PathSet_FreePathN
-// #define NFD_PathSet_EnumNextU8 NFD_PathSet_EnumNextN
+#define NFD_FreePathU8 NFD_FreePathN
+#define NFD_OpenDialogU8 NFD_OpenDialogN
+#define NFD_OpenDialogMultipleU8 NFD_OpenDialogMultipleN
+#define NFD_SaveDialogU8 NFD_SaveDialogN
+#define NFD_PickFolderU8 NFD_PickFolderN
+#define NFD_PathSet_GetPathU8 NFD_PathSet_GetPathN
+#define NFD_PathSet_FreePathU8 NFD_PathSet_FreePathN
+#define NFD_PathSet_EnumNextU8 NFD_PathSet_EnumNextN
 
 #endif  // _WIN32
 
