@@ -25,6 +25,5 @@ modules:
       # There is also an option to use a type of "dir" and a path of "../.." to
       # allow for builds from the current commit. This may be useful for
       # "master" or "nightly" builds, but this may require further exploration.
-      - type: git
-        url: https://github.com/drhelius/Gearsystem.git
-        commit: 0fda5894b310110532a5594b815c20cf9a6cb1ed
+      - type: dir
+        path: ../..
