@@ -57,18 +57,6 @@ modules:
       - /lib/cmake
       - /share/aclocal
       - /lib/pkgconfig
-  - name: nfde
-    buildsystem: cmake
-    config-opts:
-      - -DNFD_PORTAL=ON
-      - -DCMAKE_BUILD_TYPE=Release
-      - -DNFD_BUILD_TESTS=OFF
-      - -DCMAKE_INSTALL_INCLUDEDIR=include/nfd
-    sources:
-      - type: git
-        url: https://github.com/btzy/nativefiledialog-extended.git
-        tag: v1.1.1
-        commit: 5786fabceeaee4d892f3c7a16b243796244cdddc
   - name: gearsystem
     buildsystem: simple
     build-commands:
