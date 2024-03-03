@@ -5,9 +5,7 @@
 [![commits)](https://img.shields.io/github/commit-activity/t/drhelius/Gearsystem)](https://github.com/drhelius/Gearsystem/commits/master)
 [![GitHub contributors](https://img.shields.io/github/contributors/drhelius/Gearsystem)](https://github.com/drhelius/Gearsystem/graphs/contributors)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/drhelius)](https://github.com/sponsors/drhelius)
-[![Percentage of issues still open](http://isitmaintained.com/badge/open/drhelius/Gearsystem.svg)](http://isitmaintained.com/project/drhelius/Gearsystem "Percentage of issues still open")
-[![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/drhelius/Gearsystem.svg)](http://isitmaintained.com/project/drhelius/Gearsystem "Average time to resolve an issue")
-[![GitHub](https://img.shields.io/github/license/drhelius/Gearsystem)](https://github.com/drhelius/Gearsystem/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/drhelius/Gearsystem)](https://github.com/drhelius/Gearsystem/blob/master/LICENSE)
 [![Twitter Follow](https://img.shields.io/twitter/follow/drhelius)](https://twitter.com/drhelius)
 
 Gearsystem is a very accurate, cross-platform Sega Master System / Game Gear / SG-1000 emulator written in C++ that runs on Windows, macOS, Linux, BSD and RetroArch.
