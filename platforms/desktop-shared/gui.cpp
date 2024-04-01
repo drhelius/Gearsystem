@@ -556,10 +556,17 @@ static void main_menu(void)
             
             ImGui::Separator();
 
+            static const char* const SAVE_FILES_LOCATION_OPTS[] = {
+                "Save Files In Custom Folder",
+#ifndef PREVENT_ROM_FOLDER_USAGE
+                "Save Files In ROM Folder",
+#endif
+            };
+            static constexpr int SAVE_FILES_LOCATION_OPTS_COUNT = sizeof(SAVE_FILES_LOCATION_OPTS) / sizeof(const char*);
             if (ImGui::BeginMenu("Save File Location"))
             {
                 ImGui::PushItemWidth(220.0f);
-                if (ImGui::Combo("##savefile_option", &config_emulator.savefiles_dir_option, "Save Files In Custom Folder\0Save Files In ROM Folder\0\0"))
+                if (ImGui::Combo("##savefile_option", &config_emulator.savefiles_dir_option, SAVE_FILES_LOCATION_OPTS, SAVE_FILES_LOCATION_OPTS_COUNT))
                 {
                     emu_savefiles_dir_option = config_emulator.savefiles_dir_option;
                 }
@@ -583,10 +590,17 @@ static void main_menu(void)
                 ImGui::EndMenu();
             }
 
+            static const char* const SAVE_STATES_LOCATION_OPTS[] = {
+                "Savestates In Custom Folder",
+#ifndef PREVENT_ROM_FOLDER_USAGE
+                "Savestates In ROM Folder",
+#endif
+            };
+            static constexpr int SAVE_STATES_LOCATION_OPTS_COUNT = sizeof(SAVE_STATES_LOCATION_OPTS) / sizeof(const char*);
             if (ImGui::BeginMenu("Save State Location"))
             {
                 ImGui::PushItemWidth(220.0f);
-                if (ImGui::Combo("##savestate_option", &config_emulator.savestates_dir_option, "Savestates In Custom Folder\0Savestates In ROM Folder\0\0"))
+                if (ImGui::Combo("##savestate_option", &config_emulator.savestates_dir_option, SAVE_STATES_LOCATION_OPTS, SAVE_STATES_LOCATION_OPTS_COUNT))
                 {
                     emu_savestates_dir_option = config_emulator.savestates_dir_option;
                 }
