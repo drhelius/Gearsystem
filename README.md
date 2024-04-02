@@ -5,9 +5,7 @@
 [![commits)](https://img.shields.io/github/commit-activity/t/drhelius/Gearsystem)](https://github.com/drhelius/Gearsystem/commits/master)
 [![GitHub contributors](https://img.shields.io/github/contributors/drhelius/Gearsystem)](https://github.com/drhelius/Gearsystem/graphs/contributors)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/drhelius)](https://github.com/sponsors/drhelius)
-[![Percentage of issues still open](http://isitmaintained.com/badge/open/drhelius/Gearsystem.svg)](http://isitmaintained.com/project/drhelius/Gearsystem "Percentage of issues still open")
-[![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/drhelius/Gearsystem.svg)](http://isitmaintained.com/project/drhelius/Gearsystem "Average time to resolve an issue")
-[![GitHub](https://img.shields.io/github/license/drhelius/Gearsystem)](https://github.com/drhelius/Gearsystem/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/drhelius/Gearsystem)](https://github.com/drhelius/Gearsystem/blob/master/LICENSE)
 [![Twitter Follow](https://img.shields.io/twitter/follow/drhelius)](https://twitter.com/drhelius)
 
 Gearsystem is a very accurate, cross-platform Sega Master System / Game Gear / SG-1000 emulator written in C++ that runs on Windows, macOS, Linux, BSD and RetroArch.
@@ -20,14 +18,17 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 
 ## Downloads
 
-- **Windows**: [Gearsystem-3.4.1-Windows.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.4.1/Gearsystem-3.4.1-Windows.zip)
+- **Windows**:
+  - [Gearsystem-3.5.0-windows.zip](https://github.com/drhelius/Gearsystem/releases/download/3.5.0/Gearsystem-3.5.0-windows.zip)
   - NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572)
 - **macOS**:
-  - `brew install --cask gearsystem`
-  - Or install manually: [Gearsystem-3.4.1-macOS.zip](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.4.1/Gearsystem-3.4.1-macOS.zip)
-- **Linux**: [Gearsystem-3.4.1-Linux.tar.xz](https://github.com/drhelius/Gearsystem/releases/download/gearsystem-3.4.1/Gearsystem-3.4.1-Linux.tar.xz)
+  - [Gearsystem-3.5.0-macos-arm.zip](https://github.com/drhelius/Gearsystem/releases/download/3.5.0/Gearsystem-3.5.0-macos-arm.zip)
+  - [Gearsystem-3.5.0-macos-intel.zip](https://github.com/drhelius/Gearsystem/releases/download/3.5.0/Gearsystem-3.5.0-macos-intel.zip)
+- **Linux**:
+  - [Gearsystem-3.5.0-ubuntu-22.04.zip](https://github.com/drhelius/Gearsystem/releases/download/3.5.0/Gearsystem-3.5.0-ubuntu-22.04.zip)
+  - [Gearsystem-3.5.0-ubuntu-20.04.zip](https://github.com/drhelius/Gearsystem/releases/download/3.5.0/Gearsystem-3.5.0-ubuntu-20.04.zip) 
   - NOTE: You may need to install `libsdl2` and `libglew`
-- **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearsystem/).
+- **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearcoleco/).
 
 ## Supported Machines
 
