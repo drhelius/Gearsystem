@@ -55,6 +55,47 @@
   <bundle type="flatpak">io.github.drhelius.Gearsystem</bundle>
 
   <releases>
+    <release version="3.5.0" date="2024-03-04">
+      <description>
+        <p><em>What's Changed</em><p>
+        <ul>
+          <li>Support for YM2413</li>
+          <li>Native file dialogs</li>
+          <li>Drag and drop rom files to open</li>
+          <li>Overscan options</li>
+          <li>Improved Game Gear timings</li>
+          <li>Improved PAL detection</li>
+          <li>Debugger improvements</li>
+          <li>Custom folders for saves and savestates</li>
+          <li>Scaling improvements like fit to window size or fit to window height</li>
+          <li>Hide cursor when hovering output window or when main menu is disabled</li>
+          <li>Load symbol files from command line</li>
+          <li>Support for WLA symbol files</li>
+          <li>Improve input response time</li>
+          <li>Save screenshots</li>
+          <li>Support for WSL</li>
+          <li>Automatic builds in GitHub Actions</li>
+          <li>Several bug fixes</li>
+          <li>Add support for zoomed sprites in SMS/GG modes</li>
+          <li>Pixel perfect rendering even with non integer HDPI values on Windows</li>
+          <li>Fixed bug where when resetting, the first opcode would not be disassembled. by @samizzo in #50</li>
+          <li>Added a generalised shortcut system so any gui events can have a shortcut key defined in the config.ini by @samizzo in #52</li>
+          <li>add retrofw target</li>
+          <li>Fix window title flicker</li>
+          <li>Define <code>install</code> and <code>uninstall</code> targets</li>
+          <li>Update NFDe implementation to v1.1.1</li>
+        </ul>
+      </description>
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/3.5.0</url>
+      <artifacts>
+        <artifact type="source">
+          <location>https://github.com/drhelius/Gearsystem/archive/refs/tags/3.5.0.tar.gz</location>
+          <checksum type="sha256">fb284c2c71ab78f5127c5c9b1039dcf18ac518259649ef79900299ac2ea4151f</checksum>
+          <size type="download">6359063</size>
+          <filename>Gearsystem-3.5.0.tar.gz</filename>
+        </artifact>
+      </artifacts>
+    </release>
     <release version="3.4.1" date="2021-09-04">
       <description>
         <p>This patch contains the following bugfixes:</p>
