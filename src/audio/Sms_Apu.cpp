@@ -96,8 +96,9 @@ void Sms_Square::run( blip_time_t time, blip_time_t end_time )
 
 static int const noise_periods [3] = { 0x100, 0x200, 0x400 };
 
-inline void Sms_Noise::reset()
+inline void Sms_Noise::reset(bool ti_chip)
 {
+	ti = ti_chip;
 	period = &noise_periods [0];
 	shifter = 0x8000;
 	feedback = 0x9000;
@@ -106,7 +107,12 @@ inline void Sms_Noise::reset()
 
 void Sms_Noise::run( blip_time_t time, blip_time_t end_time )
 {
-	int amp = (shifter & 1) ? 0 : volume * 2;
+	int amp = (shifter & 1) ? 0 : volume;
+
+	if (!ti)
+	{
+		amp *= 2;
+	}
 
 	{
 		int delta = amp - last_amp;
@@ -163,7 +169,7 @@ Sms_Apu::Sms_Apu()
 	oscs [3] = &noise;
 	
 	volume( 1.0 );
-	reset();
+	reset(false);
 }
 
 Sms_Apu::~Sms_Apu()
@@ -200,17 +206,15 @@ void Sms_Apu::output( Blip_Buffer* center, Blip_Buffer* left, Blip_Buffer* right
 		osc_output( i, center, left, right );
 }
 
-void Sms_Apu::reset( unsigned feedback, int noise_width )
+void Sms_Apu::reset(bool ti_chip )
 {
 	last_time = 0;
 	latch = 0;
 	ggstereo_save = 0xFF;
 	
-	if ( !feedback || !noise_width )
-	{
-		feedback = 0x0009;
-		noise_width = 16;
-	}
+	unsigned feedback = ti_chip ? 0x0003 : 0x0009;
+	int noise_width = ti_chip ? 15 : 16;
+
 	// convert to "Galios configuration"
 	looped_feedback = 1 << (noise_width - 1);
 	noise_feedback  = 0;
@@ -223,7 +227,7 @@ void Sms_Apu::reset( unsigned feedback, int noise_width )
 	squares [0].reset();
 	squares [1].reset();
 	squares [2].reset();
-	noise.reset();
+	noise.reset(ti_chip);
 }
 
 void Sms_Apu::run_until( blip_time_t end_time )

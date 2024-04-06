@@ -19,13 +19,14 @@
 
 #include "SmsIOPorts.h"
 
-SmsIOPorts::SmsIOPorts(Audio* pAudio, Video* pVideo, Input* pInput, Cartridge* pCartridge, Memory* pMemory)
+SmsIOPorts::SmsIOPorts(Audio* pAudio, Video* pVideo, Input* pInput, Cartridge* pCartridge, Memory* pMemory, Processor* pProcessor)
 {
     m_pAudio = pAudio;
     m_pVideo = pVideo;
     m_pInput = pInput;
     m_pCartridge = pCartridge;
     m_pMemory = pMemory;
+    m_pProcessor = pProcessor;
     m_Port3F = 0;
     m_Port3F_HC = 0;
 }

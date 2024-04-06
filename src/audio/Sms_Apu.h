@@ -30,7 +30,7 @@ public:
 	void osc_output( int index, Blip_Buffer* center, Blip_Buffer* left, Blip_Buffer* right );
 	
 	// Reset oscillators and internal state
-	void reset( unsigned noise_feedback = 0, int noise_width = 0 );
+	void reset( bool ti_chip );
 	
 	// Write GameGear left/right assignment byte
 	void write_ggstereo( blip_time_t, int );

@@ -27,11 +27,12 @@ class Video;
 class Input;
 class Cartridge;
 class Memory;
+class Processor;
 
 class SmsIOPorts : public IOPorts
 {
 public:
-    SmsIOPorts(Audio* pAudio, Video* pVideo, Input* pInput, Cartridge* pCartridge, Memory* pMemory);
+    SmsIOPorts(Audio* pAudio, Video* pVideo, Input* pInput, Cartridge* pCartridge, Memory* pMemory, Processor* pProcessor);
     ~SmsIOPorts();
     void Reset();
     u8 DoInput(u8 port);
@@ -44,6 +45,7 @@ private:
     Input* m_pInput;
     Cartridge* m_pCartridge;
     Memory* m_pMemory;
+    Processor* m_pProcessor;
 
     u8 m_Port3F;
     u8 m_Port3F_HC;
@@ -54,6 +56,7 @@ private:
 #include "Input.h"
 #include "Cartridge.h"
 #include "Memory.h"
+#include "Processor.h"
 #include "YM2413.h"
 
 inline u8 SmsIOPorts::DoInput(u8 port)
@@ -126,6 +129,8 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
     {
         // Writes to any address go to the SN76489 PSG
         m_pAudio->WriteAudioRegister(value);
+        if (m_pCartridge->IsSG1000())
+            m_pProcessor->InjectTStates(32);
     }
     else if ((port >= 0x80) && (port < 0xC0))
     {

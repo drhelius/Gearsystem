@@ -35,6 +35,7 @@ Processor::Processor(Memory* pMemory)
     m_bHalt = false;
     m_bBranchTaken = false;
     m_iTStates = 0;
+    m_iInjectedTStates = 0;
     m_bAfterEI = false;
     m_iInterruptMode = 0;
     m_bINTRequested = false;
@@ -84,6 +85,7 @@ void Processor::Reset()
     m_bHalt = false;
     m_bBranchTaken = false;
     m_iTStates = 0;
+    m_iInjectedTStates = 0;
     m_bAfterEI = false;
     m_iInterruptMode = 1;
     PC.SetValue(0x0000);
@@ -121,7 +123,7 @@ IOPorts* Processor::GetIOPOrts()
     return m_pIOPorts;
 }
 
-unsigned int Processor::RunFor(u8 tstates)
+unsigned int Processor::RunFor(unsigned int tstates)
 {
     u8 executed = 0;
 
@@ -168,9 +170,20 @@ unsigned int Processor::RunFor(u8 tstates)
         DisassembleNextOpcode();
 
         executed += m_iTStates;
+
+        if (m_iInjectedTStates > 0)
+        {
+            executed += m_iInjectedTStates;
+            m_iInjectedTStates = 0;
+        }
     }
 
     return executed;
+}
+
+void Processor::InjectTStates(unsigned int tstates)
+{
+    m_iInjectedTStates += tstates;
 }
 
 void Processor::RequestINT(bool assert)
