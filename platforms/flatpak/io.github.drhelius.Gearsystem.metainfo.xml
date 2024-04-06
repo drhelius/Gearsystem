@@ -4,6 +4,10 @@
   
   <name>Gearsystem</name>
   <summary>A very accurate, cross-platform Sega Master System / Game Gear / SG-1000 emulator</summary>
+  <content_rating type="oars-1.1" />
+  <developer id="io.github.drhelius">
+    <name>Ignacio Sanchez Gines</name>
+  </developer>
   <icon type="stock">io.github.drhelius.Gearsystem</icon>
   
   <metadata_license>CC0-1.0</metadata_license>
