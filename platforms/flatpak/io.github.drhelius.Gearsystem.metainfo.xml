@@ -57,7 +57,7 @@
   <releases>
     <release version="3.5.0" date="2024-03-04">
       <description>
-        <p><em>What's Changed</em><p>
+        <p><em>What's Changed</em></p>
         <ul>
           <li>Support for YM2413</li>
           <li>Native file dialogs</li>
