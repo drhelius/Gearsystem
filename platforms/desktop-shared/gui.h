@@ -21,6 +21,7 @@
 #define	GUI_H
 
 #include "imgui/imgui.h"
+#include "nfd/nfd.h"
 #include "gui_events.h"
 
 #ifdef GUI_IMPORT
@@ -42,6 +43,8 @@
   (byte & 0x01 ? '1' : '0') 
 
 EXTERN bool gui_in_use;
+EXTERN bool gui_main_window_hovered;
+EXTERN bool gui_main_menu_hovered;
 EXTERN ImFont* gui_default_font;
 EXTERN ImFont* gui_roboto_font;
 
@@ -51,6 +54,7 @@ EXTERN void gui_render(void);
 EXTERN void gui_shortcut(gui_ShortCutEvent event);
 EXTERN bool gui_process_input(int key, int mod);
 EXTERN void gui_load_rom(const char* path);
+EXTERN void gui_set_status_message(const char* message, u32 milliseconds);
 
 #undef GUI_IMPORT
 #undef EXTERN

@@ -48,6 +48,7 @@ static bool allow_up_down = false;
 static bool bootrom_sms = false;
 static bool bootrom_gg = false;
 static bool libretro_supports_bitmasks;
+static float aspect_ratio = 0.0f;
 
 static GearsystemCore* core;
 static u8* frame_buffer;
@@ -68,8 +69,11 @@ static const struct retro_variable vars[] = {
     { "gearsystem_region", "Region (restart); Auto|Master System Japan|Master System Export|Game Gear Japan|Game Gear Export|Game Gear International" },
     { "gearsystem_mapper", "Mapper (restart); Auto|ROM|SEGA|Codemasters|Korean|MSX|Janggun|SG-1000" },
     { "gearsystem_timing", "Refresh Rate (restart); Auto|NTSC (60 Hz)|PAL (50 Hz)" },
+    { "gearsystem_aspect_ratio", "Aspect Ratio (restart); 1:1 PAR|4:3 DAR|16:9 DAR" },
+    { "gearsystem_overscan", "Overscan; Disabled|Top+Bottom|Full (284 width)|Full (320 width)" },
     { "gearsystem_bios_sms", "Master System BIOS (restart); Disabled|Enabled" },
     { "gearsystem_bios_gg", "Game Gear BIOS (restart); Disabled|Enabled" },
+    { "gearsystem_ym2413", "YM2413 (restart); Auto|Disabled"},
     { "gearsystem_glasses", "3D Glasses; Both Eyes / OFF|Left Eye|Right Eye" },
     { "gearsystem_up_down_allowed", "Allow Up+Down / Left+Right; Disabled|Enabled" },
     { NULL }
@@ -79,6 +83,12 @@ static retro_environment_t environ_cb;
 
 void retro_init(void)
 {
+    if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging))
+        log_cb = logging.log;
+    else
+        log_cb = fallback_log;
+
+
     const char *dir = NULL;
 
     if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir) {
@@ -88,6 +98,8 @@ void retro_init(void)
         snprintf(retro_system_directory, sizeof(retro_system_directory), "%s", ".");
     }
 
+    log_cb(RETRO_LOG_INFO, "%s (%s) libretro\n", GEARSYSTEM_TITLE, EMULATOR_BUILD);
+
     core = new GearsystemCore();
 
 #ifdef PS2
@@ -96,7 +108,7 @@ void retro_init(void)
     core->Init(GS_PIXEL_RGB565);
 #endif
 
-    frame_buffer = new u8[GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT * 2];
+    frame_buffer = new u8[GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN * GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN * 2];
 
     audio_sample_count = 0;
 
@@ -123,7 +135,7 @@ unsigned retro_api_version(void)
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
 {
-    log_cb(RETRO_LOG_INFO, "Plugging device %u into port %u.\n", device, port);
+    log_cb(RETRO_LOG_DEBUG, "Plugging device %u into port %u.\n", device, port);
 
     struct retro_input_descriptor joypad[] = {
         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left" },
@@ -178,11 +190,11 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
     current_screen_width = runtime_info.screen_width;
     current_screen_height = runtime_info.screen_height;
 
-    info->geometry.base_width   = runtime_info.screen_width;
-    info->geometry.base_height  = runtime_info.screen_height;
-    info->geometry.max_width    = runtime_info.screen_width;
-    info->geometry.max_height   = runtime_info.screen_height;
-    info->geometry.aspect_ratio = 0.0f;
+    info->geometry.base_width   = current_screen_width;
+    info->geometry.base_height  = current_screen_height;
+    info->geometry.max_width    = GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN;
+    info->geometry.max_height   = GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN;
+    info->geometry.aspect_ratio = aspect_ratio;
     info->timing.fps            = runtime_info.region == Region_NTSC ? 60.0 : 50.0;
     info->timing.sample_rate    = 44100.0;
 }
@@ -190,11 +202,6 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 void retro_set_environment(retro_environment_t cb)
 {
     environ_cb = cb;
-
-    if (cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging))
-        log_cb = logging.log;
-    else
-        log_cb = fallback_log;
 
     static const struct retro_controller_description port_1[] = {
         { "Sega Master System / Game Gear", RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 0) },
@@ -210,7 +217,7 @@ void retro_set_environment(retro_environment_t cb)
         { NULL, 0 },
     };
 
-    cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
+    environ_cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
 
     environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void *)vars);
 }
@@ -408,6 +415,38 @@ static void check_variables(void)
             config.region = Cartridge::CartridgeUnknownRegion;
     }
 
+    var.key = "gearsystem_aspect_ratio";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "1:1 PAR") == 0)
+            aspect_ratio = 0.0f;
+        else if (strcmp(var.value, "4:3 DAR") == 0)
+            aspect_ratio = 4.0f / 3.0f;
+        else if (strcmp(var.value, "16:9 DAR") == 0)
+            aspect_ratio = 16.0f / 9.0f;
+        else
+            aspect_ratio = 0.0f;
+    }
+
+    var.key = "gearsystem_overscan";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Disabled") == 0)
+            core->GetVideo()->SetOverscan(Video::OverscanDisabled);
+        else if (strcmp(var.value, "Top+Bottom") == 0)
+            core->GetVideo()->SetOverscan(Video::OverscanTopBottom);
+        else if (strcmp(var.value, "Full (284 width)") == 0)
+            core->GetVideo()->SetOverscan(Video::OverscanFull284);
+        else if (strcmp(var.value, "Full (320 width)") == 0)
+            core->GetVideo()->SetOverscan(Video::OverscanFull320);
+        else
+            core->GetVideo()->SetOverscan(Video::OverscanDisabled);
+    }
+
     var.key = "gearsystem_bios_sms";
     var.value = NULL;
 
@@ -428,6 +467,19 @@ static void check_variables(void)
             bootrom_gg = true;
         else
             bootrom_gg = false;
+    }
+
+    var.key = "gearsystem_ym2413";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Auto") == 0)
+            core->GetAudio()->DisableYM2413(false);
+        else if (strcmp(var.value, "Disabled") == 0)
+            core->GetAudio()->DisableYM2413(true);
+        else
+            core->GetAudio()->DisableYM2413(false);
     }
 
     var.key = "gearsystem_glasses";
@@ -457,6 +509,8 @@ void retro_run(void)
     }
 
     update_input();
+
+    audio_sample_count = 0;
 
     core->RunToVBlank(frame_buffer, audio_buf, &audio_sample_count);
 
@@ -507,7 +561,7 @@ bool retro_load_game(const struct retro_game_info *info)
     enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
     if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
     {
-        log_cb(RETRO_LOG_INFO, "RGB565 is not supported.\n");
+        log_cb(RETRO_LOG_ERROR, "RGB565 is not supported.\n");
         return false;
     }
 

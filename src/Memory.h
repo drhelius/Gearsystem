@@ -56,8 +56,6 @@ public:
         BiosSlot,
         ExpansionSlot,
         CardSlot,
-        RamSlot,
-        IoSlot,
         NoSlot
     };
 
@@ -90,6 +88,7 @@ public:
     void LoadBootromSMS(const char* szFilePath);
     void LoadBootromGG(const char* szFilePath);
     bool IsBootromEnabled();
+    bool IsIOEnabled();
     void SetPort3E(u8 port3E);
     u8* GetBootrom();
     int GetBootromBankCount();
@@ -124,6 +123,7 @@ private:
     bool m_bGameGear;
     int m_iBootromBankCountSMS;
     int m_iBootromBankCountGG;
+    bool m_bIOEnabled;
 };
 
 #include "Memory_inline.h"

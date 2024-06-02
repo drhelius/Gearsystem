@@ -37,6 +37,8 @@ static const int config_max_recent_roms = 10;
 
 struct config_Emulator
 {
+    bool fullscreen = false;
+    bool show_menu = true;
     bool paused = false;
     int save_slot = 0;
     bool start_paused = false;
@@ -57,18 +59,23 @@ struct config_Emulator
     std::string savefiles_path;
     int savestates_dir_option = 0;
     std::string savestates_path;
+    std::string last_open_path;
+    int window_width = 640;
+    int window_height = 503;
+    bool status_messages = false;
 };
 
 struct config_Video
 {
     int scale = 0;
-    int ratio = 0;
+    int ratio = 1;
+    int overscan = 1;
     bool fps = false;
     bool bilinear = false;
     bool mix_frames = true;
-    float mix_frames_intensity = 0.30f;
+    float mix_frames_intensity = 0.50f;
     bool scanlines = true;
-    float scanlines_intensity = 0.40f;
+    float scanlines_intensity = 0.10f;
     bool sync = true;
     int glasses = 0;
 };
@@ -77,6 +84,7 @@ struct config_Audio
 {
     bool enable = true;
     bool sync = true;
+    int ym2413 = 0;
 };
 
 struct config_Input

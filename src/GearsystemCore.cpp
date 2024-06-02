@@ -86,12 +86,12 @@ void GearsystemCore::Init(GS_Color_Format pixelFormat)
     m_pixelFormat = pixelFormat;
 
     m_pMemory = new Memory();
-    m_pProcessor = new Processor(m_pMemory);
-    m_pAudio = new Audio();
-    m_pVideo = new Video(m_pMemory, m_pProcessor);
-    m_pInput = new Input(m_pProcessor);
     m_pCartridge = new Cartridge();
-    m_pSmsIOPorts = new SmsIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge, m_pMemory);
+    m_pProcessor = new Processor(m_pMemory);
+    m_pVideo = new Video(m_pMemory, m_pProcessor, m_pCartridge);
+    m_pInput = new Input(m_pProcessor);
+    m_pAudio = new Audio(m_pCartridge);
+    m_pSmsIOPorts = new SmsIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge, m_pMemory, m_pProcessor);
     m_pGameGearIOPorts = new GameGearIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge, m_pMemory);
 
     m_pMemory->Init();
@@ -251,8 +251,24 @@ bool GearsystemCore::GetRuntimeInfo(GS_RuntimeInfo& runtime_info)
 {
     if (m_pCartridge->IsReady())
     {
-        runtime_info.screen_width = m_pCartridge->IsGameGear() ? GS_RESOLUTION_GG_WIDTH : GS_RESOLUTION_SMS_WIDTH;
-        runtime_info.screen_height = m_pCartridge->IsGameGear() ? GS_RESOLUTION_GG_HEIGHT : (m_pVideo->IsExtendedMode224() ? GS_RESOLUTION_SMS_HEIGHT_EXTENDED : GS_RESOLUTION_SMS_HEIGHT);
+        if (m_pCartridge->IsGameGear())
+        {
+            runtime_info.screen_width = GS_RESOLUTION_GG_WIDTH;
+            runtime_info.screen_height = GS_RESOLUTION_GG_HEIGHT;
+        }
+        else
+        {
+            runtime_info.screen_width = GS_RESOLUTION_SMS_WIDTH;
+            runtime_info.screen_height = m_pVideo->IsExtendedMode224() ? GS_RESOLUTION_SMS_HEIGHT_EXTENDED : GS_RESOLUTION_SMS_HEIGHT;
+
+            if (m_pVideo->GetOverscan() == Video::OverscanFull284)
+                runtime_info.screen_width = GS_RESOLUTION_SMS_WIDTH + GS_RESOLUTION_SMS_OVERSCAN_H_284_L + GS_RESOLUTION_SMS_OVERSCAN_H_284_R;
+            if (m_pVideo->GetOverscan() == Video::OverscanFull320)
+                runtime_info.screen_width = GS_RESOLUTION_SMS_WIDTH + GS_RESOLUTION_SMS_OVERSCAN_H_320_L + GS_RESOLUTION_SMS_OVERSCAN_H_320_R;
+            if (m_pVideo->GetOverscan() != Video::OverscanDisabled)
+                runtime_info.screen_height = GS_RESOLUTION_SMS_HEIGHT + (2 * (m_pCartridge->IsPAL() ? GS_RESOLUTION_SMS_OVERSCAN_V_PAL : GS_RESOLUTION_SMS_OVERSCAN_V));
+        }
+
         runtime_info.region = m_pCartridge->IsPAL() ? Region_PAL : Region_NTSC;
         return true;
     }
@@ -367,17 +383,6 @@ void GearsystemCore::ResetROMPreservingRAM(Cartridge::ForceConfiguration* config
 void GearsystemCore::ResetSound()
 {
     m_pAudio->Reset(m_pCartridge->IsPAL());
-}
-
-void GearsystemCore::SetSoundSampleRate(int rate)
-{
-    Log("Gearsystem sound sample rate: %d", rate);
-    m_pAudio->SetSampleRate(rate);
-}
-
-void GearsystemCore::SetSoundVolume(float volume)
-{
-    m_pAudio->SetVolume(volume);
 }
 
 void GearsystemCore::SaveRam()
@@ -931,7 +936,7 @@ void GearsystemCore::RenderFrameBuffer(u8* finalFrameBuffer)
             return;
     }
 
-    int size = GS_RESOLUTION_MAX_WIDTH * GS_RESOLUTION_MAX_HEIGHT;
+    int size = GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN * GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN;
 
     switch (m_pixelFormat)
     {
@@ -940,13 +945,13 @@ void GearsystemCore::RenderFrameBuffer(u8* finalFrameBuffer)
         case GS_PIXEL_RGB565:
         case GS_PIXEL_BGR565:
         {
-            m_pVideo->Render16bit(m_pVideo->GetFrameBuffer(), finalFrameBuffer, m_pixelFormat, size);
+            m_pVideo->Render16bit(m_pVideo->GetFrameBuffer(), finalFrameBuffer, m_pixelFormat, size, true);
             break;
         }
         case GS_PIXEL_RGB888:
         case GS_PIXEL_BGR888:
         {
-            m_pVideo->Render24bit(m_pVideo->GetFrameBuffer(), finalFrameBuffer, m_pixelFormat, size);
+            m_pVideo->Render24bit(m_pVideo->GetFrameBuffer(), finalFrameBuffer, m_pixelFormat, size, true);
             break;
         }
     }

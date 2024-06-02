@@ -29,11 +29,21 @@
 
 class Memory;
 class Processor;
+class Cartridge;
 
 class Video
 {
 public:
-    Video(Memory* pMemory, Processor* pProcessor);
+    enum Overscan
+    {
+        OverscanDisabled,
+        OverscanTopBottom,
+        OverscanFull284,
+        OverscanFull320
+    };
+
+public:
+    Video(Memory* pMemory, Processor* pProcessor, Cartridge* pCartridge);
     ~Video();
     void Init();
     void Reset(bool bGameGear, bool bPAL);
@@ -55,8 +65,10 @@ public:
     int GetSG1000Mode();
     u16 ColorFromPalette(int palette_color);
     u16* GetFrameBuffer();
-    void Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size);
-    void Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size);
+    void Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size, bool overscan = false);
+    void Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size, bool overscan = false);
+    void SetOverscan(Overscan overscan);
+    Overscan GetOverscan();
 
 private:
     void ScanLine(int line);
@@ -65,11 +77,12 @@ private:
     void ParseSpritesSMSGG(int line);
     void RenderSpritesSMSGG(int line);
     void RenderSpritesSG1000(int line);
-    void InitPalettes();
+    void InitPalettes(const u8* src, u16* dest_565_rgb, u16* dest_555_rgb, u16* dest_565_bgr, u16* dest_555_bgr);
 
 private:
     Memory* m_pMemory;
     Processor* m_pProcessor;
+    Cartridge* m_pCartridge;
     u8* m_pInfoBuffer;
     u16* m_pFrameBuffer;
     u8* m_pVdpVRAM;
@@ -90,6 +103,7 @@ private:
     int m_iLinesPerFrame;
     bool m_bPAL;
     bool m_bExtendedMode224;
+    Overscan m_Overscan;
 
     struct LineEvents 
     {
@@ -126,10 +140,14 @@ private:
     bool m_bDisplayEnabled;
     bool m_bSpriteOvrRequest;
 
-    u16 m_SG1000_palette_565_rgb[16];
-    u16 m_SG1000_palette_555_rgb[16];
-    u16 m_SG1000_palette_565_bgr[16];
-    u16 m_SG1000_palette_555_bgr[16];
+    u16 m_SG1000_palette_565_rgb_normal[16];
+    u16 m_SG1000_palette_555_rgb_normal[16];
+    u16 m_SG1000_palette_565_bgr_normal[16];
+    u16 m_SG1000_palette_555_bgr_normal[16];
+    u16 m_SG1000_palette_565_rgb_sms[16];
+    u16 m_SG1000_palette_555_rgb_sms[16];
+    u16 m_SG1000_palette_565_bgr_sms[16];
+    u16 m_SG1000_palette_555_bgr_sms[16];
 };
 
 inline u8* Video::GetVRAM()
@@ -189,7 +207,8 @@ const u8 kVdpHCounter[228] = {
   0x90,0x91,0x92,0x92,0x93,
 };
 
-const u8 kSG1000_palette_888[48] = {0,0,0, 0,0,0, 33,200,66, 94,220,120, 84,85,237, 125,118,252, 212,82,77, 66,235,245, 252,85,84, 255,121,120, 212,193,84, 230,206,128, 33,176,59, 201,91,186, 204,204,204, 255,255,255};
+const u8 kSG1000_palette_888_normal[48] = {0,0,0, 0,0,0, 33,200,66, 94,220,120, 84,85,237, 125,118,252, 212,82,77, 66,235,245, 252,85,84, 255,121,120, 212,193,84, 230,206,128, 33,176,59, 201,91,186, 204,204,204, 255,255,255};
+const u8 kSG1000_palette_888_sms[48] = {0,0,0, 0,0,0, 0,170,0, 0,255,0, 0,0,85, 0,0,255, 85,0,0, 0,255,255, 170,0,0, 255,0,0, 85,85,0, 255,255,0, 0,85,0, 255,0,255, 85,85,85, 255,255,255};
 const u8 k2bitTo8bit[4] = {0,85,170,255};
 const u8 k2bitTo5bit[4] = {0,10,21,31};
 const u8 k2bitTo6bit[4] = {0,21,42,63};

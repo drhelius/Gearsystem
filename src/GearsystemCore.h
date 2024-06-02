@@ -67,8 +67,6 @@ public:
     void ResetROM(Cartridge::ForceConfiguration* config = NULL);
     void ResetROMPreservingRAM(Cartridge::ForceConfiguration* config = NULL);
     void ResetSound();
-    void SetSoundSampleRate(int rate);
-    void SetSoundVolume(float volume);
     void SaveRam();
     void SaveRam(const char* szPath, bool fullPath = false);
     void LoadRam();

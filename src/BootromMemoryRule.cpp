@@ -32,6 +32,9 @@ BootromMemoryRule::~BootromMemoryRule()
 
 u8 BootromMemoryRule::PerformRead(u16 address)
 {
+    if (!IsValidPointer(m_pBootrom))
+        return 0x00;
+
     if (address < 0x400)
     {
         // First 1KB (fixed)
@@ -61,6 +64,9 @@ u8 BootromMemoryRule::PerformRead(u16 address)
 
 void BootromMemoryRule::PerformWrite(u16 address, u8 value)
 {
+    if (!IsValidPointer(m_pBootrom))
+        return;
+
     if (address < 0x8000)
     {
         // ROM page 0 and 1

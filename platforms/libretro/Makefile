@@ -248,6 +248,18 @@ else ifeq ($(platform), retrofw)
    CFLAGS += -fomit-frame-pointer -ffast-math -march=mips32 -mtune=mips32 -mhard-float
    CFLAGS += -flto -DPERFORMANCE
    CXXFLAGS += $(CFLAGS)
+# SF2000
+else ifeq ($(platform), sf2000)
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
+   MIPS:=/opt/mips32-mti-elf/2019.09-03-2/bin/mips-mti-elf-
+   CC = $(MIPS)gcc
+   CXX = $(MIPS)g++
+   AR = $(MIPS)ar
+   CFLAGS = -EL -march=mips32 -mtune=mips32 -msoft-float -G0 -mno-abicalls -fno-pic
+   CFLAGS += -ffast-math -fomit-frame-pointer -ffunction-sections -fdata-sections 
+   CFLAGS += -DSF2000 -DMINIZ_NO_TIME
+   CXXFLAGS = $(CFLAGS)
+   STATIC_LINKING = 1
 # MIYOO
 else ifeq ($(platform), miyoo)
    TARGET := $(TARGET_NAME)_libretro.so
@@ -310,6 +322,11 @@ else
    CXXFLAGS += -O3
 endif
 
+GIT_VERSION ?= " $(shell git describe --abbrev=7 --dirty --always --tags || echo unknown)"
+ifneq ($(GIT_VERSION)," unknown")
+   CXXFLAGS += -DEMULATOR_BUILD=\"$(GIT_VERSION)\"
+endif
+
 include Makefile.common
 
 OBJECTS := $(SOURCES_C:.c=.o) $(SOURCES_CXX:.cpp=.o)
@@ -327,9 +344,12 @@ ifeq ($(STATIC_LINKING), 1)
 else
 	$(CXX) $(fpic) $(SHARED) $(INCLUDES) -o $@ $(OBJECTS) $(LDFLAGS)
 endif
-  
-%.o: %.c
+
+%.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(fpic) -c -o $@ $<
+
+%.o: %.c
+	$(CC) $(CXXFLAGS) $(fpic) -c -o $@ $<
 
 clean:
 	rm -f $(OBJECTS) $(TARGET)

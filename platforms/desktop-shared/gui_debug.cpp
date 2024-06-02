@@ -20,7 +20,6 @@
 #include <math.h>
 #include "imgui/imgui.h"
 #include "imgui/imgui_memory_editor.h"
-#include "FileBrowser/ImGuiFileBrowser.h"
 #include "config.h"
 #include "emu.h"
 #include "renderer.h"
@@ -47,11 +46,14 @@ struct DisassmeblerLine
 };
 
 static MemoryEditor mem_edit;
-static ImVec4 cyan = ImVec4(0.0f,1.0f,1.0f,1.0f);
+static ImVec4 cyan = ImVec4(0.1f,0.9f,0.9f,1.0f);
 static ImVec4 magenta = ImVec4(1.0f,0.502f,0.957f,1.0f);
-static ImVec4 yellow = ImVec4(1.0f,1.0f,0.0f,1.0f);
-static ImVec4 red = ImVec4(1.0f,0.149f,0.447f,1.0f);
-static ImVec4 green = ImVec4(0.0f,1.0f,0.0f,1.0f);
+static ImVec4 yellow = ImVec4(1.0f,0.90f,0.05f,1.0f);
+static ImVec4 orange = ImVec4(0.992f,0.592f,0.122f,1.0f);
+static ImVec4 red = ImVec4(0.976f,0.149f,0.447f,1.0f);
+static ImVec4 green = ImVec4(0.1f,0.9f,0.1f,1.0f);
+static ImVec4 violet = ImVec4(0.682f,0.506f,1.0f,1.0f);
+static ImVec4 blue = ImVec4(0.2f,0.4f,1.0f,1.0f);
 static ImVec4 white = ImVec4(1.0f,1.0f,1.0f,1.0f);
 static ImVec4 gray = ImVec4(0.5f,0.5f,0.5f,1.0f);
 static ImVec4 dark_gray = ImVec4(0.1f,0.1f,0.1f,1.0f);
@@ -82,6 +84,7 @@ static void add_breakpoint_mem(void);
 static void request_goto_address(u16 addr);
 static ImVec4 color_444_to_float(u16 color);
 static ImVec4 color_222_to_float(u8 color);
+static bool is_return_instruction(u8 opcode1, u8 opcode2);
 
 void gui_debug_windows(void)
 {
@@ -123,10 +126,27 @@ void gui_debug_load_symbols_file(const char* path)
     if (file.is_open())
     {
         std::string line;
+        bool valid_section = true;
 
         while (std::getline(file, line))
         {
-            add_symbol(line.c_str());
+            size_t comment = line.find_first_of(';');
+            if (comment != std::string::npos)
+                line = line.substr(0, comment);
+            line = line.erase(0, line.find_first_not_of(" \t\r\n"));
+            line = line.erase(line.find_last_not_of(" \t\r\n") + 1);
+
+            if (line.empty())
+                continue;
+
+            if (line.find("[") != std::string::npos)
+            {
+                valid_section = (line.find("[labels]") != std::string::npos);
+                continue;
+            }
+
+            if (valid_section)
+                add_symbol(line.c_str());
         }
 
         file.close();
@@ -709,6 +729,14 @@ static void debug_window_disassembler(void)
                     ImGui::TextColored(white, "%s", vec[item].record->name);
                 }
 
+                bool is_ret = is_return_instruction(vec[item].record->opcodes[0], vec[item].record->opcodes[1]);
+                if (is_ret)
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Separator, (vec[item].record->opcodes[0] == 0xC9) ? gray : dark_gray);
+                    ImGui::Separator();
+                    ImGui::PopStyleColor();
+                }
+
                 ImGui::PopID();
             }
         }
@@ -735,7 +763,7 @@ static void debug_window_processor(void)
 
     ImGui::Separator();
 
-    ImGui::TextColored(magenta, "  S Z Y H X P N C");
+    ImGui::TextColored(orange, "  S Z Y H X P N C");
     ImGui::Text("  " BYTE_TO_BINARY_PATTERN_ALL_SPACED, BYTE_TO_BINARY(proc_state->AF->GetLow()));
 
     ImGui::Columns(2, "registers");
@@ -1279,7 +1307,10 @@ static void debug_window_vram_sprites(void)
 
     float screen_scale = 1.0f;
 
-    ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(runtime.screen_width * screen_scale, runtime.screen_height * screen_scale));
+    float tex_h = (float)runtime.screen_width / (float)(GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN);
+    float tex_v = (float)runtime.screen_height / (float)(GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN);
+
+    ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(runtime.screen_width * screen_scale, runtime.screen_height * screen_scale), ImVec2(0, 0), ImVec2(tex_h, tex_v));
 
     for (int s = 0; s < 64; s++)
     {
@@ -1729,4 +1760,28 @@ static void request_goto_address(u16 address)
 {
     goto_address_requested = true;
     goto_address_target = address;
+}
+
+static bool is_return_instruction(u8 opcode1, u8 opcode2)
+{
+    switch (opcode1)
+    {
+        case 0xC9: // RET
+        case 0xC0: // RET NZ
+        case 0xC8: // RET Z
+        case 0xD0: // RET NC
+        case 0xD8: // RET C
+        case 0xE0: // RET PO
+        case 0xE8: // RET PE
+        case 0xF0: // RET P
+        case 0xF8: // RET M
+            return true;
+        case 0xED: // Extended instructions
+            if (opcode2 == 0x45 || opcode2 == 0x4D) // RETN, RETI
+                return true;
+            else
+                return false;
+        default:
+            return false;
+    }
 }

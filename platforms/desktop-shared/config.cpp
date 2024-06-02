@@ -133,6 +133,7 @@ void config_init(void)
     config_setShortcut(gui_ShortcutFFWD, KMOD_CTRL, SDL_SCANCODE_F);
     config_setShortcut(gui_ShortcutSaveState, KMOD_CTRL, SDL_SCANCODE_S);
     config_setShortcut(gui_ShortcutLoadState, KMOD_CTRL, SDL_SCANCODE_L);
+    config_setShortcut(gui_ShortcutScreenshot, KMOD_CTRL, SDL_SCANCODE_X);
     config_setShortcut(gui_ShortcutDebugStep, KMOD_CTRL, SDL_SCANCODE_F10);
     config_setShortcut(gui_ShortcutDebugContinue, KMOD_CTRL, SDL_SCANCODE_F5);
     config_setShortcut(gui_ShortcutDebugNextFrame, KMOD_CTRL, SDL_SCANCODE_F6);
@@ -176,6 +177,8 @@ void config_read(void)
         config_shortcuts.shortcuts[i] = read_shortcut_key("Shortcuts", name, config_shortcuts.shortcuts[i]);
     }
 
+    config_emulator.fullscreen = read_bool("Emulator", "FullScreen", false);
+    config_emulator.show_menu = read_bool("Emulator", "ShowMenu", true);
     config_emulator.ffwd_speed = read_int("Emulator", "FFWD", 1);
     config_emulator.save_slot = read_int("Emulator", "SaveSlot", 0);
     config_emulator.start_paused = read_bool("Emulator", "StartPaused", false);
@@ -192,6 +195,10 @@ void config_read(void)
     config_emulator.savefiles_path = read_string("Emulator", "SaveFilesPath");
     config_emulator.savestates_dir_option = read_int("Emulator", "SaveStatesDirOption", 0);
     config_emulator.savestates_path = read_string("Emulator", "SaveStatesPath");
+    config_emulator.last_open_path = read_string("Emulator", "LastOpenPath");
+    config_emulator.window_width = read_int("Emulator", "WindowWidth", 640);
+    config_emulator.window_height = read_int("Emulator", "WindowHeight", 503);
+    config_emulator.status_messages = read_bool("Emulator", "StatusMessages", false);
 
     if (config_emulator.savefiles_path.empty())
     {
@@ -209,18 +216,20 @@ void config_read(void)
     }
 
     config_video.scale = read_int("Video", "Scale", 0);
-    config_video.ratio = read_int("Video", "AspectRatio", 0);
+    config_video.ratio = read_int("Video", "AspectRatio", 1);
+    config_video.overscan = read_int("Video", "Overscan", 1);
     config_video.fps = read_bool("Video", "FPS", false);
     config_video.bilinear = read_bool("Video", "Bilinear", false);
     config_video.mix_frames = read_bool("Video", "MixFrames", true);
-    config_video.mix_frames_intensity = read_float("Video", "MixFramesIntensity", 0.30f);
+    config_video.mix_frames_intensity = read_float("Video", "MixFramesIntensity", 0.50f);
     config_video.scanlines = read_bool("Video", "Scanlines", true);
-    config_video.scanlines_intensity = read_float("Video", "ScanlinesIntensity", 0.40f);
+    config_video.scanlines_intensity = read_float("Video", "ScanlinesIntensity", 0.10f);
     config_video.sync = read_bool("Video", "Sync", true);
     config_video.glasses = read_int("Video", "3DGlasses", 0);
     
     config_audio.enable = read_bool("Audio", "Enable", true);
     config_audio.sync = read_bool("Audio", "Sync", true);
+    config_audio.ym2413 = read_int("Audio", "YM2413", 0);
 
     config_input[0].key_left = (SDL_Scancode)read_int("InputA", "KeyLeft", SDL_SCANCODE_LEFT);
     config_input[0].key_right = (SDL_Scancode)read_int("InputA", "KeyRight", SDL_SCANCODE_RIGHT);
@@ -273,6 +282,8 @@ void config_write(void)
     write_bool("Debug", "Video", config_debug.show_video);
     write_int("Debug", "FontSize", config_debug.font_size);
 
+    write_bool("Emulator", "FullScreen", config_emulator.fullscreen);
+    write_bool("Emulator", "ShowMenu", config_emulator.show_menu);
     write_int("Emulator", "FFWD", config_emulator.ffwd_speed);
     write_int("Emulator", "SaveSlot", config_emulator.save_slot);
     write_bool("Emulator", "StartPaused", config_emulator.start_paused);
@@ -289,6 +300,10 @@ void config_write(void)
     write_string("Emulator", "SaveFilesPath", config_emulator.savefiles_path);
     write_int("Emulator", "SaveStatesDirOption", config_emulator.savestates_dir_option);
     write_string("Emulator", "SaveStatesPath", config_emulator.savestates_path);
+    write_string("Emulator", "LastOpenPath", config_emulator.last_open_path);
+    write_int("Emulator", "WindowWidth", config_emulator.window_width);
+    write_int("Emulator", "WindowHeight", config_emulator.window_height);
+    write_bool("Emulator", "StatusMessages", config_emulator.status_messages);
 
     for (int i = 0; i < config_max_recent_roms; i++)
     {
@@ -298,6 +313,7 @@ void config_write(void)
 
     write_int("Video", "Scale", config_video.scale);
     write_int("Video", "AspectRatio", config_video.ratio);
+    write_int("Video", "Overscan", config_video.overscan);
     write_bool("Video", "FPS", config_video.fps);
     write_bool("Video", "Bilinear", config_video.bilinear);
     write_bool("Video", "MixFrames", config_video.mix_frames);
@@ -309,6 +325,7 @@ void config_write(void)
 
     write_bool("Audio", "Enable", config_audio.enable);
     write_bool("Audio", "Sync", config_audio.sync);
+    write_int("Audio", "YM2413", config_audio.ym2413);
 
     write_int("InputA", "KeyLeft", config_input[0].key_left);
     write_int("InputA", "KeyRight", config_input[0].key_right);

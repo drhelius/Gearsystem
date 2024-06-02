@@ -55,7 +55,7 @@ EXTERN bool emu_is_empty(void);
 EXTERN void emu_reset(Cartridge::ForceConfiguration config);
 EXTERN void emu_memory_dump(void);
 EXTERN void emu_dissasemble_rom(void);
-EXTERN void emu_audio_volume(float volume);
+EXTERN void emu_audio_mute(bool mute);
 EXTERN void emu_audio_reset(void);
 EXTERN bool emu_is_audio_enabled(void);
 EXTERN void emu_save_ram(const char* file_path);
@@ -78,6 +78,9 @@ EXTERN void emu_enable_bootrom_sms(bool enable);
 EXTERN void emu_enable_bootrom_gg(bool enable);
 EXTERN void emu_set_media_slot(int slot);
 EXTERN void emu_set_3d_glasses_config(int config);
+EXTERN void emu_set_overscan(int overscan);
+EXTERN void emu_disable_ym2413(bool disable);
+EXTERN void emu_save_screenshot(const char* file_path);
 
 #undef EMU_IMPORT
 #undef EXTERN

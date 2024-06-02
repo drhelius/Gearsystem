@@ -1,0 +1,23 @@
+prefix ?= /usr/local
+exec_prefix ?= $(prefix)
+bindir ?= $(exec_prefix)/bin
+
+INSTALL ?= install
+INSTALL_PROGRAM ?= $(INSTALL)
+INSTALL_DATA ?= ${INSTALL} -m 644
+
+install: $(TARGET)
+	$(PRE_INSTALL)
+
+	$(NORMAL_INSTALL)
+	$(INSTALL_PROGRAM) -D $(TARGET) $(DESTDIR)$(bindir)/$(TARGET)
+
+	$(POST_INSTALL)
+
+uninstall:
+	$(PRE_UNINSTALL)
+
+	$(NORMAL_UNINSTALL)
+	rm $(DESTDIR)$(bindir)/$(TARGET)
+
+	$(POST_UNINSTALL)

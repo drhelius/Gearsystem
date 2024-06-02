@@ -37,11 +37,12 @@ struct Sms_Noise : Sms_Osc
 	const int* period;
 	unsigned shifter;
 	unsigned feedback;
+	bool ti;
 	
 	typedef Blip_Synth<blip_med_quality,1> Synth;
 	Synth synth;
 	
-	void reset();
+	void reset(bool ti_chip);
 	void run( blip_time_t, blip_time_t );
 };
 

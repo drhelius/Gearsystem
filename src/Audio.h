@@ -23,35 +23,50 @@
 #include "definitions.h"
 #include "audio/Multi_Buffer.h"
 #include "audio/Sms_Apu.h"
+#include "YM2413.h"
+
+class Cartridge;
 
 class Audio
 {
 public:
-    Audio();
+    Audio(Cartridge* pCartridge);
     ~Audio();
     void Init();
     void Reset(bool bPAL);
-    void SetSampleRate(int rate);
-    void SetVolume(float volume);
+    void Mute(bool bMute);
     void WriteAudioRegister(u8 value);
     void WriteGGStereoRegister(u8 value);
+    void YM2413Write(u8 port, u8 value);
+    u8 YM2413Read(u8 port);
     void Tick(unsigned int clockCycles);
     void EndFrame(s16* pSampleBuffer, int* pSampleCount);
+    void DisableYM2413(bool bDisable);
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
 
 private:
+    YM2413* m_pYM2413;
     Sms_Apu* m_pApu;
     Stereo_Buffer* m_pBuffer;
     int m_ElapsedCycles;
     int m_iSampleRate;
     blip_sample_t* m_pSampleBuffer;
     bool m_bPAL;
+    bool m_bYM2413Enabled;
+    bool m_bPSGEnabled;
+    bool m_bYM2413ForceDisabled;
+    Cartridge* m_pCartridge;
+    s16* m_pYM2413Buffer;
+    bool m_bMute;
 };
+
+#include "Cartridge.h"
 
 inline void Audio::Tick(unsigned int clockCycles)
 {
     m_ElapsedCycles += clockCycles;
+    m_pYM2413->Tick(clockCycles);
 }
 
 inline void Audio::WriteAudioRegister(u8 value)
@@ -64,5 +79,37 @@ inline void Audio::WriteGGStereoRegister(u8 value)
     m_pApu->write_ggstereo(m_ElapsedCycles, value);
 }
 
+inline void Audio::YM2413Write(u8 port, u8 value)
+{
+    if (m_bYM2413ForceDisabled)
+        return;
+
+    if (port == 0xF2)
+    {
+        if (m_pCartridge->GetZone() == Cartridge::CartridgeJapanSMS)
+        {
+            u8 mixer = value & 0x03;
+            m_bPSGEnabled = (mixer == 0 || mixer == 3);
+            m_bYM2413Enabled = (mixer == 1 || mixer == 3);
+        }
+        else
+        {
+            m_bPSGEnabled = true;
+            m_bYM2413Enabled = (value & 0x01) == 0x01;
+        }
+
+        m_pYM2413->Enable(m_bYM2413Enabled);
+    }
+
+    m_pYM2413->Write(port, value);
+}
+
+inline u8 Audio::YM2413Read(u8 port)
+{
+    if (m_bYM2413ForceDisabled)
+        return 0xFF;
+    else
+        return m_pYM2413->Read(port);
+}
 
 #endif	/* AUDIO_H */
