@@ -552,6 +552,10 @@ bool retro_load_game(const struct retro_game_info *info)
     check_variables();
     load_bootroms();
 
+    snprintf(retro_game_path, sizeof(retro_game_path), "%s", info->path);
+
+    log_cb(RETRO_LOG_INFO, "Loading game: %s\n", retro_game_path);
+
     if (!core->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size, &config))
     {
         log_cb(RETRO_LOG_ERROR, "Invalid or corrupted ROM.\n");
@@ -564,8 +568,6 @@ bool retro_load_game(const struct retro_game_info *info)
         log_cb(RETRO_LOG_ERROR, "RGB565 is not supported.\n");
         return false;
     }
-
-    snprintf(retro_game_path, sizeof(retro_game_path), "%s", info->path);
 
     bool achievements = true;
     environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS, &achievements);
