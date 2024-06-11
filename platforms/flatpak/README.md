@@ -18,7 +18,8 @@ advantages:
   Outside of Flatpak's setup, no prerequisite commands are required!
 * **Automatically created Desktop entries**. The Flatpak installation comes with
   the appropriate files to define desktop and menu entries for Gearsystem,
-  allowing for the application to be quickly started from anywhere. These are also removed entirely when the application is uninstalled.
+  allowing for the application to be quickly started from anywhere. These are
+  also removed entirely when the application is uninstalled.
 * **Consistent development environment**. Similar to how the application is
   sandboxed, the build environment is also sandboxed, ensuring all developers
   have the same experience when enhancing or troubleshooting Gearsystem.
@@ -26,7 +27,10 @@ advantages:
 This unfortunately comes with some trade-offs in functionality:
 
 * **Adjacent Save files and Savestate files cannot be loaded**. The API used to
-  load files into Gearsystem only loads specific files or directories. When this is done, only those file are permitted within the sandbox, resulting in adjacent files being invisible to the Gearsystem application. Instead, the application will only save files separate directory.
+  load files into Gearsystem only loads specific files or directories. When
+  this is done, only those file are permitted within the sandbox, resulting in
+  adjacent files being invisible to the Gearsystem application. Instead, the
+  application will only save files separate directory.
 * **Some file paths may not reflect real paths**. As part of the above
   sandboxing, files can appear in Gearsystem to come from another location.
   These files are physically the same and use the same file name, but it can be
@@ -72,7 +76,8 @@ command-line and assume that `bash` is the shell being used.
 
 3. **Build the application**
 
-   Builds are completed using `flatpak-builder` as follows (assuming `platforms/flatpak` is the current working directory):
+   Builds are completed using `flatpak-builder` as follows (assuming
+   `platforms/flatpak` is the current working directory):
 
    ```bash
    flatpak-builder \
@@ -123,7 +128,8 @@ command-line and assume that `bash` is the shell being used.
    There are other options available to this command in [the Flatpak Command
    Reference][Flatpak Reference] if further debugging is available.
 
-   One such option is the ability to debug the application with gdb. This can be done with the following commands:
+   One such option is the ability to debug the application with gdb. This can
+   be done with the following commands:
 
    ```bash
    flatpak install gearsystem-origin io.github.drhelius.Gearsystem.Debug
