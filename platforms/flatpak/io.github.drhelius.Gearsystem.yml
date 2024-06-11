@@ -70,14 +70,18 @@ modules:
       - install -Dm644 io.github.drhelius.Gearsystem.metainfo.xml -t /app/share/metainfo
     subdir: platforms/flatpak
     sources:
-      # A reference to a specific commit is used whilst this is in development.
-      # Ideally this will use either a release archive or a specific tag/commit
-      # pair.
-      # There is also an option to use a type of "dir" and a path of "../.." to
-      # allow for builds from the current commit. This may be useful for
-      # "master" or "nightly" builds, but this may require further exploration.
+      # This source allows for that Flatpak to be built from the current commit.
+      # This is not suitable for releases, but is useful for development builds.
+      # Ideally a tag/commit or archive would be preferred, but a stable
+      # instance does not exist until this is merged into a main branch and
+      # released. An example of what this would look like is shown below and is
+      # expected to be altered after a release of Gearsystem.
       - type: dir
         path: ../..
+    # - type: git
+    #   url: https://github.com/drhelius/Gearsystem
+    #   tag: 3.5.0 # WARNING: Does not not contain `platforms/flatpak`!
+    #   commit: 8f817df87a46938c9da9aa9a15441b897a9d5726
       - type: file
         path: io.github.drhelius.Gearsystem.desktop
       - type: file
