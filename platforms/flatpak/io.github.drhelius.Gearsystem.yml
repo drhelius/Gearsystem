@@ -1,0 +1,91 @@
+id: io.github.drhelius.Gearsystem
+runtime: org.freedesktop.Platform
+runtime-version: '23.08'
+sdk: org.freedesktop.Sdk
+command: gearsystem
+finish-args:
+  - --share=ipc
+  - --socket=x11
+  - --device=dri
+  - --socket=pulseaudio
+  - --device=all # Allows for controller input
+modules:
+  - name: glu
+    buildsystem: meson
+    sources:
+      - type: archive
+        url: https://archive.mesa3d.org/glu/glu-9.0.3.tar.xz
+        sha256: bd43fe12f374b1192eb15fe20e45ff456b9bc26ab57f0eee919f96ca0f8a330f
+  - name: glew
+    no-autogen: true
+    make-args:
+      - GLEW_PREFIX=${FLATPAK_DEST}
+      - GLEW_DEST=${FLATPAK_DEST}
+      - LIBDIR=${FLATPAK_DEST}/lib
+      - CFLAGS.EXTRA:=${CFLAGS} -fPIC
+      - LDFLAGS.EXTRA=${LDFLAGS}
+    make-install-args:
+      - GLEW_PREFIX=${FLATPAK_DEST}
+      - GLEW_DEST=${FLATPAK_DEST}
+      - LIBDIR=${FLATPAK_DEST}/lib
+      - CFLAGS.EXTRA:=${CFLAGS} -fPIC
+      - LDFLAGS.EXTRA=${LDFLAGS}
+    sources:
+      - type: archive
+        url: https://downloads.sourceforge.net/project/glew/glew/2.2.0/glew-2.2.0.tgz
+        sha256: d4fc82893cfb00109578d0a1a2337fb8ca335b3ceccf97b97e5cc7f08e4353e1
+    cleanup:
+      - /include
+      - /lib/pkgconfig
+      - /lib/*.a
+  - name: SDL2
+    buildsystem: autotools
+    config-opts:
+      - --disable-static
+    sources:
+      - type: archive
+        url: https://github.com/libsdl-org/SDL/releases/download/release-2.30.0/SDL2-2.30.0.tar.gz
+        sha256: 36e2e41557e0fa4a1519315c0f5958a87ccb27e25c51776beb6f1239526447b0
+    cleanup:
+      - /bin/sdl2-config
+      - /include
+      - /lib/libSDL2.la
+      - /lib/libSDL2main.a
+      - /lib/libSDL2main.la
+      - /lib/libSDL2_test.a
+      - /lib/libSDL2_test.la
+      - /lib/cmake
+      - /share/aclocal
+      - /lib/pkgconfig
+  - name: gearsystem
+    buildsystem: simple
+    build-commands:
+      - make
+      - make install prefix="$FLATPAK_DEST"
+      - install -Dm644 io.github.drhelius.Gearsystem.desktop -t /app/share/applications
+      - install -Dm644 icons/32x32.png /app/share/icons/hicolor/32x32/apps/io.github.drhelius.Gearsystem.png
+      - install -Dm644 icons/128x128.png /app/share/icons/hicolor/128x128/apps/io.github.drhelius.Gearsystem.png
+      - install -Dm644 icons/256x256.png /app/share/icons/hicolor/256x256/apps/io.github.drhelius.Gearsystem.png
+      - install -Dm644 icons/512x512.png /app/share/icons/hicolor/512x512/apps/io.github.drhelius.Gearsystem.png
+      - install -Dm644 io.github.drhelius.Gearsystem.metainfo.xml -t /app/share/metainfo
+    subdir: platforms/flatpak
+    sources:
+      # This source allows for that Flatpak to be built from the current commit.
+      # This is not suitable for releases, but is useful for development builds.
+      # Ideally a tag/commit or archive would be preferred, but a stable
+      # instance does not exist until this is merged into a main branch and
+      # released. An example of what this would look like is shown below and is
+      # expected to be altered after a release of Gearsystem.
+      - type: dir
+        path: ../..
+    # - type: git
+    #   url: https://github.com/drhelius/Gearsystem
+    #   tag: 3.5.0 # WARNING: Does not not contain `platforms/flatpak`!
+    #   commit: 8f817df87a46938c9da9aa9a15441b897a9d5726
+      - type: file
+        path: io.github.drhelius.Gearsystem.desktop
+      - type: file
+        path: io.github.drhelius.Gearsystem.metainfo.xml
+      - type: dir
+        path: icons
+        dest: icons

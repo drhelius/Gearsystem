@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.drhelius.Gearsystem</id>
+  
+  <name>Gearsystem</name>
+  <summary>A very accurate, cross-platform Sega Master System / Game Gear / SG-1000 emulator</summary>
+  <content_rating type="oars-1.1" />
+  <developer id="io.github.drhelius">
+    <name>Ignacio Sanchez Gines</name>
+  </developer>
+  <icon type="stock">io.github.drhelius.Gearsystem</icon>
+  
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>gamepad</control>
+  </supports>
+  
+  <description>
+    <p>Gearsystem is a very accurate, cross-platform Sega Master System / Game Gear / SG-1000 emulator written in C++ that runs on Windows, macOS, Linux, BSD and RetroArch.</p>
+    <p>Features include:</p>
+    <ul>
+      <li>Accurate Z80 core, including undocumented opcodes and behavior like R and MEMPTR registers.</li>
+      <li>Supported cartridges: ROM, ROM + RAM, SEGA, Codemasters, Korean, MSX + Nemesis, Janggun, SG-1000.</li>
+      <li>Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.</li>
+      <li>Accurate VDP emulation including timing and Master System 2 only 224 video mode support.</li>
+      <li>Support for YM2413 (OPLL) FM sound chip.</li>
+      <li>Internal database for rom detection.</li>
+      <li>Battery powered RAM save support.</li>
+      <li>Save states.</li>
+      <li>Compressed rom support (ZIP).</li>
+      <li>Game Genie and Pro Action Replay cheat support.</li>
+      <li>Supported platforms (standalone): Windows, Linux, BSD and macOS.</li>
+      <li>Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch, Emscripten, Classic Mini systems (NES, SNES, C64, ...), OpenDingux, RetroFW and QNX.</li>
+      <li>Full debugger with just-in-time disassembler, cpu breakpoints, memory access breakpoints, code navigation (goto address, JP JR and CALL double clicking), debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.</li>
+      <li>Windows and Linux Portable Mode.</li>
+      <li>Rom loading from the command line by adding the rom path as an argument.</li>
+      <li>Support for modern game controllers through gamecontrollerdb.txt file located in the same directory as the application binary.</li>
+    </ul>
+  </description>
+
+  <categories>
+    <category>Emulator</category>
+    <category>Game</category>
+  </categories>
+  
+  <launchable type="desktop-id">io.github.drhelius.Gearsystem.desktop</launchable>
+  <url type="homepage">https://github.com/drhelius/Gearsystem</url>
+  <url type="bugtracker">https://github.com/drhelius/Gearsystem/issues</url>
+  <url type="vcs-browser">https://github.com/drhelius/Gearsystem</url>
+
+  <provides>
+    <binary>gearsystem</binary>
+    <id>io.github.drhelius.Gearsystem.desktop</id>
+  </provides>
+  <bundle type="flatpak">io.github.drhelius.Gearsystem</bundle>
+
+  <releases>
+    <release version="3.5.0" date="2024-03-04">
+      <description>
+        <p><em>What's Changed</em></p>
+        <ul>
+          <li>Support for YM2413</li>
+          <li>Native file dialogs</li>
+          <li>Drag and drop rom files to open</li>
+          <li>Overscan options</li>
+          <li>Improved Game Gear timings</li>
+          <li>Improved PAL detection</li>
+          <li>Debugger improvements</li>
+          <li>Custom folders for saves and savestates</li>
+          <li>Scaling improvements like fit to window size or fit to window height</li>
+          <li>Hide cursor when hovering output window or when main menu is disabled</li>
+          <li>Load symbol files from command line</li>
+          <li>Support for WLA symbol files</li>
+          <li>Improve input response time</li>
+          <li>Save screenshots</li>
+          <li>Support for WSL</li>
+          <li>Automatic builds in GitHub Actions</li>
+          <li>Several bug fixes</li>
+          <li>Add support for zoomed sprites in SMS/GG modes</li>
+          <li>Pixel perfect rendering even with non integer HDPI values on Windows</li>
+          <li>Fixed bug where when resetting, the first opcode would not be disassembled. by @samizzo in #50</li>
+          <li>Added a generalised shortcut system so any gui events can have a shortcut key defined in the config.ini by @samizzo in #52</li>
+          <li>add retrofw target</li>
+          <li>Fix window title flicker</li>
+          <li>Define <code>install</code> and <code>uninstall</code> targets</li>
+          <li>Update NFDe implementation to v1.1.1</li>
+        </ul>
+      </description>
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/3.5.0</url>
+      <artifacts>
+        <artifact type="source">
+          <location>https://github.com/drhelius/Gearsystem/archive/refs/tags/3.5.0.tar.gz</location>
+          <checksum type="sha256">fb284c2c71ab78f5127c5c9b1039dcf18ac518259649ef79900299ac2ea4151f</checksum>
+          <size type="download">6359063</size>
+          <filename>Gearsystem-3.5.0.tar.gz</filename>
+        </artifact>
+      </artifacts>
+    </release>
+    <release version="3.4.1" date="2021-09-04">
+      <description>
+        <p>This patch contains the following bugfixes:</p>
+        <ul>
+          <li>Fixed a crash in RetroArch (libretro) when loading ROMs.</li>
+        </ul>
+      </description>
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/gearsystem-3.4.1</url>
+      <issues>
+        <issue url="https://github.com/drhelius/Gearsystem/issues/48">#48</issue>
+      </issues>
+      <artifacts>
+        <artifact type="source">
+          <location>https://github.com/drhelius/Gearsystem/archive/refs/tags/gearsystem-3.4.1.tar.gz</location>
+          <checksum type="sha256">c71c8415d18afee104aece2b04de0b6736dd2783b0c87b9a6a2bee9530d2d798</checksum>
+          <size type="download">14570974</size>
+          <filename>gearsystem-3.4.1.tar.gz</filename>
+        </artifact>
+      </artifacts>
+    </release>
+    <release version="3.4.0" date="2021-08-14">
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/gearsystem-3.4.0</url>
+    </release>
+    <release version="3.3.0" date="2021-02-15">
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/gearsystem-3.3.0</url>
+    </release>
+    <release version="3.2.0" date="2020-12-31">
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/gearsystem-3.2.0</url>
+    </release>
+    <release version="3.1.0" date="2020-05-24">
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/gearsystem-3.1.0</url>
+    </release>
+    <release version="3.0.3" date="2020-04-22">
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/gearsystem-3.0.3</url>
+    </release>
+    <release version="3.0.2" date="2020-04-20">
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/gearsystem-3.0.2</url>
+    </release>
+    <release version="3.0.1" date="2020-04-13">
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/gearsystem-3.0.1</url>
+    </release>
+    <release version="3.0.0" date="2020-04-11">
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/gearsystem-3.0.0</url>
+    </release>
+    <release version="2.6.1" date="2019-06-30">
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/gearsystem-2.6.1</url>
+    </release>
+    <release version="2.6.0" date="2019-06-29">
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/gearsystem-2.6.0</url>
+    </release>
+    <release version="2.5.1" date="2019-03-26">
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/gearsystem-2.5.1</url>
+    </release>
+    <release version="2.5.0" date="2019-03-26">
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/gearsystem-2.5.0</url>
+    </release>
+    <release version="2.2" date="2016-03-04">
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/gearsystem-2.2</url>
+    </release>
+    <release version="2.1" date="2014-11-24">
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/gearsystem-2.1</url>
+    </release>
+    <release version="2.0" date="2014-11-11">
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/gearsystem-2.0</url>
+    </release>
+    <release version="1.2" date="2014-07-14">
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/gearsystem-1.2</url>
+    </release>
+    <release version="1.1" date="2014-06-25">
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/gearsystem-1.1</url>
+    </release>
+    <release version="1.0" date="2013-11-01">
+      <url>https://github.com/drhelius/Gearsystem/releases/tag/gearsystem-1.0</url>
+    </release>
+  </releases>
+</component>

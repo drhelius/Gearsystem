@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Gearsystem
+Comment=Emulator for SMS/GG/SG-1000 games
+Exec=gearsystem
+Type=Application
+Icon=io.github.drhelius.Gearsystem
+Categories=Game;Emulator;
