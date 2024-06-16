@@ -307,30 +307,7 @@ bool Cartridge::LoadFromFile(const char* path)
 
     Reset();
 
-    strcpy(m_szFilePath, path);
-
-    std::string pathstr(path);
-    std::string filename;
-
-    size_t pos = pathstr.find_last_of("\\");
-    if (pos != std::string::npos)
-    {
-        filename.assign(pathstr.begin() + pos + 1, pathstr.end());
-    }
-    else
-    {
-        pos = pathstr.find_last_of("/");
-        if (pos != std::string::npos)
-        {
-            filename.assign(pathstr.begin() + pos + 1, pathstr.end());
-        }
-        else
-        {
-            filename = pathstr;
-        }
-    }
-
-    strcpy(m_szFileName, filename.c_str());
+    SetROMPath(path);
 
     ifstream file(path, ios::in | ios::binary | ios::ate);
 
@@ -383,10 +360,12 @@ bool Cartridge::LoadFromFile(const char* path)
     return m_bReady;
 }
 
-bool Cartridge::LoadFromBuffer(const u8* buffer, int size)
+bool Cartridge::LoadFromBuffer(const u8* buffer, int size, const char* path)
 {
     if (IsValidPointer(buffer))
     {
+        SetROMPath(path);
+
         Log("Loading from buffer... Size: %d", size);
         // Some ROMs have 512 Byte File Headers
         if ((size % 1024) == 512)
@@ -430,6 +409,37 @@ bool Cartridge::TestValidROM(u16 location)
     }
 
     return (strcmp(tmrsega, "TMR SEGA") == 0);
+}
+
+void Cartridge::SetROMPath(const char* path)
+{
+    if (!IsValidPointer(path))
+        return;
+
+    strcpy(m_szFilePath, path);
+
+    std::string pathstr(path);
+    std::string filename;
+
+    size_t pos = pathstr.find_last_of("\\");
+    if (pos != std::string::npos)
+    {
+        filename.assign(pathstr.begin() + pos + 1, pathstr.end());
+    }
+    else
+    {
+        pos = pathstr.find_last_of("/");
+        if (pos != std::string::npos)
+        {
+            filename.assign(pathstr.begin() + pos + 1, pathstr.end());
+        }
+        else
+        {
+            filename = pathstr;
+        }
+    }
+
+    strcpy(m_szFileName, filename.c_str());
 }
 
 bool Cartridge::GatherMetadata(u32 crc)

@@ -56,7 +56,7 @@ public:
     void Init(GS_Color_Format pixelFormat = GS_PIXEL_RGB888);
     bool RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool step = false, bool stopOnBreakpoints = false);
     bool LoadROM(const char* szFilePath, Cartridge::ForceConfiguration* config = NULL);
-    bool LoadROMFromBuffer(const u8* buffer, int size, Cartridge::ForceConfiguration* config = NULL);
+    bool LoadROMFromBuffer(const u8* buffer, int size, Cartridge::ForceConfiguration* config = NULL, const char* szFilePath = NULL);
     void SaveMemoryDump();
     void SaveDisassembledROM();
     bool GetRuntimeInfo(GS_RuntimeInfo& runtime_info);

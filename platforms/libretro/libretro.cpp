@@ -556,7 +556,7 @@ bool retro_load_game(const struct retro_game_info *info)
 
     log_cb(RETRO_LOG_INFO, "Loading game: %s\n", retro_game_path);
 
-    if (!core->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size, &config))
+    if (!core->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size, &config, retro_game_path))
     {
         log_cb(RETRO_LOG_ERROR, "Invalid or corrupted ROM.\n");
         return false;

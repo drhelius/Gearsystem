@@ -92,7 +92,7 @@ public:
     const char* GetFileName() const;
     u8* GetROM() const;
     bool LoadFromFile(const char* path);
-    bool LoadFromBuffer(const u8* buffer, int size);
+    bool LoadFromBuffer(const u8* buffer, int size, const char* path = NULL);
     void SetGameGenieCheat(const char* szCheat);
     void ClearGameGenieCheats();
 
@@ -101,6 +101,7 @@ private:
     void GetInfoFromDB(u32 crc);
     bool LoadFromZipFile(const u8* buffer, int size);
     bool TestValidROM(u16 location);
+    void SetROMPath(const char* path);
 
 private:
     u8* m_pROM;
