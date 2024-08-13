@@ -39,6 +39,13 @@
 
 #define GEARSYSTEM_TITLE "Gearsystem"
 #define GEARSYSTEM_VERSION "3.5.0"
+#define GEARSYSTEM_TITLE_ASCII "" \
+"   ____                               _                  \n" \
+"  / ___| ___  __ _ _ __ ___ _   _ ___| |_ ___ _ __ ___   \n" \
+" | |  _ / _ \\/ _` | '__/ __| | | / __| __/ _ \\ '_ ` _ \\  \n" \
+" | |_| |  __/ (_| | |  \\__ \\ |_| \\__ \\ ||  __/ | | | | | \n" \
+"  \\____|\\___|\\__,_|_|  |___/\\__, |___/\\__\\___|_| |_| |_| \n" \
+"                            |___/                        \n"
 
 #ifndef EMULATOR_BUILD
 #define EMULATOR_BUILD "undefined"
