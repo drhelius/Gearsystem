@@ -206,7 +206,7 @@ void Processor::ExecuteOPCode()
         case 0xFD:
         {
             int more_prefixes = false;
-            while ((opcode == 0xDD) | (opcode == 0xFD))
+            while ((opcode == 0xDD) || (opcode == 0xFD))
             {
                 m_CurrentPrefix = opcode;
                 opcode = FetchOPCode();
