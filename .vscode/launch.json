@@ -5,13 +5,20 @@
             "name": "Build and debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/platforms/linux/gearsystem",
+            "linux": {
+                "program": "${workspaceFolder}/platforms/linux/gearsystem",
+                "cwd": "${workspaceFolder}/platforms/linux",
+                "MIMode": "gdb"
+            },
+            "osx": {
+                "program": "${workspaceFolder}/platforms/macos/gearsystem",
+                "cwd": "${workspaceFolder}/platforms/macos",
+                "MIMode": "lldb"
+            },
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/platforms/linux",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "gdb",
             "preLaunchTask": "Build (DEBUG)",
             "setupCommands": [
                 {
