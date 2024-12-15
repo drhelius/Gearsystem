@@ -280,6 +280,13 @@ void gui_load_rom(const char* path)
             emu_frame_buffer[i] = 0;
         }
     }
+
+    if (!emu_is_empty())
+    {
+        char title[256];
+        snprintf(title, 256, "%s %s - %s", GEARSYSTEM_TITLE, GEARSYSTEM_VERSION, emu_get_core()->GetCartridge()->GetFileName());
+        application_update_title(title);
+    }
 }
 
 void gui_set_status_message(const char* message, u32 milliseconds)

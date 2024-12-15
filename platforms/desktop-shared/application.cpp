@@ -49,7 +49,8 @@ static void save_window_size(void);
 
 int application_init(const char* rom_file, const char* symbol_file)
 {
-    Log ("<·> %s %s Desktop App <·>", GEARSYSTEM_TITLE, GEARSYSTEM_VERSION);
+    Log("\n%s", GEARSYSTEM_TITLE_ASCII);
+    Log("%s %s Desktop App", GEARSYSTEM_TITLE, GEARSYSTEM_VERSION);
 
     config_init();
     config_read();
@@ -128,6 +129,11 @@ void application_trigger_fullscreen(bool fullscreen)
 void application_trigger_fit_to_content(int width, int height)
 {
     SDL_SetWindowSize(sdl_window, width, height);
+}
+
+void application_update_title(char* title)
+{
+    SDL_SetWindowTitle(sdl_window, title);
 }
 
 static int sdl_init(void)
@@ -492,26 +498,6 @@ static void handle_mouse_cursor(void)
 
 static void run_emulator(void)
 {
-    static char prevtitle[256];
-
-    if (!emu_is_empty())
-    {
-        static int i = 0;
-        i++;
-
-        if (i > 20)
-        {
-            i = 0;
-
-            char title[256];
-            snprintf(title, sizeof(title), "%s %s - %s", GEARSYSTEM_TITLE, GEARSYSTEM_VERSION, emu_get_core()->GetCartridge()->GetFileName());
-
-            if (strcmp(title, prevtitle)) {
-                SDL_SetWindowTitle(sdl_window, title);
-                snprintf(prevtitle, sizeof(prevtitle), "%s", title);
-            }
-        }
-    }
     config_emulator.paused = emu_is_paused();
     emu_audio_sync = config_audio.sync;
     emu_update();
