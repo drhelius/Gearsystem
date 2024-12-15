@@ -286,7 +286,7 @@ void gui_set_status_message(const char* message, u32 milliseconds)
 {
     if (config_emulator.status_messages)
     {
-        strcpy(status_message, message);
+        snprintf(status_message, sizeof(status_message), "%s", message);
         status_message_active = true;
         status_message_start_time = SDL_GetTicks();
         status_message_duration = milliseconds;
@@ -1413,7 +1413,7 @@ static void keyboard_configuration_item(const char* text, SDL_Scancode* key, int
     ImGui::SameLine(70);
 
     char button_label[256];
-    sprintf(button_label, "%s##%s%d", SDL_GetScancodeName(*key), text, player);
+    snprintf(button_label, sizeof(button_label), "%s##%s%d", SDL_GetScancodeName(*key), text, player);
 
     if (ImGui::Button(button_label, ImVec2(90,0)))
     {
@@ -1430,7 +1430,7 @@ static void gamepad_configuration_item(const char* text, int* button, int player
     static const char* gamepad_names[16] = {"A", "B", "X" ,"Y", "BACK", "GUID", "START", "L3", "R3", "L1", "R1", "UP", "DOWN", "LEFT", "RIGHT", "15"};
 
     char button_label[256];
-    sprintf(button_label, "%s##%s%d", gamepad_names[*button], text, player);
+    snprintf(button_label, sizeof(button_label), "%s##%s%d", gamepad_names[*button], text, player);
 
     if (ImGui::Button(button_label, ImVec2(70,0)))
     {

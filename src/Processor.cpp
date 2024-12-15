@@ -477,7 +477,7 @@ bool Processor::Disassemble(u16 address)
             if (i < map[offset]->size)
             {
                 char value[8];
-                sprintf(value, "%02X", bytes[i]);
+                snprintf(value, sizeof(value), "%02X", bytes[i]);
                 strcat(map[offset]->bytes, value);
                 strcat(map[offset]->bytes, " ");
             }
@@ -498,26 +498,26 @@ bool Processor::Disassemble(u16 address)
                 strcpy(map[offset]->name, info.name);
                 break;
             case 1:
-                sprintf(map[offset]->name, info.name, bytes[first]);
+                snprintf(map[offset]->name, sizeof(map[offset]->name), info.name, bytes[first]);
                 break;
             case 2:
-                sprintf(map[offset]->name, info.name, bytes[first + 1]);
+                snprintf(map[offset]->name, sizeof(map[offset]->name), info.name, bytes[first + 1]);
                 break;
             case 3:
                 map[offset]->jump = true;
                 map[offset]->jump_address = (bytes[first + 2] << 8) | bytes[first + 1];
-                sprintf(map[offset]->name, info.name, map[offset]->jump_address);
+                snprintf(map[offset]->name, sizeof(map[offset]->name), info.name, map[offset]->jump_address);
                 break;
             case 4:
-                sprintf(map[offset]->name, info.name, (s8)bytes[first + 1]);
+                snprintf(map[offset]->name, sizeof(map[offset]->name), info.name, (s8)bytes[first + 1]);
                 break;
             case 5:
                 map[offset]->jump = true;
                 map[offset]->jump_address = address + info.size + (s8)bytes[first + 1];
-                sprintf(map[offset]->name, info.name, map[offset]->jump_address, (s8)bytes[first + 1]);
+                snprintf(map[offset]->name, sizeof(map[offset]->name), info.name, map[offset]->jump_address, (s8)bytes[first + 1]);
                 break;
             case 6:
-                sprintf(map[offset]->name, info.name, (s8)bytes[first + 1], bytes[first + 2]);
+                snprintf(map[offset]->name, sizeof(map[offset]->name), info.name, (s8)bytes[first + 1], bytes[first + 2]);
                 break;
             default:
                 strcpy(map[offset]->name, "PARSE ERROR");

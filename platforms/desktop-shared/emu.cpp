@@ -285,11 +285,11 @@ void emu_get_info(char* info)
         const char* mapper = get_mapper(cart->GetType());
         const char* zone = get_zone(cart->GetZone());
 
-        sprintf(info, "File Name: %s\nMapper: %s\nRegion: %s\nSystem: %s\nRefresh Rate: %s\nCartridge Header: %s\nROM Banks: %d\nBattery: %s\nScreen Resolution: %dx%d", filename, mapper, zone, system, pal, checksum, rom_banks, battery, runtime.screen_width, runtime.screen_height);
+        snprintf(info, 512, "File Name: %s\nMapper: %s\nRegion: %s\nSystem: %s\nRefresh Rate: %s\nCartridge Header: %s\nROM Banks: %d\nBattery: %s\nScreen Resolution: %dx%d", filename, mapper, zone, system, pal, checksum, rom_banks, battery, runtime.screen_width, runtime.screen_height);
     }
     else
     {
-        sprintf(info, "No data!");
+        snprintf(info, 512, "No data!");
     }
 }
 

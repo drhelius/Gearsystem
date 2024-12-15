@@ -504,11 +504,11 @@ static void run_emulator(void)
             i = 0;
 
             char title[256];
-            sprintf(title, "%s %s - %s", GEARSYSTEM_TITLE, GEARSYSTEM_VERSION, emu_get_core()->GetCartridge()->GetFileName());
+            snprintf(title, sizeof(title), "%s %s - %s", GEARSYSTEM_TITLE, GEARSYSTEM_VERSION, emu_get_core()->GetCartridge()->GetFileName());
 
             if (strcmp(title, prevtitle)) {
                 SDL_SetWindowTitle(sdl_window, title);
-                strcpy(prevtitle, title);
+                snprintf(prevtitle, sizeof(prevtitle), "%s", title);
             }
         }
     }

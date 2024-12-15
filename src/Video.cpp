@@ -665,12 +665,10 @@ void Video::RenderSpritesSMSGG(int line)
     int line_width_screen = (line - scy_adjust) * m_iScreenWidth;
     int sprite_width = 8;
     bool sprite_height_16 = IsSetBit(m_VdpRegister[1], 1);
-    int sprite_height = sprite_height_16 ? 16 : 8;
     bool sprite_zoom = IsSetBit(m_VdpRegister[1], 0);
     if (sprite_zoom)
     {
         sprite_width <<= 1;
-        sprite_height <<= 1;
     }
     int sprite_shift = IsSetBit(m_VdpRegister[0], 3) ? 8 : 0;
     u16 sprite_tiles_address = (m_VdpRegister[6] << 11) & 0x2000;
