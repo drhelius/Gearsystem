@@ -4,6 +4,7 @@ AUDIO_SRC_DIR=../audio-shared
 
 SOURCES_C := \
     $(SRC_DIR)/audio/emu2413/emu2413.c \
+    $(SRC_DIR)/miniz/miniz.c \
 
 SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/main.cpp \
