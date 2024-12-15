@@ -1,179 +1,231 @@
+/*
+ * Gearsystem - Sega Master System / Game Gear Emulator
+ * Copyright (C) 2013  Ignacio Sanchez
 
-// Gb_Snd_Emu 0.1.4. http://www.slack.net/~ant/
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
 
-#include "Sound_Queue.h"
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
 
-#include <assert.h>
-#include <string.h>
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
+ */
+
+#include "sound_queue.h"
 #include <string>
+#include <assert.h>
+#include "../../src/gearsystem.h"
 
-/* Copyright (C) 2005 by Shay Green. Permission is hereby granted, free of
-charge, to any person obtaining a copy of this software module and associated
-documentation files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use, copy, modify,
-merge, publish, distribute, sublicense, and/or sell copies of the Software, and
-to permit persons to whom the Software is furnished to do so, subject to the
-following conditions: The above copyright notice and this permission notice
-shall be included in all copies or substantial portions of the Software. THE
-SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
-
-// Return current SDL_GetError() string, or str if SDL didn't have a string
-static const char* sdl_error( const char* str )
+static void sdl_error(const char* str)
 {
-	const char* sdl_str = SDL_GetError();
-	if ( sdl_str && *sdl_str )
-		str = sdl_str;
-	return str;
+    const char* sdl_str = SDL_GetError();
+    if (sdl_str && *sdl_str)
+        Log("Sound Queue: %s - SDL Error: %s", str, sdl_str);
+    else
+        Log("Sound Queue: %s", str);
 }
 
-Sound_Queue::Sound_Queue()
+SoundQueue::SoundQueue()
 {
-	bufs = NULL;
-	free_sem = NULL;
-	sound_open = false;
-	sync_output = true;
+    m_buffers = NULL;
+    m_free_sem = NULL;
+    m_sound_open = false;
+    m_sync_output = true;
 
-	std::string platform = SDL_GetPlatform();
-	if ((platform == "Linux") && (!running_in_wsl()))
-	{
-		SDL_InitSubSystem(SDL_INIT_AUDIO);
-		SDL_AudioInit("alsa");
-	}
-	else
-	{
-		SDL_Init(SDL_INIT_AUDIO);
-	}
+    int audio_drivers_count = SDL_GetNumAudioDrivers();
+    int audio_devices_count = SDL_GetNumAudioDevices(0);
 
-	atexit(SDL_Quit);
+    Debug("SoundQueue: %d audio backends", audio_drivers_count);
+
+    for (int i = 0; i < audio_drivers_count; i++)
+    {
+        Debug("SoundQueue: %s", SDL_GetAudioDriver(i));
+    }
+
+    Debug("SoundQueue: %d audio devices", audio_devices_count);
+
+    for (int i = 0; i < audio_devices_count; i++)
+    {
+        Debug("SoundQueue: %s", SDL_GetAudioDeviceName(i, 0));
+    }
+
+    std::string platform = SDL_GetPlatform();
+    if (platform == "Linux")
+    {
+        if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0)
+            sdl_error("Couldn't init AUDIO subsystem");
+
+        if (IsRunningInWSL())
+        {
+            Debug("SoundQueue: Running in WSL");
+            if (SDL_AudioInit("pulseaudio") < 0)
+                sdl_error("Couldn't init pulseaudio audio driver");
+        }
+        else
+        {
+            Debug("SoundQueue: Running in Linux");
+            if (SDL_AudioInit("alsa") < 0)
+                sdl_error("Couldn't init alsa audio driver");
+        }
+    }
+    else
+    {
+        if (SDL_Init(SDL_INIT_AUDIO) < 0)
+            sdl_error("Couldn't init AUDIO");
+    }
+
+    Log("SoundQueue: %s driver selected", SDL_GetCurrentAudioDriver());
+
+    atexit(SDL_Quit);
 }
 
-Sound_Queue::~Sound_Queue()
+SoundQueue::~SoundQueue()
 {
-	stop();
+    Stop();
 }
 
-const char* Sound_Queue::start( long sample_rate, int chan_count )
+bool SoundQueue::Start(int sample_rate, int channel_count, int buffer_size, int buffer_count)
 {
-	assert( !bufs ); // can only be initialized once
+    Log("SoundQueue: Starting with %d Hz, %d channels, %d buffer size, %d buffers ...", sample_rate, channel_count, buffer_size, buffer_count);
 
-	write_buf = 0;
-	write_pos = 0;
-	read_buf = 0;
+    m_write_buffer = 0;
+    m_write_position = 0;
+    m_read_buffer = 0;
+    m_buffer_size = buffer_size;
+    m_buffer_count = buffer_count;
 
-	bufs = new sample_t [(long) buf_size * buf_count];
-	if ( !bufs )
-		return "Out of memory";
-	currently_playing_ = bufs;
+    m_buffers = new int16_t[m_buffer_size * m_buffer_count];
+    m_currently_playing = m_buffers;
 
-	for (long l = 0; l < ((long) buf_size * buf_count); l++)
-		bufs[0] = 0;
+    for (int i = 0; i < (m_buffer_size * m_buffer_count); i++)
+        m_buffers[i] = 0;
 
-	free_sem = SDL_CreateSemaphore( buf_count - 1 );
-	if ( !free_sem )
-		return sdl_error( "Couldn't create semaphore" );
+    m_free_sem = SDL_CreateSemaphore(m_buffer_count - 1);
+    if (!m_free_sem)
+    {
+        sdl_error("Couldn't create semaphore");
+        return false;
+    }
 
-	SDL_AudioSpec as;
-	as.freq = (int)sample_rate;
-	as.format = AUDIO_S16SYS;
-	as.channels = chan_count;
-	as.silence = 0;
-	as.samples = buf_size / chan_count;
-	as.size = 0;
-	as.callback = fill_buffer_;
-	as.userdata = this;
-	if ( SDL_OpenAudio( &as, NULL ) < 0 )
-		return sdl_error( "Couldn't open SDL audio" );
-	SDL_PauseAudio( false );
-	sound_open = true;
+    SDL_AudioSpec spec;
+    spec.freq = sample_rate;
+    spec.format = AUDIO_S16SYS;
+    spec.channels = channel_count;
+    spec.silence = 0;
+    spec.samples = m_buffer_size / channel_count;
+    spec.size = 0;
+    spec.callback = FillBufferCallback;
+    spec.userdata = this;
 
-	return NULL;
+    Log("SoundQueue: Desired - frequency: %d format: f %d s %d be %d sz %d channels: %d samples: %d", spec.freq, SDL_AUDIO_ISFLOAT(spec.format), SDL_AUDIO_ISSIGNED(spec.format), SDL_AUDIO_ISBIGENDIAN(spec.format), SDL_AUDIO_BITSIZE(spec.format), spec.channels, spec.samples);
+
+    if (SDL_OpenAudio(&spec, NULL) < 0)
+    {
+        sdl_error("Couldn't open SDL audio");
+        return false;
+    }
+
+    Log("SoundQueue: Obtained - frequency: %d format: f %d s %d be %d sz %d channels: %d samples: %d", spec.freq, SDL_AUDIO_ISFLOAT(spec.format), SDL_AUDIO_ISSIGNED(spec.format), SDL_AUDIO_ISBIGENDIAN(spec.format), SDL_AUDIO_BITSIZE(spec.format), spec.channels, spec.samples);
+
+    SDL_PauseAudio(false);
+    m_sound_open = true;
+
+    return true;
 }
 
-void Sound_Queue::stop()
+void SoundQueue::Stop()
 {
-	if ( sound_open )
-	{
-		sound_open = false;
-		SDL_PauseAudio( true );
-		SDL_CloseAudio();
-	}
+    if (m_sound_open)
+    {
+        m_sound_open = false;
+        SDL_PauseAudio(true);
+        SDL_CloseAudio();
+    }
 
-	if ( free_sem )
-	{
-		SDL_DestroySemaphore( free_sem );
-		free_sem = NULL;
-	}
+    if (m_free_sem)
+    {
+        SDL_DestroySemaphore(m_free_sem);
+        m_free_sem = NULL;
+    }
 
-	delete [] bufs;
-	bufs = NULL;
+    delete [] m_buffers;
+    m_buffers = NULL;
 }
 
-int Sound_Queue::sample_count() const
+int SoundQueue::GetSampleCount()
 {
-	int buf_free = SDL_SemValue( free_sem ) * buf_size + (buf_size - write_pos);
-	return buf_size * buf_count - buf_free;
+    int buffer_free = SDL_SemValue(m_free_sem) * m_buffer_size + (m_buffer_size - m_write_position);
+    return m_buffer_size * m_buffer_count - buffer_free;
 }
 
-inline Sound_Queue::sample_t* Sound_Queue::buf( int index )
+int16_t* SoundQueue::GetCurrentlyPlaying()
 {
-	assert( (unsigned) index < buf_count );
-	return bufs + (long) index * buf_size;
+    return m_currently_playing;
 }
 
-void Sound_Queue::write( const sample_t* in, int count, bool sync )
+bool SoundQueue::IsOpen()
 {
-	sync_output = sync;
-
-	while ( count )
-	{
-		int n = buf_size - write_pos;
-		if ( n > count )
-			n = count;
-
-		memcpy( buf( write_buf ) + write_pos, in, n * sizeof (sample_t) );
-		in += n;
-		write_pos += n;
-		count -= n;
-
-		if ( write_pos >= buf_size )
-		{
-			write_pos = 0;
-			write_buf = (write_buf + 1) % buf_count;
-			
-			if (sync_output)
-				SDL_SemWait( free_sem );
-		}
-	}
+    return m_sound_open;
 }
 
-void Sound_Queue::fill_buffer( Uint8* out, int count )
+void SoundQueue::Write(int16_t* samples, int count, bool sync)
 {
-	if ((SDL_SemValue( free_sem ) < buf_count - 1 ) || !sync_output)
-	{
-		currently_playing_ = buf( read_buf );
-		memcpy( out, buf( read_buf ), count );
-		read_buf = (read_buf + 1) % buf_count;
+    if (!m_sound_open)
+        return;
 
-		if (sync_output)
-			SDL_SemPost( free_sem );
-	}
-	else
-	{
-		memset( out, 0, count );
-	}
+    m_sync_output = sync;
+
+    while (count)
+    {
+        int n = m_buffer_size - m_write_position;
+        if (n > count)
+            n = count;
+
+        memcpy(Buffer(m_write_buffer) + m_write_position, samples, n * sizeof(int16_t));
+        samples += n;
+        m_write_position += n;
+        count -= n;
+
+        if (m_write_position >= m_buffer_size)
+        {
+            m_write_position = 0;
+            m_write_buffer = (m_write_buffer + 1) % m_buffer_count;
+            
+            if (m_sync_output)
+                SDL_SemWait(m_free_sem);
+        }
+    }
 }
 
-void Sound_Queue::fill_buffer_( void* user_data, Uint8* out, int count )
+void SoundQueue::FillBuffer(uint8_t* buffer, int count)
 {
-	((Sound_Queue*) user_data)->fill_buffer( out, count );
+    if ((SDL_SemValue(m_free_sem) < (unsigned int)m_buffer_count - 1) || !m_sync_output)
+    {
+        m_currently_playing = Buffer(m_read_buffer);
+        memcpy( buffer, Buffer(m_read_buffer), count);
+        m_read_buffer = (m_read_buffer + 1) % m_buffer_count;
+
+        if (m_sync_output)
+            SDL_SemPost(m_free_sem);
+    }
+    else
+    {
+        memset(buffer, 0, count);
+    }
 }
 
-bool Sound_Queue::running_in_wsl()
+void SoundQueue::FillBufferCallback(void* user_data, uint8_t* buffer, int count)
+{
+    ((SoundQueue*) user_data)->FillBuffer(buffer, count);
+}
+
+bool SoundQueue::IsRunningInWSL()
 {
     FILE *file;
 

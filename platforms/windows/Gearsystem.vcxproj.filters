@@ -28,9 +28,12 @@
     <Filter Include="desktop_shared\nfd">
       <UniqueIdentifier>{db3b4a89-bbfe-4ee9-a1a5-1ccfceb83f2d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\miniz">
+      <UniqueIdentifier>{637c4ee0-6e40-4be6-b0b7-027f70325ac6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\audio-shared\Sound_Queue.cpp">
+    <ClCompile Include="..\audio-shared\sound_queue.cpp">
       <Filter>audio_shared</Filter>
     </ClCompile>
     <ClCompile Include="..\desktop-shared\application.cpp">
@@ -159,9 +162,12 @@
     <ClCompile Include="..\desktop-shared\nfd\nfd_win.cpp">
       <Filter>desktop_shared\nfd</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\miniz\miniz.c">
+      <Filter>src\miniz</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\audio-shared\Sound_Queue.h">
+    <ClInclude Include="..\audio-shared\sound_queue.h">
       <Filter>audio_shared</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\application.h">
@@ -358,6 +364,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\audio\emu2413\emu2413.h">
       <Filter>core\audio\emu2413</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\miniz\miniz.h">
+      <Filter>src\miniz</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

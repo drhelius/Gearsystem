@@ -18,7 +18,7 @@
  */
 
 #include "../../src/gearsystem.h"
-#include "../audio-shared/Sound_Queue.h"
+#include "../audio-shared/sound_queue.h"
 
 #define EMU_IMPORT
 #include "emu.h"
@@ -30,7 +30,7 @@
 #include "stb/stb_image_write.h"
 
 static GearsystemCore* gearsystem;
-static Sound_Queue* sound_queue;
+static SoundQueue* sound_queue;
 static s16* audio_buffer;
 static bool audio_enabled;
 static bool debugging = false;
@@ -73,8 +73,8 @@ void emu_init(void)
     gearsystem = new GearsystemCore();
     gearsystem->Init();
 
-    sound_queue = new Sound_Queue();
-    sound_queue->start(GS_AUDIO_SAMPLE_RATE, 2);
+    sound_queue = new SoundQueue();
+    sound_queue->Start(GS_AUDIO_SAMPLE_RATE, 2);
 
     audio_buffer = new s16[GS_AUDIO_BUFFER_SIZE];
 
@@ -133,7 +133,7 @@ void emu_update(void)
 
         if ((sampleCount > 0) && !gearsystem->IsPaused())
         {
-            sound_queue->write(audio_buffer, sampleCount, emu_audio_sync);
+            sound_queue->Write(audio_buffer, sampleCount, emu_audio_sync);
         }
     }
 }
@@ -193,8 +193,8 @@ void emu_audio_mute(bool mute)
 
 void emu_audio_reset(void)
 {
-    sound_queue->stop();
-    sound_queue->start(GS_AUDIO_SAMPLE_RATE, 2);
+    sound_queue->Stop();
+    sound_queue->Start(GS_AUDIO_SAMPLE_RATE, 2);
 }
 
 bool emu_is_audio_enabled(void)

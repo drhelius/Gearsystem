@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\miniz\miniz.c" />
     <ClCompile Include="..\..\src\Audio.cpp" />
     <ClCompile Include="..\..\src\audio\Blip_Buffer.cpp" />
     <ClCompile Include="..\..\src\audio\Effects_Buffer.cpp" />
@@ -46,7 +47,7 @@
     <ClCompile Include="..\..\src\SmsIOPorts.cpp" />
     <ClCompile Include="..\..\src\Video.cpp" />
     <ClCompile Include="..\..\src\YM2413.cpp" />
-    <ClCompile Include="..\audio-shared\Sound_Queue.cpp" />
+    <ClCompile Include="..\audio-shared\sound_queue.cpp" />
     <ClCompile Include="..\desktop-shared\application.cpp" />
     <ClCompile Include="..\desktop-shared\config.cpp" />
     <ClCompile Include="..\desktop-shared\emu.cpp" />
@@ -64,6 +65,7 @@
     <ClCompile Include="..\desktop-shared\renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\miniz\miniz.h" />
     <ClInclude Include="..\..\src\Audio.h" />
     <ClInclude Include="..\..\src\audio\blargg_common.h" />
     <ClInclude Include="..\..\src\audio\blargg_config.h" />
@@ -111,7 +113,7 @@
     <ClInclude Include="..\..\src\SmsIOPorts.h" />
     <ClInclude Include="..\..\src\Video.h" />
     <ClInclude Include="..\..\src\YM2413.h" />
-    <ClInclude Include="..\audio-shared\Sound_Queue.h" />
+    <ClInclude Include="..\audio-shared\sound_queue.h" />
     <ClInclude Include="..\desktop-shared\application.h" />
     <ClInclude Include="..\desktop-shared\config.h" />
     <ClInclude Include="..\desktop-shared\emu.h" />
