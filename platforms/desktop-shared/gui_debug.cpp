@@ -1119,6 +1119,7 @@ static void debug_window_vram_background(void)
     bool isSG1000 = video->IsSG1000Mode();
     int SG1000mode = video->GetSG1000Mode();
 
+    bool window_hovered = ImGui::IsWindowHovered();
     static bool show_grid = true;
     static bool show_screen = true;
     int lines = 28;
@@ -1214,7 +1215,7 @@ static void debug_window_vram_background(void)
 
     int tile_x = -1;
     int tile_y = -1;
-    if ((mouse_x >= 0.0f) && (mouse_x < size_h) && (mouse_y >= 0.0f) && (mouse_y < size_v))
+    if (window_hovered && (mouse_x >= 0.0f) && (mouse_x < size_h) && (mouse_y >= 0.0f) && (mouse_y < size_v))
     {
         tile_x = (int)(mouse_x / spacing);
         tile_y = (int)(mouse_y / spacing);
@@ -1306,6 +1307,7 @@ static void debug_window_vram_tiles(void)
     int SG1000mode = video->GetSG1000Mode();
     bool isSG1000 = video->IsSG1000Mode();
 
+    bool window_hovered = ImGui::IsWindowHovered();
     static bool show_grid = true;
     int lines = isSG1000 ? 32 : 16;
     float scale = 1.5f;
@@ -1356,7 +1358,7 @@ static void debug_window_vram_tiles(void)
     int tile_x = -1;
     int tile_y = -1;
 
-    if ((mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < height))
+    if (window_hovered && (mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < height))
     {
         tile_x = (int)(mouse_x / spacing);
         tile_y = (int)(mouse_y / spacing);
@@ -1437,6 +1439,8 @@ static void debug_window_vram_sprites(void)
 
     ImGui::BeginChild("sprites", ImVec2(0, 0.0f), true);
 
+    bool window_hovered = ImGui::IsWindowHovered();
+
     for (int s = 0; s < 64; s++)
     {
         p[s] = ImGui::GetCursorScreenPos();
@@ -1446,7 +1450,7 @@ static void debug_window_vram_sprites(void)
         float mouse_x = io.MousePos.x - p[s].x;
         float mouse_y = io.MousePos.y - p[s].y;
 
-        if ((mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < height))
+        if (window_hovered && (mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < height))
         {
             ImDrawList* draw_list = ImGui::GetWindowDrawList();
             draw_list->AddRect(ImVec2(p[s].x, p[s].y), ImVec2(p[s].x + width, p[s].y + height), ImColor(cyan), 2.0f, ImDrawFlags_RoundCornersAll, 3.0f);
@@ -1477,7 +1481,7 @@ static void debug_window_vram_sprites(void)
         float mouse_x = io.MousePos.x - p[s].x;
         float mouse_y = io.MousePos.y - p[s].y;
 
-        if ((mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < height))
+        if (window_hovered && (mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < height))
         {
             int x = 0;
             int y = 0;
@@ -1667,7 +1671,7 @@ static void debug_window_vram_regs(void)
 
 static void add_symbol(const char* line)
 {
-    Log("Loading symbol %s", line);
+    Debug("Loading symbol %s", line);
 
     DebugSymbol s;
 

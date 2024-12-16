@@ -421,7 +421,7 @@ void emu_save_screenshot(const char* file_path)
 
     stbi_write_png(file_path, runtime.screen_width, runtime.screen_height, 3, emu_frame_buffer, runtime.screen_width * 3);
 
-    Log("Screenshot saved!");
+    Debug("Screenshot saved!");
 }
 
 static void save_ram(void)

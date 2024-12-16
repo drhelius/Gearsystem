@@ -96,7 +96,7 @@ void CodemastersMemoryRule::PerformWrite(u16 address, u8 value)
             {
                 if (!m_pCartridge->HasRAMWithoutBattery())
                 {
-                    Log("--> ** Attempting to write on ROM address $%X %X", address, value);
+                    Debug("--> ** Attempting to write on ROM address $%X %X", address, value);
                 }
             }
         }

@@ -78,7 +78,7 @@ void SegaMemoryRule::PerformWrite(u16 address, u8 value)
     if (address < 0x8000)
     {
         // ROM page 0 and 1
-        Log("--> ** Attempting to write on ROM address $%X %X", address, value);
+        Debug("--> ** Attempting to write on ROM address $%X %X", address, value);
     }
     else if (address < 0xC000)
     {
@@ -90,7 +90,7 @@ void SegaMemoryRule::PerformWrite(u16 address, u8 value)
         else
         {
             // ROM page 2
-            Log("--> ** Attempting to write on ROM page 2 $%X %X", address, value);
+            Debug("--> ** Attempting to write on ROM page 2 $%X %X", address, value);
         }
     }
     else if (address < 0xE000)
@@ -163,7 +163,7 @@ void SegaMemoryRule::Reset()
 
 void SegaMemoryRule::SaveRam(std::ostream & file)
 {
-    Log("SegaMemoryRule save RAM...");
+    Debug("SegaMemoryRule save RAM...");
 
     for (int i = 0x0000; i < 0x8000; i++)
     {
@@ -171,12 +171,12 @@ void SegaMemoryRule::SaveRam(std::ostream & file)
         file.write(reinterpret_cast<const char*> (&ram_byte), 1);
     }
 
-    Log("SegaMemoryRule save RAM done");
+    Debug("SegaMemoryRule save RAM done");
 }
 
 bool SegaMemoryRule::LoadRam(std::istream & file, s32 fileSize)
 {
-    Log("SegaMemoryRule load RAM...");
+    Debug("SegaMemoryRule load RAM...");
 
     if ((fileSize > 0) && (fileSize != 0x8000))
     {
@@ -191,7 +191,7 @@ bool SegaMemoryRule::LoadRam(std::istream & file, s32 fileSize)
         m_pRAMBanks[i] = ram_byte;
     }
 
-    Log("SegaMemoryRule load RAM done");
+    Debug("SegaMemoryRule load RAM done");
 
     return true;
 }

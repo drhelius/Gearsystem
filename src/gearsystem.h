@@ -21,6 +21,7 @@
 #define	GEARSYSTEM_H
 
 #include "definitions.h"
+#include "log.h"
 #include "GearsystemCore.h"
 #include "Memory.h"
 #include "Processor.h"

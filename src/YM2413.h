@@ -2,6 +2,7 @@
 #define YM2413_H
 
 #include "definitions.h"
+#include "log.h"
 #include "audio/emu2413/emu2413.h"
 
 class YM2413

@@ -23,6 +23,7 @@
 #include "Cartridge.h"
 #include "miniz/miniz.h"
 #include "game_db.h"
+#include "log.h"
 
 Cartridge::Cartridge()
 {
@@ -266,7 +267,7 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
             return false;
         }
 
-        Log("ZIP Content - Filename: \"%s\", Comment: \"%s\", Uncompressed size: %u, Compressed size: %u", file_stat.m_filename, file_stat.m_comment, (unsigned int) file_stat.m_uncomp_size, (unsigned int) file_stat.m_comp_size);
+        Debug("ZIP Content - Filename: \"%s\", Comment: \"%s\", Uncompressed size: %u, Compressed size: %u", file_stat.m_filename, file_stat.m_comment, (unsigned int) file_stat.m_uncomp_size, (unsigned int) file_stat.m_comp_size);
 
         string fn((const char*) file_stat.m_filename);
         transform(fn.begin(), fn.end(), fn.begin(), (int(*)(int)) tolower);
@@ -325,7 +326,7 @@ bool Cartridge::LoadFromFile(const char* path)
 
         if (extension == "zip")
         {
-            Log("Loading from ZIP...");
+            Debug("Loading from ZIP...");
             m_bReady = LoadFromZipFile(reinterpret_cast<u8*> (memblock), size);
         }
         else
@@ -337,7 +338,7 @@ bool Cartridge::LoadFromFile(const char* path)
 
         if (m_bReady)
         {
-            Log("ROM loaded", path);
+            Debug("ROM loaded", path);
         }
         else
         {

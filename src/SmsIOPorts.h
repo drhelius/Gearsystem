@@ -64,7 +64,7 @@ inline u8 SmsIOPorts::DoInput(u8 port)
     if (port < 0x40)
     {
         // Reads return $FF (SMS2)
-        Log("--> ** Attempting to read from port $%02X", port);
+        Debug("--> ** Attempting to read from port $%02X", port);
         return 0xFF;
     }
     else if ((port >= 0x40) && (port < 0x80))
@@ -111,7 +111,7 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
         // Writes to odd addresses go to I/O control register.
         if ((port & 0x01) == 0x00)
         {
-            Log("--> ** Output to memory control port $%02X: %02X", port, value);
+            Debug("--> ** Output to memory control port $%02X: %02X", port, value);
             m_pMemory->SetPort3E(value);
         }
         else
@@ -150,11 +150,11 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
 #ifdef DEBUG_GEARSYSTEM
         else if ((port == 0xDE) || (port == 0xDF))
         {
-            Log("--> ** Output to keyboard port $%02X: %02X", port, value);
+            Debug("--> ** Output to keyboard port $%02X: %02X", port, value);
         }
         else
         {
-            Log("--> ** Output to port $%02X: %02X", port, value);
+            Debug("--> ** Output to port $%02X: %02X", port, value);
         }
 #endif
     }

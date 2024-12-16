@@ -180,37 +180,6 @@ struct GS_RuntimeInfo
     GS_Region region;
 };
 
-#ifdef DEBUG_GEARSYSTEM
-
-#ifdef __ANDROID__
-#include <android/log.h>
-#define printf(...) __android_log_print(ANDROID_LOG_DEBUG, "GEARSYSTEM", __VA_ARGS__);
-#endif
-
-#define Log(msg, ...) (Log_func(msg, ##__VA_ARGS__))
-#define Debug(msg, ...) (Log_func(msg, ##__VA_ARGS__))
-
-inline void Log_func(const char* const msg, ...)
-{
-    static int count = 1;
-    char szBuf[512];
-
-    va_list args;
-    va_start(args, msg);
-    vsnprintf(szBuf, 512, msg, args);
-    va_end(args);
-
-    printf("%d: %s\n", count, szBuf);
-    fflush(stdout);
-
-    count++;
-}
-
-#else // DEBUG_GEARSYSTEM
-#define Log(msg, ...)
-#define Debug(msg, ...)
-#endif
-
 inline u8 SetBit(const u8 value, const u8 bit)
 {
     return value | (0x01 << bit);

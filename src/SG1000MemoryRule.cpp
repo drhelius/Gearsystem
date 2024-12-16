@@ -45,7 +45,7 @@ void SG1000MemoryRule::PerformWrite(u16 address, u8 value)
     if (address < 0x3000)
     {
         // ROM
-        Log("--> ** Attempting to write on ROM address $%X %X", address, value);
+        Debug("--> ** Attempting to write on ROM address $%X %X", address, value);
     }
     else if (address < 0x4000)
     {
@@ -55,7 +55,7 @@ void SG1000MemoryRule::PerformWrite(u16 address, u8 value)
     else if (address < 0x8000)
     {
         // ROM
-        Log("--> ** Attempting to write on ROM address $%X %X", address, value);
+        Debug("--> ** Attempting to write on ROM address $%X %X", address, value);
     }
     else
     {

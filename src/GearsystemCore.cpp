@@ -81,7 +81,7 @@ GearsystemCore::~GearsystemCore()
 
 void GearsystemCore::Init(GS_Color_Format pixelFormat)
 {
-    Log("--== %s %s by Ignacio Sanchez ==--", GEARSYSTEM_TITLE, GEARSYSTEM_VERSION);
+    Log("Loading %s core %s by Ignacio Sanchez", GEARSYSTEM_TITLE, GEARSYSTEM_VERSION);
 
     m_pixelFormat = pixelFormat;
 
@@ -208,7 +208,7 @@ void GearsystemCore::SaveMemoryDump()
 
         m_pMemory->MemoryDump(path);
 
-        Log("Memory Dump Saved");
+        Debug("Memory Dump Saved");
     }
 }
 
@@ -243,7 +243,7 @@ void GearsystemCore::SaveDisassembledROM()
             myfile.close();
         }
 
-        Log("Disassembled ROM Saved");
+        Debug("Disassembled ROM Saved");
     }
 }
 
@@ -358,7 +358,7 @@ void GearsystemCore::ResetROMPreservingRAM(Cartridge::ForceConfiguration* config
     {
         if (m_pMemory->GetCurrentRule()->PersistedRAM())
         {
-            Log("Resetting preserving RAM...");
+            Debug("Resetting preserving RAM...");
 
             using namespace std;
             stringstream stream;
@@ -427,7 +427,7 @@ void GearsystemCore::SaveRam(const char* szPath, bool fullPath)
 
         m_pMemory->GetCurrentRule()->SaveRam(file);
 
-        Log("RAM saved");
+        Debug("RAM saved");
     }
 }
 
@@ -493,7 +493,7 @@ void GearsystemCore::LoadRam(const char* szPath, bool fullPath)
 
             if (m_pMemory->GetCurrentRule()->LoadRam(file, fileSize))
             {
-                Log("RAM loaded");
+                Debug("RAM loaded");
             }
             else
             {
@@ -519,7 +519,7 @@ void GearsystemCore::SaveState(int index)
 
     SaveState(NULL, index);
 
-    Log("Save state %d created", index);
+    Debug("Save state %d created", index);
 }
 
 void GearsystemCore::SaveState(const char* szPath, int index)
@@ -574,14 +574,14 @@ void GearsystemCore::SaveState(const char* szPath, int index)
 
     file.close();
 
-    Log("Save state created");
+    Debug("Save state created");
 }
 
 bool GearsystemCore::SaveState(u8* buffer, size_t& size)
 {
     if (m_pMemory->GetCurrentSlot() == Memory::BiosSlot)
     {
-        Log("Save states disabled when running BIOS");
+        Debug("Save states disabled when running BIOS");
         return false;
     }
 
@@ -615,13 +615,13 @@ bool GearsystemCore::SaveState(std::ostream& stream, size_t& size)
 {
     if (m_pMemory->GetCurrentSlot() == Memory::BiosSlot)
     {
-        Log("Save states disabled when running BIOS");
+        Debug("Save states disabled when running BIOS");
         return false;
     }
 
     if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()))
     {
-        Log("Gathering save state data...");
+        Debug("Gathering save state data...");
 
         using namespace std;
 
@@ -656,7 +656,7 @@ void GearsystemCore::LoadState(int index)
 {
     if (m_pMemory->GetCurrentSlot() == Memory::BiosSlot)
     {
-        Log("Save states disabled when running BIOS");
+        Debug("Save states disabled when running BIOS");
         return;
     }
 
@@ -664,14 +664,14 @@ void GearsystemCore::LoadState(int index)
 
     LoadState(NULL, index);
 
-    Log("State %d file loaded", index);
+    Debug("State %d file loaded", index);
 }
 
 void GearsystemCore::LoadState(const char* szPath, int index)
 {
     if (m_pMemory->GetCurrentSlot() == Memory::BiosSlot)
     {
-        Log("Save states disabled when running BIOS");
+        Debug("Save states disabled when running BIOS");
         return;
     }
 
@@ -717,7 +717,7 @@ void GearsystemCore::LoadState(const char* szPath, int index)
     {
         if (LoadState(file))
         {
-            Log("Save state loaded");
+            Debug("Save state loaded");
         }
     }
     else
@@ -732,13 +732,13 @@ bool GearsystemCore::LoadState(const u8* buffer, size_t size)
 {
     if (m_pMemory->GetCurrentSlot() == Memory::BiosSlot)
     {
-        Log("Save states disabled when running BIOS");
+        Debug("Save states disabled when running BIOS");
         return false;
     }
 
     if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()) && (size > 0) && IsValidPointer(buffer))
     {
-        Log("Gathering load state data [%d bytes]...", size);
+        Debug("Gathering load state data [%d bytes]...", size);
 
         using namespace std;
 
@@ -758,7 +758,7 @@ bool GearsystemCore::LoadState(std::istream& stream)
 {
     if (m_pMemory->GetCurrentSlot() == Memory::BiosSlot)
     {
-        Log("Save states disabled when running BIOS");
+        Debug("Save states disabled when running BIOS");
         return false;
     }
 
@@ -773,15 +773,15 @@ bool GearsystemCore::LoadState(std::istream& stream)
         size_t size = static_cast<size_t>(stream.tellg());
         stream.seekg(0, ios::beg);
 
-        Log("Load state stream size: %d", size);
+        Debug("Load state stream size: %d", size);
 
         stream.seekg(size - (2 * sizeof(u32)), ios::beg);
         stream.read(reinterpret_cast<char*> (&header_magic), sizeof(header_magic));
         stream.read(reinterpret_cast<char*> (&header_size), sizeof(header_size));
         stream.seekg(0, ios::beg);
 
-        Log("Load state magic: 0x%08x", header_magic);
-        Log("Load state size: %d", header_size);
+        Debug("Load state magic: 0x%08x", header_magic);
+        Debug("Load state size: %d", header_size);
 
         if ((header_size == size) && (header_magic == GS_SAVESTATE_MAGIC))
         {

@@ -143,7 +143,7 @@ void Memory::LoadSlotsFromROM(u8* pTheROM, int size)
     {
         m_pMap[i] = pTheROM[i];
     }
-    Log("%d bytes copied from cartridge", i);
+    Debug("%d bytes copied from cartridge", i);
 }
 
 void Memory::MemoryDump(const char* szFilePath)
@@ -325,7 +325,7 @@ void Memory::SetPort3E(u8 port3E)
         bool io = !IsSetBit(port3E, 2);
         if (io != m_bIOEnabled)
         {
-            Log("Port 3E: IO %s", io ? "enabled" : "disabled");
+            Debug("Port 3E: IO %s", io ? "enabled" : "disabled");
             m_bIOEnabled = io;
         }
     }
@@ -333,22 +333,22 @@ void Memory::SetPort3E(u8 port3E)
     if (cartridge)
     {
         m_MediaSlot = CartridgeSlot;
-        Log("Port 3E: Cartridge");
+        Debug("Port 3E: Cartridge");
     }
     else if (bios)
     {
         m_MediaSlot = BiosSlot;
-        Log("Port 3E: BIOS");
+        Debug("Port 3E: BIOS");
     }
     else if (expansion && !m_bGameGear)
     {
         m_MediaSlot = ExpansionSlot;
-        Log("Port 3E: Expansion");
+        Debug("Port 3E: Expansion");
     }
     else if (card && !m_bGameGear)
     {
         m_MediaSlot = CardSlot;
-        Log("Port 3E: Card");
+        Debug("Port 3E: Card");
     }
 
     if (oldSlot != m_MediaSlot)

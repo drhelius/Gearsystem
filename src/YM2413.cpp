@@ -153,7 +153,7 @@ void YM2413::Sync()
 
             if (m_iBufferIndex >= GS_AUDIO_BUFFER_SIZE)
             {
-                Log("YM2413 Audio buffer overflow");
+                Debug("YM2413 Audio buffer overflow");
                 m_iBufferIndex = 0;
             }
         }

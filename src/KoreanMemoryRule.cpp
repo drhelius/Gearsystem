@@ -53,7 +53,7 @@ void KoreanMemoryRule::PerformWrite(u16 address, u8 value)
     if (address < 0x8000)
     {
         // ROM page 0 and 1
-        Log("--> ** Attempting to write on ROM address $%X %X", address, value);
+        Debug("--> ** Attempting to write on ROM address $%X %X", address, value);
     }
     else if (address < 0xC000)
     {
@@ -65,7 +65,7 @@ void KoreanMemoryRule::PerformWrite(u16 address, u8 value)
         else
         {
             // ROM page 2
-            Log("--> ** Attempting to write on ROM page 2 $%X %X", address, value);
+            Debug("--> ** Attempting to write on ROM page 2 $%X %X", address, value);
         }
     }
     else if (address < 0xE000)

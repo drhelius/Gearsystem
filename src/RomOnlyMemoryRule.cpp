@@ -40,7 +40,7 @@ void RomOnlyMemoryRule::PerformWrite(u16 address, u8 value)
     if (address < 0xC000)
     {
         // ROM page 0, 1 and 2
-        Log("--> ** Attempting to write on ROM address $%X %X", address, value);
+        Debug("--> ** Attempting to write on ROM address $%X %X", address, value);
     }
     else if (address < 0xE000)
     {

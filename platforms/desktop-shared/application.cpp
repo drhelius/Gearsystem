@@ -152,6 +152,9 @@ static int sdl_init(void)
     SDL_VERSION(&application_sdl_build_version);
     SDL_GetVersion(&application_sdl_link_version);
 
+    Log("Using SDL %d.%d.%d (build)", application_sdl_build_version.major, application_sdl_build_version.minor, application_sdl_build_version.patch);
+    Log("Using SDL %d.%d.%d (link) ", application_sdl_link_version.major, application_sdl_link_version.minor, application_sdl_link_version.patch);
+
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
@@ -169,7 +172,7 @@ static int sdl_init(void)
 
     if (application_gamepad_mappings > 0)
     {
-        Log("Succesfuly loaded %d game controller mappings", application_gamepad_mappings);
+        Debug("Succesfuly loaded %d game controller mappings", application_gamepad_mappings);
     }
     else
     {
@@ -190,7 +193,7 @@ static int sdl_init(void)
             }
             else
             {
-                Log("Game controller %d correctly detected", i);
+                Debug("Game controller %d correctly detected", i);
                 gamepads_found++;
 
                 if (gamepads_found > 2)

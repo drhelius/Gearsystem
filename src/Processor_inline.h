@@ -140,7 +140,7 @@ inline void Processor::SetInterruptMode(int mode)
     }
     else
     {
-        Log("--> ** Attempting to set interrupt mode %d", mode);
+        Debug("--> ** Attempting to set interrupt mode %d", mode);
     }
 }
 

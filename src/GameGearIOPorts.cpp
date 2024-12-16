@@ -73,7 +73,7 @@ u8 GameGearIOPorts::DoInput(u8 port)
     else if (port < 0x40)
     {
         // Reads return $FF (GG)
-        Log("--> ** Attempting to read from port $%X", port);
+        Debug("--> ** Attempting to read from port $%X", port);
         return 0xFF;
     }
     else if ((port >= 0x40) && (port < 0x80))
@@ -113,7 +113,7 @@ u8 GameGearIOPorts::DoInput(u8 port)
             }
             default:
             {
-                Log("--> ** Attempting to read from port $%X", port);
+                Debug("--> ** Attempting to read from port $%X", port);
                 return 0xFF;
             }
         }
@@ -140,7 +140,7 @@ void GameGearIOPorts::DoOutput(u8 port, u8 value)
         // Writes to odd addresses go to I/O control register.
         if ((port & 0x01) == 0x00)
         {
-            Log("--> ** Output to memory control port $%X: %X", port, value);
+            Debug("--> ** Output to memory control port $%X: %X", port, value);
             m_pMemory->SetPort3E(value);
         }
         else
@@ -174,15 +174,15 @@ void GameGearIOPorts::DoOutput(u8 port, u8 value)
         // Writes have no effect.
         if ((port == 0xDE) || (port == 0xDF))
         {
-            Log("--> ** Output to keyboard port $%X: %X", port, value);
+            Debug("--> ** Output to keyboard port $%X: %X", port, value);
         }
         else if ((port == 0xF0) || (port == 0xF1) || (port == 0xF2))
         {
-            Log("--> ** Output to YM2413 port $%X: %X", port, value);
+            Debug("--> ** Output to YM2413 port $%X: %X", port, value);
         }
         else
         {
-            Log("--> ** Output to port $%X: %X", port, value);
+            Debug("--> ** Output to port $%X: %X", port, value);
         }
     }
 #endif

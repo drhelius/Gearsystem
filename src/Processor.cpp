@@ -300,17 +300,17 @@ void Processor::InvalidOPCode()
     {
         case 0xCB:
         {
-            Log("--> ** INVALID CB OP Code (%X) at $%.4X -- %s", opcode, opcode_address, kOPCodeCBNames[opcode]);
+            Debug("--> ** INVALID CB OP Code (%X) at $%.4X -- %s", opcode, opcode_address, kOPCodeCBNames[opcode]);
             break;
         }
         case 0xED:
         {
-            Log("--> ** INVALID ED OP Code (%X) at $%.4X -- %s", opcode, opcode_address, kOPCodeEDNames[opcode]);
+            Debug("--> ** INVALID ED OP Code (%X) at $%.4X -- %s", opcode, opcode_address, kOPCodeEDNames[opcode]);
             break;
         }
         default:
         {
-            Log("--> ** INVALID OP Code (%X) at $%.4X -- %s", opcode, opcode_address, kOPCodeNames[opcode]);
+            Debug("--> ** INVALID OP Code (%X) at $%.4X -- %s", opcode, opcode_address, kOPCodeNames[opcode]);
         }
     }
 #endif
@@ -322,7 +322,7 @@ void Processor::UndocumentedOPCode()
     u16 opcode_address = PC.GetValue() - 1;
     u8 opcode = m_pMemory->Read(opcode_address);
 
-    Log("--> ** UNDOCUMENTED OP Code (%X) at $%.4X -- %s", opcode, opcode_address, kOPCodeNames[opcode]);
+    Debug("--> ** UNDOCUMENTED OP Code (%X) at $%.4X -- %s", opcode, opcode_address, kOPCodeNames[opcode]);
 #endif
 }
 

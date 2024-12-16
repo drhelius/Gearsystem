@@ -70,12 +70,12 @@ void BootromMemoryRule::PerformWrite(u16 address, u8 value)
     if (address < 0x8000)
     {
         // ROM page 0 and 1
-        Log("--> ** Attempting to write on ROM address $%X %X", address, value);
+        Debug("--> ** Attempting to write on ROM address $%X %X", address, value);
     }
     else if (address < 0xC000)
     {
         // ROM page 2
-        Log("--> ** Attempting to write on ROM page 2 $%X %X", address, value);
+        Debug("--> ** Attempting to write on ROM page 2 $%X %X", address, value);
     }
     else if (address < 0xE000)
     {
@@ -93,7 +93,7 @@ void BootromMemoryRule::PerformWrite(u16 address, u8 value)
         {
             case 0xFFFC:
             {
-                Log("--> ** Boot Attempting to write on RAM setup registry $%X %X", address, value);
+                Debug("--> ** Boot Attempting to write on RAM setup registry $%X %X", address, value);
                 break;
             }
             case 0xFFFD:
