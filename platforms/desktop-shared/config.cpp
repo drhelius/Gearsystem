@@ -170,6 +170,7 @@ void config_read(void)
     config_debug.show_processor = read_bool("Debug", "Processor", true);
     config_debug.show_video = read_bool("Debug", "Video", false);
     config_debug.font_size = read_int("Debug", "FontSize", 0);
+    config_debug.multi_viewport = read_bool("Debug", "MultiViewport", false);
 
     for (int i = 0; i < gui_ShortCutEventMax; i++)
     {
@@ -286,6 +287,7 @@ void config_write(void)
     write_bool("Debug", "Processor", config_debug.show_processor);
     write_bool("Debug", "Video", config_debug.show_video);
     write_int("Debug", "FontSize", config_debug.font_size);
+    write_bool("Debug", "MultiViewport", config_debug.multi_viewport);
 
     write_bool("Emulator", "FullScreen", config_emulator.fullscreen);
     write_bool("Emulator", "ShowMenu", config_emulator.show_menu);
