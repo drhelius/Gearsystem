@@ -19,6 +19,7 @@
 
 #include "imgui/imgui.h"
 #include "imgui/memory_editor.h"
+#include "imgui/colors.h"
 #include "imgui/fonts/RobotoMedium.h"
 #include "config.h"
 #include "emu.h"
@@ -1512,18 +1513,115 @@ static void popup_modal_about(void)
 {
     if (ImGui::BeginPopupModal("About " GEARSYSTEM_TITLE, NULL, ImGuiWindowFlags_AlwaysAutoResize))
     {
-        ImGui::Text("%s %s", GEARSYSTEM_TITLE, GEARSYSTEM_VERSION);
-        ImGui::Text("Build: %s", EMULATOR_BUILD);
-        
-        ImGui::Separator();
-        
-        ImGui::Text("By Ignacio Sánchez (twitter.com/drhelius)");
-        ImGui::Text("%s is licensed under the GPL-3.0 License, see LICENSE for more information.", GEARSYSTEM_TITLE);
-        
-        ImGui::Separator();
+        ImGui::PushFont(gui_default_font);
+        ImGui::TextColored(cyan, "%s\n", GEARSYSTEM_TITLE_ASCII);
+
+        ImGui::TextColored(orange, "  By Ignacio Sánchez (DrHelius)");
+        ImGui::Text(" "); ImGui::SameLine();
+        ImGui::TextLink("https://github.com/drhelius/Gearsystem");
+        ImGui::Text(" "); ImGui::SameLine();
+        ImGui::TextLink("https://x.com/drhelius");
+        ImGui::NewLine();
+
+        ImGui::PopFont();
 
         if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None))
         {
+            if (ImGui::BeginTabItem("Build Info"))
+            {
+                ImGui::BeginChild("build", ImVec2(0, 100), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+
+                ImGui::Text("Build: %s", GEARSYSTEM_VERSION);
+
+                #if defined(__DATE__) && defined(__TIME__)
+                ImGui::Text("Built on: %s - %s", __DATE__, __TIME__);
+                #endif
+                #if defined(_M_ARM64)
+                ImGui::Text("Windows ARM64 build");
+                #endif
+                #if defined(_M_X64)
+                ImGui::Text("Windows 64 bit build");
+                #endif
+                #if defined(_M_IX86)
+                ImGui::Text("Windows 32 bit build");
+                #endif
+                #if defined(__linux__) && defined(__x86_64__)
+                ImGui::Text("Linux 64 bit build");
+                #endif
+                #if defined(__linux__) && defined(__i386__)
+                ImGui::Text("Linux 32 bit build");
+                #endif
+                #if defined(__linux__) && defined(__arm__)
+                ImGui::Text("Linux ARM build");
+                #endif
+                #if defined(__linux__) && defined(__aarch64__)
+                ImGui::Text("Linux ARM64 build");
+                #endif
+                #if defined(__APPLE__) && defined(__arm64__ )
+                ImGui::Text("macOS build (Apple Silicon)");
+                #endif
+                #if defined(__APPLE__) && defined(__x86_64__)
+                ImGui::Text("macOS build (Intel)");
+                #endif
+                #if defined(__ANDROID__)
+                ImGui::Text("Android build");
+                #endif
+                #if defined(_MSC_FULL_VER)
+                ImGui::Text("Microsoft C++ %d", _MSC_FULL_VER);
+                #endif
+                #if defined(_MSVC_LANG)
+                ImGui::Text("MSVC %d", _MSVC_LANG);
+                #endif
+                #if defined(__CLR_VER)
+                ImGui::Text("CLR version: %d", __CLR_VER);
+                #endif
+                #if defined(__MINGW32__)
+                ImGui::Text("MinGW 32 bit (%d.%d)", __MINGW32_MAJOR_VERSION, __MINGW32_MINOR_VERSION);
+                #endif
+                #if defined(__MINGW64__)
+                ImGui::Text("MinGW 64 bit (%d.%d)", __MINGW64_VERSION_MAJOR, __MINGW64_VERSION_MINOR);
+                #endif
+                #if defined(__GNUC__) && !defined(__llvm__) && !defined(__INTEL_COMPILER)
+                ImGui::Text("GCC %d.%d.%d", (int)__GNUC__, (int)__GNUC_MINOR__, (int)__GNUC_PATCHLEVEL__);
+                #endif
+                #if defined(__clang_version__)
+                ImGui::Text("Clang %s", __clang_version__);
+                #endif
+                ImGui::Text("SDL %d.%d.%d (build)", application_sdl_build_version.major, application_sdl_build_version.minor, application_sdl_build_version.patch);
+                ImGui::Text("SDL %d.%d.%d (link) ", application_sdl_link_version.major, application_sdl_link_version.minor, application_sdl_link_version.patch);
+                ImGui::Text("OpenGL %s", renderer_opengl_version);
+                #if !defined(__APPLE__)
+                ImGui::Text("GLEW %s", renderer_glew_version);
+                #endif
+                ImGui::Text("Dear ImGui %s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
+
+                #if defined(DEBUG)
+                ImGui::Text("define: DEBUG");
+                #endif
+                #if defined(DEBUG_GEARSYSTEM)
+                ImGui::Text("define: DEBUG_GEARSYSTEM");
+                #endif
+                #if defined(GEARSYSTEM_NO_OPTIMIZATIONS)
+                ImGui::Text("define: GEARSYSTEM_NO_OPTIMIZATIONS");
+                #endif
+                #if defined(__cplusplus)
+                ImGui::Text("define: __cplusplus = %d", (int)__cplusplus);
+                #endif
+                #if defined(__STDC__)
+                ImGui::Text("define: __STDC__ = %d", (int)__STDC__);
+                #endif
+                #if defined(__STDC_VERSION__)
+                ImGui::Text("define: __STDC_VERSION__ = %d", (int)__STDC_VERSION__);
+                #endif
+                #if defined(IS_LITTLE_ENDIAN)
+                ImGui::Text("define: IS_LITTLE_ENDIAN");
+                #endif
+                #if defined(IS_BIG_ENDIAN)
+                ImGui::Text("define: IS_BIG_ENDIAN");
+                #endif
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
             if (ImGui::BeginTabItem("Special thanks to"))
             {
                 ImGui::BeginChild("backers", ImVec2(0, 100), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
@@ -1541,101 +1639,24 @@ static void popup_modal_about(void)
             ImGui::EndTabBar();
         }
 
-        ImGui::Separator();
-        
-        #if defined(_M_ARM64)
-        ImGui::Text("Windows ARM64 build");
-        #endif
-        #if defined(_M_X64)
-        ImGui::Text("Windows 64 bit build");
-        #endif
-        #if defined(_M_IX86)
-        ImGui::Text("Windows 32 bit build");
-        #endif
-        #if defined(__linux__) && defined(__x86_64__)
-        ImGui::Text("Linux 64 bit build");
-        #endif
-        #if defined(__linux__) && defined(__i386__)
-        ImGui::Text("Linux 32 bit build");
-        #endif
-        #if defined(__linux__) && defined(__arm__)
-        ImGui::Text("Linux ARM build");
-        #endif
-        #if defined(__linux__) && defined(__aarch64__)
-        ImGui::Text("Linux ARM64 build");
-        #endif
-        #if defined(__APPLE__) && defined(__arm64__ )
-        ImGui::Text("macOS build (Apple Silicon)");
-        #endif
-        #if defined(__APPLE__) && defined(__x86_64__)
-        ImGui::Text("macOS build (Intel)");
-        #endif
-        #if defined(_MSC_FULL_VER)
-        ImGui::Text("Microsoft C++ %d", _MSC_FULL_VER);
-        #endif
-        #if defined(__CLR_VER)
-        ImGui::Text("CLR version: %d", __CLR_VER);
-        #endif
-        #if defined(__MINGW32__)
-        ImGui::Text("MinGW 32 bit (%d.%d)", __MINGW32_MAJOR_VERSION, __MINGW32_MINOR_VERSION);
-        #endif
-        #if defined(__MINGW64__)
-        ImGui::Text("MinGW 64 bit (%d.%d)", __MINGW64_VERSION_MAJOR, __MINGW64_VERSION_MINOR);
-        #endif
-        #if defined(__GNUC__) && !defined(__llvm__) && !defined(__INTEL_COMPILER)
-        ImGui::Text("GCC %d.%d.%d", (int)__GNUC__, (int)__GNUC_MINOR__, (int)__GNUC_PATCHLEVEL__);
-        #endif
-        #if defined(__clang_version__)
-        ImGui::Text("Clang %s", __clang_version__);
-        #endif
-        #if defined(__TIMESTAMP__)
-        ImGui::Text("Generated on: %s", __TIMESTAMP__);
-        #endif
-
-        ImGui::Separator();
-
-        #ifdef DEBUG
-        ImGui::Text("define: DEBUG");
-        #endif
-        #ifdef DEBUG_GEARSYSTEM
-        ImGui::Text("define: DEBUG_GEARSYSTEM");
-        #endif
-        #ifdef __cplusplus
-        ImGui::Text("define: __cplusplus = %d", (int)__cplusplus);
-        #endif
-        #ifdef __STDC__
-        ImGui::Text("define: __STDC__ = %d", (int)__STDC__);
-        #endif
-        #ifdef __STDC_VERSION__
-        ImGui::Text("define: __STDC_VERSION__ = %d", (int)__STDC_VERSION__);
-        #endif
-        
-        ImGui::Separator();
-
-        ImGui::Text("SDL %d.%d.%d (build)", application_sdl_build_version.major, application_sdl_build_version.minor, application_sdl_build_version.patch);
-        ImGui::Text("SDL %d.%d.%d (link) ", application_sdl_link_version.major, application_sdl_link_version.minor, application_sdl_link_version.patch);
-        ImGui::Text("OpenGL %s", renderer_opengl_version);
-        #ifndef __APPLE__
-        ImGui::Text("GLEW %s", renderer_glew_version);
-        #endif
-        ImGui::Text("Dear ImGui %s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
-
+        ImGui::NewLine();
         ImGui::Separator();
 
         for (int i = 0; i < 2; i++)
         {
             if (application_gamepad[i])
-                ImGui::Text("Gamepad detected for Player %d", i+1);
+                ImGui::Text("> Gamepad detected for Player %d", i+1);
             else
-                ImGui::Text("No gamepad detected for Player %d", i+1);
+                ImGui::Text("> No gamepad detected for Player %d", i+1);
         }
 
         if (application_gamepad_mappings > 0)
-            ImGui::Text("%d gamepad mappings loaded", application_gamepad_mappings);
+            ImGui::Text("%d game controller mappings loaded from gamecontrollerdb.txt", application_gamepad_mappings);
         else
-            ImGui::Text("Gamepad database not found");
+            ImGui::Text("ERROR: Game controller database not found (gamecontrollerdb.txt)!!");
 
         ImGui::Separator();
+        ImGui::NewLine();
 
         if (ImGui::Button("OK", ImVec2(120, 0))) 
         {

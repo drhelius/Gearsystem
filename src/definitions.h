@@ -37,8 +37,12 @@
 #define PERFORMANCE
 #endif
 
+#if !defined(EMULATOR_BUILD)
+    #define EMULATOR_BUILD "undefined"
+#endif
+
 #define GEARSYSTEM_TITLE "Gearsystem"
-#define GEARSYSTEM_VERSION "3.5.0"
+#define GEARSYSTEM_VERSION EMULATOR_BUILD
 #define GEARSYSTEM_TITLE_ASCII "" \
 "   ____                               _                  \n" \
 "  / ___| ___  __ _ _ __ ___ _   _ ___| |_ ___ _ __ ___   \n" \
@@ -46,10 +50,6 @@
 " | |_| |  __/ (_| | |  \\__ \\ |_| \\__ \\ ||  __/ | | | | | \n" \
 "  \\____|\\___|\\__,_|_|  |___/\\__, |___/\\__\\___|_| |_| |_| \n" \
 "                            |___/                        \n"
-
-#ifndef EMULATOR_BUILD
-#define EMULATOR_BUILD "undefined"
-#endif
 
 #ifndef NULL
 #define NULL 0
@@ -255,5 +255,19 @@ inline unsigned int Pow2Ceil(u16 n)
     ++n;
     return n;
 }
+
+#if !defined(DEBUG_GEARSYSTEM)
+    #if defined(__GNUC__) || defined(__clang__)
+        #if !defined(__OPTIMIZE__) && !defined(__OPTIMIZE_SIZE__)
+            #warning "Compiling without optimizations."
+            #define GEARSYSTEM_NO_OPTIMIZATIONS
+        #endif
+    #elif defined(_MSC_VER)
+        #if !defined(NDEBUG)
+            #pragma message("Compiling without optimizations.")
+            #define GEARSYSTEM_NO_OPTIMIZATIONS
+        #endif
+    #endif
+#endif
 
 #endif	/* DEFINITIONS_H */
