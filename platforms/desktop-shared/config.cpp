@@ -218,6 +218,9 @@ void config_read(void)
     }
 
     config_video.scale = read_int("Video", "Scale", 0);
+    if (config_video.scale > 3)
+        config_video.scale -= 2;
+    config_video.scale_manual = read_int("Video", "ScaleManual", 1);
     config_video.ratio = read_int("Video", "AspectRatio", 1);
     config_video.overscan = read_int("Video", "Overscan", 1);
     config_video.fps = read_bool("Video", "FPS", false);
@@ -314,6 +317,7 @@ void config_write(void)
     }
 
     write_int("Video", "Scale", config_video.scale);
+    write_int("Video", "ScaleManual", config_video.scale_manual);
     write_int("Video", "AspectRatio", config_video.ratio);
     write_int("Video", "Overscan", config_video.overscan);
     write_bool("Video", "FPS", config_video.fps);
