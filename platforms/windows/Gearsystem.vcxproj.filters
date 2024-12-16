@@ -66,10 +66,16 @@
     <ClCompile Include="..\desktop-shared\imgui\imgui_impl_opengl2.cpp">
       <Filter>desktop_shared\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\imgui\imgui_impl_sdl.cpp">
+    <ClCompile Include="..\desktop-shared\imgui\imgui_impl_sdl2.cpp">
+      <Filter>desktop_shared\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\imgui\imgui_tables.cpp">
       <Filter>desktop_shared\imgui</Filter>
     </ClCompile>
     <ClCompile Include="..\desktop-shared\imgui\imgui_widgets.cpp">
+      <Filter>desktop_shared\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\imgui\memory_editor.cpp">
       <Filter>desktop_shared\imgui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Audio.cpp">
@@ -185,6 +191,9 @@
     <ClInclude Include="..\desktop-shared\renderer.h">
       <Filter>desktop_shared</Filter>
     </ClInclude>
+    <ClInclude Include="..\desktop-shared\imgui\colors.h">
+      <Filter>desktop_shared\imgui</Filter>
+    </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\imconfig.h">
       <Filter>desktop_shared\imgui</Filter>
     </ClInclude>
@@ -194,10 +203,13 @@
     <ClInclude Include="..\desktop-shared\imgui\imgui_impl_opengl2.h">
       <Filter>desktop_shared\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\desktop-shared\imgui\imgui_impl_sdl.h">
+    <ClInclude Include="..\desktop-shared\imgui\imgui_impl_sdl2.h">
       <Filter>desktop_shared\imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\imgui_internal.h">
+      <Filter>desktop_shared\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\imgui\imgui_tables.h">
       <Filter>desktop_shared\imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\imstb_rectpack.h">
@@ -207,6 +219,9 @@
       <Filter>desktop_shared\imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\imstb_truetype.h">
+      <Filter>desktop_shared\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\imgui\memory_editor.h">
       <Filter>desktop_shared\imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\fonts\RobotoMedium.h">

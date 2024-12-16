@@ -19,7 +19,8 @@
 
 #include <math.h>
 #include "imgui/imgui.h"
-#include "imgui/imgui_memory_editor.h"
+#include "imgui/memory_editor.h"
+#include "imgui/colors.h"
 #include "config.h"
 #include "emu.h"
 #include "renderer.h"
@@ -45,18 +46,9 @@ struct DisassmeblerLine
     std::string symbol;
 };
 
-static MemoryEditor mem_edit;
-static ImVec4 cyan = ImVec4(0.1f,0.9f,0.9f,1.0f);
-static ImVec4 magenta = ImVec4(1.0f,0.502f,0.957f,1.0f);
-static ImVec4 yellow = ImVec4(1.0f,0.90f,0.05f,1.0f);
-static ImVec4 orange = ImVec4(0.992f,0.592f,0.122f,1.0f);
-static ImVec4 red = ImVec4(0.976f,0.149f,0.447f,1.0f);
-static ImVec4 green = ImVec4(0.1f,0.9f,0.1f,1.0f);
-static ImVec4 violet = ImVec4(0.682f,0.506f,1.0f,1.0f);
-static ImVec4 blue = ImVec4(0.2f,0.4f,1.0f,1.0f);
-static ImVec4 white = ImVec4(1.0f,1.0f,1.0f,1.0f);
-static ImVec4 gray = ImVec4(0.5f,0.5f,0.5f,1.0f);
-static ImVec4 dark_gray = ImVec4(0.1f,0.1f,0.1f,1.0f);
+static MemEditor mem_edit[10];
+static int mem_edit_select = -1;
+static int current_mem_edit = 0;
 static std::vector<DebugSymbol> symbols;
 static Memory::stDisassembleRecord* selected_record = NULL;
 static char brk_address_cpu[8] = "";
@@ -68,9 +60,11 @@ static bool goto_address_requested = false;
 static u16 goto_address_target = 0;
 static bool goto_back_requested = false;
 static int goto_back = 0;
+static char set_value_buffer[5] = {0};
 
 static void debug_window_processor(void);
 static void debug_window_memory(void);
+static void memory_editor_menu(void);
 static void debug_window_disassembler(void);
 static void debug_window_vram(void);
 static void debug_window_vram_background(void);
@@ -203,12 +197,144 @@ void gui_debug_go_back(void)
     goto_back_requested = true;
 }
 
+void gui_debug_copy_memory(void)
+{
+    mem_edit[current_mem_edit].Copy();
+}
+
+void gui_debug_paste_memory(void)
+{
+    mem_edit[current_mem_edit].Paste();
+}
+
+static void memory_editor_menu(void)
+{
+    ImGui::BeginMenuBar();
+
+    if (ImGui::BeginMenu("File"))
+    {
+        if (ImGui::MenuItem("Save Memory As..."))
+        {
+            nfdchar_t *outPath;
+            nfdfilteritem_t filterItem[1] = { { "Memory Dump Files", "txt" } };
+            nfdresult_t result = NFD_SaveDialog(&outPath, filterItem, 1, NULL, NULL);
+            if (result == NFD_OKAY)
+            {
+                mem_edit[current_mem_edit].SaveToFile(outPath);
+                NFD_FreePath(outPath);
+            }
+            else if (result != NFD_CANCEL)
+            {
+                Log("Save Memory Dump Error: %s", NFD_GetError());
+            }
+        }
+
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Edit"))
+    {
+        if (ImGui::MenuItem("Copy", "Ctrl+C"))
+        {
+            gui_debug_copy_memory();
+        }
+
+        if (ImGui::MenuItem("Paste", "Ctrl+V"))
+        {
+            gui_debug_paste_memory();
+        }
+
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Selection"))
+    {
+        if (ImGui::MenuItem("Select All", "Ctrl+A"))
+        {
+            mem_edit[current_mem_edit].SelectAll();
+        }
+
+        if (ImGui::MenuItem("Clear Selection"))
+        {
+            mem_edit[current_mem_edit].ClearSelection();
+        }
+
+        if (ImGui::BeginMenu("Set value"))
+        {
+            ImGui::SetNextItemWidth(50);
+            if (ImGui::InputTextWithHint("##set_value", "XXXX", set_value_buffer, IM_ARRAYSIZE(set_value_buffer), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase))
+            {
+                try
+                {
+                    mem_edit[current_mem_edit].SetValueToSelection((int)std::stoul(set_value_buffer, 0, 16));
+                    set_value_buffer[0] = 0;
+                }
+                catch(const std::invalid_argument&)
+                {
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Set!", ImVec2(40, 0)))
+            {
+                try
+                {
+                    mem_edit[current_mem_edit].SetValueToSelection((int)std::stoul(set_value_buffer, 0, 16));
+                    set_value_buffer[0] = 0;
+                }
+                catch(const std::invalid_argument&)
+                {
+                }
+            }
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Bookmarks"))
+    {
+        if (ImGui::MenuItem("Clear All"))
+        {
+            mem_edit[current_mem_edit].RemoveBookmarks();
+        }
+
+        if (ImGui::MenuItem("Add Bookmark"))
+        {
+            mem_edit[current_mem_edit].AddBookmark();
+        }
+
+        std::vector<MemEditor::Bookmark>* bookmarks = mem_edit[current_mem_edit].GetBookmarks();
+
+        if (bookmarks->size() > 0)
+            ImGui::Separator();
+
+        for (long unsigned int i = 0; i < bookmarks->size(); i++)
+        {
+            MemEditor::Bookmark* bookmark = &(*bookmarks)[i];
+
+            char label[80];
+            snprintf(label, 80, "$%04X: %s", bookmark->address, bookmark->name);
+
+            if (ImGui::MenuItem(label))
+            {
+                mem_edit[current_mem_edit].JumpToAddress(bookmark->address);
+            }
+        }
+
+        ImGui::EndMenu();
+    }
+
+    ImGui::EndMenuBar();
+}
+
 static void debug_window_memory(void)
 {
     ImGui::SetNextWindowPos(ImVec2(160, 380), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(482, 308), ImGuiCond_FirstUseEver);
 
-    ImGui::Begin("Memory Editor", &config_debug.show_memory);
+    ImGui::Begin("Memory Editor", &config_debug.show_memory, ImGuiWindowFlags_MenuBar);
+
+    memory_editor_menu();
 
     GearsystemCore* core = emu_get_core();
     Memory* memory = core->GetMemory();
@@ -239,84 +365,114 @@ static void debug_window_memory(void)
     {
         if (cart->GetType() == Cartridge::CartridgeSegaMapper)
         {
-            if (ImGui::BeginTabItem("FIXED 1KB"))
+            if (ImGui::BeginTabItem("FIXED 1KB", NULL, mem_edit_select == 0 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
             {
                 ImGui::PushFont(gui_default_font);
-                mem_edit.DrawContents(memory->GetMemoryMap(), 0x400, 0);
+                if (mem_edit_select == 0)
+                    mem_edit_select = -1;
+                current_mem_edit = 0;
+                mem_edit[current_mem_edit].Draw(memory->GetMemoryMap(), 0x400, 0);
                 ImGui::PopFont();
                 ImGui::EndTabItem();
             }
 
-            if (ImGui::BeginTabItem("PAGE0"))
+            if (ImGui::BeginTabItem("PAGE0", NULL, mem_edit_select == 1 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
             {
                 ImGui::PushFont(gui_default_font);
-                mem_edit.DrawContents(memory->GetCurrentRule()->GetPage(0) + 0x400, 0x4000 - 0x400, 0x400);
+                if (mem_edit_select == 1)
+                    mem_edit_select = -1;
+                current_mem_edit = 1;
+                mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetPage(0) + 0x400, 0x4000 - 0x400, 0x400);
                 ImGui::PopFont();
                 ImGui::EndTabItem();
             }
         } 
-        else if (ImGui::BeginTabItem("PAGE0"))
+        else if (ImGui::BeginTabItem("PAGE0", NULL, mem_edit_select == 2 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
         {
             ImGui::PushFont(gui_default_font);
-            mem_edit.DrawContents(memory->GetCurrentRule()->GetPage(0), 0x4000, 0);
+            if (mem_edit_select == 2)
+                    mem_edit_select = -1;
+                current_mem_edit = 2;
+            mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetPage(0), 0x4000, 0);
             ImGui::PopFont();
             ImGui::EndTabItem();
         }
 
-        if (ImGui::BeginTabItem("PAGE1"))
+        if (ImGui::BeginTabItem("PAGE1", NULL, mem_edit_select == 3 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
         {
             ImGui::PushFont(gui_default_font);
-            mem_edit.DrawContents(memory->GetCurrentRule()->GetPage(1), 0x4000, 0x4000);
+            if (mem_edit_select == 3)
+                    mem_edit_select = -1;
+                current_mem_edit = 3;
+            mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetPage(1), 0x4000, 0x4000);
             ImGui::PopFont();
             ImGui::EndTabItem();
         }
 
         if ((cart->GetType() == Cartridge::CartridgeCodemastersMapper) && IsValidPointer(memory->GetCurrentRule()->GetRamBanks()))
         {
-            if (ImGui::BeginTabItem("PAGE2"))
+            if (ImGui::BeginTabItem("PAGE2", NULL, mem_edit_select == 4 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
             {
                 ImGui::PushFont(gui_default_font);
-                mem_edit.DrawContents(memory->GetCurrentRule()->GetPage(2), 0x2000, 0x8000);
+                if (mem_edit_select == 4)
+                    mem_edit_select = -1;
+                current_mem_edit = 4;
+                mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetPage(2), 0x2000, 0x8000);
                 ImGui::PopFont();
                 ImGui::EndTabItem();
             }
 
-            if (ImGui::BeginTabItem("EXT RAM"))
+            if (ImGui::BeginTabItem("EXT RAM", NULL, mem_edit_select == 5 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
             {
                 ImGui::PushFont(gui_default_font);
-                mem_edit.DrawContents(memory->GetCurrentRule()->GetRamBanks(), 0x2000, 0xA000);
+                if (mem_edit_select == 5)
+                    mem_edit_select = -1;
+                current_mem_edit = 5;
+                mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetRamBanks(), 0x2000, 0xA000);
                 ImGui::PopFont();
                 ImGui::EndTabItem();
             }
         }
-        else if (ImGui::BeginTabItem("PAGE2"))
+        else if (ImGui::BeginTabItem("PAGE2", NULL, mem_edit_select == 6 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
         {
             ImGui::PushFont(gui_default_font);
-            mem_edit.DrawContents(memory->GetCurrentRule()->GetPage(2), 0x4000, 0x8000);
+            if (mem_edit_select == 6)
+                    mem_edit_select = -1;
+                current_mem_edit = 6;
+            mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetPage(2), 0x4000, 0x8000);
             ImGui::PopFont();
             ImGui::EndTabItem();
         }
 
-        if (ImGui::BeginTabItem("RAM"))
+        if (ImGui::BeginTabItem("RAM", NULL, mem_edit_select == 7 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
         {
             ImGui::PushFont(gui_default_font);
-            mem_edit.DrawContents(memory->GetMemoryMap() + 0xC000, 0x4000, 0xC000);
+            if (mem_edit_select == 7)
+                    mem_edit_select = -1;
+                current_mem_edit = 7;
+            mem_edit[current_mem_edit].Draw(memory->GetMemoryMap() + 0xC000, 0x4000, 0xC000);
             ImGui::PopFont();
             ImGui::EndTabItem();
         }
 
-        if (ImGui::BeginTabItem("VRAM"))
+        if (ImGui::BeginTabItem("VRAM", NULL, mem_edit_select == 8 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
         {
             ImGui::PushFont(gui_default_font);
-            mem_edit.DrawContents(video->GetVRAM(), 0x4000, 0);
+            if (mem_edit_select == 8)
+                    mem_edit_select = -1;
+                current_mem_edit = 8;
+            mem_edit[current_mem_edit].Draw(video->GetVRAM(), 0x4000, 0);
             ImGui::PopFont();
             ImGui::EndTabItem();
         }
 
-        if (ImGui::BeginTabItem("CRAM"))
+        if (ImGui::BeginTabItem("CRAM", NULL, mem_edit_select == 9 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
         {
             ImGui::PushFont(gui_default_font);
-            mem_edit.DrawContents(video->GetCRAM(), 0x40, 0);
+            if (mem_edit_select == 9)
+                    mem_edit_select = -1;
+                current_mem_edit = 9;
+            mem_edit[current_mem_edit].Draw(video->GetCRAM(), 0x40, 0);
             ImGui::PopFont();
             ImGui::EndTabItem();
         }
@@ -558,7 +714,7 @@ static void debug_window_disassembler(void)
 
     ImGui::PushFont(gui_default_font);
 
-    bool window_visible = ImGui::BeginChild("##dis", ImVec2(ImGui::GetWindowContentRegionWidth(), 0), true, 0);
+    bool window_visible = ImGui::BeginChild("##dis", ImVec2(ImGui::GetContentRegionAvail().x, 0), true, 0);
     
     if (window_visible)
     {
@@ -650,7 +806,8 @@ static void debug_window_disassembler(void)
             ImGui::SetScrollY((float)goto_back);
         }
 
-        ImGuiListClipper clipper(dis_size, ImGui::GetTextLineHeightWithSpacing());
+        ImGuiListClipper clipper;
+        clipper.Begin(dis_size, ImGui::GetTextLineHeightWithSpacing());
 
         while (clipper.Step())
         {
@@ -986,7 +1143,7 @@ static void debug_window_vram_background(void)
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImGuiIO& io = ImGui::GetIO();
 
-    ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_background, ImVec2(size_h, size_v), ImVec2(0.0f, 0.0f), ImVec2(1.0f, (1.0f / 32.0f) * lines));
+    ImGui::Image((ImTextureID)(intptr_t)renderer_emu_debug_vram_background, ImVec2(size_h, size_v), ImVec2(0.0f, 0.0f), ImVec2(1.0f, (1.0f / 32.0f) * lines));
 
     if (show_grid)
     {
@@ -1062,11 +1219,11 @@ static void debug_window_vram_background(void)
         tile_x = (int)(mouse_x / spacing);
         tile_y = (int)(mouse_y / spacing);
 
-        draw_list->AddRect(ImVec2(p.x + (tile_x * spacing), p.y + (tile_y * spacing)), ImVec2(p.x + ((tile_x + 1) * spacing), p.y + ((tile_y + 1) * spacing)), ImColor(cyan), 2.0f, 15, 2.0f);
+        draw_list->AddRect(ImVec2(p.x + (tile_x * spacing), p.y + (tile_y * spacing)), ImVec2(p.x + ((tile_x + 1) * spacing), p.y + ((tile_y + 1) * spacing)), ImColor(cyan), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
 
         ImGui::NextColumn();
 
-        ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_background, ImVec2(128.0f, 128.0f), ImVec2((1.0f / 32.0f) * tile_x, (1.0f / 32.0f) * tile_y), ImVec2((1.0f / 32.0f) * (tile_x + 1), (1.0f / 32.0f) * (tile_y + 1)));
+        ImGui::Image((ImTextureID)(intptr_t)renderer_emu_debug_vram_background, ImVec2(128.0f, 128.0f), ImVec2((1.0f / 32.0f) * tile_x, (1.0f / 32.0f) * tile_y), ImVec2((1.0f / 32.0f) * (tile_x + 1), (1.0f / 32.0f) * (tile_y + 1)));
 
         ImGui::TextColored(yellow, "INFO:");
 
@@ -1174,7 +1331,7 @@ static void debug_window_vram_tiles(void)
 
     p = ImGui::GetCursorScreenPos();
 
-    ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_tiles, ImVec2(width, height), ImVec2(0.0f, 0.0f), ImVec2(1.0f, (1.0f / 32.0f) * lines));
+    ImGui::Image((ImTextureID)(intptr_t)renderer_emu_debug_vram_tiles, ImVec2(width, height), ImVec2(0.0f, 0.0f), ImVec2(1.0f, (1.0f / 32.0f) * lines));
 
     if (show_grid)
     {
@@ -1204,11 +1361,11 @@ static void debug_window_vram_tiles(void)
         tile_x = (int)(mouse_x / spacing);
         tile_y = (int)(mouse_y / spacing);
 
-        draw_list->AddRect(ImVec2(p.x + (tile_x * spacing), p.y + (tile_y * spacing)), ImVec2(p.x + ((tile_x + 1) * spacing), p.y + ((tile_y + 1) * spacing)), ImColor(cyan), 2.0f, 15, 2.0f);
+        draw_list->AddRect(ImVec2(p.x + (tile_x * spacing), p.y + (tile_y * spacing)), ImVec2(p.x + ((tile_x + 1) * spacing), p.y + ((tile_y + 1) * spacing)), ImColor(cyan), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
 
         ImGui::NextColumn();
 
-        ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_tiles, ImVec2(128.0f, 128.0f), ImVec2((1.0f / 32.0f) * tile_x, (1.0f / 32.0f) * tile_y), ImVec2((1.0f / 32.0f) * (tile_x + 1), (1.0f / 32.0f) * (tile_y + 1)));
+        ImGui::Image((ImTextureID)(intptr_t)renderer_emu_debug_vram_tiles, ImVec2(128.0f, 128.0f), ImVec2((1.0f / 32.0f) * tile_x, (1.0f / 32.0f) * tile_y), ImVec2((1.0f / 32.0f) * (tile_x + 1), (1.0f / 32.0f) * (tile_y + 1)));
 
         ImGui::PushFont(gui_default_font);
 
@@ -1284,7 +1441,7 @@ static void debug_window_vram_sprites(void)
     {
         p[s] = ImGui::GetCursorScreenPos();
 
-        ImGui::Image((void*)(intptr_t)renderer_emu_debug_vram_sprites[s], ImVec2(width, height), ImVec2(0.0f, 0.0f), ImVec2((1.0f / 16.0f) * (width / scale), (1.0f / 16.0f) * (height / scale)));
+        ImGui::Image((ImTextureID)(intptr_t)renderer_emu_debug_vram_sprites[s], ImVec2(width, height), ImVec2(0.0f, 0.0f), ImVec2((1.0f / 16.0f) * (width / scale), (1.0f / 16.0f) * (height / scale)));
 
         float mouse_x = io.MousePos.x - p[s].x;
         float mouse_y = io.MousePos.y - p[s].y;
@@ -1292,7 +1449,7 @@ static void debug_window_vram_sprites(void)
         if ((mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < height))
         {
             ImDrawList* draw_list = ImGui::GetWindowDrawList();
-            draw_list->AddRect(ImVec2(p[s].x, p[s].y), ImVec2(p[s].x + width, p[s].y + height), ImColor(cyan), 2.0f, 15, 3.0f);
+            draw_list->AddRect(ImVec2(p[s].x, p[s].y), ImVec2(p[s].x + width, p[s].y + height), ImColor(cyan), 2.0f, ImDrawFlags_RoundCornersAll, 3.0f);
         }
 
         if (s % 4 < 3)
@@ -1310,7 +1467,7 @@ static void debug_window_vram_sprites(void)
     float tex_h = (float)runtime.screen_width / (float)(GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN);
     float tex_v = (float)runtime.screen_height / (float)(GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN);
 
-    ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2(runtime.screen_width * screen_scale, runtime.screen_height * screen_scale), ImVec2(0, 0), ImVec2(tex_h, tex_v));
+    ImGui::Image((ImTextureID)(intptr_t)renderer_emu_texture, ImVec2(runtime.screen_width * screen_scale, runtime.screen_height * screen_scale), ImVec2(0, 0), ImVec2(tex_h, tex_v));
 
     for (int s = 0; s < 64; s++)
     {
@@ -1392,7 +1549,7 @@ static void debug_window_vram_sprites(void)
             recty_max = fminf(fmaxf(recty_max, p_screen.y), p_screen.y + (runtime.screen_height * screen_scale));
             
             ImDrawList* draw_list = ImGui::GetWindowDrawList();
-            draw_list->AddRect(ImVec2(rectx_min, recty_min), ImVec2(rectx_max, recty_max), ImColor(cyan), 2.0f, 15, 2.0f);
+            draw_list->AddRect(ImVec2(rectx_min, recty_min), ImVec2(rectx_max, recty_max), ImColor(cyan), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
 
             ImGui::TextColored(yellow, "DETAILS:");
             ImGui::TextColored(cyan, " X:"); ImGui::SameLine();

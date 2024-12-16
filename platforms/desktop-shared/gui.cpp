@@ -18,7 +18,7 @@
  */
 
 #include "imgui/imgui.h"
-#include "imgui/imgui_memory_editor.h"
+#include "imgui/memory_editor.h"
 #include "imgui/fonts/RobotoMedium.h"
 #include "config.h"
 #include "emu.h"
@@ -36,7 +36,6 @@ static int main_menu_height;
 static bool dialog_in_use = false;
 static SDL_Scancode* configured_key;
 static int* configured_button;
-static ImVec4 custom_palette[4];
 static std::list<std::string> cheat_list;
 static bool shortcut_open_rom = false;
 static ImFont* default_font[4];
@@ -217,6 +216,14 @@ void gui_shortcut(gui_ShortCutEvent event)
     case gui_ShortcutDebugGoBack:
         if (config_debug.debug)
             gui_debug_go_back();
+        break;
+    case gui_ShortcutDebugCopy:
+        if (config_debug.debug)
+            gui_debug_copy_memory();
+        break;
+    case gui_ShortcutDebugPaste:
+        if (config_debug.debug)
+            gui_debug_paste_memory();
         break;
     case gui_ShortcutShowMainMenu:
         config_emulator.show_menu = !config_emulator.show_menu;
@@ -1201,7 +1208,7 @@ static void main_window(void)
     float tex_h = (float)runtime.screen_width / (float)(GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN);
     float tex_v = (float)runtime.screen_height / (float)(GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN);
 
-    ImGui::Image((void*)(intptr_t)renderer_emu_texture, ImVec2((float)main_window_width, (float)main_window_height), ImVec2(0, 0), ImVec2(tex_h, tex_v));
+    ImGui::Image((ImTextureID)(intptr_t)renderer_emu_texture, ImVec2((float)main_window_width, (float)main_window_height), ImVec2(0, 0), ImVec2(tex_h, tex_v));
 
     if (config_video.fps)
         show_fps();
@@ -1453,9 +1460,9 @@ static void popup_modal_keyboard()
         ImGui::Text("Press any key...\n\n");
         ImGui::Separator();
 
-        for (int i = 0; i < IM_ARRAYSIZE(ImGui::GetIO().KeysDown); i++)
+        for ( int i = 0; i < ImGuiKey_NamedKey_END; ++i )
         {
-            if (ImGui::IsKeyPressed(i))
+            if (ImGui::IsKeyDown((ImGuiKey)i))
             {
                 SDL_Scancode key = (SDL_Scancode)i;
 
