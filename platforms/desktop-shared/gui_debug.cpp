@@ -1468,8 +1468,8 @@ static void debug_window_vram_sprites(void)
 
     float screen_scale = 1.0f;
 
-    float tex_h = (float)runtime.screen_width / (float)(GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN);
-    float tex_v = (float)runtime.screen_height / (float)(GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN);
+    float tex_h = (float)runtime.screen_width / (float)(SYSTEM_TEXTURE_WIDTH);
+    float tex_v = (float)runtime.screen_height / (float)(SYSTEM_TEXTURE_HEIGHT);
 
     ImGui::Image((ImTextureID)(intptr_t)renderer_emu_texture, ImVec2(runtime.screen_width * screen_scale, runtime.screen_height * screen_scale), ImVec2(0, 0), ImVec2(tex_h, tex_v));
 

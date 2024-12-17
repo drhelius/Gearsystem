@@ -65,7 +65,7 @@ public:
     int GetSG1000Mode();
     u16 ColorFromPalette(int palette_color);
     u16* GetFrameBuffer();
-    void Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size, bool overscan = false);
+    void Render32bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size, bool overscan = false);
     void Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size, bool overscan = false);
     void SetOverscan(Overscan overscan);
     Overscan GetOverscan();

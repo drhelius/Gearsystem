@@ -43,6 +43,7 @@ u16* debug_sprite_buffers[64];
 
 static void save_ram(void);
 static void load_ram(void);
+static void reset_buffers(void);
 static const char* get_mapper(Cartridge::CartridgeTypes type);
 static const char* get_zone(Cartridge::CartridgeZones zone);
 static void init_debug(void);
@@ -57,29 +58,17 @@ static void update_debug_sprite_buffers_sg1000(void);
 
 void emu_init(void)
 {
-    int screen_size = GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN * GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN;
-
-    emu_frame_buffer = new u8[screen_size * 3];
-
-    for (int i=0, j=0; i < screen_size; i++, j+=3)
-    {
-        emu_frame_buffer[j] = 0;
-        emu_frame_buffer[j+1] = 0;
-        emu_frame_buffer[j+2] = 0;
-    }
+    emu_frame_buffer = new u8[512 * 512 * 4];
+    audio_buffer = new s16[GS_AUDIO_BUFFER_SIZE];
 
     init_debug();
+    reset_buffers();
 
     gearsystem = new GearsystemCore();
     gearsystem->Init();
 
     sound_queue = new SoundQueue();
     sound_queue->Start(GS_AUDIO_SAMPLE_RATE, 2);
-
-    audio_buffer = new s16[GS_AUDIO_BUFFER_SIZE];
-
-    for (int i = 0; i < GS_AUDIO_BUFFER_SIZE; i++)
-        audio_buffer[i] = 0;
 
     audio_enabled = true;
     emu_audio_sync = true;
@@ -104,6 +93,7 @@ void emu_destroy(void)
 
 void emu_load_rom(const char* file_path, Cartridge::ForceConfiguration config)
 {
+    reset_buffers();
     save_ram();
     gearsystem->LoadROM(file_path, &config);
     load_ram();
@@ -170,6 +160,7 @@ bool emu_is_empty(void)
 
 void emu_reset(Cartridge::ForceConfiguration config)
 {
+    reset_buffers();
     save_ram();
     gearsystem->ResetROM(&config);
     load_ram();
@@ -419,7 +410,7 @@ void emu_save_screenshot(const char* file_path)
 
     Log("Saving screenshot to %s", file_path);
 
-    stbi_write_png(file_path, runtime.screen_width, runtime.screen_height, 3, emu_frame_buffer, runtime.screen_width * 3);
+    stbi_write_png(file_path, runtime.screen_width, runtime.screen_height, 4, emu_frame_buffer, runtime.screen_width * 4);
 
     Debug("Screenshot saved!");
 }
@@ -442,6 +433,15 @@ static void load_ram(void)
         gearsystem->LoadRam(emu_savefiles_path);
     else
         gearsystem->LoadRam();
+}
+
+static void reset_buffers(void)
+{
+     for (int i = 0; i < 512 * 512 * 4; i++)
+        emu_frame_buffer[i] = 0;
+
+    for (int i = 0; i < GS_AUDIO_BUFFER_SIZE; i++)
+        audio_buffer[i] = 0;
 }
 
 static const char* get_mapper(Cartridge::CartridgeTypes type)
@@ -508,39 +508,42 @@ static const char* get_zone(Cartridge::CartridgeZones zone)
 
 static void init_debug(void)
 {
-    emu_debug_background_buffer = new u8[256 * 256 * 3];
-    emu_debug_tile_buffer = new u8[32 * 32 * 64 * 3];
+    emu_debug_background_buffer = new u8[256 * 256 * 4];
+    emu_debug_tile_buffer = new u8[32 * 32 * 64 * 4];
     debug_background_buffer = new u16[256 * 256];    
     debug_tile_buffer = new u16[32 * 32 * 64];
 
-    for (int i=0,j=0; i < (32 * 32 * 64); i++,j+=3)
+    for (int i=0,j=0; i < (32 * 32 * 64); i++,j+=4)
     {
         debug_tile_buffer[i] = 0;
         emu_debug_tile_buffer[j] = 0;
         emu_debug_tile_buffer[j+1] = 0;
         emu_debug_tile_buffer[j+2] = 0;
+        emu_debug_tile_buffer[j+3] = 0;
     }
 
     for (int s = 0; s < 64; s++)
     {
-        emu_debug_sprite_buffers[s] = new u8[16 * 16 * 3];
+        emu_debug_sprite_buffers[s] = new u8[16 * 16 * 4];
         debug_sprite_buffers[s] = new u16[16 * 16];
 
-        for (int i=0,j=0; i < (16 * 16); i++,j+=3)
+        for (int i=0,j=0; i < (16 * 16); i++,j+=4)
         {
             debug_sprite_buffers[s][i] = 0;
             emu_debug_sprite_buffers[s][j] = 0;
             emu_debug_sprite_buffers[s][j+1] = 0;
             emu_debug_sprite_buffers[s][j+2] = 0;
+            emu_debug_sprite_buffers[s][j+3] = 0;
         }
     }
 
-    for (int i=0,j=0; i < (256 * 256); i++,j+=3)
+    for (int i=0,j=0; i < (256 * 256); i++,j+=4)
     {
         debug_background_buffer[i] = 0;
         emu_debug_background_buffer[j] = 0;
         emu_debug_background_buffer[j+1] = 0;
         emu_debug_background_buffer[j+2] = 0;
+        emu_debug_background_buffer[j+3] = 0;
     }
 }
 
@@ -575,12 +578,12 @@ static void update_debug(void)
 
     Video* video = gearsystem->GetVideo();
 
-    video->Render24bit(debug_background_buffer, emu_debug_background_buffer, GS_PIXEL_RGB888, 256 * 256);
-    video->Render24bit(debug_tile_buffer, emu_debug_tile_buffer, GS_PIXEL_RGB888, 32 * 32 * 64);
+    video->Render32bit(debug_background_buffer, emu_debug_background_buffer, GS_PIXEL_RGBA8888, 256 * 256);
+    video->Render32bit(debug_tile_buffer, emu_debug_tile_buffer, GS_PIXEL_RGBA8888, 32 * 32 * 64);
 
     for (int s = 0; s < 64; s++)
     {
-        video->Render24bit(debug_sprite_buffers[s], emu_debug_sprite_buffers[s], GS_PIXEL_RGB888, 16 * 16);
+        video->Render32bit(debug_sprite_buffers[s], emu_debug_sprite_buffers[s], GS_PIXEL_RGBA8888, 16 * 16);
     }
 }
 

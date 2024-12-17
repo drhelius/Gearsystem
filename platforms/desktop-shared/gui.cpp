@@ -1231,8 +1231,8 @@ static void main_window(void)
         gui_main_window_hovered = ImGui::IsWindowHovered();
     }
 
-    float tex_h = (float)runtime.screen_width / (float)(GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN);
-    float tex_v = (float)runtime.screen_height / (float)(GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN);
+    float tex_h = (float)runtime.screen_width / (float)(SYSTEM_TEXTURE_WIDTH);
+    float tex_v = (float)runtime.screen_height / (float)(SYSTEM_TEXTURE_HEIGHT);
 
     ImGui::Image((ImTextureID)(intptr_t)renderer_emu_texture, ImVec2((float)main_window_width, (float)main_window_height), ImVec2(0, 0), ImVec2(tex_h, tex_v));
 

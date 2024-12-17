@@ -909,7 +909,7 @@ void Video::RenderSpritesSG1000(int line)
         m_VdpStatus = SetBit(m_VdpStatus, 5);
 }
 
-void Video::Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size, bool overscan)
+void Video::Render32bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size, bool overscan)
 {
     int x = 0;
     int y = 0;
@@ -921,11 +921,11 @@ void Video::Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
     int overscan_total_height = 0;
     bool overscan_enabled = false;
     int overscan_color = m_bSG1000 ? m_VdpRegister[7] & 0x0F : ColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
-    int buffer_size = size * 3;    
+    int buffer_size = size * 4;    
     int shift_g = m_bGameGear ? 4 : 2;
     int shift_b = m_bGameGear ? 8 : 4;
     int mask = m_bGameGear ? 0x0F : 0x03;
-    bool bgr = (pixelFormat == GS_PIXEL_BGR888);
+    bool bgr = (pixelFormat == GS_PIXEL_BGRA8888);
     const u8* lut = m_bGameGear ? k4bitTo8bit : k2bitTo8bit;
     const u8* sg1000_palette = m_pCartridge->IsSG1000() ? kSG1000_palette_888_normal : kSG1000_palette_888_sms;
 
@@ -955,7 +955,7 @@ void Video::Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
         overscan_total_width = overscan_content_h + overscan_h_l + GS_RESOLUTION_SMS_OVERSCAN_H_284_R;
     }
 
-    for (int i = 0, j = 0; j < buffer_size; j += 3)
+    for (int i = 0, j = 0; j < buffer_size; j += 4)
     {
         u16 src_color = 0;
         if (overscan_enabled)
@@ -985,12 +985,14 @@ void Video::Render24bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
             dstFrameBuffer[j + 0] = bgr ? sg1000_palette[src_color + 2] : sg1000_palette[src_color];
             dstFrameBuffer[j + 1] = sg1000_palette[src_color + 1];
             dstFrameBuffer[j + 2] = bgr ? sg1000_palette[src_color] : sg1000_palette[src_color + 2];
+            dstFrameBuffer[j + 3] = 0xFF;
         }
         else
         {
             dstFrameBuffer[j + 0] = lut[bgr ? (src_color >> shift_b) & mask : src_color & mask];
             dstFrameBuffer[j + 1] = lut[(src_color >> shift_g) & mask];
             dstFrameBuffer[j + 2] = lut[bgr ? src_color & mask : (src_color >> shift_b) & mask];
+            dstFrameBuffer[j + 3] = 0xFF;
         }
     }
 }

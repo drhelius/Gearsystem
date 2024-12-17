@@ -55,7 +55,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pGameGearIOPorts);
     InitPointer(m_pBootromMemoryRule);
     m_bPaused = true;
-    m_pixelFormat = GS_PIXEL_RGB888;
+    m_pixelFormat = GS_PIXEL_RGBA8888;
     m_GlassesConfig = GearsystemCore::GlassesBothEyes;
 }
 
@@ -948,10 +948,10 @@ void GearsystemCore::RenderFrameBuffer(u8* finalFrameBuffer)
             m_pVideo->Render16bit(m_pVideo->GetFrameBuffer(), finalFrameBuffer, m_pixelFormat, size, true);
             break;
         }
-        case GS_PIXEL_RGB888:
-        case GS_PIXEL_BGR888:
+        case GS_PIXEL_RGBA8888:
+        case GS_PIXEL_BGRA8888:
         {
-            m_pVideo->Render24bit(m_pVideo->GetFrameBuffer(), finalFrameBuffer, m_pixelFormat, size, true);
+            m_pVideo->Render32bit(m_pVideo->GetFrameBuffer(), finalFrameBuffer, m_pixelFormat, size, true);
             break;
         }
     }
