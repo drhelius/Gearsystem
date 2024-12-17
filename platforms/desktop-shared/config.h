@@ -71,6 +71,7 @@ struct config_Video
     int scale_manual = 1;
     int ratio = 1;
     int overscan = 1;
+    int hide_left_bar = 0;
     bool fps = false;
     bool bilinear = false;
     bool mix_frames = true;

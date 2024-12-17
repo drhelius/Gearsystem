@@ -80,6 +80,7 @@ EXTERN void emu_enable_bootrom_gg(bool enable);
 EXTERN void emu_set_media_slot(int slot);
 EXTERN void emu_set_3d_glasses_config(int config);
 EXTERN void emu_set_overscan(int overscan);
+EXTERN void emu_set_hide_left_bar(int hide_left_bar);
 EXTERN void emu_disable_ym2413(bool disable);
 EXTERN void emu_save_screenshot(const char* file_path);
 

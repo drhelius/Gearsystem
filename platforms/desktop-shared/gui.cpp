@@ -770,6 +770,17 @@ static void main_menu(void)
                 ImGui::EndMenu();
             }
 
+            if (ImGui::BeginMenu("Hide Left Bar"))
+            {
+                ImGui::PushItemWidth(80.0f);
+                if (ImGui::Combo("##hide_left_bar", &config_video.hide_left_bar, "No\0Auto\0Always\0\0"))
+                {
+                    emu_set_hide_left_bar(config_debug.debug ? 0 : config_video.hide_left_bar);
+                }
+                ImGui::PopItemWidth();
+                ImGui::EndMenu();
+            }
+
             ImGui::Separator();
 
             if (ImGui::MenuItem("Vertical Sync", "", &config_video.sync))

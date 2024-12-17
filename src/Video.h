@@ -42,6 +42,13 @@ public:
         OverscanFull320
     };
 
+    enum HideLeftBar
+    {
+        HideLeftBarNo,
+        HideLeftBarAuto,
+        HideLeftBarAlways
+    };
+
 public:
     Video(Memory* pMemory, Processor* pProcessor, Cartridge* pCartridge);
     ~Video();
@@ -69,6 +76,9 @@ public:
     void Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size, bool overscan = false);
     void SetOverscan(Overscan overscan);
     Overscan GetOverscan();
+    void SetHideLeftBar(HideLeftBar hideLeftBar);
+    HideLeftBar GetHideLeftBar();
+    int GetHideLeftBarOffset();
 
 private:
     void ScanLine(int line);
@@ -104,6 +114,8 @@ private:
     bool m_bPAL;
     bool m_bExtendedMode224;
     Overscan m_Overscan;
+    HideLeftBar m_HideLeftBar;
+    int m_iHideLeftBarOffset;
 
     struct LineEvents 
     {

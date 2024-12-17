@@ -60,6 +60,8 @@ Video::Video(Memory* pMemory, Processor* pProcessor, Cartridge* pCartridge)
     m_bDisplayEnabled = false;
     m_bSpriteOvrRequest = false;
     m_Overscan = OverscanDisabled;
+    m_HideLeftBar = HideLeftBarNo;
+    m_iHideLeftBarOffset = 0;
 }
 
 Video::~Video()
@@ -263,6 +265,19 @@ bool Video::Tick(unsigned int clockCycles)
     ///// RENDER /////
     if (!m_LineEvents.render && (m_iCycleCounter >= m_Timing[TIMING_RENDER]))
     {
+        if (m_iRenderLine == 0)
+        {
+            m_iHideLeftBarOffset = 0;
+
+            if ((m_HideLeftBar != HideLeftBarNo) && (!m_bGameGear) && (!m_bSG1000) && ((m_Overscan == OverscanDisabled) || (m_Overscan == OverscanTopBottom)))
+            {
+                if (m_HideLeftBar == HideLeftBarAlways)
+                    m_iHideLeftBarOffset = 8;
+                else if (m_HideLeftBar == HideLeftBarAuto)
+                    m_iHideLeftBarOffset = IsSetBit(m_VdpRegister[0], 5) ? 8 : 0;
+            }
+        }
+
         m_LineEvents.render = true;
         ScanLine(m_iRenderLine);
     }
@@ -502,8 +517,8 @@ void Video::RenderBackgroundSMSGG(int line)
     int y_offset = m_bExtendedMode224 ? GS_RESOLUTION_GG_Y_OFFSET_EXTENDED : GS_RESOLUTION_GG_Y_OFFSET;
     int scy_adjust = m_bGameGear ? y_offset : 0;
     int scy = line;
-    int line_width_info = line * m_iScreenWidth;
-    int line_width_screen = (line - scy_adjust) * m_iScreenWidth;
+    int line_width_info = line * (m_iScreenWidth - m_iHideLeftBarOffset);
+    int line_width_screen = (line - scy_adjust) * (m_iScreenWidth - m_iHideLeftBarOffset);
     int origin_x = m_ScrollX;
     if ((line < 16) && IsSetBit(m_VdpRegister[0], 6))
         origin_x = 0;
@@ -525,8 +540,8 @@ void Video::RenderBackgroundSMSGG(int line)
 
     int palette_color = 0;
 
-    int scx_begin = m_bGameGear ? GS_RESOLUTION_GG_X_OFFSET : 0;
-    int scx_end = scx_begin + m_iScreenWidth;
+    int scx_begin = m_bGameGear ? GS_RESOLUTION_GG_X_OFFSET : m_iHideLeftBarOffset;
+    int scx_end = scx_begin + m_iScreenWidth - m_iHideLeftBarOffset;
 
     int max_height = m_bExtendedMode224 ? 224 : 192;
 
@@ -661,8 +676,8 @@ void Video::RenderSpritesSMSGG(int line)
     u16 sprite_table_address_2 = sprite_table_address + 0x80;
     int sprite_collision = false;
     int scy_adjust = m_bGameGear ? y_offset : 0;
-    int line_width_info = line * m_iScreenWidth;
-    int line_width_screen = (line - scy_adjust) * m_iScreenWidth;
+    int line_width_info = line * (m_iScreenWidth - m_iHideLeftBarOffset);
+    int line_width_screen = (line - scy_adjust) * (m_iScreenWidth - m_iHideLeftBarOffset);
     int sprite_width = 8;
     bool sprite_height_16 = IsSetBit(m_VdpRegister[1], 1);
     bool sprite_zoom = IsSetBit(m_VdpRegister[1], 0);
@@ -673,8 +688,8 @@ void Video::RenderSpritesSMSGG(int line)
     int sprite_shift = IsSetBit(m_VdpRegister[0], 3) ? 8 : 0;
     u16 sprite_tiles_address = (m_VdpRegister[6] << 11) & 0x2000;
 
-    int scx_begin = m_bGameGear ? GS_RESOLUTION_GG_X_OFFSET : 0;
-    int scx_end = scx_begin + m_iScreenWidth;
+    int scx_begin = m_bGameGear ? GS_RESOLUTION_GG_X_OFFSET : m_iHideLeftBarOffset;
+    int scx_end = scx_begin + (m_iScreenWidth - m_iHideLeftBarOffset);
 
     for (int i = 7; i >= 0; i--)
     {
@@ -1111,6 +1126,21 @@ void Video::SetOverscan(Overscan overscan)
 Video::Overscan Video::GetOverscan()
 {
     return m_Overscan;
+}
+
+void Video::SetHideLeftBar(HideLeftBar hideLeftBar)
+{
+    m_HideLeftBar = hideLeftBar;
+}
+
+Video::HideLeftBar Video::GetHideLeftBar()
+{
+    return m_HideLeftBar;
+}
+
+int Video::GetHideLeftBarOffset()
+{
+    return m_iHideLeftBarOffset;
 }
 
 void Video::InitPalettes(const u8* src, u16* dest_565_rgb, u16* dest_555_rgb, u16* dest_565_bgr, u16* dest_555_bgr)

@@ -258,7 +258,7 @@ bool GearsystemCore::GetRuntimeInfo(GS_RuntimeInfo& runtime_info)
         }
         else
         {
-            runtime_info.screen_width = GS_RESOLUTION_SMS_WIDTH;
+            runtime_info.screen_width = GS_RESOLUTION_SMS_WIDTH - m_pVideo->GetHideLeftBarOffset();
             runtime_info.screen_height = m_pVideo->IsExtendedMode224() ? GS_RESOLUTION_SMS_HEIGHT_EXTENDED : GS_RESOLUTION_SMS_HEIGHT;
 
             if (m_pVideo->GetOverscan() == Video::OverscanFull284)

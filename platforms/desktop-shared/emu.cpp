@@ -395,6 +395,24 @@ void emu_set_overscan(int overscan)
     }
 }
 
+void emu_set_hide_left_bar(int hide_left_bar)
+{
+    switch (hide_left_bar)
+    {
+        case 0:
+            gearsystem->GetVideo()->SetHideLeftBar(Video::HideLeftBarNo);
+            break;
+        case 1:
+            gearsystem->GetVideo()->SetHideLeftBar(Video::HideLeftBarAuto);
+            break;
+        case 2:
+            gearsystem->GetVideo()->SetHideLeftBar(Video::HideLeftBarAlways);
+            break;
+        default:
+            gearsystem->GetVideo()->SetHideLeftBar(Video::HideLeftBarNo);
+    }
+}
+
 void emu_disable_ym2413(bool disable)
 {
     gearsystem->GetAudio()->DisableYM2413(disable);
