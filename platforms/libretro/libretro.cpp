@@ -71,6 +71,7 @@ static const struct retro_variable vars[] = {
     { "gearsystem_timing", "Refresh Rate (restart); Auto|NTSC (60 Hz)|PAL (50 Hz)" },
     { "gearsystem_aspect_ratio", "Aspect Ratio (restart); 1:1 PAR|4:3 DAR|16:9 DAR|16:10 DAR" },
     { "gearsystem_overscan", "Overscan; Disabled|Top+Bottom|Full (284 width)|Full (320 width)" },
+    { "gearsystem_hide_left_bar", "Hide Left Bar (SMS only); No|Auto|Always" },
     { "gearsystem_bios_sms", "Master System BIOS (restart); Disabled|Enabled" },
     { "gearsystem_bios_gg", "Game Gear BIOS (restart); Disabled|Enabled" },
     { "gearsystem_ym2413", "YM2413 (restart); Auto|Disabled"},
@@ -447,6 +448,21 @@ static void check_variables(void)
             core->GetVideo()->SetOverscan(Video::OverscanFull320);
         else
             core->GetVideo()->SetOverscan(Video::OverscanDisabled);
+    }
+
+    var.key = "gearsystem_hide_left_bar";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "No") == 0)
+            core->GetVideo()->SetHideLeftBar(Video::HideLeftBarNo);
+        else if (strcmp(var.value, "Auto") == 0)
+            core->GetVideo()->SetHideLeftBar(Video::HideLeftBarAuto);
+        else if (strcmp(var.value, "Always") == 0)
+            core->GetVideo()->SetHideLeftBar(Video::HideLeftBarAlways);
+        else
+            core->GetVideo()->SetHideLeftBar(Video::HideLeftBarNo);
     }
 
     var.key = "gearsystem_bios_sms";
