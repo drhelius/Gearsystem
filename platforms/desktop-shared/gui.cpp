@@ -137,6 +137,7 @@ void gui_init(void)
     emu_enable_bootrom_gg(config_emulator.gg_bootrom);
     emu_set_media_slot(config_emulator.media);
     emu_set_overscan(config_debug.debug ? 0 : config_video.overscan);
+    emu_set_hide_left_bar(config_video.hide_left_bar);
     emu_disable_ym2413(config_audio.ym2413 == 1);
 }
 
@@ -970,6 +971,7 @@ static void main_menu(void)
             if (ImGui::MenuItem("Enable", "", &config_debug.debug))
             {
                 emu_set_overscan(config_debug.debug ? 0 : config_video.overscan);
+                emu_set_hide_left_bar(config_debug.debug ? 0 : config_video.hide_left_bar);
 
                 if (config_debug.debug)
                     emu_debug_step();
