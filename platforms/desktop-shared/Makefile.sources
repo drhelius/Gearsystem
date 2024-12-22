@@ -34,6 +34,7 @@ SOURCES_CXX := \
     $(SRC_DIR)/KoreanSMS32KB2000MemoryRule.cpp \
     $(SRC_DIR)/KoreanMSX32KB2000MemoryRule.cpp \
     $(SRC_DIR)/Korean2000XOR1FMemoryRule.cpp \
+    $(SRC_DIR)/KoreanMSX8KB0300MemoryRule.cpp \
     $(SRC_DIR)/Memory.cpp \
     $(SRC_DIR)/MemoryRule.cpp \
     $(SRC_DIR)/MSXMemoryRule.cpp \

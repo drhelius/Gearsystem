@@ -128,34 +128,41 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
     m_iCRC = CalculateCRC32(0, m_pROM, m_iROMSize);
     GatherMetadata(m_iCRC);
 
-    if (config.region == CartridgePAL)
+    switch (config.region)
     {
-        Log("Forcing Region: PAL");
-        m_bPAL = true;
-    }
-    else if (config.region == CartridgeNTSC)
-    {
-        Log("Forcing Region: NTSC");
-        m_bPAL = false;
+        case CartridgePAL:
+            Log("Forcing Region: PAL");
+            m_bPAL = true;
+            break;
+        case CartridgeNTSC:
+            Log("Forcing Region: NTSC");
+            m_bPAL = false;
+            break;
+        default:
+            Log("Not forcing Region: Auto");
+            break;
     }
 
-    if (config.system == CartridgeSMS)
+    switch (config.system)
     {
-        Log("Forcing System: Master System");
-        m_bGameGear = false;
-        m_bSG1000 = false;
-    }
-    else if (config.system == CartridgeGG)
-    {
-        Log("Forcing System: Game Gear");
-        m_bGameGear = true;
-        m_bSG1000 = false;
-    }
-    else if (config.system == CartridgeSG1000)
-    {
-        Log("Forcing System: SG-1000");
-        m_bGameGear = false;
-        m_bSG1000 = true;
+        case CartridgeSMS:
+            Log("Forcing System: Master System");
+            m_bGameGear = false;
+            m_bSG1000 = false;
+            break;
+        case CartridgeGG:
+            Log("Forcing System: Game Gear");
+            m_bGameGear = true;
+            m_bSG1000 = false;
+            break;
+        case CartridgeSG1000:
+            Log("Forcing System: SG-1000");
+            m_bGameGear = false;
+            m_bSG1000 = true;
+            break;
+        default:
+            Log("Not forcing System: Auto");
+            break;
     }
 
     switch (config.type)
@@ -196,6 +203,10 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             m_Type = config.type;
             Log("Forcing Mapper: Korean 2000 XOR 1F");
             break;
+        case Cartridge::CartridgeKoreanMSX8KB0300Mapper:
+            m_Type = config.type;
+            Log("Forcing Mapper: Korean MSX 8KB 0300");
+            break;
         case Cartridge::CartridgeMSXMapper:
             m_Type = config.type;
             Log("Forcing Mapper: MSX");
@@ -205,6 +216,7 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             Log("Forcing Mapper: Janggun");
             break;
         default:
+            Log("Not forcing Mapper: Auto");
             break;
     }
 
@@ -231,6 +243,7 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             Log("Forcing Zone: GG International");
             break;
         default:
+            Log("Not forcing Zone: Auto");
             break;
     }
 }
@@ -504,44 +517,32 @@ bool Cartridge::GatherMetadata(u32 crc)
     switch (zone)
     {
         case 3:
-        {
             m_Zone = CartridgeJapanSMS;
             Log("Cartridge zone is SMS Japan");
             break;
-        }
         case 4:
-        {
             m_Zone = CartridgeExportSMS;
             Log("Cartridge zone is SMS Export");
             break;
-        }
         case 5:
-        {
             m_Zone = CartridgeJapanGG;
             m_bGameGear = true;
             Log("Cartridge zone is GG Japan");
             break;
-        }
         case 6:
-        {
             m_Zone = CartridgeExportGG;
             m_bGameGear = true;
             Log("Cartridge zone is GG Export");
             break;
-        }
         case 7:
-        {
             m_Zone = CartridgeInternationalGG;
             m_bGameGear = true;
             Log("Cartridge zone is GG International");
             break;
-        }
         default:
-        {
             m_Zone = CartridgeUnknownZone;
             Log("Unknown cartridge zone");
             break;
-        }
     }
 
     m_iROMBankCount16k = std::max(Pow2Ceil(m_iROMSize / 0x4000), 1u);
@@ -592,6 +593,9 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeKorean2000XOR1FMapper:
             Log("Korean 2000 XOR 1F mapper found");
             break;
+        case Cartridge::CartridgeKoreanMSX8KB0300Mapper:
+            Log("Korean MSX 8KB 0300 mapper found");
+            break;
         case Cartridge::CartridgeMSXMapper:
             Log("MSX mapper found");
             break;
@@ -634,40 +638,42 @@ void Cartridge::GetInfoFromDB(u32 crc)
 
             Log("ROM found in database: %s. CRC: %X", kGameDatabase[i].title, crc);
 
-            if (kGameDatabase[i].mapper == GS_DB_CODEMASTERS_MAPPER)
-                m_Type = Cartridge::CartridgeCodemastersMapper;
-            else if (kGameDatabase[i].mapper == GS_DB_SG1000_MAPPER)
+            switch (kGameDatabase[i].mapper)
             {
-                m_bSG1000 = true;
-                m_Type = Cartridge::CartridgeSG1000Mapper;
-            }
-            else if (kGameDatabase[i].mapper == GS_DB_KOREAN_MAPPER)
-            {
-                m_Type = Cartridge::CartridgeKoreanMapper;
-            }
-            else if (kGameDatabase[i].mapper == GS_DB_KOREAN_MSX_SMS_8000_MAPPER)
-            {
-                m_Type = Cartridge::CartridgeKoreanMSXSMS8000Mapper;
-            }
-            else if (kGameDatabase[i].mapper == GS_DB_KOREAN_SMS_32KB_2000_MAPPER)
-            {
-                m_Type = Cartridge::CartridgeKoreanSMS32KB2000Mapper;
-            }
-            else if (kGameDatabase[i].mapper == GS_DB_KOREAN_MSX_32KB_2000_MAPPER)
-            {
-                m_Type = Cartridge::CartridgeKoreanMSX32KB2000Mapper;
-            }
-            else if (kGameDatabase[i].mapper == GS_DB_KOREAN_2000_XOR_1F_MAPPER)
-            {
-                m_Type = Cartridge::CartridgeKorean2000XOR1FMapper;
-            }
-            else if (kGameDatabase[i].mapper == GS_DB_MSX_MAPPER)
-            {
-                m_Type = Cartridge::CartridgeMSXMapper;
-            }
-            else if (kGameDatabase[i].mapper == GS_DB_JANGGUN_MAPPER)
-            {
-                m_Type = Cartridge::CartridgeJanggunMapper;
+                case GS_DB_CODEMASTERS_MAPPER:
+                    m_Type = Cartridge::CartridgeCodemastersMapper;
+                    break;
+                case GS_DB_SG1000_MAPPER:
+                    m_bSG1000 = true;
+                    m_Type = Cartridge::CartridgeSG1000Mapper;
+                    break;
+                case GS_DB_KOREAN_MAPPER:
+                    m_Type = Cartridge::CartridgeKoreanMapper;
+                    break;
+                case GS_DB_KOREAN_MSX_SMS_8000_MAPPER:
+                    m_Type = Cartridge::CartridgeKoreanMSXSMS8000Mapper;
+                    break;
+                case GS_DB_KOREAN_SMS_32KB_2000_MAPPER:
+                    m_Type = Cartridge::CartridgeKoreanSMS32KB2000Mapper;
+                    break;
+                case GS_DB_KOREAN_MSX_32KB_2000_MAPPER:
+                    m_Type = Cartridge::CartridgeKoreanMSX32KB2000Mapper;
+                    break;
+                case GS_DB_KOREAN_2000_XOR_1F_MAPPER:
+                    m_Type = Cartridge::CartridgeKorean2000XOR1FMapper;
+                    break;
+                case GS_DB_KOREAN_MSX_8KB_0300_MAPPER:
+                    m_Type = Cartridge::CartridgeKoreanMSX8KB0300Mapper;
+                    break;
+                case GS_DB_MSX_MAPPER:
+                    m_Type = Cartridge::CartridgeMSXMapper;
+                    break;
+                case GS_DB_JANGGUN_MAPPER:
+                    m_Type = Cartridge::CartridgeJanggunMapper;
+                    break;
+                default:
+                    m_Type = Cartridge::CartridgeNotSupported;
+                    break;
             }
 
             if (kGameDatabase[i].features & GS_DB_FEATURE_SMS_MODE)

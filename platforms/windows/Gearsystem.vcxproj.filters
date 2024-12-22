@@ -183,6 +183,9 @@
     <ClCompile Include="..\..\src\Korean2000XOR1FMemoryRule.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\KoreanMSX8KB0300MemoryRule.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\audio-shared\sound_queue.h">
@@ -405,6 +408,9 @@
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Korean2000XOR1FMemoryRule.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\KoreanMSX8KB0300MemoryRule.h">
       <Filter>core</Filter>
     </ClInclude>
   </ItemGroup>

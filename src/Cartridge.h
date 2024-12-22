@@ -37,6 +37,7 @@ public:
         CartridgeKoreanSMS32KB2000Mapper,
         CartridgeKoreanMSX32KB2000Mapper,
         CartridgeKorean2000XOR1FMapper,
+        CartridgeKoreanMSX8KB0300Mapper,
         CartridgeMSXMapper,
         CartridgeJanggunMapper,
         CartridgeNotSupported
