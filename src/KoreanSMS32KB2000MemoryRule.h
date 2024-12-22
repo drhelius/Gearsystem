@@ -36,8 +36,8 @@ public:
     virtual void LoadState(std::istream& stream);
 
 private:
-    int m_iPageAddress[6];
-    u8 m_Register;
+    int m_iMapperSlot[3];
+    int m_iMapperSlotAddress[3];
 };
 
 #endif	/* KOREANSMS32KB2000MEMORYRULE_H */

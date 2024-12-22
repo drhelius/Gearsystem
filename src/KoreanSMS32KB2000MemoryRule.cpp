@@ -34,13 +34,13 @@ u8 KoreanSMS32KB2000MemoryRule::PerformRead(u16 address)
 {
     if (address < 0xC000)
     {
-        int page = (address >> 13) & 0x03;
-        if (page > 5)
+        int slot = (address >> 14) & 0x03;
+        if (slot > 3)
         {
-            Debug("--> ** Invalid page %d", page);
+            Debug("--> ** Invalid slot %d", slot);
             return 0xFF;
         }
-        return m_pCartridge->GetROM()[m_iPageAddress[page] + (address & 0x1FFF)];
+        return m_pCartridge->GetROM()[m_iMapperSlotAddress[slot] + (address & 0x3FFF)];
     }
     else
     {
@@ -57,14 +57,13 @@ void KoreanSMS32KB2000MemoryRule::PerformWrite(u16 address, u8 value)
         {
             Debug("--> ** Writing to register $%X %X", address, value);
 
-            m_Register = value;
+            m_iMapperSlot[0] = (value << 1) & (m_pCartridge->GetROMBankCount() - 1);
+            m_iMapperSlot[1] = ((value << 1) + 1) & (m_pCartridge->GetROMBankCount() - 1);
+            m_iMapperSlot[2] = (value << 1) & (m_pCartridge->GetROMBankCount() - 1);
 
-            m_iPageAddress[0] = 0x2000 * ((value * 4) & (m_pCartridge->GetROMBankCount8k() - 1));
-            m_iPageAddress[1] = 0x2000 * ((value * 4 + 1) & (m_pCartridge->GetROMBankCount8k() - 1));
-            m_iPageAddress[2] = 0x2000 * ((value * 4 + 2) & (m_pCartridge->GetROMBankCount8k() - 1));
-            m_iPageAddress[3] = 0x2000 * ((value * 4 + 3) & (m_pCartridge->GetROMBankCount8k() - 1));
-            m_iPageAddress[4] = 0x2000 * ((value * 4) & (m_pCartridge->GetROMBankCount8k() - 1));
-            m_iPageAddress[5] = 0x2000 * ((value * 4 + 1) & (m_pCartridge->GetROMBankCount8k() - 1));
+            m_iMapperSlotAddress[0] = 0x4000 * m_iMapperSlot[0];
+            m_iMapperSlotAddress[1] = 0x4000 * m_iMapperSlot[1];
+            m_iMapperSlotAddress[2] = 0x4000 * m_iMapperSlot[2];
         }
         else
         {
@@ -87,56 +86,41 @@ void KoreanSMS32KB2000MemoryRule::PerformWrite(u16 address, u8 value)
 
 void KoreanSMS32KB2000MemoryRule::Reset()
 {
-    m_Register = 0;
-    m_iPageAddress[0] = 0x2000 * 0;
-    m_iPageAddress[1] = 0x2000 * 1;
-    m_iPageAddress[2] = 0x2000 * 2;
-    m_iPageAddress[3] = 0x2000 * 3;
-    m_iPageAddress[4] = 0x2000 * 0;
-    m_iPageAddress[5] = 0x2000 * 1;
+    m_iMapperSlot[0] = 0;
+    m_iMapperSlot[1] = 1;
+    m_iMapperSlot[2] = 0;
+
+    m_iMapperSlotAddress[0] = 0x0000;
+    m_iMapperSlotAddress[1] = 0x4000;
+    m_iMapperSlotAddress[2] = 0x0000;
 }
 
 u8* KoreanSMS32KB2000MemoryRule::GetPage(int index)
 {
-    return 0;
-    // switch (index)
-    // {
-    //     case 0:
-    //     case 1:
-    //         return m_pCartridge->GetROM() + (index * 0x4000);
-    //     case 2:
-    //         return m_pCartridge->GetROM() + m_iMapperSlot2Address;
-    //     default:
-    //         return NULL;
-    // }
+    if (index < 0 || index > 2)
+        return NULL;
+
+    return m_pCartridge->GetROM() + (m_iMapperSlot[index] * 0x4000);
 }
 
 int KoreanSMS32KB2000MemoryRule::GetBank(int index)
 {
-    return 0;
+    if (index < 0 || index > 2)
+        return 0;
 
-    // switch (index)
-    // {
-    //     case 0:
-    //     case 1:
-    //         return index;
-    //     case 2:
-    //         return m_iMapperSlot2;
-    //     default:
-    //         return 0;
-    // }
+    return m_iMapperSlot[index];
 }
 
 void KoreanSMS32KB2000MemoryRule::SaveState(std::ostream& stream)
 {
-    stream.write(reinterpret_cast<const char*> (m_iPageAddress), sizeof(m_iPageAddress));
-    stream.write(reinterpret_cast<const char*> (&m_Register), sizeof(m_Register));
+    stream.write(reinterpret_cast<const char*> (m_iMapperSlotAddress), sizeof(m_iMapperSlotAddress));
+    stream.write(reinterpret_cast<const char*> (m_iMapperSlot), sizeof(m_iMapperSlot));
 }
 
 void KoreanSMS32KB2000MemoryRule::LoadState(std::istream& stream)
 {
     using namespace std;
 
-    stream.read(reinterpret_cast<char*> (m_iPageAddress), sizeof(m_iPageAddress));
-    stream.read(reinterpret_cast<char*> (&m_Register), sizeof(m_Register));
+    stream.read(reinterpret_cast<char*> (m_iMapperSlotAddress), sizeof(m_iMapperSlotAddress));
+    stream.read(reinterpret_cast<char*> (m_iMapperSlot), sizeof(m_iMapperSlot));
 }
