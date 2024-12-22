@@ -108,35 +108,14 @@ void KoreanMSXSMS8000MemoryRule::Reset()
     m_iPageAddress[5] = 0x2000 * (m_Register ^ 0x02);
 }
 
-u8* KoreanMSXSMS8000MemoryRule::GetPage(int index)
+u8* KoreanMSXSMS8000MemoryRule::GetPage(int)
 {
-    return 0;
-    // switch (index)
-    // {
-    //     case 0:
-    //     case 1:
-    //         return m_pCartridge->GetROM() + (index * 0x4000);
-    //     case 2:
-    //         return m_pCartridge->GetROM() + m_iMapperSlot2Address;
-    //     default:
-    //         return NULL;
-    // }
+    return NULL;
 }
 
-int KoreanMSXSMS8000MemoryRule::GetBank(int index)
+int KoreanMSXSMS8000MemoryRule::GetBank(int)
 {
     return 0;
-
-    // switch (index)
-    // {
-    //     case 0:
-    //     case 1:
-    //         return index;
-    //     case 2:
-    //         return m_iMapperSlot2;
-    //     default:
-    //         return 0;
-    // }
 }
 
 void KoreanMSXSMS8000MemoryRule::SaveState(std::ostream& stream)
