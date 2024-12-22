@@ -34,6 +34,7 @@ class RomOnlyMemoryRule;
 class SG1000MemoryRule;
 class KoreanMemoryRule;
 class KoreanMSXSMS8000MemoryRule;
+class KoreanSMS32KB2000MemoryRule;
 class MSXMemoryRule;
 class JanggunMemoryRule;
 class MemoryRule;
@@ -109,6 +110,7 @@ private:
     RomOnlyMemoryRule* m_pRomOnlyMemoryRule;
     KoreanMemoryRule* m_pKoreanMemoryRule;
     KoreanMSXSMS8000MemoryRule* m_pKoreanMSXSMS8000MemoryRule;
+    KoreanSMS32KB2000MemoryRule* m_pKoreanSMS32KB2000MemoryRule;
     MSXMemoryRule* m_pMSXMemoryRule;
     JanggunMemoryRule* m_pJanggunMemoryRule;
     SmsIOPorts* m_pSmsIOPorts;

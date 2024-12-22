@@ -147,7 +147,7 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
         {
             m_pAudio->YM2413Write(port, value);
         }
-#ifdef DEBUG_GEARSYSTEM
+#if 0
         else if ((port == 0xDE) || (port == 0xDF))
         {
             Debug("--> ** Output to keyboard port $%02X: %02X", port, value);

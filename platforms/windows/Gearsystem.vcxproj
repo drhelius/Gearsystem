@@ -35,6 +35,7 @@
     <ClCompile Include="..\..\src\JanggunMemoryRule.cpp" />
     <ClCompile Include="..\..\src\KoreanMemoryRule.cpp" />
     <ClCompile Include="..\..\src\KoreanMSXSMS8000MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\KoreanSMS32KB2000MemoryRule.cpp" />
     <ClCompile Include="..\..\src\Memory.cpp" />
     <ClCompile Include="..\..\src\MemoryRule.cpp" />
     <ClCompile Include="..\..\src\MSXMemoryRule.cpp" />
@@ -94,6 +95,7 @@
     <ClInclude Include="..\..\src\JanggunMemoryRule.h" />
     <ClInclude Include="..\..\src\KoreanMemoryRule.h" />
     <ClInclude Include="..\..\src\KoreanMSXSMS8000MemoryRule.h" />
+    <ClInclude Include="..\..\src\KoreanSMS32KB2000MemoryRule.h" />
     <ClInclude Include="..\..\src\Memory.h" />
     <ClInclude Include="..\..\src\MemoryRule.h" />
     <ClInclude Include="..\..\src\Memory_inline.h" />

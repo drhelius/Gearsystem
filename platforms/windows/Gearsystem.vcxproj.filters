@@ -174,6 +174,9 @@
     <ClCompile Include="..\..\src\miniz\miniz.c">
       <Filter>src\miniz</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\KoreanSMS32KB2000MemoryRule.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\audio-shared\sound_queue.h">
@@ -388,6 +391,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\miniz\miniz.h">
       <Filter>src\miniz</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\KoreanSMS32KB2000MemoryRule.h">
+      <Filter>core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
