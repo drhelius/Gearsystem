@@ -66,6 +66,7 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "optional": "cpp",
-        "*.def": "cpp"
+        "*.def": "cpp",
+        "variant": "cpp"
     }
 }
