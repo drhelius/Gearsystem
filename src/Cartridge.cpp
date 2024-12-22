@@ -192,6 +192,10 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             m_Type = config.type;
             Log("Forcing Mapper: Korean MSX 32KB 2000");
             break;
+        case Cartridge::CartridgeKorean2000XOR1FMapper:
+            m_Type = config.type;
+            Log("Forcing Mapper: Korean 2000 XOR 1F");
+            break;
         case Cartridge::CartridgeMSXMapper:
             m_Type = config.type;
             Log("Forcing Mapper: MSX");
@@ -585,6 +589,9 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeKoreanMSX32KB2000Mapper:
             Log("Korean MSX 32KB 2000 mapper found");
             break;
+        case Cartridge::CartridgeKorean2000XOR1FMapper:
+            Log("Korean 2000 XOR 1F mapper found");
+            break;
         case Cartridge::CartridgeMSXMapper:
             Log("MSX mapper found");
             break;
@@ -649,6 +656,10 @@ void Cartridge::GetInfoFromDB(u32 crc)
             else if (kGameDatabase[i].mapper == GS_DB_KOREAN_MSX_32KB_2000_MAPPER)
             {
                 m_Type = Cartridge::CartridgeKoreanMSX32KB2000Mapper;
+            }
+            else if (kGameDatabase[i].mapper == GS_DB_KOREAN_2000_XOR_1F_MAPPER)
+            {
+                m_Type = Cartridge::CartridgeKorean2000XOR1FMapper;
             }
             else if (kGameDatabase[i].mapper == GS_DB_MSX_MAPPER)
             {

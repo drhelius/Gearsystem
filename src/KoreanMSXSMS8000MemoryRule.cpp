@@ -110,7 +110,7 @@ void KoreanMSXSMS8000MemoryRule::Reset()
 
 u8* KoreanMSXSMS8000MemoryRule::GetPage(int)
 {
-    return NULL;
+    return m_pCartridge->GetROM();
 }
 
 int KoreanMSXSMS8000MemoryRule::GetBank(int)

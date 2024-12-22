@@ -98,7 +98,7 @@ void KoreanSMS32KB2000MemoryRule::Reset()
 u8* KoreanSMS32KB2000MemoryRule::GetPage(int index)
 {
     if (index < 0 || index > 2)
-        return NULL;
+        return m_pCartridge->GetROM();
 
     return m_pCartridge->GetROM() + (m_iMapperSlot[index] * 0x4000);
 }

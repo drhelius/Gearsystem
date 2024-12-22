@@ -68,6 +68,7 @@
     <ClCompile Include="..\desktop-shared\nfd\nfd_win.cpp" />
     <ClCompile Include="..\desktop-shared\renderer.cpp" />
     <ClCompile Include="..\..\src\KoreanMSX32KB2000MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\Korean2000XOR1FMemoryRule.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\miniz\miniz.h" />
@@ -142,6 +143,7 @@
     <ClInclude Include="..\desktop-shared\mINI\ini.h" />
     <ClInclude Include="..\desktop-shared\renderer.h" />
     <ClInclude Include="..\..\src\KoreanMSX32KB2000MemoryRule.h" />
+    <ClInclude Include="..\..\src\Korean2000XOR1FMemoryRule.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\desktop-shared\gui_events.def" />

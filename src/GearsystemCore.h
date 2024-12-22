@@ -22,6 +22,7 @@
 
 #include "definitions.h"
 #include "Cartridge.h"
+#include "Korean2000XOR1FMemoryRule.h"
 
 class Memory;
 class Processor;
@@ -36,6 +37,7 @@ class KoreanMemoryRule;
 class KoreanMSXSMS8000MemoryRule;
 class KoreanSMS32KB2000MemoryRule;
 class KoreanMSX32KB2000MemoryRule;
+class Korean2000XOR1FMemoryRule;
 class MSXMemoryRule;
 class JanggunMemoryRule;
 class MemoryRule;
@@ -113,6 +115,7 @@ private:
     KoreanMSXSMS8000MemoryRule* m_pKoreanMSXSMS8000MemoryRule;
     KoreanSMS32KB2000MemoryRule* m_pKoreanSMS32KB2000MemoryRule;
     KoreanMSX32KB2000MemoryRule* m_pKoreanMSX32KB2000MemoryRule;
+    Korean2000XOR1FMemoryRule* m_pKorean2000XOR1FMemoryRule;
     MSXMemoryRule* m_pMSXMemoryRule;
     JanggunMemoryRule* m_pJanggunMemoryRule;
     SmsIOPorts* m_pSmsIOPorts;

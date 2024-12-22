@@ -502,8 +502,8 @@ static void main_menu(void)
 
             if (ImGui::BeginMenu("Mapper"))
             {
-                ImGui::PushItemWidth(130.0f);
-                ImGui::Combo("##emu_mapper", &config_emulator.mapper, "Auto\0ROM Only\0SEGA\0Codemasters\0Korean\0SG-1000\0MSX\0Janggun\0\0");
+                ImGui::PushItemWidth(220.0f);
+                ImGui::Combo("##emu_mapper", &config_emulator.mapper, "Auto\0ROM Only\0SEGA\0Codemasters\0Korean\0SG-1000\0MSX\0Janggun\0Korean Multi 2000 XOR F1\0Korean Multi MSX 32KB 2000\0Korean Multi MSX SMS 8000\0Korean Multi SMS 32KB 2000\0\0");
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
@@ -1893,6 +1893,14 @@ static Cartridge::CartridgeTypes get_mapper(int index)
             return Cartridge::CartridgeMSXMapper;
         case 7:
             return Cartridge::CartridgeJanggunMapper;
+        case 8:
+            return Cartridge::CartridgeKorean2000XOR1FMapper;
+        case 9:
+            return Cartridge::CartridgeKoreanMSX32KB2000Mapper;
+        case 10:
+            return Cartridge::CartridgeKoreanMSXSMS8000Mapper;
+        case 11:
+            return Cartridge::CartridgeKoreanSMS32KB2000Mapper;
         default:
             return Cartridge::CartridgeNotSupported;
     }
