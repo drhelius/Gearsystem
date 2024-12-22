@@ -30,6 +30,7 @@ SOURCES_CXX := \
     $(SRC_DIR)/GearsystemCore.cpp \
     $(SRC_DIR)/Input.cpp \
     $(SRC_DIR)/KoreanMemoryRule.cpp \
+    $(SRC_DIR)/KoreanMSXSMS8000MemoryRule.cpp \
     $(SRC_DIR)/Memory.cpp \
     $(SRC_DIR)/MemoryRule.cpp \
     $(SRC_DIR)/MSXMemoryRule.cpp \

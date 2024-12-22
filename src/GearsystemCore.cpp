@@ -29,6 +29,7 @@
 #include "CodemastersMemoryRule.h"
 #include "RomOnlyMemoryRule.h"
 #include "KoreanMemoryRule.h"
+#include "KoreanMSXSMS8000MemoryRule.h"
 #include "MSXMemoryRule.h"
 #include "JanggunMemoryRule.h"
 #include "SG1000MemoryRule.h"
@@ -49,6 +50,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pSG1000MemoryRule);
     InitPointer(m_pRomOnlyMemoryRule);
     InitPointer(m_pKoreanMemoryRule);
+    InitPointer(m_pKoreanMSXSMS8000MemoryRule);
     InitPointer(m_pMSXMemoryRule);
     InitPointer(m_pJanggunMemoryRule);
     InitPointer(m_pSmsIOPorts);
@@ -69,6 +71,7 @@ GearsystemCore::~GearsystemCore()
     SafeDelete(m_pSG1000MemoryRule);
     SafeDelete(m_pSegaMemoryRule);
     SafeDelete(m_pKoreanMemoryRule);
+    SafeDelete(m_pKoreanMSXSMS8000MemoryRule);
     SafeDelete(m_pMSXMemoryRule);
     SafeDelete(m_pJanggunMemoryRule);
     SafeDelete(m_pCartridge);
@@ -845,6 +848,7 @@ void GearsystemCore::InitMemoryRules()
     m_pSegaMemoryRule = new SegaMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pRomOnlyMemoryRule = new RomOnlyMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pKoreanMemoryRule = new KoreanMemoryRule(m_pMemory, m_pCartridge, m_pInput);
+    m_pKoreanMSXSMS8000MemoryRule = new KoreanMSXSMS8000MemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pMSXMemoryRule = new MSXMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pJanggunMemoryRule = new JanggunMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pBootromMemoryRule = new BootromMemoryRule(m_pMemory, m_pCartridge, m_pInput);
@@ -876,6 +880,9 @@ bool GearsystemCore::AddMemoryRules()
             break;
         case Cartridge::CartridgeKoreanMapper:
             m_pMemory->SetCurrentRule(m_pKoreanMemoryRule);
+            break;
+        case Cartridge::CartridgeKoreanMSXSMS8000Mapper:
+            m_pMemory->SetCurrentRule(m_pKoreanMSXSMS8000MemoryRule);
             break;
         case Cartridge::CartridgeMSXMapper:
             m_pMemory->SetCurrentRule(m_pMSXMemoryRule);
@@ -916,6 +923,7 @@ void GearsystemCore::Reset()
     m_pSG1000MemoryRule->Reset();
     m_pRomOnlyMemoryRule->Reset();
     m_pKoreanMemoryRule->Reset();
+    m_pKoreanMSXSMS8000MemoryRule->Reset();
     m_pMSXMemoryRule->Reset();
     m_pJanggunMemoryRule->Reset();
     m_pBootromMemoryRule->Reset();

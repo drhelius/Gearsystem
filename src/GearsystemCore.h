@@ -33,6 +33,7 @@ class CodemastersMemoryRule;
 class RomOnlyMemoryRule;
 class SG1000MemoryRule;
 class KoreanMemoryRule;
+class KoreanMSXSMS8000MemoryRule;
 class MSXMemoryRule;
 class JanggunMemoryRule;
 class MemoryRule;
@@ -107,6 +108,7 @@ private:
     SG1000MemoryRule* m_pSG1000MemoryRule;
     RomOnlyMemoryRule* m_pRomOnlyMemoryRule;
     KoreanMemoryRule* m_pKoreanMemoryRule;
+    KoreanMSXSMS8000MemoryRule* m_pKoreanMSXSMS8000MemoryRule;
     MSXMemoryRule* m_pMSXMemoryRule;
     JanggunMemoryRule* m_pJanggunMemoryRule;
     SmsIOPorts* m_pSmsIOPorts;

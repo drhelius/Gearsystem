@@ -35,7 +35,8 @@ Cartridge::Cartridge()
     m_bReady = false;
     m_szFilePath[0] = 0;
     m_szFileName[0] = 0;
-    m_iROMBankCount = 0;
+    m_iROMBankCount16k = 0;
+    m_iROMBankCount8k = 0;
     m_bGameGear = false;
     m_bSG1000 = false;
     m_bPAL = false;
@@ -63,7 +64,8 @@ void Cartridge::Reset()
     m_bReady = false;
     m_szFilePath[0] = 0;
     m_szFileName[0] = 0;
-    m_iROMBankCount = 0;
+    m_iROMBankCount16k = 0;
+    m_iROMBankCount8k = 0;
     m_bGameGear = false;
     m_bSG1000 = false;
     m_bPAL = false;
@@ -178,6 +180,10 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             m_Type = config.type;
             Log("Forcing Mapper: Korean");
             break;
+        case Cartridge::CartridgeKoreanMSXSMS8000Mapper:
+            m_Type = config.type;
+            Log("Forcing Mapper: Korean MSX SMS 8000");
+            break;
         case Cartridge::CartridgeMSXMapper:
             m_Type = config.type;
             Log("Forcing Mapper: MSX");
@@ -224,7 +230,12 @@ int Cartridge::GetROMSize() const
 
 int Cartridge::GetROMBankCount() const
 {
-    return m_iROMBankCount;
+    return m_iROMBankCount16k;
+}
+
+int Cartridge::GetROMBankCount8k() const
+{
+    return m_iROMBankCount8k;
 }
 
 const char* Cartridge::GetFilePath() const
@@ -521,10 +532,12 @@ bool Cartridge::GatherMetadata(u32 crc)
         }
     }
 
-    m_iROMBankCount = std::max(Pow2Ceil(m_iROMSize / 0x4000), 1u);
+    m_iROMBankCount16k = std::max(Pow2Ceil(m_iROMSize / 0x4000), 1u);
+    m_iROMBankCount8k = std::max(Pow2Ceil(m_iROMSize / 0x2000), 1u);
 
     Log("ROM Size: %d KB", m_iROMSize / 1024);
-    Log("ROM Bank Count: %d", m_iROMBankCount);
+    Log("ROM Bank Count (16KB): %d", m_iROMBankCount16k);
+    Log("ROM Bank Count (8KB): %d", m_iROMBankCount8k);
 
     if (m_iROMSize <= 0xC000)
     {
@@ -554,6 +567,9 @@ bool Cartridge::GatherMetadata(u32 crc)
             break;
         case Cartridge::CartridgeKoreanMapper:
             Log("Korean mapper found");
+            break;
+        case Cartridge::CartridgeKoreanMSXSMS8000Mapper:
+            Log("Korean MSX SMS 8000 mapper found");
             break;
         case Cartridge::CartridgeMSXMapper:
             Log("MSX mapper found");
@@ -607,6 +623,10 @@ void Cartridge::GetInfoFromDB(u32 crc)
             else if (kGameDatabase[i].mapper == GS_DB_KOREAN_MAPPER)
             {
                 m_Type = Cartridge::CartridgeKoreanMapper;
+            }
+            else if (kGameDatabase[i].mapper == GS_DB_KOREAN_MSX_SMS_8000_MAPPER)
+            {
+                m_Type = Cartridge::CartridgeKoreanMSXSMS8000Mapper;
             }
             else if (kGameDatabase[i].mapper == GS_DB_MSX_MAPPER)
             {

@@ -30,9 +30,10 @@ public:
     {
         CartridgeRomOnlyMapper,
         CartridgeSegaMapper,
-		CartridgeCodemastersMapper,
+        CartridgeCodemastersMapper,
         CartridgeSG1000Mapper,
         CartridgeKoreanMapper,
+        CartridgeKoreanMSXSMS8000Mapper,
         CartridgeMSXMapper,
         CartridgeJanggunMapper,
         CartridgeNotSupported
@@ -88,6 +89,7 @@ public:
     void ForceConfig(ForceConfiguration config);
     int GetROMSize() const;
     int GetROMBankCount() const;
+    int GetROMBankCount8k() const;
     const char* GetFilePath() const;
     const char* GetFileName() const;
     u8* GetROM() const;
@@ -112,7 +114,8 @@ private:
     bool m_bReady;
     char m_szFilePath[512];
     char m_szFileName[512];
-    int m_iROMBankCount;
+    int m_iROMBankCount16k;
+    int m_iROMBankCount8k;
     bool m_bGameGear;
     bool m_bSG1000;
     bool m_bPAL;
