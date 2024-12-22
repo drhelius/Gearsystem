@@ -34,7 +34,7 @@ u8 KoreanMSXSMS8000MemoryRule::PerformRead(u16 address)
 {
     if (address < 0xC000)
     {
-        int page = (address >> 13) & 0x03;
+        int page = (address >> 13) & 0x07;
         if (page > 5)
         {
             Debug("--> ** Invalid page %d", page);
