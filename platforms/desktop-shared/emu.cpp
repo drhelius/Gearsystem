@@ -272,7 +272,7 @@ void emu_get_info(char* info)
         gearsystem->GetRuntimeInfo(runtime);
 
         const char* filename = cart->GetFileName();
-
+        int crc = cart->GetCRC();
         const char* system = cart->IsGameGear() ? "Game Gear" : (cart->IsSG1000() ? "SG-1000" : "Master System");
         const char* pal = cart->IsPAL() ? "PAL" : "NTSC";
         const char* checksum = cart->IsValidROM() ? "VALID" : "FAILED";
@@ -281,7 +281,9 @@ void emu_get_info(char* info)
         const char* mapper = get_mapper(cart->GetType());
         const char* zone = get_zone(cart->GetZone());
 
-        snprintf(info, 512, "File Name: %s\nMapper: %s\nRegion: %s\nSystem: %s\nRefresh Rate: %s\nCartridge Header: %s\nROM Banks: %d\nBattery: %s\nScreen Resolution: %dx%d", filename, mapper, zone, system, pal, checksum, rom_banks, battery, runtime.screen_width, runtime.screen_height);
+        cart->GetCRC();
+
+        snprintf(info, 512, "File Name: %s\nCRC: %08X\nMapper: %s\nRegion: %s\nSystem: %s\nRefresh Rate: %s\nCartridge Header: %s\nROM Banks: %d\nBattery: %s\nScreen Resolution: %dx%d", filename, crc, mapper, zone, system, pal, checksum, rom_banks, battery, runtime.screen_width, runtime.screen_height);
     }
     else
     {
@@ -480,6 +482,24 @@ static const char* get_mapper(Cartridge::CartridgeTypes type)
         break;
     case Cartridge::CartridgeKoreanMapper:
         return "Korean";
+        break;
+    case Cartridge::CartridgeKoreanMSXSMS8000Mapper:
+        return "Korean MSX/SMS 8000";
+        break;
+    case Cartridge::CartridgeKoreanSMS32KB2000Mapper:
+        return "Korean SMS 32KB 2000";
+        break;
+    case Cartridge::CartridgeKoreanMSX32KB2000Mapper:
+        return "Korean MSX 32KB 2000";
+        break;
+    case Cartridge::CartridgeKorean2000XOR1FMapper:
+        return "Korean 2000 XOR 1F";
+        break;
+    case Cartridge::CartridgeKoreanMSX8KB0300Mapper:
+        return "Korean MSX 8KB 0300";
+        break;
+    case Cartridge::CartridgeKorean0000XORFFMapper:
+        return "Korean 0000 XOR FF";
         break;
     case Cartridge::CartridgeMSXMapper:
         return "MSX";

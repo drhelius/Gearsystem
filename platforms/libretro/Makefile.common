@@ -14,6 +14,7 @@ SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
                $(SOURCE_DIR)/KoreanMSX32KB2000MemoryRule.cpp \
                $(SOURCE_DIR)/Korean2000XOR1FMemoryRule.cpp \
                $(SOURCE_DIR)/KoreanMSX8KB0300MemoryRule.cpp \
+               $(SOURCE_DIR)/Korean0000XORFFMemoryRule.cpp \
                $(SOURCE_DIR)/Memory.cpp \
                $(SOURCE_DIR)/MemoryRule.cpp \
                $(SOURCE_DIR)/MSXMemoryRule.cpp \
@@ -32,4 +33,4 @@ SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
                $(SOURCE_DIR)/audio/Blip_Buffer.cpp \
                $(SOURCE_DIR)/audio/Effects_Buffer.cpp \
                $(SOURCE_DIR)/audio/Sms_Apu.cpp \
-               $(SOURCE_DIR)/audio/Multi_Buffer.cpp
+               $(SOURCE_DIR)/audio/Multi_Buffer.cpp \

@@ -70,6 +70,7 @@
     <ClCompile Include="..\..\src\KoreanMSX32KB2000MemoryRule.cpp" />
     <ClCompile Include="..\..\src\Korean2000XOR1FMemoryRule.cpp" />
     <ClCompile Include="..\..\src\KoreanMSX8KB0300MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\Korean0000XORFFMemoryRule.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\miniz\miniz.h" />
@@ -146,6 +147,7 @@
     <ClInclude Include="..\..\src\KoreanMSX32KB2000MemoryRule.h" />
     <ClInclude Include="..\..\src\Korean2000XOR1FMemoryRule.h" />
     <ClInclude Include="..\..\src\KoreanMSX8KB0300MemoryRule.h" />
+    <ClInclude Include="..\..\src\Korean0000XORFFMemoryRule.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\desktop-shared\gui_events.def" />
