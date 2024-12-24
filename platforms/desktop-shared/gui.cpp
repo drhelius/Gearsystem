@@ -503,7 +503,7 @@ static void main_menu(void)
             if (ImGui::BeginMenu("Mapper"))
             {
                 ImGui::PushItemWidth(220.0f);
-                ImGui::Combo("##emu_mapper", &config_emulator.mapper, "Auto\0ROM Only\0SEGA\0Codemasters\0Korean\0SG-1000\0MSX\0Janggun\0Korean Multi 2000 XOR F1\0Korean Multi MSX 32KB 2000\0Korean Multi MSX SMS 8000\0Korean Multi SMS 32KB 2000\0Korean Multi MSX 8KB 0300\0Korean 0000 XOR FF\0\0");
+                ImGui::Combo("##emu_mapper", &config_emulator.mapper, "Auto\0ROM Only\0SEGA\0Codemasters\0Korean\0SG-1000\0MSX\0Janggun\0Korean Multi 2000 XOR F1\0Korean Multi MSX 32KB 2000\0Korean Multi MSX SMS 8000\0Korean Multi SMS 32KB 2000\0Korean Multi MSX 8KB 0300\0Korean 0000 XOR FF\0Korean FFFF HiCom\0\0");
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
@@ -916,7 +916,7 @@ static void main_menu(void)
                         gamepad_configuration_item("2:", &config_input[1].gamepad_2, 1);
                         gamepad_configuration_item("START:", &config_input[1].gamepad_start, 1);
 
-                        popup_modal_gamepad(1);                 
+                        popup_modal_gamepad(1);
 
                         ImGui::EndMenu();
                     }
@@ -1905,6 +1905,8 @@ static Cartridge::CartridgeTypes get_mapper(int index)
             return Cartridge::CartridgeKoreanMSX8KB0300Mapper;
         case 13:
             return Cartridge::CartridgeKorean0000XORFFMapper;
+        case 14:
+            return Cartridge::CartridgeKoreanFFFFHiComMapper;
         default:
             return Cartridge::CartridgeNotSupported;
     }

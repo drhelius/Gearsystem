@@ -15,6 +15,7 @@ SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
                $(SOURCE_DIR)/Korean2000XOR1FMemoryRule.cpp \
                $(SOURCE_DIR)/KoreanMSX8KB0300MemoryRule.cpp \
                $(SOURCE_DIR)/Korean0000XORFFMemoryRule.cpp \
+               $(SOURCE_DIR)/KoreanFFFFHiComMemoryRule.cpp \
                $(SOURCE_DIR)/Memory.cpp \
                $(SOURCE_DIR)/MemoryRule.cpp \
                $(SOURCE_DIR)/MSXMemoryRule.cpp \
