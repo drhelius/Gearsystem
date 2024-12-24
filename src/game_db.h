@@ -262,7 +262,6 @@ const GS_GameDBEntry kGameDatabase[] =
     // KOREAN MAPPER
     {0x89B79E77, GS_DB_KOREAN_MAPPER, GS_DB_FEATURE_NONE, "Dallyeora Pigu-Wang (Korean)"},
     {0x97D03541, GS_DB_KOREAN_MAPPER, GS_DB_FEATURE_NONE, "Sangokushi 3 (Korean)"},
-    {0x89B79E77, GS_DB_KOREAN_MAPPER, GS_DB_FEATURE_NONE, "Dodgeball King (KR)"},
     {0x929222C4, GS_DB_KOREAN_MAPPER, GS_DB_FEATURE_NONE, "Jang Pung II (KR)"},
     {0x18FB98A3, GS_DB_KOREAN_MAPPER, GS_DB_FEATURE_NONE, "Jang Pung 3 (KR)"},
 
