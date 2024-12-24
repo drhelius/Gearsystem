@@ -671,9 +671,6 @@ void Cartridge::GetInfoFromDB(u32 crc)
                 case GS_DB_JANGGUN_MAPPER:
                     m_Type = Cartridge::CartridgeJanggunMapper;
                     break;
-                default:
-                    m_Type = Cartridge::CartridgeNotSupported;
-                    break;
             }
 
             if (kGameDatabase[i].features & GS_DB_FEATURE_SMS_MODE)
