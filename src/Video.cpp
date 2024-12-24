@@ -55,8 +55,8 @@ Video::Video(Memory* pMemory, Processor* pProcessor, Cartridge* pCartridge)
     m_bExtendedMode224 = false;
     m_iRenderLine = 0;
     m_iScreenWidth = 0;
-    m_bSG1000 = false;
-    m_iSG1000Mode = 0;
+    m_bTMS9918 = false;
+    m_iTMS9918Mode = 0;
     m_bDisplayEnabled = false;
     m_bSpriteOvrRequest = false;
     m_Overscan = OverscanDisabled;
@@ -148,8 +148,8 @@ void Video::Reset(bool bGameGear, bool bPAL)
 
     m_iScreenWidth = m_bGameGear ? GS_RESOLUTION_GG_WIDTH : GS_RESOLUTION_SMS_WIDTH;
 
-    m_bSG1000 = false;
-    m_iSG1000Mode = 0;
+    m_bTMS9918 = false;
+    m_iTMS9918Mode = 0;
 
     if (m_bGameGear)
     {
@@ -218,7 +218,7 @@ bool Video::Tick(unsigned int clockCycles)
             if (m_iVdpRegister10Counter == 0)
             {
                 m_iVdpRegister10Counter = m_VdpRegister[10];
-                if (!m_bSG1000 && IsSetBit(m_VdpRegister[0], 4))
+                if (!m_bTMS9918 && IsSetBit(m_VdpRegister[0], 4))
                     m_pProcessor->RequestINT(true);
             }
             else
@@ -251,7 +251,7 @@ bool Video::Tick(unsigned int clockCycles)
     }
 
     ///// SPRITE OVR /////
-    if (!m_LineEvents.spriteovr && (m_iCycleCounter >= m_Timing[TIMING_SPRITEOVR]) && !m_bSG1000)
+    if (!m_LineEvents.spriteovr && (m_iCycleCounter >= m_Timing[TIMING_SPRITEOVR]) && !m_bTMS9918)
     {
         m_LineEvents.spriteovr = true;
 
@@ -269,7 +269,7 @@ bool Video::Tick(unsigned int clockCycles)
         {
             m_iHideLeftBarOffset = 0;
 
-            if ((m_HideLeftBar != HideLeftBarNo) && (!m_bGameGear) && (!m_bSG1000) && ((m_Overscan == OverscanDisabled) || (m_Overscan == OverscanTopBottom)))
+            if ((m_HideLeftBar != HideLeftBarNo) && (!m_bGameGear) && (!m_bTMS9918) && ((m_Overscan == OverscanDisabled) || (m_Overscan == OverscanTopBottom)))
             {
                 if (m_HideLeftBar == HideLeftBarAlways)
                     m_iHideLeftBarOffset = 8;
@@ -365,14 +365,13 @@ u8 Video::GetDataPort()
     m_bFirstByteInSequence = true;
     u8 ret = m_VdpBuffer;
     m_VdpBuffer = m_pVdpVRAM[m_VdpAddress];
-    m_VdpAddress++;
-    m_VdpAddress &= 0x3FFF;
+    m_VdpAddress = (m_VdpAddress + 1) & 0x3FFF;
     return ret;
 }
 
 u8 Video::GetStatusFlags()
 {
-    u8 ret = m_VdpStatus | (m_bSG1000 ? 0 : 0x1F);
+    u8 ret = m_VdpStatus | (m_bTMS9918 ? 0 : 0x1F);
     m_bFirstByteInSequence = true;
     m_VdpStatus = 0x00;
     m_pProcessor->RequestINT(false);
@@ -386,74 +385,59 @@ bool Video::IsExtendedMode224()
 
 bool Video::IsSG1000Mode()
 {
-    return m_bSG1000;
+    return m_bTMS9918;
 }
 
 void Video::WriteData(u8 data)
 {
     m_bFirstByteInSequence = true;
     m_VdpBuffer = data;
-    switch (m_VdpCode)
-    {
-        case VDP_READ_VRAM_OPERATION:
-        case VDP_WRITE_VRAM_OPERATION:
-        case VDP_WRITE_REG_OPERATION:
-        {
-            m_pVdpVRAM[m_VdpAddress] = data;
-            break;
-        }
-        case VDP_WRITE_CRAM_OPERATION:
-        {
-            m_pVdpCRAM[m_VdpAddress & (m_bGameGear ? 0x3F : 0x1F)] = data;
-            break;
-        }
-    }
-    m_VdpAddress++;
-    m_VdpAddress &= 0x3FFF;
+
+    if (m_VdpCode == 0x03)
+        m_pVdpCRAM[m_VdpAddress & (m_bGameGear ? 0x3F : 0x1F)] = data;
+    else
+        m_pVdpVRAM[m_VdpAddress] = data;
+
+    m_VdpAddress = (m_VdpAddress + 1) & 0x3FFF;
 }
 
-void Video::WriteControl(u8 control)
+void Video::WriteControl(u8 data)
 {
     if (m_bFirstByteInSequence)
     {
         m_bFirstByteInSequence = false;
-        m_VdpAddress = (m_VdpAddress & 0xFF00) | control;
+        m_VdpAddress = (m_VdpAddress & 0x3F00) | data;
+        m_VdpBuffer = data;
     }
     else
     {
         m_bFirstByteInSequence = true;
-        m_VdpCode = (control >> 6) & 0x03;
-        m_VdpAddress = (m_VdpAddress & 0x00FF) | ((control & 0x3F) << 8);
 
-        if (m_bSG1000 && (m_VdpCode == VDP_WRITE_CRAM_OPERATION))
-        {
-            Debug("--> ** SG-1000 Attempting to write on CRAM");
-        }
+        m_VdpCode = (data >> 6) & 0x03;
+        m_VdpAddress = ((data & 0x3F) << 8) | m_VdpBuffer;
 
-        switch (m_VdpCode)
+        switch (data & 0xC0)
         {
-            case VDP_READ_VRAM_OPERATION:
+            case 0x00:
             {
                 m_VdpBuffer = m_pVdpVRAM[m_VdpAddress];
-                m_VdpAddress++;
-                m_VdpAddress &= 0x3FFF;
+                m_VdpAddress = (m_VdpAddress + 1) & 0x3FFF;
                 break;
             }
-            case VDP_WRITE_REG_OPERATION:
+            case 0x80:
             {
-                u8 reg = control & (m_bSG1000 ? 0x07 : 0x0F);
-                m_VdpRegister[reg] = (m_VdpAddress & 0x00FF);
+                u8 reg = data & 0x0F;
+                m_VdpRegister[reg] = m_VdpBuffer;
 
                 if (reg < 2)
                 {
                     m_bExtendedMode224 = ((m_VdpRegister[0] & 0x06) == 0x06) && ((m_VdpRegister[1] & 0x18) == 0x10);
-
-                    m_iSG1000Mode = ((m_VdpRegister[0] & 0x06) << 8) | (m_VdpRegister[1] & 0x18);
-                    m_bSG1000 = !m_bGameGear && ((m_iSG1000Mode == 0x0200) || (m_iSG1000Mode == 0x0000));
+                    m_iTMS9918Mode = CalculateVideoMode();
+                    m_bTMS9918 = !m_bGameGear && (m_iTMS9918Mode != 4);
                 }
                 else if (reg > 10)
                 {
-                    Debug("--> ** Attempting to write on VDP REG %d: %X", reg, control);
+                    Debug("--> ** Attempting to write on VDP REG %d: %X", reg, data);
                 }
                 break;
             }
@@ -467,7 +451,7 @@ void Video::ScanLine(int line)
     int next_line = line + 1;
     next_line %= m_iLinesPerFrame;
 
-    if (!m_bSG1000)
+    if (!m_bTMS9918)
     {
         ParseSpritesSMSGG(next_line);
     }
@@ -475,12 +459,12 @@ void Video::ScanLine(int line)
     if (m_bDisplayEnabled)
     {
         // DISPLAY ON
-        if (m_bSG1000)
+        if (m_bTMS9918)
         {
             if (line < max_height)
             {
-                RenderBackgroundSG1000(line);
-                RenderSpritesSG1000(line);
+                RenderBackgroundTMS9918(line);
+                RenderSpritesTMS9918(line);
             }
         }
         else
@@ -495,7 +479,7 @@ void Video::ScanLine(int line)
         if (line < max_height)
         {
             u16 color = 0;
-            if (m_bSG1000)
+            if (m_bTMS9918)
                 color = m_VdpRegister[7] & 0x0F;
             else
                 color = ColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
@@ -769,71 +753,137 @@ void Video::RenderSpritesSMSGG(int line)
         m_VdpStatus = SetBit(m_VdpStatus, 5);
 }
 
-void Video::RenderBackgroundSG1000(int line)
+void Video::RenderBackgroundTMS9918(int line)
 {
-    int line_width = line * m_iScreenWidth;
+    int line_offset = line * m_iScreenWidth;
 
-    int name_table_addr = (m_VdpRegister[2] & 0x0F) << 10;
-    int pattern_table_addr = 0;
-    int color_table_addr = 0;
-
-    if (m_iSG1000Mode == 0x200)
-    {
-        pattern_table_addr = (m_VdpRegister[4] & 0x04) << 11;
-        color_table_addr = (m_VdpRegister[3] & 0x80) << 6;
-    }
-    else
-    {
-        pattern_table_addr = (m_VdpRegister[4] & 0x07) << 11;
-        color_table_addr = m_VdpRegister[3] << 6;
-    }
-
-    int region = (m_VdpRegister[4] & 0x03) << 8;
+    int name_table_addr = m_VdpRegister[2] << 10;
+    int color_table_addr = m_VdpRegister[3] << 6;
+    int pattern_table_addr = m_VdpRegister[4] << 11;
+    int region_mask = ((m_VdpRegister[4] & 0x03) << 8) | 0xFF;
+    int color_mask = ((m_VdpRegister[3] & 0x7F) << 3) | 0x07;
     int backdrop_color = m_VdpRegister[7] & 0x0F;
+    backdrop_color = (backdrop_color > 0) ? backdrop_color : 1;
 
     int tile_y = line >> 3;
     int tile_y_offset = line & 7;
+    int region = 0;
 
-    for (int scx = 0; scx < m_iScreenWidth; scx++)
+    switch (m_iTMS9918Mode)
     {
-        int tile_x = scx >> 3;
-        int tile_x_offset = scx & 7;
+        case 1:
+        {
+            int fg_color = (m_VdpRegister[7] >> 4) & 0x0F;
+            int bg_color = backdrop_color;
+            fg_color = (fg_color > 0) ? fg_color : backdrop_color;
 
-        int tile_number = ((tile_y << 5) + tile_x);
+            for (int i = 0; i < 8; i++)
+            {
+                int pixel = line_offset + i;
+                m_pFrameBuffer[pixel] = bg_color;
+                m_pFrameBuffer[pixel + 248] = bg_color;
+                m_pInfoBuffer[pixel] = 0x00;
+                m_pInfoBuffer[pixel + 248] = 0x00;
+            }
 
+            for (int tile_x = 0; tile_x < 40; tile_x++)
+            {
+                int tile_number = (tile_y * 40) + tile_x;
+                int name_tile_addr = name_table_addr + tile_number;
+                int name_tile = m_pVdpVRAM[name_tile_addr];
+                u8 pattern_line = m_pVdpVRAM[pattern_table_addr + (name_tile << 3) + tile_y_offset];
+
+                int screen_offset = line_offset + (tile_x * 6) + 8;
+
+                for (int tile_pixel = 0; tile_pixel < 6; tile_pixel++)
+                {
+                    int pixel = screen_offset + tile_pixel;
+                    m_pFrameBuffer[pixel] = IsSetBit(pattern_line, 7 - tile_pixel) ? fg_color : bg_color;
+                    m_pInfoBuffer[pixel] = 0x00;
+                }
+            }
+            return;
+        }
+        case 2:
+        {
+            pattern_table_addr &= 0x2000;
+            color_table_addr &= 0x2000;
+            region = (tile_y & 0x18) << 5;
+            break;
+        }
+        case 3:
+        {
+            pattern_table_addr &= 0x2000;
+            break;
+        }
+    }
+
+    for (int tile_x = 0; tile_x < 32; tile_x++)
+    {
+        int tile_number = (tile_y << 5) + tile_x;
         int name_tile_addr = name_table_addr + tile_number;
-
-        int name_tile = 0;
-
-        if (m_iSG1000Mode == 0x200)
-            name_tile = m_pVdpVRAM[name_tile_addr] | (region & 0x300 & tile_number);
-        else
-            name_tile = m_pVdpVRAM[name_tile_addr];
-
-        u8 pattern_line = m_pVdpVRAM[pattern_table_addr + (name_tile << 3) + tile_y_offset];
-
+        int name_tile = m_pVdpVRAM[name_tile_addr];
+        u8 pattern_line = 0;
         u8 color_line = 0;
 
-        if (m_iSG1000Mode == 0x200)
-            color_line = m_pVdpVRAM[color_table_addr + (name_tile << 3) + tile_y_offset];
-        else
+        if (m_iTMS9918Mode == 3)
+        {
+            int offset_color = pattern_table_addr + (name_tile << 3) + ((tile_y & 0x03) << 1) + (line & 0x04 ? 1 : 0);
+            color_line = m_pVdpVRAM[offset_color];
+
+            int left_color = color_line >> 4;
+            int right_color = color_line & 0x0F;
+            left_color = (left_color > 0) ? left_color : backdrop_color;
+            right_color = (right_color > 0) ? right_color : backdrop_color;
+
+            int screen_offset = line_offset + (tile_x << 3);
+
+            for (int tile_pixel = 0; tile_pixel < 4; tile_pixel++)
+            {
+                int pixel = screen_offset + tile_pixel;
+                m_pFrameBuffer[pixel] = left_color;
+                m_pInfoBuffer[pixel] = 0x00;
+            }
+
+            for (int tile_pixel = 4; tile_pixel < 8; tile_pixel++)
+            {
+                int pixel = screen_offset + tile_pixel;
+                m_pFrameBuffer[pixel] = right_color;
+                m_pInfoBuffer[pixel] = 0x00;
+            }
+
+            continue;
+        }
+        else if (m_iTMS9918Mode == 0)
+        {
+            pattern_line = m_pVdpVRAM[pattern_table_addr + (name_tile << 3) + tile_y_offset];
             color_line = m_pVdpVRAM[color_table_addr + (name_tile >> 3)];
+        }
+        else if (m_iTMS9918Mode == 2)
+        {
+            name_tile += region;
+            pattern_line = m_pVdpVRAM[pattern_table_addr + ((name_tile & region_mask) << 3) + tile_y_offset];
+            color_line = m_pVdpVRAM[color_table_addr + ((name_tile & color_mask) << 3) + tile_y_offset];
+        }
 
-        int bg_color = color_line & 0x0F;
         int fg_color = color_line >> 4;
+        int bg_color = color_line & 0x0F;
+        fg_color = (fg_color > 0) ? fg_color : backdrop_color;
+        bg_color = (bg_color > 0) ? bg_color : backdrop_color;
 
-        int pixel = line_width + scx;
+        int screen_offset = line_offset + (tile_x << 3);
 
-        int final_color = IsSetBit(pattern_line, 7 - tile_x_offset) ? fg_color : bg_color;
-
-        m_pFrameBuffer[pixel] = (final_color > 0) ? final_color : backdrop_color;
-        m_pInfoBuffer[pixel] = 0x00;
+        for (int tile_pixel = 0; tile_pixel < 8; tile_pixel++)
+        {
+            int pixel = screen_offset + tile_pixel;
+            m_pFrameBuffer[pixel] = IsSetBit(pattern_line, 7 - tile_pixel) ? fg_color : bg_color;
+            m_pInfoBuffer[pixel] = 0x00;
+        }
     }
 }
 
-void Video::RenderSpritesSG1000(int line)
+void Video::RenderSpritesTMS9918(int line)
 {
-    int sprite_collision = false;
     int sprite_count = 0;
     int line_width = line * m_iScreenWidth;
     int sprite_size = IsSetBit(m_VdpRegister[1], 1) ? 16 : 8;
@@ -907,21 +957,25 @@ void Video::RenderSpritesSG1000(int line)
             else
                 sprite_pixel = IsSetBit(m_pVdpVRAM[sprite_line_addr + 16], 15 - tile_x_adjusted);
 
-            if (sprite_pixel && (sprite_count < 5) && ((m_pInfoBuffer[pixel] & 0x08) == 0))
+            if (sprite_pixel && (sprite_count < 5))
             {
-                m_pFrameBuffer[pixel] = sprite_color;
-                m_pInfoBuffer[pixel] |= 0x08;
-            }
+                if (!IsSetBit(m_pInfoBuffer[pixel], 0) && (sprite_color > 0))
+                {
+                    m_pFrameBuffer[pixel] = sprite_color;
+                    m_pInfoBuffer[pixel] = SetBit(m_pInfoBuffer[pixel], 0);
+                }
 
-            if ((m_pInfoBuffer[pixel] & 0x04) != 0)
-                sprite_collision = true;
-            else
-                m_pInfoBuffer[pixel] |= 0x04;
+                if (IsSetBit(m_pInfoBuffer[pixel], 1))
+                {
+                     m_VdpStatus = SetBit(m_VdpStatus, 5);
+                }
+                else
+                {
+                    m_pInfoBuffer[pixel] = SetBit(m_pInfoBuffer[pixel], 1);
+                }
+            }
         }
     }
-
-    if (sprite_collision)
-        m_VdpStatus = SetBit(m_VdpStatus, 5);
 }
 
 void Video::Render32bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format pixelFormat, int size, bool overscan)
@@ -935,7 +989,7 @@ void Video::Render32bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
     int overscan_total_width = GS_RESOLUTION_MAX_WIDTH;
     int overscan_total_height = 0;
     bool overscan_enabled = false;
-    int overscan_color = m_bSG1000 ? m_VdpRegister[7] & 0x0F : ColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
+    int overscan_color = m_bTMS9918 ? m_VdpRegister[7] & 0x0F : ColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
     int buffer_size = size * 4;    
     int shift_g = m_bGameGear ? 4 : 2;
     int shift_b = m_bGameGear ? 8 : 4;
@@ -979,9 +1033,9 @@ void Video::Render32bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
             bool is_v_overscan = (overscan_v > 0) && (y < overscan_v || y >= (overscan_v + overscan_content_v));
 
             if (is_h_overscan || is_v_overscan)
-                src_color = m_bSG1000 ? overscan_color * 3 : overscan_color;
+                src_color = m_bTMS9918 ? overscan_color * 3 : overscan_color;
             else
-                src_color = m_bSG1000 ? srcFrameBuffer[i++] * 3 : srcFrameBuffer[i++];
+                src_color = m_bTMS9918 ? srcFrameBuffer[i++] * 3 : srcFrameBuffer[i++];
 
             if (++x == overscan_total_width)
             {
@@ -993,9 +1047,9 @@ void Video::Render32bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
             }
         }
         else
-            src_color = m_bSG1000 ? srcFrameBuffer[i++] * 3 : srcFrameBuffer[i++];
+            src_color = m_bTMS9918 ? srcFrameBuffer[i++] * 3 : srcFrameBuffer[i++];
 
-        if (m_bSG1000)
+        if (m_bTMS9918)
         {
             dstFrameBuffer[j + 0] = bgr ? sg1000_palette[src_color + 2] : sg1000_palette[src_color];
             dstFrameBuffer[j + 1] = sg1000_palette[src_color + 1];
@@ -1023,7 +1077,7 @@ void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
     int overscan_total_width = GS_RESOLUTION_MAX_WIDTH;
     int overscan_total_height = 0;
     bool overscan_enabled = false;
-    int overscan_color = m_bSG1000 ? m_VdpRegister[7] & 0x0F : ColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
+    int overscan_color = m_bTMS9918 ? m_VdpRegister[7] & 0x0F : ColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
     int buffer_size = size * 2;    
     int shift_g = m_bGameGear ? 4 : 2;
     int shift_b = m_bGameGear ? 8 : 4;
@@ -1101,7 +1155,7 @@ void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
         else
             src_color = srcFrameBuffer[i++];
 
-        if (m_bSG1000)
+        if (m_bTMS9918)
         {
             *(u16*)(&dstFrameBuffer[j]) = pal[src_color];
         }
@@ -1163,6 +1217,20 @@ void Video::InitPalettes(const u8* src, u16* dest_565_rgb, u16* dest_555_rgb, u1
     }
 }
 
+int Video::CalculateVideoMode()
+{
+    if (IsSetBit(m_VdpRegister[0], 2))
+        return 4;
+    else if (IsSetBit(m_VdpRegister[1], 4))
+        return 1;
+    else if (IsSetBit(m_VdpRegister[1], 3))
+        return 3;
+    else if (IsSetBit(m_VdpRegister[0], 1))
+        return 2;
+    else
+        return 0;
+}
+
 void Video::SaveState(std::ostream& stream)
 {
     using namespace std;
@@ -1192,8 +1260,8 @@ void Video::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_bGameGear), sizeof(m_bGameGear));
     stream.write(reinterpret_cast<const char*> (&m_bPAL), sizeof(m_bPAL));
     stream.write(reinterpret_cast<const char*> (&m_iScreenWidth), sizeof(m_iScreenWidth));
-    stream.write(reinterpret_cast<const char*> (&m_bSG1000), sizeof(m_bSG1000));
-    stream.write(reinterpret_cast<const char*> (&m_iSG1000Mode), sizeof(m_iSG1000Mode));
+    stream.write(reinterpret_cast<const char*> (&m_bTMS9918), sizeof(m_bTMS9918));
+    stream.write(reinterpret_cast<const char*> (&m_iTMS9918Mode), sizeof(m_iTMS9918Mode));
     stream.write(reinterpret_cast<const char*> (&m_Timing), sizeof(m_Timing));
     stream.write(reinterpret_cast<const char*> (&m_NextLineSprites), sizeof(m_NextLineSprites));
     stream.write(reinterpret_cast<const char*> (&m_bDisplayEnabled), sizeof(m_bDisplayEnabled));
@@ -1229,8 +1297,8 @@ void Video::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_bGameGear), sizeof(m_bGameGear));
     stream.read(reinterpret_cast<char*> (&m_bPAL), sizeof(m_bPAL));
     stream.read(reinterpret_cast<char*> (&m_iScreenWidth), sizeof(m_iScreenWidth));
-    stream.read(reinterpret_cast<char*> (&m_bSG1000), sizeof(m_bSG1000));
-    stream.read(reinterpret_cast<char*> (&m_iSG1000Mode), sizeof(m_iSG1000Mode));
+    stream.read(reinterpret_cast<char*> (&m_bTMS9918), sizeof(m_bTMS9918));
+    stream.read(reinterpret_cast<char*> (&m_iTMS9918Mode), sizeof(m_iTMS9918Mode));
     stream.read(reinterpret_cast<char*> (&m_Timing), sizeof(m_Timing));
     stream.read(reinterpret_cast<char*> (&m_NextLineSprites), sizeof(m_NextLineSprites));
     stream.read(reinterpret_cast<char*> (&m_bDisplayEnabled), sizeof(m_bDisplayEnabled));

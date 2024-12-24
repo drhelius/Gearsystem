@@ -345,29 +345,37 @@ bool Processor::Disassemble(u16 address)
     int bank = 0;
     bool rom = false;
 
-    switch (address & 0xC000)
+    if (m_pMemory->GetCurrentRule()->Has8kBanks())
     {
-    case 0x0000:
-        bank = m_pMemory->GetCurrentRule()->GetBank(0);
-        offset = (0x4000 * bank) + address;
-        map = romMap;
-        rom = true;
-        break;
-    case 0x4000:
-        bank = m_pMemory->GetCurrentRule()->GetBank(1);
-        offset = (0x4000 * bank) + (address & 0x3FFF);
-        map = romMap;
-        rom = true;
-        break;
-    case 0x8000:
-        bank = m_pMemory->GetCurrentRule()->GetBank(2);
-        offset = (0x4000 * bank) + (address & 0x3FFF);
-        map = romMap;
-        rom = true;
-        break;
-    default:
-        map = memoryMap;
-        rom = false;
+        if (address < 0xC000)
+        {
+            int slot = (address >> 13) & 0x07;
+            bank = m_pMemory->GetCurrentRule()->GetBank(slot);
+            offset = (0x2000 * bank) + (address & 0x1FFF);
+            map = romMap;
+            rom = true;
+        }
+        else
+        {
+            map = memoryMap;
+            rom = false;
+        }
+    }
+    else
+    {
+        if (address < 0xC000)
+        {
+            int slot = (address >> 14) & 0x03;
+            bank = m_pMemory->GetCurrentRule()->GetBank(slot);
+            offset = (0x4000 * bank) + (address & 0x3FFF);
+            map = romMap;
+            rom = true;
+        }
+        else
+        {
+            map = memoryMap;
+            rom = false;
+        }
     }
 
     if (!IsValidPointer(map[offset]))

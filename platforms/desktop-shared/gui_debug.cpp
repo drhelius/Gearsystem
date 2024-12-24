@@ -46,7 +46,7 @@ struct DisassmeblerLine
     std::string symbol;
 };
 
-static MemEditor mem_edit[10];
+static MemEditor mem_edit[16];
 static int mem_edit_select = -1;
 static int current_mem_edit = 0;
 static std::vector<DebugSymbol> symbols;
@@ -345,12 +345,26 @@ static void debug_window_memory(void)
 
     ImGui::TextColored(cyan, "  BANKS: ");ImGui::SameLine();
 
-    ImGui::TextColored(magenta, "ROM0");ImGui::SameLine();
-    ImGui::Text("$%02X", memory->GetCurrentRule()->GetBank(0)); ImGui::SameLine();
-    ImGui::TextColored(magenta, "  ROM1");ImGui::SameLine();
-    ImGui::Text("$%02X", memory->GetCurrentRule()->GetBank(1)); ImGui::SameLine();
-    ImGui::TextColored(magenta, "  ROM2");ImGui::SameLine();
-    ImGui::Text("$%02X", memory->GetCurrentRule()->GetBank(2)); 
+    if (memory->GetCurrentRule()->Has8kBanks())
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            ImGui::TextColored(magenta, "ROM%d", i);ImGui::SameLine();
+            ImGui::Text("$%02X", memory->GetCurrentRule()->GetBank(i));
+            if (i != 5)
+                ImGui::SameLine();
+        }
+    }
+    else
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            ImGui::TextColored(magenta, "ROM%d", i);ImGui::SameLine();
+            ImGui::Text("$%02X", memory->GetCurrentRule()->GetBank(i));
+            if (i != 2)
+                ImGui::SameLine();
+        }
+    }
 
     if (cart->GetType() == Cartridge::CartridgeSegaMapper)
     {
@@ -363,85 +377,108 @@ static void debug_window_memory(void)
 
     if (ImGui::BeginTabBar("##memory_tabs", ImGuiTabBarFlags_None))
     {
-        if (cart->GetType() == Cartridge::CartridgeSegaMapper)
+        if (memory->GetCurrentRule()->Has8kBanks())
         {
-            if (ImGui::BeginTabItem("FIXED 1KB", NULL, mem_edit_select == 0 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
+            for (int i=0; i<6; i++)
             {
-                ImGui::PushFont(gui_default_font);
-                if (mem_edit_select == 0)
-                    mem_edit_select = -1;
-                current_mem_edit = 0;
-                mem_edit[current_mem_edit].Draw(memory->GetMemoryMap(), 0x400, 0);
-                ImGui::PopFont();
-                ImGui::EndTabItem();
-            }
+                int mem_edit_index = i + 10;
+                char label[16];
+                snprintf(label, 16, "ROM%d", i);
 
-            if (ImGui::BeginTabItem("PAGE0", NULL, mem_edit_select == 1 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
-            {
-                ImGui::PushFont(gui_default_font);
-                if (mem_edit_select == 1)
-                    mem_edit_select = -1;
-                current_mem_edit = 1;
-                mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetPage(0) + 0x400, 0x4000 - 0x400, 0x400);
-                ImGui::PopFont();
-                ImGui::EndTabItem();
-            }
-        } 
-        else if (ImGui::BeginTabItem("PAGE0", NULL, mem_edit_select == 2 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
-        {
-            ImGui::PushFont(gui_default_font);
-            if (mem_edit_select == 2)
-                    mem_edit_select = -1;
-                current_mem_edit = 2;
-            mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetPage(0), 0x4000, 0);
-            ImGui::PopFont();
-            ImGui::EndTabItem();
-        }
-
-        if (ImGui::BeginTabItem("PAGE1", NULL, mem_edit_select == 3 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
-        {
-            ImGui::PushFont(gui_default_font);
-            if (mem_edit_select == 3)
-                    mem_edit_select = -1;
-                current_mem_edit = 3;
-            mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetPage(1), 0x4000, 0x4000);
-            ImGui::PopFont();
-            ImGui::EndTabItem();
-        }
-
-        if ((cart->GetType() == Cartridge::CartridgeCodemastersMapper) && IsValidPointer(memory->GetCurrentRule()->GetRamBanks()))
-        {
-            if (ImGui::BeginTabItem("PAGE2", NULL, mem_edit_select == 4 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
-            {
-                ImGui::PushFont(gui_default_font);
-                if (mem_edit_select == 4)
-                    mem_edit_select = -1;
-                current_mem_edit = 4;
-                mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetPage(2), 0x2000, 0x8000);
-                ImGui::PopFont();
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("EXT RAM", NULL, mem_edit_select == 5 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
-            {
-                ImGui::PushFont(gui_default_font);
-                if (mem_edit_select == 5)
-                    mem_edit_select = -1;
-                current_mem_edit = 5;
-                mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetRamBanks(), 0x2000, 0xA000);
-                ImGui::PopFont();
-                ImGui::EndTabItem();
+                if (ImGui::BeginTabItem(label, NULL, mem_edit_select == mem_edit_index ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
+                {
+                    ImGui::PushFont(gui_default_font);
+                    if (mem_edit_select == mem_edit_index)
+                            mem_edit_select = -1;
+                        current_mem_edit = mem_edit_index;
+                    mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetPage(i), 0x2000, 0);
+                    ImGui::PopFont();
+                    ImGui::EndTabItem();
+                }
             }
         }
-        else if (ImGui::BeginTabItem("PAGE2", NULL, mem_edit_select == 6 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
+        else
         {
-            ImGui::PushFont(gui_default_font);
-            if (mem_edit_select == 6)
-                    mem_edit_select = -1;
-                current_mem_edit = 6;
-            mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetPage(2), 0x4000, 0x8000);
-            ImGui::PopFont();
-            ImGui::EndTabItem();
+            if (cart->GetType() == Cartridge::CartridgeSegaMapper)
+            {
+                if (ImGui::BeginTabItem("FIXED 1KB", NULL, mem_edit_select == 0 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
+                {
+                    ImGui::PushFont(gui_default_font);
+                    if (mem_edit_select == 0)
+                        mem_edit_select = -1;
+                    current_mem_edit = 0;
+                    mem_edit[current_mem_edit].Draw(memory->GetMemoryMap(), 0x400, 0);
+                    ImGui::PopFont();
+                    ImGui::EndTabItem();
+                }
+
+                if (ImGui::BeginTabItem("ROM0", NULL, mem_edit_select == 1 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
+                {
+                    ImGui::PushFont(gui_default_font);
+                    if (mem_edit_select == 1)
+                        mem_edit_select = -1;
+                    current_mem_edit = 1;
+                    mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetPage(0) + 0x400, 0x4000 - 0x400, 0x400);
+                    ImGui::PopFont();
+                    ImGui::EndTabItem();
+                }
+            } 
+            else if (ImGui::BeginTabItem("ROM0", NULL, mem_edit_select == 2 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
+            {
+                ImGui::PushFont(gui_default_font);
+                if (mem_edit_select == 2)
+                        mem_edit_select = -1;
+                    current_mem_edit = 2;
+                mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetPage(0), 0x4000, 0);
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("ROM1", NULL, mem_edit_select == 3 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
+            {
+                ImGui::PushFont(gui_default_font);
+                if (mem_edit_select == 3)
+                        mem_edit_select = -1;
+                    current_mem_edit = 3;
+                mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetPage(1), 0x4000, 0x4000);
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
+
+            if ((cart->GetType() == Cartridge::CartridgeCodemastersMapper) && IsValidPointer(memory->GetCurrentRule()->GetRamBanks()))
+            {
+                if (ImGui::BeginTabItem("ROM2", NULL, mem_edit_select == 4 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
+                {
+                    ImGui::PushFont(gui_default_font);
+                    if (mem_edit_select == 4)
+                        mem_edit_select = -1;
+                    current_mem_edit = 4;
+                    mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetPage(2), 0x2000, 0x8000);
+                    ImGui::PopFont();
+                    ImGui::EndTabItem();
+                }
+
+                if (ImGui::BeginTabItem("EXT RAM", NULL, mem_edit_select == 5 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
+                {
+                    ImGui::PushFont(gui_default_font);
+                    if (mem_edit_select == 5)
+                        mem_edit_select = -1;
+                    current_mem_edit = 5;
+                    mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetRamBanks(), 0x2000, 0xA000);
+                    ImGui::PopFont();
+                    ImGui::EndTabItem();
+                }
+            }
+            else if (ImGui::BeginTabItem("ROM2", NULL, mem_edit_select == 6 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
+            {
+                ImGui::PushFont(gui_default_font);
+                if (mem_edit_select == 6)
+                        mem_edit_select = -1;
+                    current_mem_edit = 6;
+                mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetPage(2), 0x4000, 0x8000);
+                ImGui::PopFont();
+                ImGui::EndTabItem();
+            }
         }
 
         if (ImGui::BeginTabItem("RAM", NULL, mem_edit_select == 7 ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None))
@@ -729,25 +766,33 @@ static void debug_window_disassembler(void)
             int offset = i;
             int bank = 0;
 
-            switch (i & 0xC000)
+            if (memory->GetCurrentRule()->Has8kBanks())
             {
-            case 0x0000:
-                bank = memory->GetCurrentRule()->GetBank(0);
-                offset = (0x4000 * bank) + i;
-                map = rom_map;
-                break;
-            case 0x4000:
-                bank = memory->GetCurrentRule()->GetBank(1);
-                offset = (0x4000 * bank) + (i & 0x3FFF);
-                map = rom_map;
-                break;
-            case 0x8000:
-                bank = memory->GetCurrentRule()->GetBank(2);
-                offset = (0x4000 * bank) + (i & 0x3FFF);
-                map = rom_map;
-                break;
-            default:
-                map = memory_map;
+                if (i < 0xC000)
+                {
+                    int slot = (i >> 13) & 0x07;
+                    bank = memory->GetCurrentRule()->GetBank(slot);
+                    offset = (0x2000 * bank) + (i & 0x1FFF);
+                    map = rom_map;
+                }
+                else
+                {
+                    map = memory_map;
+                }
+            }
+            else
+            {
+                if (i < 0xC000)
+                {
+                    int slot = (i >> 14) & 0x03;
+                    bank = memory->GetCurrentRule()->GetBank(slot);
+                    offset = (0x4000 * bank) + (i & 0x3FFF);
+                    map = rom_map;
+                }
+                else
+                {
+                    map = memory_map;
+                }
             }
 
             if (IsValidPointer(map[offset]) && (map[offset]->name[0] != 0))
@@ -1117,7 +1162,7 @@ static void debug_window_vram_background(void)
     bool isMode224 = video->IsExtendedMode224();
     bool isGG = emu_get_core()->GetCartridge()->IsGameGear();
     bool isSG1000 = video->IsSG1000Mode();
-    int SG1000mode = video->GetSG1000Mode();
+    int TMS9918mode = video->GetTMS9918Mode();
 
     bool window_hovered = ImGui::IsWindowHovered();
     static bool show_grid = true;
@@ -1235,25 +1280,47 @@ static void debug_window_vram_background(void)
 
         if (isSG1000)
         {
-            int name_table_addr = (regs[2] & 0x0F) << 10;
-            int region = (regs[4] & 0x03) << 8;
-            int tile_number = (tile_y * 32) + tile_x;
-            int name_tile_addr = name_table_addr + tile_number;
+            int cols = (TMS9918mode == 1) ? 40 : 32;
+            int name_table_addr = regs[2] << 10;
+            int color_table_addr = regs[3] << 6;
+            if (TMS9918mode == 2)
+                color_table_addr &= 0x2000;
+            int pattern_table_addr = regs[4] << 11;
+            int region = (tile_y & 0x18) << 5;
 
-            int name_tile = 0;
+            int tile_number = (tile_y * cols) + tile_x;
+            int name_tile_addr = (name_table_addr + tile_number) & 0x3FFF;
+            int name_tile = vram[name_tile_addr];
 
-            if (SG1000mode == 0x200)
-                name_tile = vram[name_tile_addr] | (region & 0x300 & tile_number);
-            else
-                name_tile = vram[name_tile_addr];
+            if (TMS9918mode == 2)
+            {
+                pattern_table_addr &= 0x2000;
+                name_tile += region;
+            }
+            else if(TMS9918mode == 4)
+            {
+                pattern_table_addr &= 0x2000;
+            }
 
-            int pattern_table_addr = (regs[4] & (SG1000mode == 0x200 ? 0x04 : 0x07)) << 11;
-            int tile_addr = pattern_table_addr + (name_tile << 3);
+            int tile_addr = (pattern_table_addr + (name_tile << 3)) & 0x3FFF;
 
-            ImGui::TextColored(cyan, " Tile Addr:"); ImGui::SameLine();
-            ImGui::Text(" $%04X", tile_addr);
+            int color_mask = ((regs[3] & 0x7F) << 3) | 0x07;
+
+            int color_tile_addr = 0;
+
+            if (TMS9918mode == 2)
+                color_tile_addr = color_table_addr + ((name_tile & color_mask) << 3);
+            else if (TMS9918mode == 0)
+                color_tile_addr = color_table_addr + (name_tile >> 3);
+
+            ImGui::TextColored(cyan, " Name Addr:"); ImGui::SameLine();
+            ImGui::Text(" $%04X", name_tile_addr);
             ImGui::TextColored(cyan, " Tile Number:"); ImGui::SameLine();
             ImGui::Text("$%03X", name_tile);
+            ImGui::TextColored(cyan, " Tile Addr:"); ImGui::SameLine();
+            ImGui::Text(" $%04X", tile_addr);
+            ImGui::TextColored(cyan, " Color Addr:"); ImGui::SameLine();
+            ImGui::Text("$%04X", color_tile_addr);
         }
         else
         {
@@ -1304,7 +1371,7 @@ static void debug_window_vram_tiles(void)
 {
     Video* video = emu_get_core()->GetVideo();
     u8* regs = video->GetRegisters();
-    int SG1000mode = video->GetSG1000Mode();
+    int TMS9918mode = video->GetTMS9918Mode();
     bool isSG1000 = video->IsSG1000Mode();
 
     bool window_hovered = ImGui::IsWindowHovered();
@@ -1379,7 +1446,7 @@ static void debug_window_vram_tiles(void)
 
         if (isSG1000)
         {
-            int pattern_table_addr = (regs[4] & (SG1000mode == 0x200 ? 0x04 : 0x07)) << 11;
+            int pattern_table_addr = (regs[4] & (TMS9918mode == 2 ? 0x04 : 0x07)) << 11;
             tile_addr = pattern_table_addr + (tile << 3);
         }
         else

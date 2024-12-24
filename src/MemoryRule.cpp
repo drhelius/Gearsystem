@@ -74,6 +74,11 @@ int MemoryRule::GetBank(int)
     return 0;
 }
 
+bool MemoryRule::Has8kBanks()
+{
+    return false;
+}
+
 void MemoryRule::SaveState(std::ostream&)
 {
 }

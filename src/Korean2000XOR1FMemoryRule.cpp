@@ -60,10 +60,15 @@ void Korean2000XOR1FMemoryRule::PerformWrite(u16 address, u8 value)
 
             value = ((value ^ 0x1F) & (m_pCartridge->GetROMBankCount8k() - 1)) ^ 0x1F;
 
-            m_iPageAddress[2] = 0x2000 * (value ^ 0x1F);
-            m_iPageAddress[3] = 0x2000 * (value ^ 0x1E);
-            m_iPageAddress[4] = 0x2000 * (value ^ 0x1D);
-            m_iPageAddress[5] = 0x2000 * (value ^ 0x1C);
+            m_iPage[2] = value ^ 0x1F;
+            m_iPage[3] = value ^ 0x1E;
+            m_iPage[4] = value ^ 0x1D;
+            m_iPage[5] = value ^ 0x1C;
+
+            m_iPageAddress[2] = 0x2000 * m_iPage[2];
+            m_iPageAddress[3] = 0x2000 * m_iPage[3];
+            m_iPageAddress[4] = 0x2000 * m_iPage[4];
+            m_iPageAddress[5] = 0x2000 * m_iPage[5];
         }
         else
         {
@@ -86,26 +91,35 @@ void Korean2000XOR1FMemoryRule::PerformWrite(u16 address, u8 value)
 
 void Korean2000XOR1FMemoryRule::Reset()
 {
-    m_iPageAddress[0] = 0x2000 * 0;
-    m_iPageAddress[1] = 0x2000 * 0;
-    m_iPageAddress[2] = 0x2000 * 0x60;
-    m_iPageAddress[3] = 0x2000 * 0x61;
-    m_iPageAddress[4] = 0x2000 * 0x62;
-    m_iPageAddress[5] = 0x2000 * 0x63;
+    m_iPage[0] = 0;
+    m_iPage[1] = 0;
+    m_iPage[2] = 0x60;
+    m_iPage[3] = 0x61;
+    m_iPage[4] = 0x62;
+    m_iPage[5] = 0x63;
+
+    for (int i = 0; i < 6; i++)
+        m_iPageAddress[i] = 0x2000 * m_iPage[i];
 }
 
-u8* Korean2000XOR1FMemoryRule::GetPage(int)
+u8* Korean2000XOR1FMemoryRule::GetPage(int index)
 {
-    return m_pCartridge->GetROM();
+    return m_pCartridge->GetROM() + m_iPageAddress[index];
 }
 
-int Korean2000XOR1FMemoryRule::GetBank(int)
+int Korean2000XOR1FMemoryRule::GetBank(int index)
 {
-    return 0;
+    return m_iPage[index];
+}
+
+bool Korean2000XOR1FMemoryRule::Has8kBanks()
+{
+    return true;
 }
 
 void Korean2000XOR1FMemoryRule::SaveState(std::ostream& stream)
 {
+    stream.write(reinterpret_cast<const char*> (m_iPage), sizeof(m_iPage));
     stream.write(reinterpret_cast<const char*> (m_iPageAddress), sizeof(m_iPageAddress));
 }
 
@@ -113,5 +127,6 @@ void Korean2000XOR1FMemoryRule::LoadState(std::istream& stream)
 {
     using namespace std;
 
+    stream.read(reinterpret_cast<char*> (m_iPage), sizeof(m_iPage));
     stream.read(reinterpret_cast<char*> (m_iPageAddress), sizeof(m_iPageAddress));
 }

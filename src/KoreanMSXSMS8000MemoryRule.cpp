@@ -64,19 +64,28 @@ void KoreanMSXSMS8000MemoryRule::PerformWrite(u16 address, u8 value)
 
             if (value & 0x80)
             {
-                m_iPageAddress[0] = 0x2000 * ((value ^ 0x03) & (m_pCartridge->GetROMBankCount8k() - 1));
-                m_iPageAddress[1] = 0x2000 * ((value ^ 0x02) & (m_pCartridge->GetROMBankCount8k() - 1));
+                m_iPage[0] = (value ^ 0x03) & (m_pCartridge->GetROMBankCount8k() - 1);
+                m_iPage[1] = (value ^ 0x02) & (m_pCartridge->GetROMBankCount8k() - 1);
+                m_iPageAddress[0] = 0x2000 * m_iPage[0];
+                m_iPageAddress[1] = 0x2000 * m_iPage[1];
             }
             else
             {
-                m_iPageAddress[0] = 0x2000 * (0x3C & (m_pCartridge->GetROMBankCount8k() - 1));
-                m_iPageAddress[1] = 0x2000 * (0x3C & (m_pCartridge->GetROMBankCount8k() - 1));
+                m_iPage[0] = 0x3C & (m_pCartridge->GetROMBankCount8k() - 1);
+                m_iPage[1] = 0x3C & (m_pCartridge->GetROMBankCount8k() - 1);
+                m_iPageAddress[0] = 0x2000 * m_iPage[0];
+                m_iPageAddress[1] = 0x2000 * m_iPage[1];
             }
 
-            m_iPageAddress[2] = 0x2000 * ((value ^ 0x01) & (m_pCartridge->GetROMBankCount8k() - 1));
-            m_iPageAddress[3] = 0x2000 * ((value ^ 0x00) & (m_pCartridge->GetROMBankCount8k() - 1));
-            m_iPageAddress[4] = 0x2000 * ((value ^ 0x03) & (m_pCartridge->GetROMBankCount8k() - 1));
-            m_iPageAddress[5] = 0x2000 * ((value ^ 0x02) & (m_pCartridge->GetROMBankCount8k() - 1));
+            m_iPage[2] = (value ^ 0x01) & (m_pCartridge->GetROMBankCount8k() - 1);
+            m_iPage[3] = (value ^ 0x00) & (m_pCartridge->GetROMBankCount8k() - 1);
+            m_iPage[4] = (value ^ 0x03) & (m_pCartridge->GetROMBankCount8k() - 1);
+            m_iPage[5] = (value ^ 0x02) & (m_pCartridge->GetROMBankCount8k() - 1);
+
+            m_iPageAddress[2] = 0x2000 * m_iPage[2];
+            m_iPageAddress[3] = 0x2000 * m_iPage[3];
+            m_iPageAddress[4] = 0x2000 * m_iPage[4];
+            m_iPageAddress[5] = 0x2000 * m_iPage[5];
         }
         else
         {
@@ -100,26 +109,35 @@ void KoreanMSXSMS8000MemoryRule::PerformWrite(u16 address, u8 value)
 void KoreanMSXSMS8000MemoryRule::Reset()
 {
     m_Register = 0;
-    m_iPageAddress[0] = 0x2000 * (0x3C);
-    m_iPageAddress[1] = 0x2000 * (0x3C);
-    m_iPageAddress[2] = 0x2000 * (m_Register ^ 0x01);
-    m_iPageAddress[3] = 0x2000 * (m_Register ^ 0x00);
-    m_iPageAddress[4] = 0x2000 * (m_Register ^ 0x03);
-    m_iPageAddress[5] = 0x2000 * (m_Register ^ 0x02);
+    m_iPage[0] = 0x3C;
+    m_iPage[1] = 0x3C;
+    m_iPage[2] = m_Register ^ 0x01;
+    m_iPage[3] = m_Register ^ 0x00;
+    m_iPage[4] = m_Register ^ 0x03;
+    m_iPage[5] = m_Register ^ 0x02;
+
+    for (int i = 0; i < 6; i++)
+        m_iPageAddress[i] = 0x2000 * m_iPage[i];
 }
 
-u8* KoreanMSXSMS8000MemoryRule::GetPage(int)
+u8* KoreanMSXSMS8000MemoryRule::GetPage(int index)
 {
-    return m_pCartridge->GetROM();
+    return m_pCartridge->GetROM() + m_iPageAddress[index];
 }
 
-int KoreanMSXSMS8000MemoryRule::GetBank(int)
+int KoreanMSXSMS8000MemoryRule::GetBank(int index)
 {
-    return 0;
+    return m_iPage[index];
+}
+
+bool KoreanMSXSMS8000MemoryRule::Has8kBanks()
+{
+    return true;
 }
 
 void KoreanMSXSMS8000MemoryRule::SaveState(std::ostream& stream)
 {
+    stream.write(reinterpret_cast<const char*> (m_iPage), sizeof(m_iPage));
     stream.write(reinterpret_cast<const char*> (m_iPageAddress), sizeof(m_iPageAddress));
     stream.write(reinterpret_cast<const char*> (&m_Register), sizeof(m_Register));
 }
@@ -128,6 +146,7 @@ void KoreanMSXSMS8000MemoryRule::LoadState(std::istream& stream)
 {
     using namespace std;
 
+    stream.read(reinterpret_cast<char*> (m_iPage), sizeof(m_iPage));
     stream.read(reinterpret_cast<char*> (m_iPageAddress), sizeof(m_iPageAddress));
     stream.read(reinterpret_cast<char*> (&m_Register), sizeof(m_Register));
 }

@@ -43,6 +43,7 @@ public:
     virtual int GetRamBank();
     virtual u8* GetPage(int index);
     virtual int GetBank(int index);
+    virtual bool Has8kBanks();
     virtual void SaveState(std::ostream& stream);
     virtual void LoadState(std::istream& stream);
 
