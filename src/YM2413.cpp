@@ -266,4 +266,6 @@ void YM2413::LoadState(std::istream& stream)
         stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].eg_out), sizeof(m_pOPLL->slot[i].eg_out));
         stream.read(reinterpret_cast<char*>(&m_pOPLL->slot[i].update_requests), sizeof(m_pOPLL->slot[i].update_requests));
     }
+
+    OPLL_forceRefresh(m_pOPLL);
 }

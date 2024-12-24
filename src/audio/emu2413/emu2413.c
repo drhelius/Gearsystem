@@ -950,7 +950,7 @@ OPLL *OPLL_new(void) {
     initializeTables();
   }
 
-  opll = (OPLL *)calloc(sizeof(OPLL), 1);
+  opll = (OPLL *)calloc(1, sizeof(OPLL));
   if (opll == NULL)
     return NULL;
 
