@@ -391,7 +391,7 @@ static void debug_window_memory(void)
                     if (mem_edit_select == mem_edit_index)
                             mem_edit_select = -1;
                         current_mem_edit = mem_edit_index;
-                    mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetPage(i), 0x2000, 0);
+                    mem_edit[current_mem_edit].Draw(memory->GetCurrentRule()->GetPage(i), 0x2000, 0x2000 * i);
                     ImGui::PopFont();
                     ImGui::EndTabItem();
                 }
