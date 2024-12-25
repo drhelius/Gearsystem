@@ -45,7 +45,7 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 - Accurate Z80 core, including undocumented opcodes and behavior like R and [MEMPTR](https://gist.github.com/drhelius/8497817) registers.
 - Supported cartridges: ROM, ROM + RAM, SEGA, Codemasters, Korean, MSX + Nemesis, Janggun, SG-1000 and several Korean multi-carts.
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
-- Accurate VDP emulation including timing and Master System 2 only 224 video mode support.
+- Accurate VDP emulation, including timing and VDP specifics for SMS, SMS2, GG and TMS9918 modes.
 - Support for YM2413 (OPLL) FM sound chip.
 - Internal database for rom detection.
 - Battery powered RAM save support.
@@ -62,7 +62,7 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 ## Tips
 
 - *BIOS*: Gearsystem can run with or without a BIOS. You can optionally load a BIOS and enable it. It is possible to run the title included in the BIOS by setting *Media Slot* to *None* in the *Emulator* menu. This will emulate a machine without any media plugged in.
-- *Overscan*: For a precise representation of the original image using Overscan Top+Bottom and 4:3 Display Aspect Ratio is recommended. Game Gear will ignore any overscan settings.
+- *Overscan*: For a precise representation of the original image select Overscan `Top+Bottom` and Aspect Ratio `Standard (4:3 DAR)`. Game Gear will ignore any overscan settings.
 - *Mouse Cursor*: Automatically hides when hovering main output window or when Main Menu is disabled.
 - *Portable Mode*: Create an empty file named `portable.ini` in the same directory as the application binary to enable portable mode.
 - *Debug Symbols*: The emulator always tries to load a symbol file at the same time a rom is being loaded. For example, for ```path_to_rom_file.sms``` it tries to load ```path_to_rom_file.sym```. It is also possible to load a symbol file using the GUI or using the CLI.
