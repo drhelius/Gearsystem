@@ -36,6 +36,7 @@
 #include "KoreanMSX8KB0300MemoryRule.h"
 #include "Korean0000XORFFMemoryRule.h"
 #include "KoreanFFFFHiComMemoryRule.h"
+#include "KoreanFFFEMemoryRule.h"
 #include "MSXMemoryRule.h"
 #include "JanggunMemoryRule.h"
 #include "SG1000MemoryRule.h"
@@ -63,6 +64,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pKoreanMSX8KB0300MemoryRule);
     InitPointer(m_pKorean0000XORFFMemoryRule);
     InitPointer(m_pKoreanFFFFHiComMemoryRule);
+    InitPointer(m_pKoreanFFFEMemoryRule);
     InitPointer(m_pMSXMemoryRule);
     InitPointer(m_pJanggunMemoryRule);
     InitPointer(m_pSmsIOPorts);
@@ -90,6 +92,7 @@ GearsystemCore::~GearsystemCore()
     SafeDelete(m_pKoreanMSX8KB0300MemoryRule);
     SafeDelete(m_pKorean0000XORFFMemoryRule);
     SafeDelete(m_pKoreanFFFFHiComMemoryRule);
+    SafeDelete(m_pKoreanFFFEMemoryRule);
     SafeDelete(m_pMSXMemoryRule);
     SafeDelete(m_pJanggunMemoryRule);
     SafeDelete(m_pCartridge);
@@ -873,6 +876,7 @@ void GearsystemCore::InitMemoryRules()
     m_pKoreanMSX8KB0300MemoryRule = new KoreanMSX8KB0300MemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pKorean0000XORFFMemoryRule = new Korean0000XORFFMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pKoreanFFFFHiComMemoryRule = new KoreanFFFFHiComMemoryRule(m_pMemory, m_pCartridge, m_pInput);
+    m_pKoreanFFFEMemoryRule = new KoreanFFFEMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pMSXMemoryRule = new MSXMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pJanggunMemoryRule = new JanggunMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pBootromMemoryRule = new BootromMemoryRule(m_pMemory, m_pCartridge, m_pInput);
@@ -925,6 +929,9 @@ bool GearsystemCore::AddMemoryRules()
         case Cartridge::CartridgeKoreanFFFFHiComMapper:
             m_pMemory->SetCurrentRule(m_pKoreanFFFFHiComMemoryRule);
             break;
+        case Cartridge::CartridgeKoreanFFFEMapper:
+            m_pMemory->SetCurrentRule(m_pKoreanFFFEMemoryRule);
+            break;
         case Cartridge::CartridgeMSXMapper:
             m_pMemory->SetCurrentRule(m_pMSXMemoryRule);
             break;
@@ -971,6 +978,7 @@ void GearsystemCore::Reset()
     m_pKoreanMSX8KB0300MemoryRule->Reset();
     m_pKorean0000XORFFMemoryRule->Reset();
     m_pKoreanFFFFHiComMemoryRule->Reset();
+    m_pKoreanFFFEMemoryRule->Reset();
     m_pMSXMemoryRule->Reset();
     m_pJanggunMemoryRule->Reset();
     m_pBootromMemoryRule->Reset();
