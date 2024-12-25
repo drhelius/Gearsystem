@@ -223,6 +223,10 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             m_Type = config.type;
             Log("Forcing Mapper: Korean BFFC");
             break;
+        case Cartridge::CartridgeKoreanFFF3FFFCMapper:
+            m_Type = config.type;
+            Log("Forcing Mapper: Korean FFF3 FFFC");
+            break;
         case Cartridge::CartridgeMSXMapper:
             m_Type = config.type;
             Log("Forcing Mapper: MSX");
@@ -624,6 +628,9 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeKoreanBFFCMapper:
             Log("Korean BFFC mapper found");
             break;
+        case Cartridge::CartridgeKoreanFFF3FFFCMapper:
+            Log("Korean FFF3 FFFC mapper found");
+            break;
         case Cartridge::CartridgeMSXMapper:
             Log("MSX mapper found");
             break;
@@ -704,6 +711,9 @@ void Cartridge::GetInfoFromDB(u32 crc)
                     break;
                 case GS_DB_KOREAN_BFFC_MAPPER:
                     m_Type = Cartridge::CartridgeKoreanBFFCMapper;
+                    break;
+                case GS_DB_KOREAN_FFF3_FFFC_MAPPER:
+                    m_Type = Cartridge::CartridgeKoreanFFF3FFFCMapper;
                     break;
                 case GS_DB_MSX_MAPPER:
                     m_Type = Cartridge::CartridgeMSXMapper;

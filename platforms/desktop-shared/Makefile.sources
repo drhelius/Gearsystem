@@ -39,6 +39,7 @@ SOURCES_CXX := \
     $(SRC_DIR)/KoreanFFFFHiComMemoryRule.cpp \
     $(SRC_DIR)/KoreanFFFEMemoryRule.cpp \
     $(SRC_DIR)/KoreanBFFCMemoryRule.cpp \
+    $(SRC_DIR)/KoreanFFF3FFFCMemoryRule.cpp \
     $(SRC_DIR)/Memory.cpp \
     $(SRC_DIR)/MemoryRule.cpp \
     $(SRC_DIR)/MSXMemoryRule.cpp \
