@@ -43,7 +43,7 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 ## Features
 
 - Accurate Z80 core, including undocumented opcodes and behavior like R and [MEMPTR](https://gist.github.com/drhelius/8497817) registers.
-- Supported cartridges: ROM, ROM + RAM, SEGA, Codemasters, Korean, MSX + Nemesis, Janggun, SG-1000 and several Korean multi-carts.
+- Supported cartridges: ROM, ROM + RAM, SEGA, Codemasters, Korean, MSX + Nemesis, Janggun, SG-1000 and many Korean multi-carts.
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
 - Accurate VDP emulation, including timing and VDP specifics for SMS, SMS2, GG and TMS9918 modes.
 - Support for YM2413 (OPLL) FM sound chip.
