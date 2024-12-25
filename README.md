@@ -61,8 +61,8 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 
 ## Tips
 
-- *BIOS*: Gearsystem can run with or without a BIOS. You can optionally load a BIOS and enable it. It is possible to run the title included in the BIOS by setting *Media Slot* to *None* in the *Emulator* menu. This will emulate a machine without any media plugged in.
-- *Overscan*: For a precise representation of the original image select Overscan `Top+Bottom` and Aspect Ratio `Standard (4:3 DAR)`. Game Gear will ignore any overscan settings.
+- *BIOS*: Gearsystem can run with or without a BIOS. You can optionally load a BIOS and enable it. It is possible to run the title included in the BIOS by setting **Media Slot** to `None` in the **Emulator** menu. This will emulate a machine without any media plugged in.
+- *Overscan*: For a precise representation of the original image select **Overscan** `Top+Bottom` and **Aspect Ratio** `Standard (4:3 DAR)` in the **Video** menu. Game Gear will ignore any overscan settings.
 - *Mouse Cursor*: Automatically hides when hovering main output window or when Main Menu is disabled.
 - *Portable Mode*: Create an empty file named `portable.ini` in the same directory as the application binary to enable portable mode.
 - *Debug Symbols*: The emulator always tries to load a symbol file at the same time a rom is being loaded. For example, for ```path_to_rom_file.sms``` it tries to load ```path_to_rom_file.sym```. It is also possible to load a symbol file using the GUI or using the CLI.
