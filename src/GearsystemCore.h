@@ -47,6 +47,7 @@ class GameGearIOPorts;
 class BootromMemoryRule;
 class KoreanFFFFHiComMemoryRule;
 class KoreanFFFEMemoryRule;
+class KoreanBFFCMemoryRule;
 
 class GearsystemCore
 {
@@ -123,6 +124,7 @@ private:
     Korean0000XORFFMemoryRule* m_pKorean0000XORFFMemoryRule;
     KoreanFFFFHiComMemoryRule* m_pKoreanFFFFHiComMemoryRule;
     KoreanFFFEMemoryRule* m_pKoreanFFFEMemoryRule;
+    KoreanBFFCMemoryRule* m_pKoreanBFFCMemoryRule;
     MSXMemoryRule* m_pMSXMemoryRule;
     JanggunMemoryRule* m_pJanggunMemoryRule;
     SmsIOPorts* m_pSmsIOPorts;

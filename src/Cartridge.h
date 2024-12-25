@@ -41,6 +41,7 @@ public:
         CartridgeKorean0000XORFFMapper,
         CartridgeKoreanFFFFHiComMapper,
         CartridgeKoreanFFFEMapper,
+        CartridgeKoreanBFFCMapper,
         CartridgeMSXMapper,
         CartridgeJanggunMapper,
         CartridgeNotSupported

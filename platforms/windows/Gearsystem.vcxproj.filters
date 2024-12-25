@@ -195,6 +195,9 @@
     <ClCompile Include="..\..\src\KoreanFFFEMemoryRule.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\KoreanBFFCMemoryRule.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\audio-shared\sound_queue.h">
@@ -429,6 +432,9 @@
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\KoreanFFFEMemoryRule.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\KoreanBFFCMemoryRule.h">
       <Filter>core</Filter>
     </ClInclude>
   </ItemGroup>
