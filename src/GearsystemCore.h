@@ -39,16 +39,17 @@ class KoreanMSX32KB2000MemoryRule;
 class Korean2000XOR1FMemoryRule;
 class KoreanMSX8KB0300MemoryRule;
 class Korean0000XORFFMemoryRule;
+class KoreanFFFFHiComMemoryRule;
+class KoreanFFFEMemoryRule;
+class KoreanBFFCMemoryRule;
+class KoreanFFF3FFFCMemoryRule;
+class KoreanMDFFF5MemoryRule;
 class MSXMemoryRule;
 class JanggunMemoryRule;
 class MemoryRule;
 class SmsIOPorts;
 class GameGearIOPorts;
 class BootromMemoryRule;
-class KoreanFFFFHiComMemoryRule;
-class KoreanFFFEMemoryRule;
-class KoreanBFFCMemoryRule;
-class KoreanFFF3FFFCMemoryRule;
 
 class GearsystemCore
 {
@@ -127,6 +128,7 @@ private:
     KoreanFFFEMemoryRule* m_pKoreanFFFEMemoryRule;
     KoreanBFFCMemoryRule* m_pKoreanBFFCMemoryRule;
     KoreanFFF3FFFCMemoryRule* m_pKoreanFFF3FFFCMemoryRule;
+    KoreanMDFFF5MemoryRule* m_pKoreanMDFFF5MemoryRule;
     MSXMemoryRule* m_pMSXMemoryRule;
     JanggunMemoryRule* m_pJanggunMemoryRule;
     SmsIOPorts* m_pSmsIOPorts;

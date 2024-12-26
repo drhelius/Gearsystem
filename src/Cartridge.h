@@ -43,6 +43,7 @@ public:
         CartridgeKoreanFFFEMapper,
         CartridgeKoreanBFFCMapper,
         CartridgeKoreanFFF3FFFCMapper,
+        CartridgeKoreanMDFFF5Mapper,
         CartridgeMSXMapper,
         CartridgeJanggunMapper,
         CartridgeNotSupported
