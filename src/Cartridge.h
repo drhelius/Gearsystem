@@ -22,6 +22,7 @@
 
 #include <list>
 #include "definitions.h"
+#include "game_db.h"
 
 class Cartridge
 {
@@ -97,6 +98,7 @@ public:
     CartridgeTypes GetType() const;
     CartridgeZones GetZone() const;
     void ForceConfig(ForceConfiguration config);
+    int GetFeatures() const;
     int GetROMSize() const;
     int GetROMBankCount() const;
     int GetROMBankCount8k() const;
@@ -131,6 +133,7 @@ private:
     bool m_bPAL;
     bool m_bRAMWithoutBattery;
     u32 m_iCRC;
+    int m_iFeatures;
 
     struct GameGenieCode
     {

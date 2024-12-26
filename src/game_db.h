@@ -40,11 +40,12 @@
 #define GS_DB_KOREAN_FFF3_FFFC_MAPPER 15
 #define GS_DB_KOREAN_MD_FFF5_MAPPER 16
 
-#define GS_DB_FEATURE_NONE 0
-#define GS_DB_FEATURE_PAL 1
-#define GS_DB_FEATURE_SMS_MODE 2
-#define GS_DB_FEATURE_NO_BATTERY 4
-#define GS_DB_FEATURE_YM2413 8
+#define GS_DB_FEATURE_NONE 0x00
+#define GS_DB_FEATURE_PAL 0x01
+#define GS_DB_FEATURE_SMS_MODE 0x02
+#define GS_DB_FEATURE_NO_BATTERY 0x04
+#define GS_DB_FEATURE_YM2413 0x08
+#define GS_DB_FEATURE_INITIAL_VINT 0x10
 
 struct GS_GameDBEntry
 {
@@ -403,6 +404,8 @@ const GS_GameDBEntry kGameDatabase[] =
     {0x7F667485, GS_DB_KOREAN_MD_FFF5_MAPPER, GS_DB_FEATURE_NONE, "Mega Mode Super Game 138"},
     {0xC0AC6956, GS_DB_KOREAN_MD_FFF5_MAPPER, GS_DB_FEATURE_NONE, "Pigu-Wang 7 Hap - Jaemiiss-neun Game Mo-eumjip"},
 
+    {0xD9096263, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_INITIAL_VINT, "Sonic's Edusoft [Proto]"},
+
     {0, 0, 0, 0}
 };
 
@@ -453,7 +456,7 @@ const uint32_t kCRC32_tab[] =
     0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
-u32 CalculateCRC32(u32 crc, const u8 *buf, int size)
+inline u32 CalculateCRC32(u32 crc, const u8 *buf, int size)
 {
     const u8 *p;
 

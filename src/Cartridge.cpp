@@ -22,7 +22,6 @@
 #include <ctype.h>
 #include "Cartridge.h"
 #include "miniz/miniz.h"
-#include "game_db.h"
 #include "log.h"
 
 Cartridge::Cartridge()
@@ -42,6 +41,7 @@ Cartridge::Cartridge()
     m_bPAL = false;
     m_bRAMWithoutBattery = false;
     m_iCRC = 0;
+    m_iFeatures = 0;
 }
 
 Cartridge::~Cartridge()
@@ -72,6 +72,7 @@ void Cartridge::Reset()
     m_bRAMWithoutBattery = false;
     m_GameGenieList.clear();
     m_iCRC = 0;
+    m_iFeatures = 0;
 }
 
 u32 Cartridge::GetCRC() const
@@ -270,6 +271,11 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             Log("Not forcing Zone: Auto");
             break;
     }
+}
+
+int Cartridge::GetFeatures() const
+{
+    return m_iFeatures;
 }
 
 int Cartridge::GetROMSize() const
@@ -680,6 +686,8 @@ void Cartridge::GetInfoFromDB(u32 crc)
             found = true;
 
             Log("ROM found in database: %s. CRC: %X", kGameDatabase[i].title, crc);
+
+            m_iFeatures = kGameDatabase[i].features;
 
             switch (kGameDatabase[i].mapper)
             {

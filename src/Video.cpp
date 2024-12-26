@@ -116,8 +116,8 @@ void Video::Reset(bool bGameGear, bool bPAL)
     for (int i = 0; i < 0x40; i++)
         m_pVdpCRAM[i] = 0;
 
-    m_VdpRegister[0] = 0x36; // Mode
-    m_VdpRegister[1] = 0x80; // Mode
+    m_VdpRegister[0] = 0x36;
+    m_VdpRegister[1] = (m_pCartridge->GetFeatures() & GS_DB_FEATURE_INITIAL_VINT) ? 0xA0 : 0x80;
     m_VdpRegister[2] = 0xFF; // Screen Map Table Base
     m_VdpRegister[3] = 0xFF; // Always $FF
     m_VdpRegister[4] = 0xFF; // Always $FF
