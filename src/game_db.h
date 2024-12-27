@@ -46,6 +46,7 @@
 #define GS_DB_FEATURE_NO_BATTERY 0x04
 #define GS_DB_FEATURE_YM2413 0x08
 #define GS_DB_FEATURE_INITIAL_VINT 0x10
+#define GS_DB_FEATURE_DISABLE_YM2413 0x20
 
 struct GS_GameDBEntry
 {
@@ -404,7 +405,11 @@ const GS_GameDBEntry kGameDatabase[] =
     {0x7F667485, GS_DB_KOREAN_MD_FFF5_MAPPER, GS_DB_FEATURE_NONE, "Mega Mode Super Game 138"},
     {0xC0AC6956, GS_DB_KOREAN_MD_FFF5_MAPPER, GS_DB_FEATURE_NONE, "Pigu-Wang 7 Hap - Jaemiiss-neun Game Mo-eumjip"},
 
+    // Requires vint flag on boot
     {0xD9096263, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_INITIAL_VINT, "Sonic's Edusoft [Proto]"},
+
+    // Does not work if YM2413 is enabled
+    {0x5359762D, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_DISABLE_YM2413, "Wanted"},
 
     {0, 0, 0, 0}
 };

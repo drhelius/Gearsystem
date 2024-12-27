@@ -56,6 +56,7 @@ private:
     bool m_bYM2413Enabled;
     bool m_bPSGEnabled;
     bool m_bYM2413ForceDisabled;
+    bool m_bYM2413CartridgeNotSupported;
     Cartridge* m_pCartridge;
     s16* m_pYM2413Buffer;
     bool m_bMute;
@@ -81,7 +82,7 @@ inline void Audio::WriteGGStereoRegister(u8 value)
 
 inline void Audio::YM2413Write(u8 port, u8 value)
 {
-    if (m_bYM2413ForceDisabled)
+    if (m_bYM2413ForceDisabled || m_bYM2413CartridgeNotSupported)
         return;
 
     if (port == 0xF2)
@@ -106,7 +107,7 @@ inline void Audio::YM2413Write(u8 port, u8 value)
 
 inline u8 Audio::YM2413Read(u8 port)
 {
-    if (m_bYM2413ForceDisabled)
+    if (m_bYM2413ForceDisabled || m_bYM2413CartridgeNotSupported)
         return 0xFF;
     else
         return m_pYM2413->Read(port);

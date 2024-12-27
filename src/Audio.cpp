@@ -35,6 +35,7 @@ Audio::Audio(Cartridge * pCartridge)
     m_bYM2413Enabled = false;
     m_bPSGEnabled = true;
     m_bYM2413ForceDisabled = false;
+    m_bYM2413CartridgeNotSupported = false;
     m_bMute = false;
 }
 
@@ -78,6 +79,7 @@ void Audio::Reset(bool bPAL)
     m_pBuffer->clock_rate(m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC);
     m_pYM2413->Reset(m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC);
     m_ElapsedCycles = 0;
+    m_bYM2413CartridgeNotSupported = (m_pCartridge->GetFeatures() & GS_DB_FEATURE_DISABLE_YM2413);
 }
 
 void Audio::Mute(bool bMute)
@@ -107,7 +109,7 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
             if (!m_bMute)
             {
                 pSampleBuffer[i] += m_bPSGEnabled ? m_pSampleBuffer[(i >= psg_count) ? psg_count-1 : i] : 0;
-                pSampleBuffer[i] += (m_bYM2413Enabled && !m_bYM2413ForceDisabled) ? m_pYM2413Buffer[i] * 4 : 0;
+                pSampleBuffer[i] += (m_bYM2413Enabled && !m_bYM2413ForceDisabled && !m_bYM2413CartridgeNotSupported) ? m_pYM2413Buffer[i] * 4 : 0;
             }
         }
     }
