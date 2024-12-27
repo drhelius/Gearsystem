@@ -73,6 +73,8 @@ public:
     bool GetRuntimeInfo(GS_RuntimeInfo& runtime_info);
     void KeyPressed(GS_Joypads joypad, GS_Keys key);
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
+    void SetPhaser(int x, int y);
+    void EnablePhaser(bool enable);
     void Pause(bool paused);
     bool IsPaused();
     void ResetROM(Cartridge::ForceConfiguration* config = NULL);

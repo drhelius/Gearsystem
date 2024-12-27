@@ -290,6 +290,26 @@ static void sdl_events_emu(const SDL_Event* event)
         }
         break;
 
+        case (SDL_MOUSEBUTTONDOWN):
+        {
+            if (config_emulator.light_phaser && gui_main_window_hovered)
+            {
+                if (event->button.button == SDL_BUTTON_LEFT)
+                    emu_key_pressed(Joypad_1, Key_1);
+            }
+        }
+        break;
+
+        case (SDL_MOUSEBUTTONUP):
+        {
+            if (config_emulator.light_phaser)
+            {
+                if (event->button.button == SDL_BUTTON_LEFT)
+                    emu_key_released(Joypad_1, Key_1);
+            }
+        }
+        break;
+
         case SDL_CONTROLLERBUTTONDOWN:
         {
             for (int i = 0; i < 2; i++)
@@ -499,6 +519,9 @@ static void handle_mouse_cursor(void)
 
     if (!config_emulator.show_menu && !config_debug.debug)
         hide_cursor = true;
+
+    if (config_emulator.light_phaser)
+        hide_cursor = false;
 
     if (hide_cursor)
         ImGui::SetMouseCursor(ImGuiMouseCursor_None);

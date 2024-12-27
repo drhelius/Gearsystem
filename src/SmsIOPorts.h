@@ -94,7 +94,12 @@ inline u8 SmsIOPorts::DoInput(u8 port)
             if ((port & 0x01) == 0x00)
                 return m_pInput->GetPortDC();
             else
-                return ((m_pInput->GetPortDD() & 0x3F) | (m_Port3F & 0xC0));
+            {
+                if (m_pInput->IsPhaserEnabled())
+                    return m_pInput->GetPortDD();
+                else
+                    return ((m_pInput->GetPortDD() & 0x3F) | (m_Port3F & 0xC0));
+            }
         }
         else
         {

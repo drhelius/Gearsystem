@@ -63,6 +63,7 @@ struct config_Emulator
     int window_width = 640;
     int window_height = 503;
     bool status_messages = false;
+    bool light_phaser = false;
 };
 
 struct config_Video

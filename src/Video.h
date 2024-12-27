@@ -74,6 +74,8 @@ public:
     void SetHideLeftBar(HideLeftBar hideLeftBar);
     HideLeftBar GetHideLeftBar();
     int GetHideLeftBarOffset();
+    void SetPhaserCoordinates(int x, int y);
+    bool IsPhaserDetected();
 
 private:
     void ScanLine(int line);
@@ -84,6 +86,7 @@ private:
     void RenderSpritesTMS9918(int line);
     void InitPalettes(const u8* src, u16* dest_565_rgb, u16* dest_555_rgb, u16* dest_565_bgr, u16* dest_555_bgr);
     int CalculateVideoMode();
+    void CheckPhaser();
 
 private:
     Memory* m_pMemory;
@@ -112,6 +115,15 @@ private:
     Overscan m_Overscan;
     HideLeftBar m_HideLeftBar;
     int m_iHideLeftBarOffset;
+
+    struct Phaser
+    {
+        int x;
+        int y;
+        bool enabled;
+        bool detected;
+    };
+    Phaser m_Phaser;
 
     struct LineEvents 
     {

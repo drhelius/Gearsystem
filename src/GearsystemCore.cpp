@@ -122,7 +122,7 @@ void GearsystemCore::Init(GS_Color_Format pixelFormat)
     m_pCartridge = new Cartridge();
     m_pProcessor = new Processor(m_pMemory);
     m_pVideo = new Video(m_pMemory, m_pProcessor, m_pCartridge);
-    m_pInput = new Input(m_pProcessor);
+    m_pInput = new Input(m_pProcessor, m_pVideo);
     m_pAudio = new Audio(m_pCartridge);
     m_pSmsIOPorts = new SmsIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge, m_pMemory, m_pProcessor);
     m_pGameGearIOPorts = new GameGearIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge, m_pMemory);
@@ -154,8 +154,6 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
 #endif
             vblank = m_pVideo->Tick(clockCycles);
             m_pAudio->Tick(clockCycles);
-            m_pInput->Tick(clockCycles);
-
             totalClocks += clockCycles;
 
 #ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
@@ -351,6 +349,16 @@ void GearsystemCore::KeyPressed(GS_Joypads joypad, GS_Keys key)
 void GearsystemCore::KeyReleased(GS_Joypads joypad, GS_Keys key)
 {
     m_pInput->KeyReleased(joypad, key);
+}
+
+void GearsystemCore::SetPhaser(int x, int y)
+{
+    m_pInput->SetPhaser(x, y);
+}
+
+void GearsystemCore::EnablePhaser(bool enable)
+{
+    m_pInput->EnablePhaser(enable);
 }
 
 void GearsystemCore::Pause(bool paused)

@@ -138,6 +138,16 @@ void emu_key_released(GS_Joypads pad, GS_Keys key)
     gearsystem->KeyReleased(pad, key);
 }
 
+void emu_set_phaser(int x, int y)
+{
+    gearsystem->SetPhaser(x, y);
+}
+
+void emu_enable_phaser(bool enable)
+{
+    gearsystem->EnablePhaser(enable);
+}
+
 void emu_pause(void)
 {
     gearsystem->Pause(true);

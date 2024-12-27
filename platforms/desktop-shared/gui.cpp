@@ -139,6 +139,7 @@ void gui_init(void)
     emu_set_overscan(config_debug.debug ? 0 : config_video.overscan);
     emu_set_hide_left_bar(config_video.hide_left_bar);
     emu_disable_ym2413(config_audio.ym2413 == 1);
+    emu_enable_phaser(config_emulator.light_phaser);
 }
 
 void gui_destroy(void)
@@ -927,6 +928,13 @@ static void main_menu(void)
                 ImGui::EndMenu();
             }
 
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Enable Light Phaser", "", &config_emulator.light_phaser))
+            {
+                emu_enable_phaser(config_emulator.light_phaser);
+            }
+
             ImGui::EndMenu();
         }
 
@@ -1247,6 +1255,17 @@ static void main_window(void)
 
     float tex_h = (float)runtime.screen_width / (float)(SYSTEM_TEXTURE_WIDTH);
     float tex_v = (float)runtime.screen_height / (float)(SYSTEM_TEXTURE_HEIGHT);
+
+    if (config_emulator.light_phaser)
+    {
+        ImVec2 p = ImGui::GetCursorScreenPos();
+        ImGuiIO& io = ImGui::GetIO();
+        float mouse_x = (io.MousePos.x - p.x) / scale_multiplier;
+        float mouse_y = (io.MousePos.y - p.y) / scale_multiplier;
+        mouse_x *= (float)runtime.screen_width / (float)w_corrected;
+        mouse_y *= (float)runtime.screen_height / (float)h_corrected;
+        emu_set_phaser((int)mouse_x, (int)mouse_y);
+    }
 
     ImGui::Image((ImTextureID)(intptr_t)renderer_emu_texture, ImVec2((float)main_window_width, (float)main_window_height), ImVec2(0, 0), ImVec2(tex_h, tex_v));
 

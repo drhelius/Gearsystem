@@ -47,6 +47,10 @@ Video::Video(Memory* pMemory, Processor* pProcessor, Cartridge* pCartridge)
     m_bGameGear = false;
     m_iLinesPerFrame = 0;
     m_bPAL = false;
+    m_Phaser.x = 0;
+    m_Phaser.y = 0;
+    m_Phaser.enabled = false;
+    m_Phaser.detected = false;
     m_LineEvents.hint = false;
     m_LineEvents.scrollx = false;
     m_LineEvents.vcounter = false;
@@ -135,6 +139,12 @@ void Video::Reset(bool bGameGear, bool bPAL)
         m_VdpRegister[i] = 0;
 
     m_bExtendedMode224 = false;
+
+    m_Phaser.x = 0;
+    m_Phaser.y = 0;
+    m_Phaser.enabled = false;
+    m_Phaser.detected = false;
+
     m_LineEvents.hint = false;
     m_LineEvents.scrollx = false;
     m_LineEvents.vcounter = false;
@@ -186,6 +196,12 @@ bool Video::Tick(unsigned int clockCycles)
     bool return_vblank = false;
 
     m_iCycleCounter += clockCycles;
+
+    ///// PHASER /////
+    if (m_Phaser.enabled && !m_Phaser.detected)
+    {
+        CheckPhaser();
+    }
 
     ///// VINT /////
     if (!m_LineEvents.vint && (m_iCycleCounter >= m_Timing[TIMING_VINT]))
@@ -300,6 +316,7 @@ bool Video::Tick(unsigned int clockCycles)
         m_LineEvents.render = false;
         m_LineEvents.display = false;
         m_LineEvents.spriteovr = false;
+        m_Phaser.detected = false;
     }
 
     return return_vblank;
@@ -1197,6 +1214,18 @@ int Video::GetHideLeftBarOffset()
     return m_iHideLeftBarOffset;
 }
 
+void Video::SetPhaserCoordinates(int x, int y)
+{
+    m_Phaser.x = x;
+    m_Phaser.y = y;
+    m_Phaser.enabled = true;
+}
+
+bool Video::IsPhaserDetected()
+{
+    return m_Phaser.detected;
+}
+
 void Video::InitPalettes(const u8* src, u16* dest_565_rgb, u16* dest_555_rgb, u16* dest_565_bgr, u16* dest_555_bgr)
 {
     for (int i=0,j=0; i<16; i++,j+=3)
@@ -1229,6 +1258,20 @@ int Video::CalculateVideoMode()
         return 2;
     else
         return 0;
+}
+
+void Video::CheckPhaser()
+{
+    int phaser_x_adj = (((m_Phaser.x + m_iHideLeftBarOffset) * 170) / 256) + 66;
+    int phaser_y_adj = m_Phaser.y - 4;
+    bool xmatch = abs(m_iCycleCounter - phaser_x_adj) <= 10;
+    bool ymatch = abs(m_iRenderLine - phaser_y_adj) <= 4;
+
+    if (xmatch && ymatch)
+    {
+        LatchHCounter();
+        m_Phaser.detected = true;
+    }
 }
 
 void Video::SaveState(std::ostream& stream)
@@ -1266,6 +1309,7 @@ void Video::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_NextLineSprites), sizeof(m_NextLineSprites));
     stream.write(reinterpret_cast<const char*> (&m_bDisplayEnabled), sizeof(m_bDisplayEnabled));
     stream.write(reinterpret_cast<const char*> (&m_bSpriteOvrRequest), sizeof(m_bSpriteOvrRequest));
+    stream.write(reinterpret_cast<const char*> (&m_Phaser), sizeof(m_Phaser));
 }
 
 void Video::LoadState(std::istream& stream)
@@ -1303,4 +1347,5 @@ void Video::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_NextLineSprites), sizeof(m_NextLineSprites));
     stream.read(reinterpret_cast<char*> (&m_bDisplayEnabled), sizeof(m_bDisplayEnabled));
     stream.read(reinterpret_cast<char*> (&m_bSpriteOvrRequest), sizeof(m_bSpriteOvrRequest));
+    stream.read(reinterpret_cast<char*> (&m_Phaser), sizeof(m_Phaser));
 }

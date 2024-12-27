@@ -24,16 +24,26 @@
 
 class Memory;
 class Processor;
+class Video;
 
 class Input
 {
 public:
-    Input(Processor* pProcessor);
+    struct stPhaser
+    {
+        int x;
+        int y;
+    };
+
+public:
+    Input(Processor* pProcessor, Video* pVideo);
     void Init();
     void Reset(bool bGameGear);
-    void Tick(unsigned int clockCycles);
     void KeyPressed(GS_Joypads joypad, GS_Keys key);
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
+    void EnablePhaser(bool enable);
+    void SetPhaser(int x, int y);
+    bool IsPhaserEnabled();
     u8 GetPortDC();
     u8 GetPortDD();
     u8 GetPort00();
@@ -43,18 +53,14 @@ public:
     void LoadState(std::istream& stream);
 
 private:
-    void Update();
-
-private:
     Processor* m_pProccesor;
+    Video* m_pVideo;
     u8 m_Joypad1;
     u8 m_Joypad2;
-    u8 m_IOPortDC;
-    u8 m_IOPortDD;
-    u8 m_IOPort00;
     u8 m_GlassesRegistry;
-    int m_iInputCycles;
     bool m_bGameGear;
+    bool m_bPhaser;
+    stPhaser m_Phaser;
 };
 
 #endif	/* INPUT_H */
