@@ -353,6 +353,23 @@ void GearsystemCore::KeyReleased(GS_Joypads joypad, GS_Keys key)
 
 void GearsystemCore::SetPhaser(int x, int y)
 {
+    switch (m_pVideo->GetOverscan())
+    {
+    case Video::OverscanTopBottom:
+        y -= m_pCartridge->IsPAL() ? GS_RESOLUTION_SMS_OVERSCAN_V_PAL : GS_RESOLUTION_SMS_OVERSCAN_V;
+        break;
+    case Video::OverscanFull320:
+        x -= GS_RESOLUTION_SMS_OVERSCAN_H_320_L;
+        y -= GS_RESOLUTION_SMS_OVERSCAN_V;
+        break;
+    case Video::OverscanFull284:
+        x -= GS_RESOLUTION_SMS_OVERSCAN_H_284_L;
+        y -= GS_RESOLUTION_SMS_OVERSCAN_V;
+        break;
+    default:
+        break;
+    }
+
     m_pInput->SetPhaser(x, y);
 }
 
