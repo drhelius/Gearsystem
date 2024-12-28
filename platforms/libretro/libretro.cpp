@@ -182,6 +182,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
     }
 
     input_device[port] = device;
+    core->EnablePhaser(false);
 
     switch ( device )
     {
@@ -194,6 +195,8 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
             break;
         case RETRO_DEVICE_LIGHT_PHASER:
             log_cb(RETRO_LOG_INFO, "Controller %u: Light Phaser\n", port);
+            if (port == 0)
+                core->EnablePhaser(true);
             break;
         default:
             log_cb(RETRO_LOG_DEBUG, "Setting descriptors for unsupported device.\n");
@@ -299,8 +302,6 @@ bool retro_load_game(const struct retro_game_info *info)
     log_cb(RETRO_LOG_INFO, "Refresh Rate: %s\n", cart->IsPAL() ? "PAL" : "NTSC");
     log_cb(RETRO_LOG_INFO, "Cartridge Header: %s\n", cart->IsValidROM() ? "VALID" : "FAILED");
     log_cb(RETRO_LOG_INFO, "Battery: %s\n", core->GetMemory()->GetCurrentRule()->PersistedRAM() ? "YES" : "NO");
-
-    core->EnablePhaser(true);
 
     return true;
 }
