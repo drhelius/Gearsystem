@@ -61,7 +61,7 @@ static bool libretro_supports_bitmasks;
 static float aspect_ratio = 0.0f;
 static int current_screen_width = 0;
 static int current_screen_height = 0;
-static int current_aspect_ratio = 0;
+static float current_aspect_ratio = 0;
 
 static GearsystemCore* core;
 static u8* frame_buffer;
