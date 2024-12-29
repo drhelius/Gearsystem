@@ -48,7 +48,6 @@ private:
     Processor* m_pProcessor;
 
     u8 m_Port3F;
-    u8 m_Port3F_HC;
 };
 
 #include "Video.h"
@@ -63,25 +62,24 @@ inline u8 SmsIOPorts::DoInput(u8 port)
 {
     if (port < 0x40)
     {
-        // Reads return $FF (SMS2)
         Debug("--> ** Attempting to read from port $%02X", port);
         return 0xFF;
     }
     else if ((port >= 0x40) && (port < 0x80))
     {
         // Reads from even addresses return the V counter
-        // Reads from odd addresses return the H counter
         if ((port & 0x01) == 0x00)
             return m_pVideo->GetVCounter();
+        // Reads from odd addresses return the H counter
         else
             return m_pVideo->GetHCounter();
     }
     else if ((port >= 0x80) && (port < 0xC0))
     {
         // Reads from even addresses return the VDP data port contents
-        // Reads from odd address return the VDP status flags
         if ((port & 0x01) == 0x00)
             return m_pVideo->GetDataPort();
+        // Reads from odd address return the VDP status flags
         else
             return m_pVideo->GetStatusFlags();
     }
@@ -90,15 +88,42 @@ inline u8 SmsIOPorts::DoInput(u8 port)
         if (m_pMemory->IsIOEnabled())
         {
             // Reads from even addresses return the I/O port A/B register
-            // Reads from odd address return the I/O port B/misc. register
             if ((port & 0x01) == 0x00)
-                return m_pInput->GetPortDC();
+            {
+                u8 ret_dc = m_pInput->GetPortDC();
+                if (!(m_Port3F & 0x01))
+                {
+                    ret_dc &= 0xDF;
+                    ret_dc |= (m_Port3F & 0x10) << 1;
+                }
+                return ret_dc;
+            }
+            // Reads from odd address return the I/O port B/misc. register
             else
             {
-                if (m_pInput->IsPhaserEnabled())
-                    return m_pInput->GetPortDD();
-                else
-                    return ((m_pInput->GetPortDD() & 0x3F) | (m_Port3F & 0xC0));
+                u8 ret_dd = m_pInput->GetPortDD();
+
+                if (m_pCartridge->GetZone() != Cartridge::CartridgeJapanSMS)
+                {
+                    if (!(m_Port3F & 0x02))
+                    {
+                        ret_dd &= 0xbf;
+                        ret_dd |= (m_Port3F & 0x20) << 1;
+                    }
+                    if (!(m_Port3F & 0x80))
+                    {
+                        ret_dd &= 0x7F;
+                        ret_dd |= (m_Port3F & 0x80);
+                    }
+                }
+
+                if (!(m_Port3F & 0x04))
+                {
+                    ret_dd &= 0xF7;
+                    ret_dd |= (m_Port3F & 0x40) >> 3;
+                }
+
+                return ret_dd;
             }
         }
         else
@@ -113,21 +138,21 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
     if (port < 0x40)
     {
         // Writes to even addresses go to memory control register.
-        // Writes to odd addresses go to I/O control register.
         if ((port & 0x01) == 0x00)
         {
             Debug("--> ** Output to memory control port $%02X: %02X", port, value);
             m_pMemory->SetPort3E(value);
         }
+        // Writes to odd addresses go to I/O control register.
         else
         {
-            if (((value  & 0x01) && !(m_Port3F_HC & 0x01)) || ((value  & 0x08) && !(m_Port3F_HC & 0x08)))
-                m_pVideo->LatchHCounter();
-            m_Port3F_HC = value & 0x05;
+            bool th_changed_a = (value & 0x02) && (value & 0x20) && !(m_Port3F & 0x20);
+            bool th_changed_b = (value & 0x08) && (value & 0x80) && !(m_Port3F & 0x80);
 
-            m_Port3F =  ((value & 0x80) | (value & 0x20) << 1) & 0xC0;
-            if (m_pCartridge->GetZone() == Cartridge::CartridgeJapanSMS)
-                m_Port3F ^= 0xC0;
+            if (th_changed_a || th_changed_b)
+                m_pVideo->LatchHCounter();
+
+            m_Port3F = value;
         }
     }
     else if ((port >= 0x40) && (port < 0x80))
@@ -140,29 +165,30 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
     else if ((port >= 0x80) && (port < 0xC0))
     {
         // Writes to even addresses go to the VDP data port.
-        // Writes to odd addresses go to the VDP control port.
         if ((port & 0x01) == 0x00)
             m_pVideo->WriteData(value);
+        // Writes to odd addresses go to the VDP control port.
         else
             m_pVideo->WriteControl(value);
     }
-    else
+    else if (port == 0xF0)
     {
-        if ((port == 0xF0) || (port == 0xF1) || (port == 0xF2))
-        {
-            m_pAudio->YM2413Write(port, value);
-        }
-#if 0
-        else if ((port == 0xDE) || (port == 0xDF))
-        {
-            Debug("--> ** Output to keyboard port $%02X: %02X", port, value);
-        }
-        else
-        {
-            Debug("--> ** Output to port $%02X: %02X", port, value);
-        }
-#endif
+        m_pAudio->YM2413Write(0xF0, value);
     }
+    else if (port == 0xF1)
+    {
+        m_pAudio->YM2413Write(0xF1, value);
+    }
+    else if (port == 0xF2)
+    {
+        m_pAudio->YM2413Write(0xF2, value);
+    }
+#if 0
+    else if ((port == 0xDE) || (port == 0xDF))
+    {
+        Debug("--> ** Output to keyboard port $%02X: %02X", port, value);
+    }
+#endif
 }
 
 #endif	/* SMSIOPORTS_H */

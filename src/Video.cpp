@@ -424,14 +424,13 @@ void Video::WriteControl(u8 data)
     {
         m_bFirstByteInSequence = false;
         m_VdpAddress = (m_VdpAddress & 0x3F00) | data;
-        m_VdpBuffer = data;
     }
     else
     {
         m_bFirstByteInSequence = true;
 
         m_VdpCode = (data >> 6) & 0x03;
-        m_VdpAddress = ((data & 0x3F) << 8) | m_VdpBuffer;
+        m_VdpAddress = ((data & 0x3F) << 8) | (m_VdpAddress & 0x00FF);
 
         switch (data & 0xC0)
         {
@@ -444,7 +443,7 @@ void Video::WriteControl(u8 data)
             case 0x80:
             {
                 u8 reg = data & 0x0F;
-                m_VdpRegister[reg] = m_VdpBuffer;
+                m_VdpRegister[reg] = (m_VdpAddress & 0x00FF);
 
                 if (reg < 2)
                 {

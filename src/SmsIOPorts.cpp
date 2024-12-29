@@ -27,8 +27,7 @@ SmsIOPorts::SmsIOPorts(Audio* pAudio, Video* pVideo, Input* pInput, Cartridge* p
     m_pCartridge = pCartridge;
     m_pMemory = pMemory;
     m_pProcessor = pProcessor;
-    m_Port3F = 0;
-    m_Port3F_HC = 0;
+    m_Port3F = 0xFF;
 }
 
 SmsIOPorts::~SmsIOPorts()
@@ -37,8 +36,7 @@ SmsIOPorts::~SmsIOPorts()
 
 void SmsIOPorts::Reset()
 {
-    m_Port3F = 0;
-    m_Port3F_HC = 0;
+    m_Port3F = 0xFF;
 }
 
 void SmsIOPorts::SaveState(std::ostream& stream)
@@ -46,7 +44,6 @@ void SmsIOPorts::SaveState(std::ostream& stream)
     using namespace std;
 
     stream.write(reinterpret_cast<const char*> (&m_Port3F), sizeof(m_Port3F));
-    stream.write(reinterpret_cast<const char*> (&m_Port3F_HC), sizeof(m_Port3F_HC));
 }
 
 void SmsIOPorts::LoadState(std::istream& stream)
@@ -54,5 +51,4 @@ void SmsIOPorts::LoadState(std::istream& stream)
     using namespace std;
 
     stream.read(reinterpret_cast<char*> (&m_Port3F), sizeof(m_Port3F));
-    stream.read(reinterpret_cast<char*> (&m_Port3F_HC), sizeof(m_Port3F_HC));
 }
