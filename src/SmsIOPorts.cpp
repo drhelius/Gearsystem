@@ -27,7 +27,7 @@ SmsIOPorts::SmsIOPorts(Audio* pAudio, Video* pVideo, Input* pInput, Cartridge* p
     m_pCartridge = pCartridge;
     m_pMemory = pMemory;
     m_pProcessor = pProcessor;
-    m_Port3F = 0xFF;
+    Reset();
 }
 
 SmsIOPorts::~SmsIOPorts()

@@ -39,6 +39,7 @@ public:
     void DoOutput(u8 port, u8 value);
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
+
 private:
     Audio* m_pAudio;
     Video* m_pVideo;
@@ -46,7 +47,6 @@ private:
     Cartridge* m_pCartridge;
     Memory* m_pMemory;
     Processor* m_pProcessor;
-
     u8 m_Port3F;
 };
 
@@ -65,7 +65,7 @@ inline u8 SmsIOPorts::DoInput(u8 port)
         Debug("--> ** Attempting to read from port $%02X", port);
         return 0xFF;
     }
-    else if ((port >= 0x40) && (port < 0x80))
+    else if (port < 0x80)
     {
         // Reads from even addresses return the V counter
         if ((port & 0x01) == 0x00)
@@ -74,7 +74,7 @@ inline u8 SmsIOPorts::DoInput(u8 port)
         else
             return m_pVideo->GetHCounter();
     }
-    else if ((port >= 0x80) && (port < 0xC0))
+    else if (port < 0xC0)
     {
         // Reads from even addresses return the VDP data port contents
         if ((port & 0x01) == 0x00)
@@ -155,14 +155,14 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
             m_Port3F = value;
         }
     }
-    else if ((port >= 0x40) && (port < 0x80))
+    else if (port < 0x80)
     {
         // Writes to any address go to the SN76489 PSG
         m_pAudio->WriteAudioRegister(value);
         if (m_pCartridge->IsSG1000())
             m_pProcessor->InjectTStates(32);
     }
-    else if ((port >= 0x80) && (port < 0xC0))
+    else if (port < 0xC0)
     {
         // Writes to even addresses go to the VDP data port.
         if ((port & 0x01) == 0x00)

@@ -123,14 +123,7 @@ u8 Input::GetPortDD()
 
 u8 Input::GetPort00()
 {
-    if (m_bPhaser)
-    {
-        return 0x00;
-    }
-    else
-    {
-        return (IsSetBit(m_Joypad1, Key_Start) ? 0x80 : 0) & 0x80;
-    }
+    return (IsSetBit(m_Joypad1, Key_Start) ? 0x80 : 0) & 0x80;
 }
 
 u8 Input::GetGlassesRegistry()
