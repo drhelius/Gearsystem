@@ -64,6 +64,9 @@ struct config_Emulator
     int window_height = 503;
     bool status_messages = false;
     bool light_phaser = false;
+    bool paddle_control = false;
+    int paddle_sensitivity = 5;
+    bool capture_mouse = false;
 };
 
 struct config_Video

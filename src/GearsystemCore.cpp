@@ -380,6 +380,16 @@ void GearsystemCore::EnablePhaser(bool enable)
     m_pInput->EnablePhaser(enable);
 }
 
+void GearsystemCore::SetPaddle(float x)
+{
+    m_pInput->SetPaddle(x);
+}
+
+void GearsystemCore::EnablePaddle(bool enable)
+{
+    m_pInput->EnablePaddle(enable);
+}
+
 void GearsystemCore::Pause(bool paused)
 {
     if (paused)

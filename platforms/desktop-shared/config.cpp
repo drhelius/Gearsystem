@@ -203,6 +203,11 @@ void config_read(void)
     config_emulator.window_height = read_int("Emulator", "WindowHeight", 503);
     config_emulator.status_messages = read_bool("Emulator", "StatusMessages", false);
     config_emulator.light_phaser = read_bool("Emulator", "LightPhaser", false);
+    config_emulator.paddle_control = read_bool("Emulator", "PaddleControl", false);
+    config_emulator.paddle_sensitivity = read_int("Emulator", "PaddleSensitivity", 5);
+
+    if (config_emulator.light_phaser)
+        config_emulator.paddle_control = false;
 
     if (config_emulator.savefiles_path.empty())
     {
@@ -314,6 +319,8 @@ void config_write(void)
     write_int("Emulator", "WindowHeight", config_emulator.window_height);
     write_bool("Emulator", "StatusMessages", config_emulator.status_messages);
     write_bool("Emulator", "LightPhaser", config_emulator.light_phaser);
+    write_bool("Emulator", "PaddleControl", config_emulator.paddle_control);
+    write_int("Emulator", "PaddleSensitivity", config_emulator.paddle_sensitivity);
 
     for (int i = 0; i < config_max_recent_roms; i++)
     {

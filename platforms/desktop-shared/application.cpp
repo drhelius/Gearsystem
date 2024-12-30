@@ -290,9 +290,22 @@ static void sdl_events_emu(const SDL_Event* event)
         }
         break;
 
+        case (SDL_MOUSEMOTION):
+        {
+            if (config_emulator.paddle_control && (event->motion.xrel != 0))
+            {
+                int sen = config_emulator.paddle_sensitivity;
+                if (sen < 1)
+                    sen = 1;
+                float relx = (float)(event->motion.xrel) * ((float)(sen) / 6.0f);
+                emu_set_paddle(relx);
+            }
+        }
+        break;
+
         case (SDL_MOUSEBUTTONDOWN):
         {
-            if (config_emulator.light_phaser && gui_main_window_hovered)
+            if ((config_emulator.light_phaser || config_emulator.paddle_control) && gui_main_window_hovered)
             {
                 if (event->button.button == SDL_BUTTON_LEFT)
                     emu_key_pressed(Joypad_1, Key_1);
@@ -302,7 +315,7 @@ static void sdl_events_emu(const SDL_Event* event)
 
         case (SDL_MOUSEBUTTONUP):
         {
-            if (config_emulator.light_phaser)
+            if (config_emulator.light_phaser || config_emulator.paddle_control)
             {
                 if (event->button.button == SDL_BUTTON_LEFT)
                     emu_key_released(Joypad_1, Key_1);
@@ -450,6 +463,12 @@ static void sdl_events_emu(const SDL_Event* event)
                 break;
             }
 
+            if (key == SDL_SCANCODE_F12)
+            {
+                config_emulator.capture_mouse = !config_emulator.capture_mouse;
+                break;
+            }
+
             for (int i = 0; i < 2; i++)
             {
                 GS_Joypads pad = (i == 0) ? Joypad_1 : Joypad_2;
@@ -527,6 +546,8 @@ static void handle_mouse_cursor(void)
         ImGui::SetMouseCursor(ImGuiMouseCursor_None);
     else
         ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+
+    SDL_SetRelativeMouseMode(config_emulator.capture_mouse ? SDL_TRUE : SDL_FALSE);
 }
 
 static void run_emulator(void)

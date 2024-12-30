@@ -35,6 +35,13 @@ public:
         int y;
     };
 
+    struct stPaddle
+    {
+        float x;
+        u8 reg;
+        bool flip;
+    };
+
 public:
     Input(Processor* pProcessor, Video* pVideo);
     void Init();
@@ -44,6 +51,9 @@ public:
     void EnablePhaser(bool enable);
     void SetPhaser(int x, int y);
     bool IsPhaserEnabled();
+    void EnablePaddle(bool enable);
+    void SetPaddle(float x);
+    bool IsPaddleEnabled();
     u8 GetPortDC();
     u8 GetPortDD();
     u8 GetPort00();
@@ -61,6 +71,50 @@ private:
     bool m_bGameGear;
     bool m_bPhaser;
     stPhaser m_Phaser;
+    bool m_bPaddle;
+    stPaddle m_Paddle;
 };
+
+#include "Video.h"
+
+inline u8 Input::GetPortDC()
+{
+    if (m_bPhaser && !m_bGameGear)
+    {
+        return IsSetBit(m_Joypad1, Key_1) ? 0xFF : 0xEF;
+    }
+    else if (m_bPaddle && !m_bGameGear)
+    {
+        m_Paddle.flip ^= 0x01;
+        u8 paddle_bits = (m_Paddle.flip == 0x00) ? m_Paddle.reg : (m_Paddle.reg >> 4);
+        return (m_Joypad1 & 0x10) + (paddle_bits & 0x0F) + ((m_Joypad2 << 6) & 0xC0) + (m_Paddle.flip << 5);
+    }
+    else
+    {
+        return (m_Joypad1 & 0x3F) + ((m_Joypad2 << 6) & 0xC0);
+    }
+}
+
+inline u8 Input::GetPortDD()
+{
+    if (m_bPhaser && !m_bGameGear)
+    {
+        u8 dd = ((m_Joypad2 >> 2) & 0x0F) | 0xF0;
+
+        if (m_pVideo->IsPhaserDetected())
+            dd = UnsetBit(dd, 6);
+
+        return dd;
+    }
+    else
+    {
+        return ((m_Joypad2 >> 2) & 0x0F) | 0xF0;
+    }
+}
+
+inline u8 Input::GetPort00()
+{
+    return (IsSetBit(m_Joypad1, Key_Start) ? 0x80 : 0) & 0x80;
+}
 
 #endif	/* INPUT_H */

@@ -75,6 +75,8 @@ public:
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
     void SetPhaser(int x, int y);
     void EnablePhaser(bool enable);
+    void SetPaddle(float x);
+    void EnablePaddle(bool enable);
     void Pause(bool paused);
     bool IsPaused();
     void ResetROM(Cartridge::ForceConfiguration* config = NULL);

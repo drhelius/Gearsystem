@@ -759,6 +759,17 @@ void Cartridge::GetInfoFromDB(u32 crc)
                 Log("Cartridge with SRAM but no battery");
                 m_bRAMWithoutBattery = true;
             }
+
+            if (kGameDatabase[i].features & GS_DB_FEATURE_YM2413)
+            {
+                Log("Cartridge with YM2413 sound chip support");
+            }
+
+            if (kGameDatabase[i].features & GS_DB_FEATURE_FORCE_JAPAN_SMS)
+            {
+                Log("Forcing SMS Japan region");
+                m_Zone = CartridgeJapanSMS;
+            }
         }
         else
             i++;

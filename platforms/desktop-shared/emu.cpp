@@ -148,6 +148,16 @@ void emu_enable_phaser(bool enable)
     gearsystem->EnablePhaser(enable);
 }
 
+void emu_set_paddle(float x)
+{
+    gearsystem->SetPaddle(x);
+}
+
+void emu_enable_paddle(bool enable)
+{
+    gearsystem->EnablePaddle(enable);
+}
+
 void emu_pause(void)
 {
     gearsystem->Pause(true);

@@ -20,7 +20,6 @@
 #include "Input.h"
 #include "Memory.h"
 #include "Processor.h"
-#include "Video.h"
 
 Input::Input(Processor* pProcessor, Video* pVideo)
 {
@@ -48,6 +47,9 @@ void Input::Reset(bool bGameGear)
     m_GlassesRegistry = 0;
     m_Phaser.x = 0;
     m_Phaser.y = 0;
+    m_Paddle.x = 128.0f;
+    m_Paddle.reg = 128;
+    m_Paddle.flip = 0;
 }
 
 void Input::KeyPressed(GS_Joypads joypad, GS_Keys key)
@@ -92,38 +94,26 @@ bool Input::IsPhaserEnabled()
     return m_bPhaser;
 }
 
-u8 Input::GetPortDC()
+void Input::EnablePaddle(bool enable)
 {
-    if (!m_bGameGear && m_bPhaser)
-    {
-        return IsSetBit(m_Joypad1, Key_1) ? 0xFF : 0xEF;
-    }
-    else
-    {
-        return (m_Joypad1 & 0x3F) + ((m_Joypad2 << 6) & 0xC0);
-    }
+    Debug("Paddle %s", enable ? "enabled" : "disabled");
+    m_bPaddle = enable;
 }
 
-u8 Input::GetPortDD()
+void Input::SetPaddle(float x)
 {
-    if (!m_bGameGear && m_bPhaser)
-    {
-        u8 dd = ((m_Joypad2 >> 2) & 0x0F) | 0xF0;
+    m_Paddle.x += x;
+    if (m_Paddle.x < 0.0f)
+        m_Paddle.x = 0.0f;
+    else if (m_Paddle.x > 255.0f)
+        m_Paddle.x = 255.0f;
 
-        if (m_pVideo->IsPhaserDetected())
-            dd = UnsetBit(dd, 6);
-
-        return dd;
-    }
-    else
-    {
-        return ((m_Joypad2 >> 2) & 0x0F) | 0xF0;
-    }
+    m_Paddle.reg = (u8)floor(m_Paddle.x + 0.5f);
 }
 
-u8 Input::GetPort00()
+bool Input::IsPaddleEnabled()
 {
-    return (IsSetBit(m_Joypad1, Key_Start) ? 0x80 : 0) & 0x80;
+    return m_bPaddle;
 }
 
 u8 Input::GetGlassesRegistry()
@@ -145,6 +135,8 @@ void Input::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_GlassesRegistry), sizeof(m_GlassesRegistry));
     stream.write(reinterpret_cast<const char*> (&m_bPhaser), sizeof(m_bPhaser));
     stream.write(reinterpret_cast<const char*> (&m_Phaser), sizeof(m_Phaser));
+    stream.write(reinterpret_cast<const char*> (&m_bPaddle), sizeof(m_bPaddle));
+    stream.write(reinterpret_cast<const char*> (&m_Paddle), sizeof(m_Paddle));
 }
 
 void Input::LoadState(std::istream& stream)
@@ -156,4 +148,6 @@ void Input::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_GlassesRegistry), sizeof(m_GlassesRegistry));
     stream.read(reinterpret_cast<char*> (&m_bPhaser), sizeof(m_bPhaser));
     stream.read(reinterpret_cast<char*> (&m_Phaser), sizeof(m_Phaser));
+    stream.read(reinterpret_cast<char*> (&m_bPaddle), sizeof(m_bPaddle));
+    stream.read(reinterpret_cast<char*> (&m_Paddle), sizeof(m_Paddle));
 }

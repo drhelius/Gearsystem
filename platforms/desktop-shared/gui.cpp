@@ -141,6 +141,7 @@ void gui_init(void)
     emu_set_hide_left_bar(config_video.hide_left_bar);
     emu_disable_ym2413(config_audio.ym2413 == 1);
     emu_enable_phaser(config_emulator.light_phaser);
+    emu_enable_paddle(config_emulator.paddle_control);
 }
 
 void gui_destroy(void)
@@ -934,6 +935,36 @@ static void main_menu(void)
             if (ImGui::MenuItem("Enable Light Phaser", "", &config_emulator.light_phaser))
             {
                 emu_enable_phaser(config_emulator.light_phaser);
+
+                if (config_emulator.light_phaser && config_emulator.paddle_control)
+                {
+                    config_emulator.paddle_control = false;
+                    emu_enable_paddle(false);
+                }
+            }
+
+            if (ImGui::BeginMenu("Paddle Control"))
+            {
+                if (ImGui::MenuItem("Enable Paddle Control", "", &config_emulator.paddle_control))
+                {
+                    emu_enable_paddle(config_emulator.paddle_control);
+
+                    if (config_emulator.paddle_control && config_emulator.light_phaser)
+                    {
+                        config_emulator.light_phaser = false;
+                        emu_enable_phaser(false);
+                    }
+                }
+
+                ImGui::MenuItem("Capture Mouse", "F12", &config_emulator.capture_mouse);
+                if (ImGui::IsItemHovered())
+                {
+                    ImGui::SetTooltip("When enabled, the mouse will be captured inside\nthe emulator window to use the paddle freely.\nPress F12 to release the mouse.");
+                }
+
+                ImGui::SliderInt("##paddle_sensitivity", &config_emulator.paddle_sensitivity, 1, 15, "Sensitivity = %d");
+
+                ImGui::EndMenu();
             }
 
             ImGui::EndMenu();
@@ -1599,8 +1630,7 @@ static void popup_modal_about(void)
 
         ImGui::TextColored(orange, "  By Ignacio Sánchez (DrHelius)");
         ImGui::Text(" "); ImGui::SameLine();
-        //ImGui::TextLink("https://github.com/drhelius/Gearsystem");
-        ImGui::TextLinkOpenURL("https://github.com/drhelius/Gearsystem", "https://github.com/drhelius/Gearsystem");
+        ImGui::TextLinkOpenURL("https://github.com/drhelius/Gearsystem");
         ImGui::Text(" "); ImGui::SameLine();
         ImGui::TextLinkOpenURL("https://x.com/drhelius");
         ImGui::NewLine();
