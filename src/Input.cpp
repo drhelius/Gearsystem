@@ -17,6 +17,7 @@
  *
  */
 
+#include <math.h>
 #include "Input.h"
 #include "Memory.h"
 #include "Processor.h"
