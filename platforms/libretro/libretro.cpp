@@ -35,6 +35,7 @@ static const char slash = '/';
 
 #define RETRO_DEVICE_SMS_GG_PAD     RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 0)
 #define RETRO_DEVICE_LIGHT_PHASER   RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_LIGHTGUN, 0)
+#define RETRO_DEVICE_PADDLE         RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE, 0)
 
 static retro_environment_t environ_cb;
 static retro_video_refresh_t video_cb;
@@ -55,6 +56,7 @@ static int audio_sample_count = 0;
 static unsigned input_device[2];
 static bool allow_up_down = false;
 static bool lightgun_touchscreen = false;
+static int paddle_sensitivity = 0;
 static bool bootrom_sms = false;
 static bool bootrom_gg = false;
 static bool libretro_supports_bitmasks;
@@ -183,6 +185,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 
     input_device[port] = device;
     core->EnablePhaser(false);
+    core->EnablePaddle(false);
 
     switch ( device )
     {
@@ -197,6 +200,11 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
             log_cb(RETRO_LOG_INFO, "Controller %u: Light Phaser\n", port);
             if (port == 0)
                 core->EnablePhaser(true);
+            break;
+        case RETRO_DEVICE_PADDLE:
+            log_cb(RETRO_LOG_INFO, "Controller %u: Paddle\n", port);
+            if (port == 0)
+                core->EnablePaddle(true);
             break;
         default:
             log_cb(RETRO_LOG_DEBUG, "Setting descriptors for unsupported device.\n");
@@ -400,6 +408,7 @@ static void set_controller_info(void)
         { "Joypad Port Empty", RETRO_DEVICE_NONE },
         { "Master System / Game Gear Pad", RETRO_DEVICE_SMS_GG_PAD },
         { "Sega Light Phaser", RETRO_DEVICE_LIGHT_PHASER },
+        { "Paddle Control", RETRO_DEVICE_PADDLE },
     };
 
     static const struct retro_controller_description port_2[] = {
@@ -409,7 +418,7 @@ static void set_controller_info(void)
     };
 
     static const struct retro_controller_info ports[] = {
-        { port_1, 4 },
+        { port_1, 5 },
         { port_2, 3 },
         { NULL, 0 },
     };
@@ -549,6 +558,26 @@ static void update_input(void)
 
             break;
         }
+        case RETRO_DEVICE_PADDLE:
+        {
+            if (player == 0)
+            {
+                int mouse_x = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
+
+                int sen = paddle_sensitivity;
+                if (sen < 1)
+                    sen = 1;
+                float relx = (float)(mouse_x) * ((float)(sen) / 6.0f);
+                core->SetPaddle(relx);
+
+                if (input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT))
+                    core->KeyPressed(static_cast<GS_Joypads>(0), Key_1);
+                else
+                    core->KeyReleased(static_cast<GS_Joypads>(0), Key_1);
+            }
+
+            break;
+        }
         default:
             break;
         }
@@ -571,6 +600,7 @@ static void set_variabless(void)
         { "gearsystem_glasses", "3D Glasses; Both Eyes / OFF|Left Eye|Right Eye" },
         { "gearsystem_up_down_allowed", "Allow Up+Down / Left+Right; Disabled|Enabled" },
         { "gearsystem_lightgun_input", "Light Gun Input; Light Gun|Touchscreen" },
+        { "gearsystem_paddle_sensitivity", "Paddle Sensitivity; 1|2|3|4|5|6|7|8|9|10|11|12|13|14|15" },
         
         { NULL }
     };
@@ -602,6 +632,14 @@ static void check_variables(void)
             lightgun_touchscreen = true;
         else
             lightgun_touchscreen = false;
+    }
+
+    var.key = "gearsystem_paddle_sensitivity";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        paddle_sensitivity = atoi(var.value);
     }
 
     var.key = "gearsystem_system";
