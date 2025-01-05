@@ -204,6 +204,9 @@
     <ClCompile Include="..\..\src\KoreanMDFFF5MemoryRule.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Multi4PAKAllActionMemoryRule.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\audio-shared\sound_queue.h">
@@ -447,6 +450,9 @@
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\KoreanMDFFF5MemoryRule.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Multi4PAKAllActionMemoryRule.h">
       <Filter>core</Filter>
     </ClInclude>
   </ItemGroup>
