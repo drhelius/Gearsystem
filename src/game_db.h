@@ -39,6 +39,7 @@
 #define GS_DB_KOREAN_BFFC_MAPPER 14
 #define GS_DB_KOREAN_FFF3_FFFC_MAPPER 15
 #define GS_DB_KOREAN_MD_FFF5_MAPPER 16
+#define GS_DB_MULTI_4PAK_ALL_ACTION_MAPPER 17
 
 #define GS_DB_FEATURE_NONE 0x00
 #define GS_DB_FEATURE_PAL 0x01
@@ -406,6 +407,8 @@ const GS_GameDBEntry kGameDatabase[] =
     {0x53904167, GS_DB_KOREAN_MD_FFF5_MAPPER, GS_DB_FEATURE_NONE, "Jaemiissneun Game Mo-eumjip 65 Hap"},
     {0x7F667485, GS_DB_KOREAN_MD_FFF5_MAPPER, GS_DB_FEATURE_NONE, "Mega Mode Super Game 138"},
     {0xC0AC6956, GS_DB_KOREAN_MD_FFF5_MAPPER, GS_DB_FEATURE_NONE, "Pigu-Wang 7 Hap - Jaemiiss-neun Game Mo-eumjip"},
+
+    {0xA67F2A5C, GS_DB_MULTI_4PAK_ALL_ACTION_MAPPER, GS_DB_FEATURE_NONE, "4 PAK All Action"},
 
     // Requires vint flag on boot
     {0xD9096263, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_INITIAL_VINT, "Sonic's Edusoft [Proto]"},

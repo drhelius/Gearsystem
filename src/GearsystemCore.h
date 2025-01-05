@@ -18,7 +18,7 @@
  */
 
 #ifndef CORE_H
-#define	CORE_H
+#define CORE_H
 
 #include "definitions.h"
 #include "Cartridge.h"
@@ -46,6 +46,7 @@ class KoreanFFF3FFFCMemoryRule;
 class KoreanMDFFF5MemoryRule;
 class MSXMemoryRule;
 class JanggunMemoryRule;
+class Multi4PAKAllActionMemoryRule;
 class MemoryRule;
 class SmsIOPorts;
 class GameGearIOPorts;
@@ -135,6 +136,7 @@ private:
     KoreanMDFFF5MemoryRule* m_pKoreanMDFFF5MemoryRule;
     MSXMemoryRule* m_pMSXMemoryRule;
     JanggunMemoryRule* m_pJanggunMemoryRule;
+    Multi4PAKAllActionMemoryRule* m_pMulti4PAKAllActionMemoryRule;
     SmsIOPorts* m_pSmsIOPorts;
     GameGearIOPorts* m_pGameGearIOPorts;
     BootromMemoryRule* m_pBootromMemoryRule;

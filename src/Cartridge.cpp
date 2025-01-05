@@ -240,6 +240,10 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             m_Type = config.type;
             Log("Forcing Mapper: Janggun");
             break;
+        case Cartridge::CartridgeMulti4PAKAllActionMapper:
+            m_Type = config.type;
+            Log("Forcing Mapper: Multi 4PAK All Action");
+            break;
         default:
             Log("Not forcing Mapper: Auto");
             break;
@@ -651,6 +655,9 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeJanggunMapper:
             Log("Janggun mapper found");
             break;
+        case Cartridge::CartridgeMulti4PAKAllActionMapper:
+            Log("Multi 4PAK All Action mapper found");
+            break;
         case Cartridge::CartridgeNotSupported:
             Log("Cartridge not supported!!");
             break;
@@ -739,6 +746,9 @@ void Cartridge::GetInfoFromDB(u32 crc)
                     break;
                 case GS_DB_JANGGUN_MAPPER:
                     m_Type = Cartridge::CartridgeJanggunMapper;
+                    break;
+                case GS_DB_MULTI_4PAK_ALL_ACTION_MAPPER:
+                    m_Type = Cartridge::CartridgeMulti4PAKAllActionMapper;
                     break;
             }
 

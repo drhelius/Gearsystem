@@ -47,6 +47,7 @@ public:
         CartridgeKoreanMDFFF5Mapper,
         CartridgeMSXMapper,
         CartridgeJanggunMapper,
+        CartridgeMulti4PAKAllActionMapper,
         CartridgeNotSupported
     };
     

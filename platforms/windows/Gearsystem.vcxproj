@@ -76,6 +76,7 @@
     <ClCompile Include="..\..\src\KoreanBFFCMemoryRule.cpp" />
     <ClCompile Include="..\..\src\KoreanFFF3FFFCMemoryRule.cpp" />
     <ClCompile Include="..\..\src\KoreanMDFFF5MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\Multi4PAKAllActionMemoryRule.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\miniz\miniz.h" />
@@ -158,6 +159,7 @@
     <ClInclude Include="..\..\src\KoreanBFFCMemoryRule.h" />
     <ClInclude Include="..\..\src\KoreanFFF3FFFCMemoryRule.h" />
     <ClInclude Include="..\..\src\KoreanMDFFF5MemoryRule.h" />
+    <ClInclude Include="..\..\src\Multi4PAKAllActionMemoryRule.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\desktop-shared\gui_events.def" />
