@@ -22,11 +22,11 @@
 
 #include "definitions.h"
 #include "Cartridge.h"
+#include "Video.h"
 
 class Memory;
 class Processor;
 class Audio;
-class Video;
 class Input;
 class SegaMemoryRule;
 class CodemastersMemoryRule;
@@ -76,6 +76,7 @@ public:
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
     void SetPhaser(int x, int y);
     void EnablePhaser(bool enable);
+    void EnablePhaserCrosshair(bool enable, Video::LightPhaserCrosshairShape shape, Video::LightPhaserCrosshairColor color);
     void SetPaddle(float x);
     void EnablePaddle(bool enable);
     void Pause(bool paused);

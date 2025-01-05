@@ -66,6 +66,9 @@ Video::Video(Memory* pMemory, Processor* pProcessor, Cartridge* pCartridge)
     m_Overscan = OverscanDisabled;
     m_HideLeftBar = HideLeftBarNo;
     m_iHideLeftBarOffset = 0;
+    m_bLightPhaserCrosshair = false;
+    m_LightPhaserCrosshairShape = LightPhaserCrosshairCross;
+    m_LightPhaserCrosshairColor = LightPhaserCrosshairWhite;
 }
 
 Video::~Video()
@@ -1223,6 +1226,114 @@ void Video::SetPhaserCoordinates(int x, int y)
 bool Video::IsPhaserDetected()
 {
     return m_Phaser.detected;
+}
+
+void Video::DrawPhaserCrosshair(int x, int y)
+{
+    if (!m_bLightPhaserCrosshair || m_bGameGear)
+        return;
+
+    const int size = 3;
+    const int scr_width = m_iScreenWidth;
+    const int scr_height = m_bExtendedMode224 ? 224 : 192;
+
+    if (x < 0 || x >= scr_width || y < 0 || y >= scr_height)
+        return;
+
+    u16 color = 0xFFFF;
+
+    switch (m_LightPhaserCrosshairColor)
+    {
+    case LightPhaserCrosshairWhite:
+        color = 0b111111;
+        break;
+    case LightPhaserCrosshairBlack:
+        color = 0b000000;
+        break;
+    case LightPhaserCrosshairRed:
+        color = 0b000011;
+        break;
+    case LightPhaserCrosshairGreen:
+        color = 0b001100;
+        break;
+    case LightPhaserCrosshairBlue:
+        color = 0b110000;
+        break;
+    case LightPhaserCrosshairYellow:
+        color = 0b001111;
+        break;
+    case LightPhaserCrosshairMagenta:
+        color = 0b110011;
+        break;
+    case LightPhaserCrosshairCyan:
+        color = 0b111100;
+        break;
+    }
+
+    switch (m_LightPhaserCrosshairShape)
+    {
+    case LightPhaserCrosshairCross:
+        for (int i = -size; i <= size; ++i)
+        {
+            if (i == 0) continue;
+            int pixel_x = x + i;
+            if (pixel_x >= 0 && pixel_x < scr_width)
+            {
+                int pixel = (y * scr_width) + pixel_x;
+                if (pixel >= 0 && pixel < scr_width * scr_height)
+                {
+                    m_pFrameBuffer[pixel] = color;
+                }
+            }
+        }
+        for (int i = -size; i <= size; ++i)
+        {
+            if (i == 0) continue;
+            int pixel = ((y + i) * scr_width) + x;
+            if (pixel >= 0 && pixel < scr_width * scr_height)
+            {
+                m_pFrameBuffer[pixel] = color;
+            }
+        }
+        break;
+
+    case LightPhaserCrosshairSquare:
+        for (int i = -size; i <= size; ++i)
+        {
+            for (int j = -size; j <= size; ++j)
+            {
+                if ((abs(i) == size || abs(j) == size) && !(i == 0 || j == 0))
+                {
+                    int pixel_x = x + i;
+                    int pixel_y = y + j;
+                    if (pixel_x >= 0 && pixel_x < scr_width && pixel_y >= 0 && pixel_y < scr_height)
+                    {
+                        int pixel = (pixel_y * scr_width) + pixel_x;
+                        if (pixel >= 0 && pixel < scr_width * scr_height)
+                        {
+                            m_pFrameBuffer[pixel] = color;
+                        }
+                    }
+                }
+            }
+        }
+        if (x >= 0 && x < scr_width && y >= 0 && y < scr_height)
+        {
+            int pixel = (y * scr_width) + x;
+            if (pixel >= 0 && pixel < scr_width * scr_height)
+            {
+                m_pFrameBuffer[pixel] = color;
+            }
+        }
+        break;
+    }
+}
+
+void Video::SetLightPhaserCrosshair(bool enable, LightPhaserCrosshairShape shape, LightPhaserCrosshairColor color)
+{
+    m_bLightPhaserCrosshair = enable;
+    m_LightPhaserCrosshairShape = shape;
+    m_LightPhaserCrosshairColor = color;
 }
 
 void Video::InitPalettes(const u8* src, u16* dest_565_rgb, u16* dest_555_rgb, u16* dest_565_bgr, u16* dest_555_bgr)

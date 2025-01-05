@@ -148,6 +148,11 @@ void emu_enable_phaser(bool enable)
     gearsystem->EnablePhaser(enable);
 }
 
+void emu_enable_phaser_crosshair(bool enable, int shape, int color)
+{
+    gearsystem->EnablePhaserCrosshair(enable, (Video::LightPhaserCrosshairShape)shape, (Video::LightPhaserCrosshairColor)color);
+}
+
 void emu_set_paddle(float x)
 {
     gearsystem->SetPaddle(x);

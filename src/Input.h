@@ -50,6 +50,7 @@ public:
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
     void EnablePhaser(bool enable);
     void SetPhaser(int x, int y);
+    stPhaser* GetPhaser();
     bool IsPhaserEnabled();
     void EnablePaddle(bool enable);
     void SetPaddle(float x);

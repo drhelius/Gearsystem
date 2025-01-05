@@ -203,6 +203,9 @@ void config_read(void)
     config_emulator.window_height = read_int("Emulator", "WindowHeight", 503);
     config_emulator.status_messages = read_bool("Emulator", "StatusMessages", false);
     config_emulator.light_phaser = read_bool("Emulator", "LightPhaser", false);
+    config_emulator.light_phaser_crosshair = read_bool("Emulator", "LightPhaserCrosshair", false);
+    config_emulator.light_phaser_crosshair_shape = read_int("Emulator", "LightPhaserCrosshairShape", 0);
+    config_emulator.light_phaser_crosshair_color = read_int("Emulator", "LightPhaserCrosshairColor", 0);
     config_emulator.paddle_control = read_bool("Emulator", "PaddleControl", false);
     config_emulator.paddle_sensitivity = read_int("Emulator", "PaddleSensitivity", 5);
 
@@ -319,6 +322,9 @@ void config_write(void)
     write_int("Emulator", "WindowHeight", config_emulator.window_height);
     write_bool("Emulator", "StatusMessages", config_emulator.status_messages);
     write_bool("Emulator", "LightPhaser", config_emulator.light_phaser);
+    write_bool("Emulator", "LightPhaserCrosshair", config_emulator.light_phaser_crosshair);
+    write_int("Emulator", "LightPhaserCrosshairShape", config_emulator.light_phaser_crosshair_shape);
+    write_int("Emulator", "LightPhaserCrosshairColor", config_emulator.light_phaser_crosshair_color);
     write_bool("Emulator", "PaddleControl", config_emulator.paddle_control);
     write_int("Emulator", "PaddleSensitivity", config_emulator.paddle_sensitivity);
 

@@ -64,6 +64,9 @@ struct config_Emulator
     int window_height = 503;
     bool status_messages = false;
     bool light_phaser = false;
+    bool light_phaser_crosshair = false;
+    int light_phaser_crosshair_shape = 0;
+    int light_phaser_crosshair_color = 0;
     bool paddle_control = false;
     int paddle_sensitivity = 5;
     bool capture_mouse = false;

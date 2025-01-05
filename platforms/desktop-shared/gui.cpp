@@ -144,6 +144,7 @@ void gui_init(void)
     emu_set_hide_left_bar(config_video.hide_left_bar);
     emu_disable_ym2413(config_audio.ym2413 == 1);
     emu_enable_phaser(config_emulator.light_phaser);
+    emu_enable_phaser_crosshair(config_emulator.light_phaser_crosshair, config_emulator.light_phaser_crosshair_shape, config_emulator.light_phaser_crosshair_color);
     emu_enable_paddle(config_emulator.paddle_control);
 }
 
@@ -935,15 +936,47 @@ static void main_menu(void)
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Enable Light Phaser", "", &config_emulator.light_phaser))
+            if (ImGui::BeginMenu("Light Phaser"))
             {
-                emu_enable_phaser(config_emulator.light_phaser);
-
-                if (config_emulator.light_phaser && config_emulator.paddle_control)
+                if (ImGui::MenuItem("Enable Light Phaser", "", &config_emulator.light_phaser))
                 {
-                    config_emulator.paddle_control = false;
-                    emu_enable_paddle(false);
+                    emu_enable_phaser(config_emulator.light_phaser);
+
+                    if (config_emulator.light_phaser && config_emulator.paddle_control)
+                    {
+                        config_emulator.paddle_control = false;
+                        emu_enable_paddle(false);
+                    }
                 }
+
+                if (ImGui::MenuItem("Enable Crosshair", "", &config_emulator.light_phaser_crosshair))
+                {
+                    emu_enable_phaser_crosshair(config_emulator.light_phaser_crosshair, config_emulator.light_phaser_crosshair_shape, config_emulator.light_phaser_crosshair_color);
+                }
+
+                if (ImGui::BeginMenu("Crosshair Shape"))
+                {
+                    ImGui::PushItemWidth(100.0f);
+                    if (ImGui::Combo("##crosshair_shape", &config_emulator.light_phaser_crosshair_shape, "Cross\0Square\0\0"))
+                    {
+                        emu_enable_phaser_crosshair(config_emulator.light_phaser_crosshair, config_emulator.light_phaser_crosshair_shape, config_emulator.light_phaser_crosshair_color);
+                    }
+                    ImGui::PopItemWidth();
+                    ImGui::EndMenu();
+                }
+
+                if (ImGui::BeginMenu("Crosshair Color"))
+                {
+                    ImGui::PushItemWidth(100.0f);
+                    if (ImGui::Combo("##crosshair_color", &config_emulator.light_phaser_crosshair_color, "White\0Black\0Red\0Green\0Blue\0Yellow\0Magenta\0Cyan\0\0"))
+                    {
+                        emu_enable_phaser_crosshair(config_emulator.light_phaser_crosshair, config_emulator.light_phaser_crosshair_shape, config_emulator.light_phaser_crosshair_color);
+                    }
+                    ImGui::PopItemWidth();
+                    ImGui::EndMenu();
+                }
+
+                ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Paddle Control"))

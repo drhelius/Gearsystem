@@ -44,6 +44,24 @@ public:
         HideLeftBarAlways
     };
 
+    enum LightPhaserCrosshairShape
+    {
+        LightPhaserCrosshairCross,
+        LightPhaserCrosshairSquare
+    };
+
+    enum LightPhaserCrosshairColor
+    {
+        LightPhaserCrosshairWhite,
+        LightPhaserCrosshairBlack,
+        LightPhaserCrosshairRed,
+        LightPhaserCrosshairGreen,
+        LightPhaserCrosshairBlue,
+        LightPhaserCrosshairYellow,
+        LightPhaserCrosshairMagenta,
+        LightPhaserCrosshairCyan
+    };
+
 public:
     Video(Memory* pMemory, Processor* pProcessor, Cartridge* pCartridge);
     ~Video();
@@ -76,6 +94,8 @@ public:
     int GetHideLeftBarOffset();
     void SetPhaserCoordinates(int x, int y);
     bool IsPhaserDetected();
+    void DrawPhaserCrosshair(int x, int y);
+    void SetLightPhaserCrosshair(bool enable, LightPhaserCrosshairShape shape, LightPhaserCrosshairColor color);
 
 private:
     void ScanLine(int line);
@@ -115,6 +135,9 @@ private:
     Overscan m_Overscan;
     HideLeftBar m_HideLeftBar;
     int m_iHideLeftBarOffset;
+    bool m_bLightPhaserCrosshair;
+    LightPhaserCrosshairShape m_LightPhaserCrosshairShape;
+    LightPhaserCrosshairColor m_LightPhaserCrosshairColor;
 
     struct Phaser
     {

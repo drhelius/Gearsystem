@@ -21,7 +21,6 @@
 #include "Memory.h"
 #include "Processor.h"
 #include "Audio.h"
-#include "Video.h"
 #include "Input.h"
 #include "Cartridge.h"
 #include "MemoryRule.h"
@@ -381,6 +380,11 @@ void GearsystemCore::SetPhaser(int x, int y)
 void GearsystemCore::EnablePhaser(bool enable)
 {
     m_pInput->EnablePhaser(enable);
+}
+
+void GearsystemCore::EnablePhaserCrosshair(bool enable, Video::LightPhaserCrosshairShape shape, Video::LightPhaserCrosshairColor color)
+{
+    m_pVideo->SetLightPhaserCrosshair(enable, shape, color);
 }
 
 void GearsystemCore::SetPaddle(float x)
@@ -1058,6 +1062,12 @@ void GearsystemCore::Reset()
 
 void GearsystemCore::RenderFrameBuffer(u8* finalFrameBuffer)
 {
+    if (m_pInput->IsPhaserEnabled())
+    {
+        Input::stPhaser* phaser = m_pInput->GetPhaser();
+        m_pVideo->DrawPhaserCrosshair(phaser->x, phaser->y);
+    }
+
     if (m_GlassesConfig != GearsystemCore::GlassesBothEyes)
     {
         bool left = IsSetBit(m_pInput->GetGlassesRegistry(), 0);

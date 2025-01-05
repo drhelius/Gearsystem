@@ -56,6 +56,9 @@ static int audio_sample_count = 0;
 static unsigned input_device[2];
 static bool allow_up_down = false;
 static bool lightgun_touchscreen = false;
+static bool lightgun_crosshair = false;
+static Video::LightPhaserCrosshairShape lightgun_crosshair_shape = Video::LightPhaserCrosshairCross;
+static Video::LightPhaserCrosshairColor lightgun_crosshair_color = Video::LightPhaserCrosshairWhite;
 static int paddle_sensitivity = 0;
 static bool bootrom_sms = false;
 static bool bootrom_gg = false;
@@ -600,6 +603,9 @@ static void set_variabless(void)
         { "gearsystem_glasses", "3D Glasses; Both Eyes / OFF|Left Eye|Right Eye" },
         { "gearsystem_up_down_allowed", "Allow Up+Down / Left+Right; Disabled|Enabled" },
         { "gearsystem_lightgun_input", "Light Gun Input; Light Gun|Touchscreen" },
+        { "gearsystem_lightgun_crosshair", "Light Gun Crosshair; Disabled|Enabled" },
+        { "gearsystem_lightgun_shape", "Light Gun Crosshair Shape; Cross|Square" },
+        { "gearsystem_lightgun_color", "Light Gun Crosshair Color; White|Black|Red|Green|Blue|Yellow|Magenta|Cyan" },
         { "gearsystem_paddle_sensitivity", "Paddle Sensitivity; 1|2|3|4|5|6|7|8|9|10|11|12|13|14|15" },
         
         { NULL }
@@ -633,6 +639,53 @@ static void check_variables(void)
         else
             lightgun_touchscreen = false;
     }
+
+    var.key = "gearsystem_lightgun_crosshair";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Enabled") == 0)
+            lightgun_crosshair = true;
+        else
+            lightgun_crosshair = false;
+    }
+
+    var.key = "gearsystem_lightgun_shape";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Cross") == 0)
+            lightgun_crosshair_shape = Video::LightPhaserCrosshairCross;
+        else
+            lightgun_crosshair_shape = Video::LightPhaserCrosshairSquare;
+    }
+
+    var.key = "gearsystem_lightgun_color";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "White") == 0)
+            lightgun_crosshair_color = Video::LightPhaserCrosshairWhite;
+        else if (strcmp(var.value, "Black") == 0)
+            lightgun_crosshair_color = Video::LightPhaserCrosshairBlack;
+        else if (strcmp(var.value, "Red") == 0)
+            lightgun_crosshair_color = Video::LightPhaserCrosshairRed;
+        else if (strcmp(var.value, "Green") == 0)
+            lightgun_crosshair_color = Video::LightPhaserCrosshairGreen;
+        else if (strcmp(var.value, "Blue") == 0)
+            lightgun_crosshair_color = Video::LightPhaserCrosshairBlue;
+        else if (strcmp(var.value, "Yellow") == 0)
+            lightgun_crosshair_color = Video::LightPhaserCrosshairYellow;
+        else if (strcmp(var.value, "Magenta") == 0)
+            lightgun_crosshair_color = Video::LightPhaserCrosshairMagenta;
+        else if (strcmp(var.value, "Cyan") == 0)
+            lightgun_crosshair_color = Video::LightPhaserCrosshairCyan;
+    }
+
+    core->EnablePhaserCrosshair(lightgun_crosshair, lightgun_crosshair_shape, lightgun_crosshair_color);
 
     var.key = "gearsystem_paddle_sensitivity";
     var.value = NULL;

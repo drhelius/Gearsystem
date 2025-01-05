@@ -90,6 +90,11 @@ void Input::SetPhaser(int x, int y)
     m_Phaser.y = y;
 }
 
+Input::stPhaser* Input::GetPhaser()
+{
+    return &m_Phaser;
+}
+
 bool Input::IsPhaserEnabled()
 {
     return m_bPhaser;
