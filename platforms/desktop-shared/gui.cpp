@@ -22,6 +22,8 @@
 #include "imgui/colors.h"
 #include "imgui/fonts/RobotoMedium.h"
 #include "imgui/keyboard.h"
+#include "nfd/nfd.h"
+#include "nfd/nfd_sdl2.h"
 #include "config.h"
 #include "emu.h"
 #include "../../src/gearsystem.h"
@@ -65,6 +67,7 @@ static void file_dialog_load_sms_bootrom(void);
 static void file_dialog_load_gg_bootrom(void);
 static void file_dialog_load_symbols(void);
 static void file_dialog_save_screenshot(void);
+static void file_dialog_set_native_window(SDL_Window* window, nfdwindowhandle_t* native_window);
 static void keyboard_configuration_item(const char* text, SDL_Scancode* key, int player);
 static void gamepad_configuration_item(const char* text, int* button, int player);
 static void popup_modal_keyboard();
@@ -1319,7 +1322,13 @@ static void file_dialog_open_rom(void)
 {
     nfdchar_t *outPath;
     nfdfilteritem_t filterItem[5] = { { "ROM Files", "sms,gg,sg,mv,rom,bin,zip" }, { "Master System", "sms" }, { "Game Gear", "gg" }, { "SG-1000", "sg" }, { "Othello Multivision", "mv" } };
-    nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 5, config_emulator.last_open_path.c_str());
+    nfdopendialogu8args_t args = { };
+    args.filterList = filterItem;
+    args.filterCount = 5;
+    args.defaultPath = config_emulator.last_open_path.c_str();
+    file_dialog_set_native_window(application_sdl_window, &args.parentWindow);
+
+    nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
     if (result == NFD_OKAY)
     {
         std::string path = outPath;
@@ -1338,7 +1347,13 @@ static void file_dialog_load_ram(void)
 {
     nfdchar_t *outPath;
     nfdfilteritem_t filterItem[1] = { { "RAM Files", "sav" } };
-    nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+    nfdopendialogu8args_t args = { };
+    args.filterList = filterItem;
+    args.filterCount = 1;
+    args.defaultPath = config_emulator.last_open_path.c_str();
+    file_dialog_set_native_window(application_sdl_window, &args.parentWindow);
+
+    nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
     if (result == NFD_OKAY)
     {
         Cartridge::ForceConfiguration config;
@@ -1361,7 +1376,14 @@ static void file_dialog_save_ram(void)
 {
     nfdchar_t *outPath;
     nfdfilteritem_t filterItem[1] = { { "RAM Files", "sav" } };
-    nfdresult_t result = NFD_SaveDialog(&outPath, filterItem, 1, NULL, NULL);
+    nfdsavedialogu8args_t args = { };
+    args.filterList = filterItem;
+    args.filterCount = 1;
+    args.defaultPath = config_emulator.last_open_path.c_str();
+    args.defaultName = NULL;
+    file_dialog_set_native_window(application_sdl_window, &args.parentWindow);
+
+    nfdresult_t result = NFD_SaveDialogU8_With(&outPath, &args);
     if (result == NFD_OKAY)
     {
         emu_save_ram(outPath);
@@ -1377,7 +1399,13 @@ static void file_dialog_load_state(void)
 {
     nfdchar_t *outPath;
     nfdfilteritem_t filterItem[1] = { { "Save State Files", "state" } };
-    nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+    nfdopendialogu8args_t args = { };
+    args.filterList = filterItem;
+    args.filterCount = 1;
+    args.defaultPath = config_emulator.last_open_path.c_str();
+    file_dialog_set_native_window(application_sdl_window, &args.parentWindow);
+
+    nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
     if (result == NFD_OKAY)
     {
         std::string message("Loading state from ");
@@ -1396,7 +1424,14 @@ static void file_dialog_save_state(void)
 {
     nfdchar_t *outPath;
     nfdfilteritem_t filterItem[1] = { { "Save State Files", "state" } };
-    nfdresult_t result = NFD_SaveDialog(&outPath, filterItem, 1, NULL, NULL);
+    nfdsavedialogu8args_t args = { };
+    args.filterList = filterItem;
+    args.filterCount = 1;
+    args.defaultPath = config_emulator.last_open_path.c_str();
+    args.defaultName = NULL;
+    file_dialog_set_native_window(application_sdl_window, &args.parentWindow);
+
+    nfdresult_t result = NFD_SaveDialogU8_With(&outPath, &args);
     if (result == NFD_OKAY)
     {
         std::string message("Saving state to ");
@@ -1414,7 +1449,11 @@ static void file_dialog_save_state(void)
 static void file_dialog_choose_save_file_path(void)
 {
     nfdchar_t *outPath;
-    nfdresult_t result = NFD_PickFolder(&outPath, savefiles_path);
+    nfdpickfolderu8args_t args = { };
+    args.defaultPath = savefiles_path;
+    file_dialog_set_native_window(application_sdl_window, &args.parentWindow);
+
+    nfdresult_t result = NFD_PickFolderU8_With(&outPath, &args);
     if (result == NFD_OKAY)
     {
         strcpy(savefiles_path, outPath);
@@ -1430,7 +1469,11 @@ static void file_dialog_choose_save_file_path(void)
 static void file_dialog_choose_savestate_path(void)
 {
     nfdchar_t *outPath;
-    nfdresult_t result = NFD_PickFolder(&outPath, savestates_path);
+    nfdpickfolderu8args_t args = { };
+    args.defaultPath = savestates_path;
+    file_dialog_set_native_window(application_sdl_window, &args.parentWindow);
+
+    nfdresult_t result = NFD_PickFolderU8_With(&outPath, &args);
     if (result == NFD_OKAY)
     {
         strcpy(savestates_path, outPath);
@@ -1447,7 +1490,13 @@ static void file_dialog_load_sms_bootrom(void)
 {
     nfdchar_t *outPath;
     nfdfilteritem_t filterItem[1] = { { "BIOS Files", "bin,rom,bios,sms" } };
-    nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+    nfdopendialogu8args_t args = { };
+    args.filterList = filterItem;
+    args.filterCount = 1;
+    args.defaultPath = config_emulator.last_open_path.c_str();
+    file_dialog_set_native_window(application_sdl_window, &args.parentWindow);
+
+    nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
     if (result == NFD_OKAY)
     {
         strcpy(sms_bootrom_path, outPath);
@@ -1465,7 +1514,13 @@ static void file_dialog_load_gg_bootrom(void)
 {
     nfdchar_t *outPath;
     nfdfilteritem_t filterItem[1] = { { "BIOS Files", "bin,rom,bios,gg" } };
-    nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+    nfdopendialogu8args_t args = { };
+    args.filterList = filterItem;
+    args.filterCount = 1;
+    args.defaultPath = config_emulator.last_open_path.c_str();
+    file_dialog_set_native_window(application_sdl_window, &args.parentWindow);
+
+    nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
     if (result == NFD_OKAY)
     {
         strcpy(gg_bootrom_path, outPath);
@@ -1483,7 +1538,13 @@ static void file_dialog_load_symbols(void)
 {
     nfdchar_t *outPath;
     nfdfilteritem_t filterItem[1] = { { "Symbol Files", "sym" } };
-    nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+    nfdopendialogu8args_t args = { };
+    args.filterList = filterItem;
+    args.filterCount = 1;
+    args.defaultPath = NULL;
+    file_dialog_set_native_window(application_sdl_window, &args.parentWindow);
+
+    nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
     if (result == NFD_OKAY)
     {
         gui_debug_reset_symbols();
@@ -1500,7 +1561,14 @@ static void file_dialog_save_screenshot(void)
 {
     nfdchar_t *outPath;
     nfdfilteritem_t filterItem[1] = { { "PNG Files", "png" } };
-    nfdresult_t result = NFD_SaveDialog(&outPath, filterItem, 1, NULL, NULL);
+    nfdsavedialogu8args_t args = { };
+    args.filterList = filterItem;
+    args.filterCount = 1;
+    args.defaultPath = NULL;
+    args.defaultName = NULL;
+    file_dialog_set_native_window(application_sdl_window, &args.parentWindow);
+
+    nfdresult_t result = NFD_SaveDialogU8_With(&outPath, &args);
     if (result == NFD_OKAY)
     {
         call_save_screenshot(outPath);
@@ -1509,6 +1577,14 @@ static void file_dialog_save_screenshot(void)
     else if (result != NFD_CANCEL)
     {
         Log("Save Screenshot Error: %s", NFD_GetError());
+    }
+}
+
+static void file_dialog_set_native_window(SDL_Window* window, nfdwindowhandle_t* native_window)
+{
+    if (!NFD_GetNativeWindowFromSDLWindow(window, native_window))
+    {
+        Log("NFD_GetNativeWindowFromSDLWindow failed: %s\n", SDL_GetError());
     }
 }
 
