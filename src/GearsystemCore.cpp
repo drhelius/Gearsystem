@@ -377,6 +377,11 @@ void GearsystemCore::SetPhaser(int x, int y)
     m_pInput->SetPhaser(x, y);
 }
 
+void GearsystemCore::SetPhaserOffset(int x, int y)
+{
+    m_pInput->SetPhaserOffset(x, y);
+}
+
 void GearsystemCore::EnablePhaser(bool enable)
 {
     m_pInput->EnablePhaser(enable);

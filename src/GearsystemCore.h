@@ -75,6 +75,7 @@ public:
     void KeyPressed(GS_Joypads joypad, GS_Keys key);
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
     void SetPhaser(int x, int y);
+    void SetPhaserOffset(int x, int y);
     void EnablePhaser(bool enable);
     void EnablePhaserCrosshair(bool enable, Video::LightPhaserCrosshairShape shape, Video::LightPhaserCrosshairColor color);
     void SetPaddle(float x);

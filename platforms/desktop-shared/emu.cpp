@@ -143,6 +143,11 @@ void emu_set_phaser(int x, int y)
     gearsystem->SetPhaser(x, y);
 }
 
+void emu_set_phaser_offset(int x, int y)
+{
+    gearsystem->SetPhaserOffset(x, y);
+}
+
 void emu_enable_phaser(bool enable)
 {
     gearsystem->EnablePhaser(enable);

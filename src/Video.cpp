@@ -201,7 +201,7 @@ bool Video::Tick(unsigned int clockCycles)
     m_iCycleCounter += clockCycles;
 
     ///// PHASER /////
-    if (m_Phaser.enabled && !m_Phaser.detected)
+    if (m_Phaser.enabled && !m_Phaser.detected && !m_bGameGear)
     {
         CheckPhaser();
     }
@@ -327,7 +327,7 @@ bool Video::Tick(unsigned int clockCycles)
 
 void Video::LatchHCounter()
 {
-    m_iHCounter = kVdpHCounter[m_iCycleCounter % 228];
+    m_iHCounter = kVdpHCounter[m_iCycleCounter % GS_CYCLES_PER_LINE];
 }
 
 u8 Video::GetVCounter()
@@ -353,9 +353,9 @@ u8 Video::GetVCounter()
                 return m_iVCounter;
         }
     }
+    // NTSC
     else
     {
-        // NTSC
         if (m_bExtendedMode224)
         {
             // 224 lines
@@ -1234,7 +1234,7 @@ void Video::DrawPhaserCrosshair(int x, int y)
         return;
 
     const int size = 3;
-    const int scr_width = m_iScreenWidth;
+    const int scr_width = m_iScreenWidth - m_iHideLeftBarOffset;
     const int scr_height = m_bExtendedMode224 ? 224 : 192;
 
     if (x < 0 || x >= scr_width || y < 0 || y >= scr_height)
@@ -1372,14 +1372,21 @@ int Video::CalculateVideoMode()
 
 void Video::CheckPhaser()
 {
-    int phaser_x_adj = (((m_Phaser.x + m_iHideLeftBarOffset) * 170) / 256) + 66;
-    int phaser_y_adj = m_Phaser.y - 4;
-    bool xmatch = abs(m_iCycleCounter - phaser_x_adj) <= 10;
-    bool ymatch = abs(m_iRenderLine - phaser_y_adj) <= 4;
+    if (m_Phaser.x < 0 || m_Phaser.x >= 256 || m_Phaser.y < 0 || m_Phaser.y >= 192)
+        return;
+
+    if (m_iCycleCounter < 31 || m_iCycleCounter >= (170 + 31))
+        return;
+
+    int phaser_x_cyc = (((m_Phaser.x + m_iHideLeftBarOffset) * 170) / 256);
+    int cycles_adj = m_iCycleCounter - 31;
+
+    bool xmatch = (phaser_x_cyc >= cycles_adj - 4) && (phaser_x_cyc <= cycles_adj + 4);
+    bool ymatch = (m_Phaser.y >= m_iRenderLine - 3) && (m_Phaser.y <= m_iRenderLine + 3);
 
     if (xmatch && ymatch)
     {
-        LatchHCounter();
+        m_iHCounter = kVdpHCounter[(m_iCycleCounter + 22) % GS_CYCLES_PER_LINE];
         m_Phaser.detected = true;
     }
 }

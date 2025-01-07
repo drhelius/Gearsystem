@@ -67,6 +67,8 @@ struct config_Emulator
     bool light_phaser_crosshair = false;
     int light_phaser_crosshair_shape = 0;
     int light_phaser_crosshair_color = 0;
+    int light_phaser_x_offset = 0;
+    int light_phaser_y_offset = 0;
     bool paddle_control = false;
     int paddle_sensitivity = 5;
     bool capture_mouse = false;

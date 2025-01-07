@@ -606,6 +606,8 @@ static void set_variabless(void)
         { "gearsystem_lightgun_crosshair", "Light Gun Crosshair; Disabled|Enabled" },
         { "gearsystem_lightgun_shape", "Light Gun Crosshair Shape; Cross|Square" },
         { "gearsystem_lightgun_color", "Light Gun Crosshair Color; White|Black|Red|Green|Blue|Yellow|Magenta|Cyan" },
+        { "gearsystem_lightgun_crosshair_offset_x", "Light Gun Crosshair Offset X; 0|-10|-9|-8|-7|-6|-5|-4|-3|-2|-1|0|1|2|3|4|5|6|7|8|9|10" },
+        { "gearsystem_lightgun_crosshair_offset_y", "Light Gun Crosshair Offset Y; 0|-10|-9|-8|-7|-6|-5|-4|-3|-2|-1|0|1|2|3|4|5|6|7|8|9|10" },
         { "gearsystem_paddle_sensitivity", "Paddle Sensitivity; 1|2|3|4|5|6|7|8|9|10|11|12|13|14|15" },
         
         { NULL }
@@ -686,6 +688,27 @@ static void check_variables(void)
     }
 
     core->EnablePhaserCrosshair(lightgun_crosshair, lightgun_crosshair_shape, lightgun_crosshair_color);
+
+    int phaser_offset_x = 0;
+    int phaser_offset_y = 0;
+
+    var.key = "gearsystem_lightgun_crosshair_offset_x";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        phaser_offset_x = atoi(var.value);
+    }
+
+    var.key = "gearsystem_lightgun_crosshair_offset_y";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        phaser_offset_y = atoi(var.value);
+    }
+
+    core->SetPhaserOffset(phaser_offset_x, phaser_offset_y);
 
     var.key = "gearsystem_paddle_sensitivity";
     var.value = NULL;

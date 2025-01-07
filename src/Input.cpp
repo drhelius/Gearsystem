@@ -33,6 +33,8 @@ Input::Input(Processor* pProcessor, Video* pVideo)
     m_bPhaser = false;
     m_Phaser.x = 0;
     m_Phaser.y = 0;
+    m_PhaserOffset.x = 0;
+    m_PhaserOffset.y = 0;
 }
 
 void Input::Init()
@@ -66,7 +68,7 @@ void Input::KeyPressed(GS_Joypads joypad, GS_Keys key)
 
     if (!m_bGameGear && m_bPhaser && (key == Key_1))
     {
-        m_pVideo->SetPhaserCoordinates(m_Phaser.x, m_Phaser.y);
+        m_pVideo->SetPhaserCoordinates(m_Phaser.x + m_PhaserOffset.x, m_Phaser.y + m_PhaserOffset.y);
     }
 }
 
@@ -88,6 +90,12 @@ void Input::SetPhaser(int x, int y)
 {
     m_Phaser.x = x;
     m_Phaser.y = y;
+}
+
+void Input::SetPhaserOffset(int x, int y)
+{
+    m_PhaserOffset.x = x;
+    m_PhaserOffset.y = y;
 }
 
 Input::stPhaser* Input::GetPhaser()

@@ -206,6 +206,8 @@ void config_read(void)
     config_emulator.light_phaser_crosshair = read_bool("Emulator", "LightPhaserCrosshair", false);
     config_emulator.light_phaser_crosshair_shape = read_int("Emulator", "LightPhaserCrosshairShape", 0);
     config_emulator.light_phaser_crosshair_color = read_int("Emulator", "LightPhaserCrosshairColor", 0);
+    config_emulator.light_phaser_x_offset = read_int("Emulator", "LightPhaserXOffset", 0);
+    config_emulator.light_phaser_y_offset = read_int("Emulator", "LightPhaserYOffset", 0);
     config_emulator.paddle_control = read_bool("Emulator", "PaddleControl", false);
     config_emulator.paddle_sensitivity = read_int("Emulator", "PaddleSensitivity", 5);
 
@@ -325,6 +327,8 @@ void config_write(void)
     write_bool("Emulator", "LightPhaserCrosshair", config_emulator.light_phaser_crosshair);
     write_int("Emulator", "LightPhaserCrosshairShape", config_emulator.light_phaser_crosshair_shape);
     write_int("Emulator", "LightPhaserCrosshairColor", config_emulator.light_phaser_crosshair_color);
+    write_int("Emulator", "LightPhaserXOffset", config_emulator.light_phaser_x_offset);
+    write_int("Emulator", "LightPhaserYOffset", config_emulator.light_phaser_y_offset);
     write_bool("Emulator", "PaddleControl", config_emulator.paddle_control);
     write_int("Emulator", "PaddleSensitivity", config_emulator.paddle_sensitivity);
 

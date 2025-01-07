@@ -49,6 +49,7 @@ EXTERN void emu_load_rom(const char* file_path, Cartridge::ForceConfiguration co
 EXTERN void emu_key_pressed(GS_Joypads pad, GS_Keys key);
 EXTERN void emu_key_released(GS_Joypads pad, GS_Keys key);
 EXTERN void emu_set_phaser(int x, int y);
+EXTERN void emu_set_phaser_offset(int x, int y);
 EXTERN void emu_enable_phaser(bool enable);
 EXTERN void emu_enable_phaser_crosshair(bool enable, int shape, int color);
 EXTERN void emu_set_paddle(float x);

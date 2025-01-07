@@ -145,6 +145,7 @@ void gui_init(void)
     emu_disable_ym2413(config_audio.ym2413 == 1);
     emu_enable_phaser(config_emulator.light_phaser);
     emu_enable_phaser_crosshair(config_emulator.light_phaser_crosshair, config_emulator.light_phaser_crosshair_shape, config_emulator.light_phaser_crosshair_color);
+    emu_set_phaser_offset(config_emulator.light_phaser_x_offset, config_emulator.light_phaser_y_offset);
     emu_enable_paddle(config_emulator.paddle_control);
 }
 
@@ -973,6 +974,14 @@ static void main_menu(void)
                         emu_enable_phaser_crosshair(config_emulator.light_phaser_crosshair, config_emulator.light_phaser_crosshair_shape, config_emulator.light_phaser_crosshair_color);
                     }
                     ImGui::PopItemWidth();
+                    ImGui::EndMenu();
+                }
+
+                if (ImGui::BeginMenu("Crosshair Calibration"))
+                {
+                    ImGui::SliderInt("##crosshair_offset_x", &config_emulator.light_phaser_x_offset, -10, 10, "X = %d");
+                    ImGui::SliderInt("##crosshair_offset_y", &config_emulator.light_phaser_y_offset, -10, 10, "Y = %d");
+                    emu_set_phaser_offset(config_emulator.light_phaser_x_offset, config_emulator.light_phaser_y_offset);
                     ImGui::EndMenu();
                 }
 
