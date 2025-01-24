@@ -86,6 +86,7 @@ struct config_Video
     bool mix_frames = true;
     float mix_frames_intensity = 0.50f;
     bool scanlines = true;
+    bool  scanlines_filter = true;
     float scanlines_intensity = 0.10f;
     bool sync = true;
     int glasses = 0;

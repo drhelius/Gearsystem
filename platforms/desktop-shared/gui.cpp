@@ -817,6 +817,7 @@ static void main_menu(void)
             if (ImGui::BeginMenu("Scanlines"))
             {
                 ImGui::MenuItem("Enable Scanlines", "", &config_video.scanlines);
+                ImGui::MenuItem("Enable Scanlines Filter", "", &config_video.scanlines_filter);
                 ImGui::SliderFloat("##scanlines", &config_video.scanlines_intensity, 0.0f, 1.0f, "Intensity = %.2f");
                 ImGui::EndMenu();
             }
