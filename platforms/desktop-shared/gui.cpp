@@ -1286,7 +1286,7 @@ static void main_window(void)
         case 2:
             scale_multiplier = 1;
             h_corrected = h;
-            w_corrected = h * ratio;
+            w_corrected = (int)(h * ratio);
             break;
         case 3:
             scale_multiplier = 1;
