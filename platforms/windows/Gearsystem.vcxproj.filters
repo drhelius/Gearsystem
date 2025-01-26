@@ -28,8 +28,11 @@
     <Filter Include="desktop_shared\nfd">
       <UniqueIdentifier>{db3b4a89-bbfe-4ee9-a1a5-1ccfceb83f2d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\miniz">
-      <UniqueIdentifier>{637c4ee0-6e40-4be6-b0b7-027f70325ac6}</UniqueIdentifier>
+    <Filter Include="desktop_shared\stb">
+      <UniqueIdentifier>{33728716-2cc6-4449-b1c4-b266e8afa970}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core\miniz">
+      <UniqueIdentifier>{ce3c62fe-c70b-4446-baae-89abe81fc4ee}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -171,9 +174,6 @@
     <ClCompile Include="..\desktop-shared\nfd\nfd_win.cpp">
       <Filter>desktop_shared\nfd</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\miniz\miniz.c">
-      <Filter>src\miniz</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\KoreanSMS32KB2000MemoryRule.cpp">
       <Filter>core</Filter>
     </ClCompile>
@@ -206,6 +206,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Multi4PAKAllActionMemoryRule.cpp">
       <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\miniz\miniz.c">
+      <Filter>core\miniz</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -243,9 +246,6 @@
       <Filter>desktop_shared\imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\imgui_internal.h">
-      <Filter>desktop_shared\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\imgui\imgui_tables.h">
       <Filter>desktop_shared\imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\imstb_rectpack.h">
@@ -419,9 +419,6 @@
     <ClInclude Include="..\..\src\audio\emu2413\emu2413.h">
       <Filter>core\audio\emu2413</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\miniz\miniz.h">
-      <Filter>src\miniz</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\KoreanSMS32KB2000MemoryRule.h">
       <Filter>core</Filter>
     </ClInclude>
@@ -455,11 +452,32 @@
     <ClInclude Include="..\..\src\Multi4PAKAllActionMemoryRule.h">
       <Filter>core</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\miniz\miniz.h">
+      <Filter>core\miniz</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\imgui\keyboard.h">
+      <Filter>desktop_shared\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\nfd\nfd.h">
+      <Filter>desktop_shared\nfd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\nfd\nfd_sdl2.h">
+      <Filter>desktop_shared\nfd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\stb\stb_image_write.h">
+      <Filter>desktop_shared\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\backers.h">
+      <Filter>desktop_shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\license.h">
+      <Filter>desktop_shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\log.h">
+      <Filter>core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\desktop-shared\Makefile.common">
-      <Filter>desktop_shared</Filter>
-    </None>
     <None Include="..\desktop-shared\gui_events.def">
       <Filter>desktop_shared</Filter>
     </None>

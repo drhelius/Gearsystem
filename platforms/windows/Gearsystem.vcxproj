@@ -79,6 +79,7 @@
     <ClCompile Include="..\..\src\Multi4PAKAllActionMemoryRule.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\log.h" />
     <ClInclude Include="..\..\src\miniz\miniz.h" />
     <ClInclude Include="..\..\src\Audio.h" />
     <ClInclude Include="..\..\src\audio\blargg_common.h" />
@@ -131,6 +132,7 @@
     <ClInclude Include="..\..\src\YM2413.h" />
     <ClInclude Include="..\audio-shared\sound_queue.h" />
     <ClInclude Include="..\desktop-shared\application.h" />
+    <ClInclude Include="..\desktop-shared\backers.h" />
     <ClInclude Include="..\desktop-shared\config.h" />
     <ClInclude Include="..\desktop-shared\emu.h" />
     <ClInclude Include="..\desktop-shared\gui.h" />
@@ -147,8 +149,12 @@
     <ClInclude Include="..\desktop-shared\imgui\imstb_rectpack.h" />
     <ClInclude Include="..\desktop-shared\imgui\imstb_textedit.h" />
     <ClInclude Include="..\desktop-shared\imgui\imstb_truetype.h" />
+    <ClInclude Include="..\desktop-shared\imgui\keyboard.h" />
     <ClInclude Include="..\desktop-shared\imgui\memory_editor.h" />
+    <ClInclude Include="..\desktop-shared\license.h" />
     <ClInclude Include="..\desktop-shared\mINI\ini.h" />
+    <ClInclude Include="..\desktop-shared\nfd\nfd.h" />
+    <ClInclude Include="..\desktop-shared\nfd\nfd_sdl2.h" />
     <ClInclude Include="..\desktop-shared\renderer.h" />
     <ClInclude Include="..\..\src\KoreanMSX32KB2000MemoryRule.h" />
     <ClInclude Include="..\..\src\Korean2000XOR1FMemoryRule.h" />
@@ -160,10 +166,10 @@
     <ClInclude Include="..\..\src\KoreanFFF3FFFCMemoryRule.h" />
     <ClInclude Include="..\..\src\KoreanMDFFF5MemoryRule.h" />
     <ClInclude Include="..\..\src\Multi4PAKAllActionMemoryRule.h" />
+    <ClInclude Include="..\desktop-shared\stb\stb_image_write.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\desktop-shared\gui_events.def" />
-    <None Include="..\desktop-shared\Makefile.common" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="Gearsystem.manifest" />
