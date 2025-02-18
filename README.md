@@ -19,18 +19,18 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 ## Downloads
 
 - **Windows**:
-  - [Gearsystem-3.6.1-windows-x64.zip](https://github.com/drhelius/Gearsystem/releases/download/3.6.1/Gearsystem-3.6.1-windows-x64.zip)
-  - [Gearsystem-3.6.1-windows-arm64.zip](https://github.com/drhelius/Gearsystem/releases/download/3.6.1/Gearsystem-3.6.1-windows-arm64.zip)
+  - [Gearsystem-3.7.0-windows-x64.zip](https://github.com/drhelius/Gearsystem/releases/download/3.7.0/Gearsystem-3.7.0-windows-x64.zip)
+  - [Gearsystem-3.7.0-windows-arm64.zip](https://github.com/drhelius/Gearsystem/releases/download/3.7.0/Gearsystem-3.7.0-windows-arm64.zip)
   - NOTE: If you have errors you may need to install:
     - [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572)
     - [OpenGL Compatibility Pack](https://apps.microsoft.com/detail/9nqpsl29bfff)
 - **macOS**:
-  - [Gearsystem-3.6.1-macos-arm.zip](https://github.com/drhelius/Gearsystem/releases/download/3.6.1/Gearsystem-3.6.1-macos-arm.zip)
-  - [Gearsystem-3.6.1-macos-intel.zip](https://github.com/drhelius/Gearsystem/releases/download/3.6.1/Gearsystem-3.6.1-macos-intel.zip)
+  - [Gearsystem-3.7.0-macos-arm.zip](https://github.com/drhelius/Gearsystem/releases/download/3.7.0/Gearsystem-3.7.0-macos-arm.zip)
+  - [Gearsystem-3.7.0-macos-intel.zip](https://github.com/drhelius/Gearsystem/releases/download/3.7.0/Gearsystem-3.7.0-macos-intel.zip)
 - **Linux**:
-  - [Gearsystem-3.6.1-ubuntu-24.04.zip](https://github.com/drhelius/Gearsystem/releases/download/3.6.1/Gearsystem-3.6.1-ubuntu-24.04.zip)
-  - [Gearsystem-3.6.1-ubuntu-22.04.zip](https://github.com/drhelius/Gearsystem/releases/download/3.6.1/Gearsystem-3.6.1-ubuntu-22.04.zip)
-  - [Gearsystem-3.6.1-ubuntu-20.04.zip](https://github.com/drhelius/Gearsystem/releases/download/3.6.1/Gearsystem-3.6.1-ubuntu-20.04.zip) 
+  - [Gearsystem-3.7.0-ubuntu-24.04.zip](https://github.com/drhelius/Gearsystem/releases/download/3.7.0/Gearsystem-3.7.0-ubuntu-24.04.zip)
+  - [Gearsystem-3.7.0-ubuntu-22.04.zip](https://github.com/drhelius/Gearsystem/releases/download/3.7.0/Gearsystem-3.7.0-ubuntu-22.04.zip)
+  - [Gearsystem-3.7.0-ubuntu-20.04.zip](https://github.com/drhelius/Gearsystem/releases/download/3.7.0/Gearsystem-3.7.0-ubuntu-20.04.zip) 
   - NOTE: You may need to install `libsdl2` and `libglew`
 - **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearcoleco/).
 
@@ -60,7 +60,7 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 - Full debugger with just-in-time disassembler, cpu breakpoints, memory access breakpoints, code navigation (goto address, JP JR and CALL double clicking), debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
 - Windows and Linux *Portable Mode*.
 - Rom loading from the command line by adding the rom path as an argument.
-- Support for modern game controllers through [gamecontrollerdb.txt](https://github.com/gabomdq/SDL_GameControllerDB) file located in the same directory as the application binary.
+- Support for modern game controllers through [gamecontrollerdb.txt](https://github.com/mdqinc/SDL_GameControllerDB) file located in the same directory as the application binary.
 
 ## Tips
 
