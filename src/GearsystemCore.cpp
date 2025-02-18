@@ -42,6 +42,7 @@
 #include "MSXMemoryRule.h"
 #include "JanggunMemoryRule.h"
 #include "Multi4PAKAllActionMemoryRule.h"
+#include "JumboDahjeeMemoryRule.h"
 #include "SG1000MemoryRule.h"
 #include "SmsIOPorts.h"
 #include "GameGearIOPorts.h"
@@ -74,6 +75,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pMSXMemoryRule);
     InitPointer(m_pJanggunMemoryRule);
     InitPointer(m_pMulti4PAKAllActionMemoryRule);
+    InitPointer(m_pJumboDahjeeMemoryRule);
     InitPointer(m_pSmsIOPorts);
     InitPointer(m_pGameGearIOPorts);
     InitPointer(m_pBootromMemoryRule);
@@ -106,6 +108,7 @@ GearsystemCore::~GearsystemCore()
     SafeDelete(m_pMSXMemoryRule);
     SafeDelete(m_pJanggunMemoryRule);
     SafeDelete(m_pMulti4PAKAllActionMemoryRule);
+    SafeDelete(m_pJumboDahjeeMemoryRule);
     SafeDelete(m_pCartridge);
     SafeDelete(m_pInput);
     SafeDelete(m_pVideo);
@@ -941,6 +944,7 @@ void GearsystemCore::InitMemoryRules()
     m_pMSXMemoryRule = new MSXMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pJanggunMemoryRule = new JanggunMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pMulti4PAKAllActionMemoryRule = new Multi4PAKAllActionMemoryRule(m_pMemory, m_pCartridge, m_pInput);
+    m_pJumboDahjeeMemoryRule = new JumboDahjeeMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pBootromMemoryRule = new BootromMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
     m_pMemory->SetBootromRule(m_pBootromMemoryRule);
@@ -1012,6 +1016,9 @@ bool GearsystemCore::AddMemoryRules()
         case Cartridge::CartridgeMulti4PAKAllActionMapper:
             m_pMemory->SetCurrentRule(m_pMulti4PAKAllActionMemoryRule);
             break;
+        case Cartridge::CartridgeJumboDahjeeMapper:
+            m_pMemory->SetCurrentRule(m_pJumboDahjeeMemoryRule);
+            break;
         case Cartridge::CartridgeNotSupported:
             notSupported = true;
             break;
@@ -1059,6 +1066,7 @@ void GearsystemCore::Reset()
     m_pMSXMemoryRule->Reset();
     m_pJanggunMemoryRule->Reset();
     m_pMulti4PAKAllActionMemoryRule->Reset();
+    m_pJumboDahjeeMemoryRule->Reset();
     m_pBootromMemoryRule->Reset();
     m_pGameGearIOPorts->Reset();
     m_pSmsIOPorts->Reset();

@@ -47,6 +47,7 @@ class KoreanMDFFF5MemoryRule;
 class MSXMemoryRule;
 class JanggunMemoryRule;
 class Multi4PAKAllActionMemoryRule;
+class JumboDahjeeMemoryRule;
 class MemoryRule;
 class SmsIOPorts;
 class GameGearIOPorts;
@@ -139,6 +140,7 @@ private:
     MSXMemoryRule* m_pMSXMemoryRule;
     JanggunMemoryRule* m_pJanggunMemoryRule;
     Multi4PAKAllActionMemoryRule* m_pMulti4PAKAllActionMemoryRule;
+    JumboDahjeeMemoryRule* m_pJumboDahjeeMemoryRule;
     SmsIOPorts* m_pSmsIOPorts;
     GameGearIOPorts* m_pGameGearIOPorts;
     BootromMemoryRule* m_pBootromMemoryRule;

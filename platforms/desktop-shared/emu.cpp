@@ -550,6 +550,9 @@ static const char* get_mapper(Cartridge::CartridgeTypes type)
     case Cartridge::CartridgeJanggunMapper:
         return "Janggun";
         break;
+    case Cartridge::CartridgeJumboDahjeeMapper:
+        return "Jumbo Dahjee";
+        break;
     case Cartridge::CartridgeNotSupported:
         return "Not Supported";
         break;

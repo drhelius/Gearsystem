@@ -244,6 +244,10 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             m_Type = config.type;
             Log("Forcing Mapper: Multi 4PAK All Action");
             break;
+        case Cartridge::CartridgeJumboDahjeeMapper:
+            m_Type = config.type;
+            Log("Forcing Mapper: Jumbo Dahjee");
+            break;
         default:
             Log("Not forcing Mapper: Auto");
             break;
@@ -658,6 +662,9 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeMulti4PAKAllActionMapper:
             Log("Multi 4PAK All Action mapper found");
             break;
+        case Cartridge::CartridgeJumboDahjeeMapper:
+            Log("Jumbo Dahjee mapper found");
+            break;
         case Cartridge::CartridgeNotSupported:
             Log("Cartridge not supported!!");
             break;
@@ -749,6 +756,9 @@ void Cartridge::GetInfoFromDB(u32 crc)
                     break;
                 case GS_DB_MULTI_4PAK_ALL_ACTION_MAPPER:
                     m_Type = Cartridge::CartridgeMulti4PAKAllActionMapper;
+                    break;
+                case GS_DB_JUMBO_DAHJEE_MAPPER:
+                    m_Type = Cartridge::CartridgeJumboDahjeeMapper;
                     break;
             }
 

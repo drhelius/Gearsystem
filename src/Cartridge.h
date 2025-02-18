@@ -48,6 +48,7 @@ public:
         CartridgeMSXMapper,
         CartridgeJanggunMapper,
         CartridgeMulti4PAKAllActionMapper,
+        CartridgeJumboDahjeeMapper,
         CartridgeNotSupported
     };
     

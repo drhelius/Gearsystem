@@ -210,6 +210,9 @@
     <ClCompile Include="..\..\src\miniz\miniz.c">
       <Filter>core\miniz</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\JumboDahjeeMemoryRule.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\audio-shared\sound_queue.h">
@@ -474,6 +477,9 @@
       <Filter>desktop_shared</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\log.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\JumboDahjeeMemoryRule.h">
       <Filter>core</Filter>
     </ClInclude>
   </ItemGroup>
