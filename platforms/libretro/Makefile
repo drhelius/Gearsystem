@@ -213,8 +213,7 @@ else ifneq (,$(findstring qnx,$(platform)))
 # emscripten
 else ifeq ($(platform), emscripten)
 	TARGET := $(TARGET_NAME)_libretro_emscripten.bc
-	fpic := -fPIC
-	SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl
+	STATIC_LINKING = 1
 	CFLAGS += -Dmusttail='emscripten_asyncify_does_not_support_musttail'
 # RS90
 else ifeq ($(platform), rs90)
