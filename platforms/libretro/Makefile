@@ -214,7 +214,6 @@ else ifneq (,$(findstring qnx,$(platform)))
 else ifeq ($(platform), emscripten)
 	TARGET := $(TARGET_NAME)_libretro_emscripten.bc
 	STATIC_LINKING = 1
-	CFLAGS += -Dmusttail='emscripten_asyncify_does_not_support_musttail'
 # RS90
 else ifeq ($(platform), rs90)
 	TARGET := $(TARGET_NAME)_libretro.so

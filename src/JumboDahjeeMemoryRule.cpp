@@ -21,7 +21,7 @@ u8 JumboDahjeeMemoryRule::PerformRead(u16 address)
     else
     {
         if (address >= 0xC000)
-            address &= ~0x1800;
+            address = 0xC000 + (address & 0x3FF);
 
         return m_pMemory->Retrieve(address);
     }
@@ -43,7 +43,7 @@ void JumboDahjeeMemoryRule::PerformWrite(u16 address, u8 value)
     }
     else
     {
-        address &= ~0x1800;
+        address = 0xC000 + (address & 0x3FF);
         m_pMemory->Load(address, value);
     }
 }
