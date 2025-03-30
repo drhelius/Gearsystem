@@ -10,9 +10,9 @@
 
 Gearsystem is a very accurate, cross-platform Sega Master System / Game Gear / SG-1000 emulator written in C++ that runs on Windows, macOS, Linux, BSD and RetroArch.
 
-This is an open source project with its ongoing development made possible thanks to the support by these awesome [backers](backers.md). If you find it useful, please, consider [sponsoring](https://github.com/sponsors/drhelius).
+This is an open source project with its ongoing development made possible thanks to the support by these awesome [backers](backers.md). If you find it useful, please consider [sponsoring](https://github.com/sponsors/drhelius).
 
-Don't hesitate to report bugs or ask for new features by [openning an issue](https://github.com/drhelius/Gearsystem/issues).
+Don't hesitate to report bugs or ask for new features by [opening an issue](https://github.com/drhelius/Gearsystem/issues).
 
 <img src="http://www.geardome.com/files/gearsystem/gearsystem_debug_02.png">
 
@@ -32,7 +32,7 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
   - [Gearsystem-3.7.0-ubuntu-22.04.zip](https://github.com/drhelius/Gearsystem/releases/download/3.7.0/Gearsystem-3.7.0-ubuntu-22.04.zip)
   - [Gearsystem-3.7.0-ubuntu-20.04.zip](https://github.com/drhelius/Gearsystem/releases/download/3.7.0/Gearsystem-3.7.0-ubuntu-20.04.zip) 
   - NOTE: You may need to install `libsdl2` and `libglew`
-- **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearcoleco/).
+- **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearsystem/).
 
 ## Supported Machines
 
@@ -44,34 +44,41 @@ Don't hesitate to report bugs or ask for new features by [openning an issue](htt
 
 ## Features
 
-- Accurate Z80 core, including undocumented opcodes and behavior like R and [MEMPTR](https://gist.github.com/drhelius/8497817) registers.
-- Supported cartridges: ROM, ROM + RAM, SEGA, Codemasters, Korean, MSX + Nemesis, Janggun, SG-1000 and many Korean multi-carts.
+- Accurate Z80 core, including undocumented opcodes and behaviors like R and [MEMPTR](https://gist.github.com/drhelius/8497817) registers.
+- Supported cartridges: ROM, ROM + RAM, SEGA, Codemasters, Korean, MSX + Nemesis, Janggun, SG-1000, and many Korean multi-carts.
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
-- Accurate VDP emulation, including timing and VDP specifics for SMS, SMS2, GG and TMS9918 modes.
+- Accurate VDP emulation, including timing and VDP specifics for SMS, SMS2, GG, and TMS9918 modes.
 - Support for YM2413 (OPLL) FM sound chip.
-- Light Phaser and Paddle Control
-- Internal database for rom detection.
+- Light Phaser and Paddle Control support.
+- Internal database for ROM detection.
 - Battery powered RAM save support.
 - Save states.
-- Compressed rom support (ZIP).
+- Compressed ROM support (ZIP).
 - *Game Genie* and *Pro Action Replay* cheat support.
 - Supported platforms (standalone): Windows, Linux, BSD and macOS.
 - Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch, Emscripten, Classic Mini systems (NES, SNES, C64, ...), OpenDingux, RetroFW and QNX.
-- Full debugger with just-in-time disassembler, cpu breakpoints, memory access breakpoints, code navigation (goto address, JP JR and CALL double clicking), debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
+- Full debugger with just-in-time disassembler, CPU breakpoints, memory access breakpoints, code navigation (goto address, JP JR and CALL double clicking), debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
 - Windows and Linux *Portable Mode*.
-- Rom loading from the command line by adding the rom path as an argument.
+- ROM loading from the command line by adding the ROM path as an argument.
 - Support for modern game controllers through [gamecontrollerdb.txt](https://github.com/mdqinc/SDL_GameControllerDB) file located in the same directory as the application binary.
 
 ## Tips
 
-- *BIOS*: Gearsystem can run with or without a BIOS. You can optionally load a BIOS and enable it. It is possible to run the title included in the BIOS by setting **Media Slot** to `None` in the **Emulator** menu. This will emulate a machine without any media plugged in.
-- *Overscan*: For a precise representation of the original image select **Overscan** `Top+Bottom` and **Aspect Ratio** `Standard (4:3 DAR)` in the **Video** menu. Game Gear will ignore any overscan settings.
-- *Mouse Cursor*: Automatically hides when hovering main output window or when Main Menu is disabled.
-- *Portable Mode*: Create an empty file named `portable.ini` in the same directory as the application binary to enable portable mode.
-- *Docking windows*: In debug mode you can dock windows together by pressing SHIFT and drag'n drop a window into another.
-- *Debug multi-viewport*: In Windows or macOS you can enable "multi-viewport" in debug menu. You must restart the emulator for the change to take effect. Once enabled you can drag debugger windows outside the main window.
-- *Debug Symbols*: The emulator always tries to load a symbol file at the same time a rom is being loaded. For example, for ```path_to_rom_file.sms``` it tries to load ```path_to_rom_file.sym```. It is also possible to load a symbol file using the GUI or using the CLI.
-- *Command Line Usage*: ```gearsystem [rom_file] [symbol_file]```
+### Basic Usage
+- **BIOS**: Gearsystem can run with or without a BIOS. You can optionally load a BIOS and enable it. It's possible to run the title included in the BIOS by setting **Media Slot** to `None` in the **Emulator** menu. This emulates a machine without any media plugged in.
+- **Overscan**: For a precise representation of the original image, select **Overscan** `Top+Bottom` and **Aspect Ratio** `Standard (4:3 DAR)` in the **Video** menu. Game Gear will ignore any overscan settings.
+- **Mouse Cursor**: Automatically hides when hovering over the main output window or when Main Menu is disabled.
+- **Portable Mode**: Create an empty file named `portable.ini` in the same directory as the application binary to enable portable mode.
+
+### Debugging Features
+- **Docking Windows**: In debug mode, you can dock windows together by pressing SHIFT and dragging a window onto another.
+- **Multi-viewport**: In Windows or macOS, you can enable "multi-viewport" in the debug menu. You must restart the emulator for the change to take effect. Once enabled, you can drag debugger windows outside the main window.
+- **Debug Symbols**: The emulator automatically tries to load a symbol file when loading a ROM. For example, for ```path_to_rom_file.sms``` it tries to load ```path_to_rom_file.sym```. You can also load a symbol file using the GUI or the CLI.
+
+### Command Line Usage
+```
+gearsystem [rom_file] [symbol_file]
+```
 
 ## Build Instructions
 
@@ -105,6 +112,14 @@ make
 
 ``` shell
 sudo dnf install @development-tools gcc-c++ SDL2-devel glew-devel gtk3-devel
+cd platforms/linux
+make
+```
+
+- Arch Linux:
+
+``` shell
+sudo pacman -S base-devel sdl2 glew gtk3
 cd platforms/linux
 make
 ```
@@ -149,7 +164,7 @@ make
 
 Zexall Z80 instruction exerciser ([from SMS Power!](http://www.smspower.org/Homebrew/ZEXALL-SMS))
 
-Gearsystem passes all tests in Zexall, including undocumented instructions and behaviours.
+Gearsystem passes all tests in Zexall, including undocumented instructions and behaviors.
 
 ![zexall.sms](http://www.geardome.com/files/gearsystem/zexall.png)
 
@@ -174,7 +189,7 @@ SMS VDP Test  ([from SMS Power!](http://www.smspower.org/Homebrew/SMSVDPTest-SMS
 
 Thank you to all the people who have already contributed to Gearsystem!
 
-[![Contributors](https://contrib.rocks/image?repo=drhelius/gearsystem)]("https://github.com/drhelius/gearsystem/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=drhelius/gearsystem)](https://github.com/drhelius/gearsystem/graphs/contributors)
 
 ## License
 
