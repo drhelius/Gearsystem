@@ -85,7 +85,11 @@ inline u8 SmsIOPorts::DoInput(u8 port)
     }
     else
     {
-        if (m_pMemory->IsIOEnabled())
+        if (port == 0xF2)
+        {
+            return m_pAudio->YM2413Read(0xF2);
+        }
+        else
         {
             // Reads from even addresses return the I/O port A/B register
             if ((port & 0x01) == 0x00)
@@ -125,10 +129,6 @@ inline u8 SmsIOPorts::DoInput(u8 port)
 
                 return ret_dd;
             }
-        }
-        else
-        {
-            return m_pAudio->YM2413Read(port);
         }
     }
 }
