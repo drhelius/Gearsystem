@@ -43,7 +43,7 @@ YM2413::~YM2413()
 void YM2413::Init(int clockRate)
 {
     m_pBuffer = new s16[GS_AUDIO_BUFFER_SIZE];
-    m_pOPLL = OPLL_new();
+    m_pOPLL = OPLL_new(clockRate, 99432);
     OPLL_setChipType(m_pOPLL, 0);
     Reset(clockRate);
 }
@@ -136,9 +136,9 @@ void YM2413::Sync()
     for (int i = 0; i < m_ElapsedCycles; i++)
     {
         m_iCycleCounter ++;
-        if (m_iCycleCounter >= 72)
+        if (m_iCycleCounter >= 36)
         {
-            m_iCycleCounter -= 72;
+            m_iCycleCounter -= 36;
             m_CurrentSample = OPLL_calc(m_pOPLL);
         }
 

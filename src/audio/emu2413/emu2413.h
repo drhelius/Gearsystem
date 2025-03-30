@@ -69,10 +69,32 @@ typedef struct __OPLL_SLOT {
 #define OPLL_MASK_BD (1 << (13))
 #define OPLL_MASK_RHYTHM (OPLL_MASK_HH | OPLL_MASK_CYM | OPLL_MASK_TOM | OPLL_MASK_SD | OPLL_MASK_BD)
 
+/* rate conveter */
+typedef struct __OPLL_RateConv {
+  int ch;
+  double timer;
+  double f_ratio;
+  int16_t *sinc_table;
+  int16_t **buf;
+} OPLL_RateConv;
+
+OPLL_RateConv *OPLL_RateConv_new(double f_inp, double f_out, int ch);
+void OPLL_RateConv_reset(OPLL_RateConv *conv);
+void OPLL_RateConv_putData(OPLL_RateConv *conv, int ch, int16_t data);
+int16_t OPLL_RateConv_getData(OPLL_RateConv *conv, int ch);
+void OPLL_RateConv_delete(OPLL_RateConv *conv);
+
 typedef struct __OPLL {
+  uint32_t clk;
+  uint32_t rate;
+
   uint8_t chip_type;
 
   uint32_t adr;
+
+  double inp_step;
+  double out_step;
+  double out_time;
 
   uint8_t reg[0x40];
   uint8_t test_flag;
@@ -93,6 +115,9 @@ typedef struct __OPLL {
   OPLL_SLOT slot[18];
   OPLL_PATCH patch[19 * 2];
 
+  uint8_t pan[16];
+  float pan_fine[16][2];
+
   uint32_t mask;
 
   /* channel output */
@@ -100,13 +125,42 @@ typedef struct __OPLL {
   int16_t ch_out[14];
 
   int16_t mix_out[2];
+
+  OPLL_RateConv *conv;
 } OPLL;
 
-OPLL *OPLL_new(void);
+OPLL *OPLL_new(uint32_t clk, uint32_t rate);
 void OPLL_delete(OPLL *);
 
 void OPLL_reset(OPLL *);
 void OPLL_resetPatch(OPLL *, uint8_t);
+
+/**
+ * Set output wave sampling rate.
+ * @param rate sampling rate. If clock / 72 (typically 49716 or 49715 at 3.58MHz) is set, the internal rate converter is
+ * disabled.
+ */
+void OPLL_setRate(OPLL *opll, uint32_t rate);
+
+/**
+ * Set pan pot (extra function - not YM2413 chip feature)
+ * @param ch 0..8:tone 9:bd 10:hh 11:sd 12:tom 13:cym 14,15:reserved
+ * @param pan 0:mute 1:right 2:left 3:center
+ * ```
+ * pan: 76543210
+ *            |+- bit 1: enable Left output
+ *            +-- bit 0: enable Right output
+ * ```
+ */
+void OPLL_setPan(OPLL *opll, uint32_t ch, uint8_t pan);
+
+/**
+ * Set fine-grained panning
+ * @param ch 0..8:tone 9:bd 10:hh 11:sd 12:tom 13:cym 14,15:reserved
+ * @param pan output strength of left/right channel.
+ *            pan[0]: left, pan[1]: right. pan[0]=pan[1]=1.0f for center.
+ */
+void OPLL_setPanFine(OPLL *opll, uint32_t ch, float pan[2]);
 
 /**
  * Set chip type. If vrc7 is selected, r#14 is ignored.
@@ -161,6 +215,7 @@ uint32_t OPLL_toggleMask(OPLL *, uint32_t mask);
 
 /* for compatibility */
 #define OPLL_set_rate OPLL_setRate
+#define OPLL_set_quality OPLL_setQuality
 #define OPLL_set_pan OPLL_setPan
 #define OPLL_set_pan_fine OPLL_setPanFine
 #define OPLL_calc_stereo OPLL_calcStereo
