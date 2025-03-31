@@ -22,9 +22,8 @@
     <ClCompile Include="..\..\src\miniz\miniz.c" />
     <ClCompile Include="..\..\src\Audio.cpp" />
     <ClCompile Include="..\..\src\audio\Blip_Buffer.cpp" />
-    <ClCompile Include="..\..\src\audio\Effects_Buffer.cpp" />
     <ClCompile Include="..\..\src\audio\emu2413\emu2413.c" />
-    <ClCompile Include="..\..\src\audio\Multi_Buffer.cpp" />
+    <ClCompile Include="..\..\src\audio\Stereo_Buffer.cpp" />
     <ClCompile Include="..\..\src\audio\Sms_Apu.cpp" />
     <ClCompile Include="..\..\src\BootromMemoryRule.cpp" />
     <ClCompile Include="..\..\src\Cartridge.cpp" />
@@ -83,14 +82,9 @@
     <ClInclude Include="..\..\src\log.h" />
     <ClInclude Include="..\..\src\miniz\miniz.h" />
     <ClInclude Include="..\..\src\Audio.h" />
-    <ClInclude Include="..\..\src\audio\blargg_common.h" />
-    <ClInclude Include="..\..\src\audio\blargg_config.h" />
-    <ClInclude Include="..\..\src\audio\blargg_source.h" />
     <ClInclude Include="..\..\src\audio\Blip_Buffer.h" />
-    <ClInclude Include="..\..\src\audio\Blip_Synth.h" />
-    <ClInclude Include="..\..\src\audio\Effects_Buffer.h" />
     <ClInclude Include="..\..\src\audio\emu2413\emu2413.h" />
-    <ClInclude Include="..\..\src\audio\Multi_Buffer.h" />
+    <ClInclude Include="..\..\src\audio\Stereo_Buffer.h" />
     <ClInclude Include="..\..\src\audio\Sms_Apu.h" />
     <ClInclude Include="..\..\src\audio\Sms_Oscs.h" />
     <ClInclude Include="..\..\src\BootromMemoryRule.h" />

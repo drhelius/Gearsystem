@@ -21,7 +21,7 @@
 #define	AUDIO_H
 
 #include "definitions.h"
-#include "audio/Multi_Buffer.h"
+#include "audio/Stereo_Buffer.h"
 #include "audio/Sms_Apu.h"
 #include "YM2413.h"
 

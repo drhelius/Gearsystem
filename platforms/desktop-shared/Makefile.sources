@@ -59,6 +59,5 @@ SOURCES_CXX := \
     $(SRC_DIR)/JanggunMemoryRule.cpp \
     $(SRC_DIR)/YM2413.cpp \
     $(SRC_DIR)/audio/Blip_Buffer.cpp \
-    $(SRC_DIR)/audio/Effects_Buffer.cpp \
     $(SRC_DIR)/audio/Sms_Apu.cpp \
-    $(SRC_DIR)/audio/Multi_Buffer.cpp \
+    $(SRC_DIR)/audio/Stereo_Buffer.cpp \

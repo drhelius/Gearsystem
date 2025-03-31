@@ -147,10 +147,7 @@
     <ClCompile Include="..\..\src\audio\Blip_Buffer.cpp">
       <Filter>core\audio</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\audio\Effects_Buffer.cpp">
-      <Filter>core\audio</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\audio\Multi_Buffer.cpp">
+    <ClCompile Include="..\..\src\audio\Stereo_Buffer.cpp">
       <Filter>core\audio</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\audio\Sms_Apu.cpp">
@@ -376,26 +373,11 @@
     </ClInclude>
     <ClInclude Include="..\..\src\Video.h">
       <Filter>core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\audio\blargg_common.h">
-      <Filter>core\audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\audio\blargg_config.h">
-      <Filter>core\audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\audio\blargg_source.h">
-      <Filter>core\audio</Filter>
-    </ClInclude>
+    </ClInclude>    
     <ClInclude Include="..\..\src\audio\Blip_Buffer.h">
       <Filter>core\audio</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\audio\Blip_Synth.h">
-      <Filter>core\audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\audio\Effects_Buffer.h">
-      <Filter>core\audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\audio\Multi_Buffer.h">
+    <ClInclude Include="..\..\src\audio\Stereo_Buffer.h">
       <Filter>core\audio</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\audio\Sms_Apu.h">
