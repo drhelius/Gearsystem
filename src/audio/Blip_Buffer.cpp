@@ -28,7 +28,7 @@ int const silent_buf_size = 1; // size used for Silent_Blip_Buffer
 
 Blip_Buffer::Blip_Buffer()
 {
-	factor_       = (blip_ulong)ULLONG_MAX;
+	factor_       = (blip_ulong)ULONG_MAX;
 	offset_       = 0;
 	buffer_       = 0;
 	buffer_size_  = 0;
