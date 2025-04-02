@@ -28,7 +28,7 @@ int const silent_buf_size = 1; // size used for Silent_Blip_Buffer
 
 Blip_Buffer::Blip_Buffer()
 {
-	factor_       = (blip_u64)ULLONG_MAX;
+	factor_       = (blip_ulong)ULLONG_MAX;
 	offset_       = 0;
 	buffer_       = 0;
 	buffer_size_  = 0;
@@ -86,7 +86,7 @@ Blip_Buffer::blargg_err_t Blip_Buffer::set_sample_rate( long new_rate, int msec 
 	}
 	
 	// start with maximum length that resampled time can represent
-	blip_s64 new_size = (ULLONG_MAX >> BLIP_BUFFER_ACCURACY) - blip_buffer_extra_ - 64;
+	long new_size = (ULONG_MAX >> BLIP_BUFFER_ACCURACY) - blip_buffer_extra_ - 64;
 
 	// simple safety check, since code elsewhere may not be safe for sizes approaching (2 ^ 31).
 	if(new_size > ((1LL << 30) - 1))
@@ -94,7 +94,7 @@ Blip_Buffer::blargg_err_t Blip_Buffer::set_sample_rate( long new_rate, int msec 
 
 	if ( msec != blip_max_length )
 	{
-		blip_s64 s = ((blip_s64)new_rate * (msec + 1) + 999) / 1000;
+		long s = ((blip_long)new_rate * (msec + 1) + 999) / 1000;
 		if ( s < new_size )
 			new_size = s;
 		else
@@ -129,7 +129,7 @@ Blip_Buffer::blargg_err_t Blip_Buffer::set_sample_rate( long new_rate, int msec 
 blip_resampled_time_t Blip_Buffer::clock_rate_factor( long rate ) const
 {
 	double ratio = (double) sample_rate_ / rate;
-	blip_s64 factor = (blip_s64) floor( ratio * (1LL << BLIP_BUFFER_ACCURACY) + 0.5 );
+	blip_long factor = (blip_long) floor( ratio * (1LL << BLIP_BUFFER_ACCURACY) + 0.5 );
 	assert( factor > 0 || !sample_rate_ ); // fails if clock/output ratio is too large
 	return (blip_resampled_time_t) factor;
 }
