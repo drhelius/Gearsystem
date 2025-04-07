@@ -139,6 +139,9 @@ void application_update_title(char* title)
 
 static int sdl_init(void)
 {
+	application_gamepad[0] = NULL;
+	application_gamepad[1] = NULL;
+	
 #ifdef _WIN32
     SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, "1");
 #endif
@@ -286,6 +289,51 @@ static void sdl_events(void)
             running = false;
             break;
         }
+        
+// Add handling for controller hotplugging
+        switch (event.type)
+        {
+            case SDL_CONTROLLERDEVICEADDED:
+            {
+                int which = event.cdevice.which; // Device index of the added controller
+                for (int i = 0; i < 2; i++)
+                {
+                    if (application_gamepad[i] == NULL)
+                    {
+                        application_gamepad[i] = SDL_GameControllerOpen(which);
+                        if (application_gamepad[i])
+                        {
+                            Debug("Game controller %d connected to slot %d", which, i);
+                            break;
+                        }
+                        else
+                        {
+                            Log("Warning: Unable to open game controller %d! SDL Error: %s\n", which, SDL_GetError());
+                        }
+                    }
+                }
+                break;
+            }
+            case SDL_CONTROLLERDEVICEREMOVED:
+            {
+                SDL_JoystickID instance_id = event.cdevice.which; // Instance ID of the removed controller
+                for (int i = 0; i < 2; i++)
+                {
+                    if (application_gamepad[i] != NULL)
+                    {
+                        SDL_JoystickID current_id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(application_gamepad[i]));
+                        if (current_id == instance_id)
+                        {
+                            SDL_GameControllerClose(application_gamepad[i]);
+                            application_gamepad[i] = NULL;
+                            Debug("Game controller %d disconnected from slot %d", instance_id, i);
+                            break;
+                        }
+                    }
+                }
+                break;
+            }
+        }
 
         ImGui_ImplSDL2_ProcessEvent(&event);
 
@@ -367,6 +415,9 @@ static void sdl_events_emu(const SDL_Event* event)
         {
             for (int i = 0; i < 2; i++)
             {
+			if (application_gamepad[i] == NULL)
+				continue;
+			  
                 GS_Joypads pad = (i == 0) ? Joypad_1 : Joypad_2;
                 SDL_JoystickID id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(application_gamepad[i]));
 
@@ -402,6 +453,9 @@ static void sdl_events_emu(const SDL_Event* event)
         {
             for (int i = 0; i < 2; i++)
             {
+			if (application_gamepad[i] == NULL)
+				continue;  
+			  
                 GS_Joypads pad = (i == 0) ? Joypad_1 : Joypad_2;
                 SDL_JoystickID id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(application_gamepad[i]));
 
@@ -437,6 +491,9 @@ static void sdl_events_emu(const SDL_Event* event)
         {
             for (int i = 0; i < 2; i++)
             {
+			if (application_gamepad[i] == NULL)
+				continue;  
+			  
                 GS_Joypads pad = (i == 0) ? Joypad_1 : Joypad_2;
                 SDL_JoystickID id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(application_gamepad[i]));
 
