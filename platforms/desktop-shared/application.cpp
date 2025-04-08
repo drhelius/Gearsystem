@@ -421,14 +421,14 @@ static void sdl_events_emu(const SDL_Event* event)
                 if (!config_input[i].gamepad)
                     continue;
 
-                if (event->jbutton.which != id)
+                if (event->cbutton.which != id)
                     continue;
 
-                if (event->jbutton.button == config_input[i].gamepad_1)
+                if (event->cbutton.button == config_input[i].gamepad_1)
                     emu_key_released(pad, Key_1);
-                else if (event->jbutton.button == config_input[i].gamepad_2)
+                else if (event->cbutton.button == config_input[i].gamepad_2)
                     emu_key_released(pad, Key_2);
-                else if (event->jbutton.button == config_input[i].gamepad_start)
+                else if (event->cbutton.button == config_input[i].gamepad_start)
                     emu_key_released(pad, Key_Start);
 
                 if (config_input[i].gamepad_directional == 1)
