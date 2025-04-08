@@ -30,7 +30,6 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 - **Linux**:
   - [Gearsystem-3.7.1-ubuntu-24.04.zip](https://github.com/drhelius/Gearsystem/releases/download/3.7.1/Gearsystem-3.7.1-ubuntu-24.04.zip)
   - [Gearsystem-3.7.1-ubuntu-22.04.zip](https://github.com/drhelius/Gearsystem/releases/download/3.7.1/Gearsystem-3.7.1-ubuntu-22.04.zip)
-  - [Gearsystem-3.7.1-ubuntu-20.04.zip](https://github.com/drhelius/Gearsystem/releases/download/3.7.1/Gearsystem-3.7.1-ubuntu-20.04.zip) 
   - NOTE: You may need to install `libsdl2` and `libglew`
 - **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearsystem/)
 - **Dev Builds**: [GitHub Actions](https://github.com/drhelius/Gearsystem/actions/workflows/gearsystem.yml)
