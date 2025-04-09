@@ -94,13 +94,13 @@ void gui_debug_window_memory(void)
     Cartridge* cart = core->GetCartridge();
 
     ImGui::PushFont(gui_default_font);
-    ImGui::TextColored(cyan, "  BANKS: ");ImGui::SameLine();
+    ImGui::TextColored(green, "  BANKS: ");ImGui::SameLine();
 
     if (memory->GetCurrentRule()->Has8kBanks())
     {
         for (int i = 0; i < 6; i++)
         {
-            ImGui::TextColored(magenta, "ROM%d", i);ImGui::SameLine();
+            ImGui::TextColored(cyan, "ROM%d", i);ImGui::SameLine();
             ImGui::Text("$%02X", memory->GetCurrentRule()->GetBank(i));
             if (i != 5)
                 ImGui::SameLine();
@@ -110,7 +110,7 @@ void gui_debug_window_memory(void)
     {
         for (int i = 0; i < 3; i++)
         {
-            ImGui::TextColored(magenta, "ROM%d", i);ImGui::SameLine();
+            ImGui::TextColored(cyan, "ROM%d", i);ImGui::SameLine();
             ImGui::Text("$%02X", memory->GetCurrentRule()->GetBank(i));
             if (i != 2)
                 ImGui::SameLine();
@@ -120,7 +120,7 @@ void gui_debug_window_memory(void)
     if (cart->GetType() == Cartridge::CartridgeSegaMapper)
     {
         ImGui::SameLine();
-        ImGui::TextColored(magenta, "  RAM");ImGui::SameLine();
+        ImGui::TextColored(cyan, "  RAM");ImGui::SameLine();
         ImGui::Text("$%02X", memory->GetCurrentRule()->GetRamBank());
     }
     ImGui::PopFont();

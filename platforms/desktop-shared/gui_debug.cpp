@@ -658,12 +658,12 @@ static void debug_window_processor(void)
 
     ImGui::NextColumn();
     ImGui::Separator();
-    ImGui::TextColored(cyan, " A'"); ImGui::SameLine();
+    ImGui::TextColored(violet, " A'"); ImGui::SameLine();
     ImGui::Text("$%02X", proc_state->AF2->GetHigh());
     ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->AF2->GetHigh()));
 
     ImGui::NextColumn();
-    ImGui::TextColored(cyan, " F'"); ImGui::SameLine();
+    ImGui::TextColored(violet, " F'"); ImGui::SameLine();
     ImGui::Text("$%02X", proc_state->AF2->GetLow());
     ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->AF2->GetLow()));
 
@@ -680,12 +680,12 @@ static void debug_window_processor(void)
 
     ImGui::NextColumn();
     ImGui::Separator();
-    ImGui::TextColored(cyan, " B'"); ImGui::SameLine();
+    ImGui::TextColored(violet, " B'"); ImGui::SameLine();
     ImGui::Text("$%02X", proc_state->BC2->GetHigh());
     ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->BC2->GetHigh()));
 
     ImGui::NextColumn();
-    ImGui::TextColored(cyan, " C'"); ImGui::SameLine();
+    ImGui::TextColored(violet, " C'"); ImGui::SameLine();
     ImGui::Text("$%02X", proc_state->BC2->GetLow());
     ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->BC2->GetLow()));
 
@@ -702,12 +702,12 @@ static void debug_window_processor(void)
 
     ImGui::NextColumn();
     ImGui::Separator();
-    ImGui::TextColored(cyan, " D'"); ImGui::SameLine();
+    ImGui::TextColored(violet, " D'"); ImGui::SameLine();
     ImGui::Text("$%02X", proc_state->DE2->GetHigh());
     ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->DE2->GetHigh()));
 
     ImGui::NextColumn();
-    ImGui::TextColored(cyan, " E'"); ImGui::SameLine();
+    ImGui::TextColored(violet, " E'"); ImGui::SameLine();
     ImGui::Text("$%02X", proc_state->DE2->GetLow());
     ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->DE2->GetLow()));
 
@@ -724,12 +724,12 @@ static void debug_window_processor(void)
 
     ImGui::NextColumn();
     ImGui::Separator();
-    ImGui::TextColored(cyan, " H'"); ImGui::SameLine();
+    ImGui::TextColored(violet, " H'"); ImGui::SameLine();
     ImGui::Text("$%02X", proc_state->HL2->GetHigh());
     ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->HL2->GetHigh()));
 
     ImGui::NextColumn();
-    ImGui::TextColored(cyan, " L'"); ImGui::SameLine();
+    ImGui::TextColored(violet, " L'"); ImGui::SameLine();
     ImGui::Text("$%02X", proc_state->HL2->GetLow());
     ImGui::Text(BYTE_TO_BINARY_PATTERN_SPACED, BYTE_TO_BINARY(proc_state->HL2->GetLow()));
 
@@ -948,7 +948,7 @@ static void debug_window_vram_background(void)
 
         ImGui::Image((ImTextureID)(intptr_t)renderer_emu_debug_vram_background, ImVec2(128.0f, 128.0f), ImVec2((1.0f / 32.0f) * tile_x, (1.0f / 32.0f) * tile_y), ImVec2((1.0f / 32.0f) * (tile_x + 1), (1.0f / 32.0f) * (tile_y + 1)));
 
-        ImGui::TextColored(yellow, "INFO:");
+        ImGui::TextColored(green, "INFO:");
 
         ImGui::TextColored(cyan, " X:"); ImGui::SameLine();
         ImGui::Text("$%02X", tile_x); ImGui::SameLine();
@@ -1115,7 +1115,7 @@ static void debug_window_vram_tiles(void)
 
         ImGui::PushFont(gui_default_font);
 
-        ImGui::TextColored(yellow, "DETAILS:");
+        ImGui::TextColored(green, "DETAILS:");
 
         int tile = (tile_y << 5) + tile_x;
 
@@ -1299,7 +1299,7 @@ static void debug_window_vram_sprites(void)
             ImDrawList* draw_list = ImGui::GetWindowDrawList();
             draw_list->AddRect(ImVec2(rectx_min, recty_min), ImVec2(rectx_max, recty_max), ImColor(cyan), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
 
-            ImGui::TextColored(yellow, "DETAILS:");
+            ImGui::TextColored(green, "DETAILS:");
             ImGui::TextColored(cyan, " X:"); ImGui::SameLine();
             ImGui::Text("$%02X", x); ImGui::SameLine();
             ImGui::TextColored(cyan, "  Y:"); ImGui::SameLine();
@@ -1330,7 +1330,7 @@ static void debug_window_vram_palettes(void)
 
     ImGui::PushFont(gui_default_font);
 
-    ImGui::TextColored(yellow, "PALETTE 0 (BG):");
+    ImGui::TextColored(green, "PALETTE 0 (BG):");
 
     for (int i = 0; i < 2; i ++)
     {
@@ -1383,8 +1383,8 @@ static void debug_window_vram_palettes(void)
 
         if (i == 0)
         {
-            ImGui::TextColored(yellow, " ");
-            ImGui::TextColored(yellow, "PALETTE 1 (BG & SPRITES):");
+            ImGui::TextColored(green, " ");
+            ImGui::TextColored(green, "PALETTE 1 (BG & SPRITES):");
         }
     }
    
@@ -1400,13 +1400,13 @@ static void debug_window_vram_regs(void)
 
     const char* reg_desc[] = {"CONTROL 1     ", "CONTROL 2     ", "NAME TABLE    ", "COLOR TABLE   ", "PATTERN TABLE ", "SPRITE ATTR   ", "SPRITE PATTERN", "BACKDROP COLOR", "H SCROLL      ", "V SCROLL      ", "V INTERRUPT   "};
 
-    ImGui::TextColored(yellow, " ");
-    ImGui::TextColored(yellow, "VDP REGISTERS:");
+    ImGui::TextColored(green, " ");
+    ImGui::TextColored(green, "VDP REGISTERS:");
 
     for (int i = 0; i < 11; i++)
     {
         ImGui::TextColored(cyan, " REG $%01X ", i); ImGui::SameLine();
-        ImGui::TextColored(magenta, "%s ", reg_desc[i]); ImGui::SameLine();
+        ImGui::TextColored(violet, "%s ", reg_desc[i]); ImGui::SameLine();
         ImGui::Text("$%02X  (" BYTE_TO_BINARY_PATTERN_SPACED ")", regs[i], BYTE_TO_BINARY(regs[i]));
     }
 
