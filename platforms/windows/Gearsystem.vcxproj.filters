@@ -78,9 +78,6 @@
     <ClCompile Include="..\desktop-shared\imgui\imgui_widgets.cpp">
       <Filter>desktop_shared\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\imgui\memory_editor.cpp">
-      <Filter>desktop_shared\imgui</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Audio.cpp">
       <Filter>core</Filter>
     </ClCompile>
@@ -154,6 +151,12 @@
       <Filter>core\audio</Filter>
     </ClCompile>
     <ClCompile Include="..\desktop-shared\gui_debug.cpp">
+      <Filter>desktop_shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\gui_debug_memory.cpp">
+      <Filter>desktop_shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\gui_debug_memeditor.cpp">
       <Filter>desktop_shared</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\MSXMemoryRule.cpp">
@@ -230,9 +233,6 @@
     <ClInclude Include="..\desktop-shared\renderer.h">
       <Filter>desktop_shared</Filter>
     </ClInclude>
-    <ClInclude Include="..\desktop-shared\imgui\colors.h">
-      <Filter>desktop_shared\imgui</Filter>
-    </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\imconfig.h">
       <Filter>desktop_shared\imgui</Filter>
     </ClInclude>
@@ -255,9 +255,6 @@
       <Filter>desktop_shared\imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\imstb_truetype.h">
-      <Filter>desktop_shared\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\desktop-shared\imgui\memory_editor.h">
       <Filter>desktop_shared\imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\fonts\RobotoMedium.h">
@@ -387,6 +384,12 @@
       <Filter>core\audio</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\gui_debug.h">
+      <Filter>desktop_shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\gui_debug_memory.h">
+      <Filter>desktop_shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\gui_debug_memeditor.h">
       <Filter>desktop_shared</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\gui_debug_constants.h">

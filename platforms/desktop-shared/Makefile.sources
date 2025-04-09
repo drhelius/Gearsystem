@@ -11,6 +11,8 @@ SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/emu.cpp \
     $(DESKTOP_SRC_DIR)/gui.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug.cpp \
+    $(DESKTOP_SRC_DIR)/gui_debug_memory.cpp \
+    $(DESKTOP_SRC_DIR)/gui_debug_memeditor.cpp \
     $(DESKTOP_SRC_DIR)/gui_events.cpp \
     $(DESKTOP_SRC_DIR)/application.cpp \
     $(DESKTOP_SRC_DIR)/config.cpp \
@@ -21,7 +23,6 @@ SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/imgui/imgui_draw.cpp \
     $(DESKTOP_SRC_DIR)/imgui/imgui_tables.cpp \
     $(DESKTOP_SRC_DIR)/imgui/imgui_widgets.cpp \
-    $(DESKTOP_SRC_DIR)/imgui/memory_editor.cpp \
     $(AUDIO_SRC_DIR)/sound_queue.cpp \
     $(SRC_DIR)/Audio.cpp \
     $(SRC_DIR)/Cartridge.cpp \
