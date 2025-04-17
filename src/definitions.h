@@ -225,6 +225,17 @@ inline unsigned int Pow2Ceil(u16 n)
     return n;
 }
 
+#if defined(__GNUC__) || defined(__clang__)
+    #define INLINE inline __attribute__((always_inline))
+    #define NO_INLINE __attribute__((noinline))
+#elif defined(_MSC_VER)
+    #define INLINE __forceinline
+    #define NO_INLINE __declspec(noinline)
+#else
+    #define INLINE inline
+    #define NO_INLINE
+#endif
+
 #if !defined(DEBUG_GEARSYSTEM)
     #if defined(__GNUC__) || defined(__clang__)
         #if !defined(__OPTIMIZE__) && !defined(__OPTIMIZE_SIZE__)

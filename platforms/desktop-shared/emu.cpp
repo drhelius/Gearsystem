@@ -19,6 +19,7 @@
 
 #include "../../src/gearsystem.h"
 #include "../audio-shared/sound_queue.h"
+#include "config.h"
 
 #define EMU_IMPORT
 #include "emu.h"
@@ -119,7 +120,10 @@ void emu_update(void)
             debug_step = false;
         }
 
-        update_debug();
+        if (config_debug.debug)
+        {
+            update_debug();
+        }
 
         if ((sampleCount > 0) && !gearsystem->IsPaused())
         {

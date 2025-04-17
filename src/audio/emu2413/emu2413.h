@@ -143,6 +143,12 @@ void OPLL_resetPatch(OPLL *, uint8_t);
 void OPLL_setRate(OPLL *opll, uint32_t rate);
 
 /**
+ * Set internal calcuration quality. Currently no effects, just for compatibility.
+ * >= v1.0.0 always synthesizes internal output at clock/72 Hz.
+ */
+void OPLL_setQuality(OPLL *opll, uint8_t q);
+
+/**
  * Set pan pot (extra function - not YM2413 chip feature)
  * @param ch 0..8:tone 9:bd 10:hh 11:sd 12:tom 13:cym 14,15:reserved
  * @param pan 0:mute 1:right 2:left 3:center
