@@ -109,7 +109,7 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
             if (!m_bMute)
             {
                 pSampleBuffer[i] += m_bPSGEnabled ? m_pSampleBuffer[(i >= psg_count) ? psg_count-1 : i] : 0;
-                pSampleBuffer[i] += (m_bYM2413Enabled && !m_bYM2413ForceDisabled && !m_bYM2413CartridgeNotSupported) ? m_pYM2413Buffer[i] * 4 : 0;
+                pSampleBuffer[i] += (m_bYM2413Enabled && !m_bYM2413ForceDisabled && !m_bYM2413CartridgeNotSupported) ? m_pYM2413Buffer[i] : 0;
             }
         }
     }

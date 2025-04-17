@@ -719,12 +719,14 @@ bool GearsystemCore::SaveState(std::ostream& stream, size_t& size)
         m_pProcessor->GetIOPOrts()->SaveState(stream);
 
         size = static_cast<size_t>(stream.tellp());
-        size += (sizeof(u32) * 2);
+        size += (sizeof(u32) * 3);
 
         u32 header_magic = GS_SAVESTATE_MAGIC;
+        u32 header_version = GS_SAVESTATE_VERSION;
         u32 header_size = static_cast<u32>(size);
 
         stream.write(reinterpret_cast<const char*> (&header_magic), sizeof(header_magic));
+        stream.write(reinterpret_cast<const char*> (&header_version), sizeof(header_version));
         stream.write(reinterpret_cast<const char*> (&header_size), sizeof(header_size));
 
         Log("Save state size: %d", static_cast<size_t>(stream.tellp()));
@@ -853,6 +855,7 @@ bool GearsystemCore::LoadState(std::istream& stream)
 
         u32 header_magic = 0;
         u32 header_size = 0;
+        u32 header_version = 0;
 
         stream.seekg(0, ios::end);
         size_t size = static_cast<size_t>(stream.tellg());
@@ -860,15 +863,17 @@ bool GearsystemCore::LoadState(std::istream& stream)
 
         Debug("Load state stream size: %d", size);
 
-        stream.seekg(size - (2 * sizeof(u32)), ios::beg);
+        stream.seekg(size - (3 * sizeof(u32)), ios::beg);
         stream.read(reinterpret_cast<char*> (&header_magic), sizeof(header_magic));
+        stream.read(reinterpret_cast<char*> (&header_version), sizeof(header_version));
         stream.read(reinterpret_cast<char*> (&header_size), sizeof(header_size));
         stream.seekg(0, ios::beg);
 
         Debug("Load state magic: 0x%08x", header_magic);
+        Debug("Load state version: %d", header_version);
         Debug("Load state size: %d", header_size);
 
-        if ((header_size == size) && (header_magic == GS_SAVESTATE_MAGIC))
+        if ((header_size == size) && (header_magic == GS_SAVESTATE_MAGIC) && (header_version == GS_SAVESTATE_VERSION))
         {
             Log("Loading state...");
 
@@ -885,6 +890,8 @@ bool GearsystemCore::LoadState(std::istream& stream)
         else
         {
             Log("Invalid save state size or header");
+            if (header_version != GS_SAVESTATE_VERSION)
+                Log("Save state version mismatch. Expected: %d, Found: %d", GS_SAVESTATE_VERSION, header_version);
         }
     }
     else

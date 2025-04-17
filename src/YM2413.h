@@ -15,7 +15,7 @@ public:
     void Init(int clockRate);
     void Reset(int clockRate);
     void Write(u8 port, u8 value);
-    u8 Read(u8 port);
+    u8 Read();
     void Tick(unsigned int clockCycles);
     int EndFrame(s16* pSampleBuffer);
     void Enable(bool bEnabled);
@@ -34,7 +34,6 @@ private:
     int m_ElapsedCycles;
     int m_iClockRate;
     u8 m_RegisterF2;
-    OPLL *m_pOPLL;
     s16 m_CurrentSample;
     bool m_bEnabled;
 };

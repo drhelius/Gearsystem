@@ -38,7 +38,7 @@ public:
     void WriteAudioRegister(u8 value);
     void WriteGGStereoRegister(u8 value);
     void YM2413Write(u8 port, u8 value);
-    u8 YM2413Read(u8 port);
+    u8 YM2413Read();
     void Tick(unsigned int clockCycles);
     void EndFrame(s16* pSampleBuffer, int* pSampleCount);
     void DisableYM2413(bool bDisable);
@@ -99,18 +99,23 @@ inline void Audio::YM2413Write(u8 port, u8 value)
             m_bYM2413Enabled = (value & 0x01) == 0x01;
         }
 
+        if (m_bYM2413Enabled && m_bPSGEnabled)
+            m_pApu->volume(0.8);
+        else
+            m_pApu->volume(1.0);
+
         m_pYM2413->Enable(m_bYM2413Enabled);
     }
 
     m_pYM2413->Write(port, value);
 }
 
-inline u8 Audio::YM2413Read(u8 port)
+inline u8 Audio::YM2413Read()
 {
     if (m_bYM2413ForceDisabled || m_bYM2413CartridgeNotSupported)
         return 0xFF;
     else
-        return m_pYM2413->Read(port);
+        return m_pYM2413->Read();
 }
 
 #endif	/* AUDIO_H */

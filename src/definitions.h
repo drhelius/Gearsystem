@@ -131,6 +131,7 @@ typedef void (*RamChangedCallback) (void);
 #define GS_AUDIO_BUFFER_SIZE 4096
 
 #define GS_SAVESTATE_MAGIC 0x03121220
+#define GS_SAVESTATE_VERSION 1
 
 enum GS_Color_Format
 {

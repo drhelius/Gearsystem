@@ -85,9 +85,9 @@ inline u8 SmsIOPorts::DoInput(u8 port)
     }
     else
     {
-        if (port == 0xF2)
+        if (port >= 0xF0)
         {
-            return m_pAudio->YM2413Read(0xF2);
+            return m_pAudio->YM2413Read();
         }
         else
         {
@@ -171,17 +171,9 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
         else
             m_pVideo->WriteControl(value);
     }
-    else if (port == 0xF0)
+    else if (port >= 0xF0)
     {
-        m_pAudio->YM2413Write(0xF0, value);
-    }
-    else if (port == 0xF1)
-    {
-        m_pAudio->YM2413Write(0xF1, value);
-    }
-    else if (port == 0xF2)
-    {
-        m_pAudio->YM2413Write(0xF2, value);
+        m_pAudio->YM2413Write(port, value);
     }
 #if 0
     else if ((port == 0xDE) || (port == 0xDF))
