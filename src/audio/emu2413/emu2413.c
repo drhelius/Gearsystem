@@ -42,7 +42,7 @@ to do:
 /** 2022/08/07: fixed operator ouput when EG is off **/
 /************************************************/
 
-#include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <math.h>
 
@@ -593,7 +593,7 @@ static inline void advance_lfo(void)
 {
   /* LFO */
   ym2413.lfo_am_cnt += ym2413.lfo_am_inc;
-  if (ym2413.lfo_am_cnt >= (LFO_AM_TAB_ELEMENTS<<LFO_SH) )  /* lfo_am_table is 210 elements long */
+  if (ym2413.lfo_am_cnt >= (uint32_t)(LFO_AM_TAB_ELEMENTS<<LFO_SH) )  /* lfo_am_table is 210 elements long */
     ym2413.lfo_am_cnt -= (LFO_AM_TAB_ELEMENTS<<LFO_SH);
 
   LFO_AM = lfo_am_table[ ym2413.lfo_am_cnt >> LFO_SH ] >> 1;
@@ -664,7 +664,7 @@ static inline void advance(void)
           break;
 
         case EG_DEC:  /* decay phase */
-          if ( (op->volume & ~7) == op->sl )  /* envelope level lowest 3 bits are ignored by the comparator */
+          if ( (op->volume & ~7) == (int32_t)op->sl )  /* envelope level lowest 3 bits are ignored by the comparator */
           {
             op->state = EG_SUS;
           }
@@ -1599,7 +1599,7 @@ static void OPLLWriteReg(int r, int v)
     case 0x10:
     case 0x20:
     {
-      int block_fnum;
+      uint32_t block_fnum;
 
       int chan = r&0x0f;
 
