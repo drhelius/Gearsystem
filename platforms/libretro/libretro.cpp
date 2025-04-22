@@ -45,7 +45,7 @@ static retro_input_poll_t input_poll_cb;
 static retro_input_state_t input_state_cb;
 
 static struct retro_log_callback logging;
-static retro_log_printf_t log_cb;
+retro_log_printf_t log_cb;
 
 static char retro_system_directory[4096];
 static char retro_game_path[4096];
