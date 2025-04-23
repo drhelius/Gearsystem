@@ -18,6 +18,7 @@
  */
 
 #include <SDL.h>
+#include <iomanip>
 #include "../../src/gearsystem.h"
 #define MINI_CASE_SENSITIVE
 #include "mINI/ini.h"
