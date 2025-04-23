@@ -35,6 +35,10 @@ Input::Input(Processor* pProcessor, Video* pVideo)
     m_Phaser.y = 0;
     m_PhaserOffset.x = 0;
     m_PhaserOffset.y = 0;
+    m_bPaddle = false;
+    m_Paddle.x = 128.0f;
+    m_Paddle.reg = 128;
+    m_Paddle.flip = 0;
 }
 
 void Input::Init()
