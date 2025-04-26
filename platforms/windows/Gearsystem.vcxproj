@@ -92,7 +92,6 @@
     <ClInclude Include="..\..\src\Cartridge.h" />
     <ClInclude Include="..\..\src\CodemastersMemoryRule.h" />
     <ClInclude Include="..\..\src\definitions.h" />
-    <ClInclude Include="..\..\src\EightBitRegister.h" />
     <ClInclude Include="..\..\src\GameGearIOPorts.h" />
     <ClInclude Include="..\..\src\game_db.h" />
     <ClInclude Include="..\..\src\gearsystem.h" />
