@@ -186,7 +186,10 @@ void gui_render(void)
 void gui_shortcut(gui_ShortCutEvent event)
 {
     switch (event)
-    {  
+    {
+    case gui_ShortcutQuit:
+        application_trigger_quit();
+        break;
     case gui_ShortcutOpenROM:
         shortcut_open_rom = true;
         break;
@@ -485,7 +488,7 @@ static void main_menu(void)
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Quit", "ESC"))
+            if (ImGui::MenuItem("Quit", "Ctrl+Q"))
             {
                 application_trigger_quit();
             }

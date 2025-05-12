@@ -144,6 +144,7 @@ void config_init(void)
     config_setShortcut(gui_ShortcutDebugCopy, KMOD_CTRL, SDL_SCANCODE_C);
     config_setShortcut(gui_ShortcutDebugPaste, KMOD_CTRL, SDL_SCANCODE_V);
     config_setShortcut(gui_ShortcutShowMainMenu, KMOD_CTRL, SDL_SCANCODE_M);
+    config_setShortcut(gui_ShortcutQuit, KMOD_CTRL, SDL_SCANCODE_Q);
 
     config_ini_file = new mINI::INIFile(config_emu_file_path);
 }

@@ -12,8 +12,8 @@ static const char* gui_event_config_names[gui_ShortCutEventMax] =
 
 const char* gui_event_get_name(gui_ShortCutEvent event)
 {
-	assert(event >= 0 && event < gui_ShortCutEventMax);
-	return gui_event_config_names[event];
+    assert(event >= 0 && event < gui_ShortCutEventMax);
+    return gui_event_config_names[event];
 }
 
 void gui_event_get_shortcut_string(char* buffer, int bufferSize, gui_ShortCutEvent shortcutEvent)
