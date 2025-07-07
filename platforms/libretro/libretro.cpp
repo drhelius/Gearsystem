@@ -186,11 +186,11 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
         return;
     }
 
+    bool phaser = false;
+    bool paddle = false;
     input_device[port] = device;
-    core->EnablePhaser(false);
-    core->EnablePaddle(false);
 
-    switch ( device )
+    switch (device)
     {
         case RETRO_DEVICE_NONE:
             log_cb(RETRO_LOG_INFO, "Controller %u: Unplugged\n", port);
@@ -201,17 +201,21 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
             break;
         case RETRO_DEVICE_LIGHT_PHASER:
             log_cb(RETRO_LOG_INFO, "Controller %u: Light Phaser\n", port);
-            if (port == 0)
-                core->EnablePhaser(true);
+            phaser = true;
             break;
         case RETRO_DEVICE_PADDLE:
             log_cb(RETRO_LOG_INFO, "Controller %u: Paddle\n", port);
-            if (port == 0)
-                core->EnablePaddle(true);
+            paddle = true;
             break;
         default:
             log_cb(RETRO_LOG_DEBUG, "Setting descriptors for unsupported device.\n");
             break;
+    }
+
+    if (port == 0)
+    {
+        core->EnablePhaser(phaser);
+        core->EnablePaddle(paddle);
     }
 }
 
