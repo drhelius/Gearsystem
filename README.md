@@ -18,21 +18,60 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 
 ## Downloads
 
-- **Windows**:
-  - [Gearsystem-3.8.1-windows-x64.zip](https://github.com/drhelius/Gearsystem/releases/download/3.8.1/Gearsystem-3.8.1-windows-x64.zip)
-  - [Gearsystem-3.8.1-windows-arm64.zip](https://github.com/drhelius/Gearsystem/releases/download/3.8.1/Gearsystem-3.8.1-windows-arm64.zip)
-  - NOTE: If you have errors you may need to install:
-    - [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572)
-    - [OpenGL Compatibility Pack](https://apps.microsoft.com/detail/9nqpsl29bfff)
-- **macOS**:
-  - [Gearsystem-3.8.1-macos-arm.zip](https://github.com/drhelius/Gearsystem/releases/download/3.8.1/Gearsystem-3.8.1-macos-arm.zip)
-  - [Gearsystem-3.8.1-macos-intel.zip](https://github.com/drhelius/Gearsystem/releases/download/3.8.1/Gearsystem-3.8.1-macos-intel.zip)
-- **Linux**:
-  - [Gearsystem-3.8.1-ubuntu-24.04.zip](https://github.com/drhelius/Gearsystem/releases/download/3.8.1/Gearsystem-3.8.1-ubuntu-24.04.zip)
-  - [Gearsystem-3.8.1-ubuntu-22.04.zip](https://github.com/drhelius/Gearsystem/releases/download/3.8.1/Gearsystem-3.8.1-ubuntu-22.04.zip)
-  - NOTE: You may need to install `libsdl2` and `libglew`
-- **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearsystem/)
-- **Dev Builds**: [GitHub Actions](https://github.com/drhelius/Gearsystem/actions/workflows/gearsystem.yml)
+<table>
+  <thead>
+    <tr>
+      <th>Platform</th>
+      <th>Architecture</th>
+      <th>Download Link</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="2"><strong>Windows</strong></td>
+      <td>x64</td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.8.2/Gearsystem-3.8.2-windows-x64.zip">Gearsystem-3.8.2-windows-x64.zip</a></td>
+      <td rowspan="2">May need <a href="https://go.microsoft.com/fwlink/?LinkId=746572">Visual C++ Redistributable</a> and <a href="https://apps.microsoft.com/detail/9nqpsl29bfff">OpenGL Compatibility Pack</a></td>
+    </tr>
+    <tr>
+      <td>ARM64</td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.8.2/Gearsystem-3.8.2-windows-arm64.zip">Gearsystem-3.8.2-windows-arm64.zip</a></td>
+    </tr>
+    <tr>
+      <td rowspan="2"><strong>macOS</strong></td>
+      <td>Apple Silicon</td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.8.2/Gearsystem-3.8.2-macos-arm.zip">Gearsystem-3.8.2-macos-arm.zip</a></td>
+      <td rowspan="2"></td>
+    </tr>
+    <tr>
+      <td>Intel</td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.8.2/Gearsystem-3.8.2-macos-intel.zip">Gearsystem-3.8.2-macos-intel.zip</a></td>
+    </tr>
+    <tr>
+      <td rowspan="2"><strong>Linux</strong></td>
+      <td>Ubuntu 24.04</td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.8.2/Gearsystem-3.8.2-ubuntu-24.04.zip">Gearsystem-3.8.2-ubuntu-24.04.zip</a></td>
+      <td rowspan="2">May need <code>libsdl2</code> and <code>libglew</code></td>
+    </tr>
+    <tr>
+      <td>Ubuntu 22.04</td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.8.2/Gearsystem-3.8.2-ubuntu-22.04.zip">Gearsystem-3.8.2-ubuntu-22.04.zip</a></td>
+    </tr>
+    <tr>
+      <td><strong>RetroArch</strong></td>
+      <td>All platforms</td>
+      <td><a href="https://docs.libretro.com/library/gearsystem/">Libretro core documentation</a></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td><strong>Dev Builds</strong></td>
+      <td>All platforms</td>
+      <td><a href="https://github.com/drhelius/Gearsystem/actions/workflows/gearsystem.yml">GitHub Actions</a></td>
+      <td>Latest development builds</td>
+    </tr>
+  </tbody>
+</table>
 
 ## Supported Machines
 
