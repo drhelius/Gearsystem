@@ -13,7 +13,7 @@ packaging format as well as the sandbox features available.
 Building and distributing Gearsystem as a Flatpak has the following key
 advantages:
 
-* **Embedded SDL, GLU and GLEW libraries**. Compared to manual installation,
+* **Embedded SDL and GLU libraries**. Compared to manual installation,
   all dependencies are included and sandboxed within the Gearsystem application.
   Outside of Flatpak's setup, no prerequisite commands are required!
 * **Automatically created Desktop entries**. The Flatpak installation comes with
