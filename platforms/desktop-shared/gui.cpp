@@ -88,11 +88,12 @@ static Cartridge::CartridgeRegions get_region(int index);
 static void set_style(void);
 static ImVec4 lerp(const ImVec4& a, const ImVec4& b, float t);
 
-void gui_init(void)
+bool gui_init(void)
 {
     if (NFD_Init() != NFD_OKAY)
     {
         Log("Error: %s", NFD_GetError());
+        return false;
     }
 
     IMGUI_CHECKVERSION();
@@ -149,6 +150,8 @@ void gui_init(void)
     emu_enable_paddle(config_emulator.paddle_control);
 
     gui_debug_memory_init();
+
+    return true;
 }
 
 void gui_destroy(void)
@@ -258,7 +261,7 @@ void gui_shortcut(gui_ShortCutEvent event)
             gui_debug_memory_paste();
         break;
     case gui_ShortcutShowMainMenu:
-        config_emulator.show_menu = !config_emulator.show_menu;
+        config_emulator.always_show_menu = !config_emulator.always_show_menu;
         break;
     default:
         break;
@@ -321,11 +324,7 @@ void gui_load_rom(const char* path)
     }
 
     if (!emu_is_empty())
-    {
-        char title[256];
-        snprintf(title, 256, "%s %s - %s", GEARSYSTEM_TITLE, GEARSYSTEM_VERSION, emu_get_core()->GetCartridge()->GetFileName());
-        application_update_title(title);
-    }
+        application_update_title_with_rom(emu_get_core()->GetCartridge()->GetFileName());
 }
 
 void gui_set_status_message(const char* message, u32 milliseconds)
@@ -359,7 +358,7 @@ static void main_menu(void)
 
     gui_main_menu_hovered = false;
 
-    if (config_emulator.show_menu && ImGui::BeginMainMenuBar())
+    if (application_show_menu && ImGui::BeginMainMenuBar())
     {
         gui_main_menu_hovered = ImGui::IsWindowHovered();
 
@@ -766,7 +765,14 @@ static void main_menu(void)
             }
 
             gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutShowMainMenu);
-            ImGui::MenuItem("Show Menu", shortcut, &config_emulator.show_menu);
+            ImGui::MenuItem("Always Show Menu", "CTRL+M", &config_emulator.always_show_menu);
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::Text("This option will enable menu even in fullscreen.");
+                ImGui::Text("Menu always shows in debug mode.");
+                ImGui::EndTooltip();
+            }
 
             if (ImGui::MenuItem("Resize Window to Content"))
             {
@@ -1262,7 +1268,7 @@ static void main_window(void)
     emu_get_runtime(runtime);
 
     int w = (int)ImGui::GetIO().DisplaySize.x;
-    int h = (int)ImGui::GetIO().DisplaySize.y - (config_emulator.show_menu ? main_menu_height : 0);
+    int h = (int)ImGui::GetIO().DisplaySize.y - (application_show_menu ? main_menu_height : 0);
 
     int selected_ratio = config_debug.debug ? 0 : config_video.ratio;
     float ratio = (float)runtime.screen_width / (float)runtime.screen_height;
@@ -1348,7 +1354,7 @@ static void main_window(void)
     else
     {
         int window_x = (w - (w_corrected * scale_multiplier)) / 2;
-        int window_y = ((h - (h_corrected * scale_multiplier)) / 2) + (config_emulator.show_menu ? main_menu_height : 0);
+        int window_y = ((h - (h_corrected * scale_multiplier)) / 2) + (application_show_menu ? main_menu_height : 0);
 
         ImGui::SetNextWindowSize(ImVec2((float)main_window_width, (float)main_window_height));
         ImGui::SetNextWindowPos(ImGui::GetMainViewport()->Pos + ImVec2((float)window_x, (float)window_y));
@@ -2050,7 +2056,7 @@ static void show_status_message(void)
 
     if (status_message_active)
     {
-        ImGui::SetNextWindowPos(ImVec2(0.0f, config_emulator.show_menu ? main_menu_height : 0.0f));
+        ImGui::SetNextWindowPos(ImVec2(0.0f, application_show_menu ? main_menu_height : 0.0f));
         ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, 0.0f));
         ImGui::SetNextWindowBgAlpha(0.9f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);

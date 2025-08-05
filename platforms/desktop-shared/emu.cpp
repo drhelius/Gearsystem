@@ -57,7 +57,7 @@ static void update_debug_background_buffer_sg1000(void);
 static void update_debug_tile_buffer_sg1000(void);
 static void update_debug_sprite_buffers_sg1000(void);
 
-void emu_init(void)
+bool emu_init(void)
 {
     emu_frame_buffer = new u8[512 * 512 * 4];
     audio_buffer = new s16[GS_AUDIO_BUFFER_SIZE];
@@ -69,7 +69,8 @@ void emu_init(void)
     gearsystem->Init();
 
     sound_queue = new SoundQueue();
-    sound_queue->Start(GS_AUDIO_SAMPLE_RATE, 2);
+    if (!sound_queue->Start(GS_AUDIO_SAMPLE_RATE, 2))
+        return false;
 
     audio_enabled = true;
     emu_audio_sync = true;
@@ -80,6 +81,8 @@ void emu_init(void)
     emu_savestates_dir_option = 0;
     emu_savefiles_path[0] = 0;
     emu_savestates_path[0] = 0;
+
+    return true;
 }
 
 void emu_destroy(void)
