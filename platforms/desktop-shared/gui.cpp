@@ -765,7 +765,7 @@ static void main_menu(void)
             }
 
             gui_event_get_shortcut_string(shortcut, sizeof(shortcut), gui_ShortcutShowMainMenu);
-            ImGui::MenuItem("Always Show Menu", "CTRL+M", &config_emulator.always_show_menu);
+            ImGui::MenuItem("Always Show Menu", shortcut, &config_emulator.always_show_menu);
             if (ImGui::IsItemHovered())
             {
                 ImGui::BeginTooltip();
