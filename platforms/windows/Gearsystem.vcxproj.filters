@@ -367,7 +367,7 @@
     </ClInclude>
     <ClInclude Include="..\..\src\Video.h">
       <Filter>core</Filter>
-    </ClInclude>    
+    </ClInclude>
     <ClInclude Include="..\..\src\audio\Blip_Buffer.h">
       <Filter>core\audio</Filter>
     </ClInclude>
@@ -464,6 +464,7 @@
     <ClInclude Include="..\..\src\JumboDahjeeMemoryRule.h">
       <Filter>core</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\desktop-shared\gui_events.def">
@@ -472,5 +473,11 @@
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="Gearsystem.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="iconfile.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Gearsystem.rc" />
   </ItemGroup>
 </Project>

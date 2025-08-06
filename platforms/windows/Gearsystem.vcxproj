@@ -163,12 +163,19 @@
     <ClInclude Include="..\..\src\Multi4PAKAllActionMemoryRule.h" />
     <ClInclude Include="..\..\src\JumboDahjeeMemoryRule.h" />
     <ClInclude Include="..\desktop-shared\stb\stb_image_write.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\desktop-shared\gui_events.def" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="Gearsystem.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="iconfile.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Gearsystem.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B12702AD-ABFB-343A-A199-8E24837244A3}</ProjectGuid>
