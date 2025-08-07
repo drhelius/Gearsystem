@@ -739,6 +739,21 @@ static void sdl_shortcuts_gui(const SDL_Event* event)
 
 static void sdl_add_gamepads(void)
 {
+    for (int i = 0; i < 2; i++)
+    {
+        if (IsValidPointer(application_gamepad[i]))
+        {
+            SDL_Joystick* js = SDL_GameControllerGetJoystick(application_gamepad[i]);
+
+            if (!IsValidPointer(js) || SDL_JoystickGetAttached(js) == SDL_FALSE)
+            {
+                SDL_GameControllerClose(application_gamepad[i]);
+                application_gamepad[i] = NULL;
+                Debug("Game controller %d closed when adding a new gamepad", i);
+            }
+        }
+    }
+
     bool player1_connected = IsValidPointer(application_gamepad[0]);
     bool player2_connected = IsValidPointer(application_gamepad[1]);
 
