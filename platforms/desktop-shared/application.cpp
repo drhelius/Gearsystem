@@ -374,7 +374,7 @@ static void handle_mouse_cursor(void)
 {
     if (!config_debug.debug && gui_main_window_hovered)
         ImGui::SetMouseCursor(ImGuiMouseCursor_None);
-    else if (!config_debug.debug && config_emulator.fullscreen)
+    else if (!config_debug.debug && config_emulator.fullscreen && !config_emulator.always_show_menu)
     {
         Uint32 now = SDL_GetTicks();
 
