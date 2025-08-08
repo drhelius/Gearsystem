@@ -70,6 +70,7 @@ static void file_dialog_save_screenshot(void);
 static void file_dialog_set_native_window(SDL_Window* window, nfdwindowhandle_t* native_window);
 static void keyboard_configuration_item(const char* text, SDL_Scancode* key, int player);
 static void gamepad_configuration_item(const char* text, int* button, int player);
+static void gamepad_device_selector(int player);
 static void popup_modal_keyboard();
 static void popup_modal_gamepad(int pad);
 static void popup_modal_about(void);
@@ -919,6 +920,12 @@ static void main_menu(void)
                 {
                     ImGui::MenuItem("Enable Gamepad P1", "", &config_input[0].gamepad);
 
+                    if (ImGui::BeginMenu("Device"))
+                    {
+                        gamepad_device_selector(0);
+                        ImGui::EndMenu();
+                    }
+
                     if (ImGui::BeginMenu("Directional Controls"))
                     {
                         ImGui::PushItemWidth(150.0f);
@@ -944,6 +951,12 @@ static void main_menu(void)
                 if (ImGui::BeginMenu("Player 2"))
                 {
                     ImGui::MenuItem("Enable Gamepad P2", "", &config_input[1].gamepad);
+
+                    if (ImGui::BeginMenu("Device"))
+                    {
+                        gamepad_device_selector(1);
+                        ImGui::EndMenu();
+                    }
 
                     if (ImGui::BeginMenu("Directional Controls"))
                     {
@@ -1718,6 +1731,72 @@ static void gamepad_configuration_item(const char* text, int* button, int player
         *button = SDL_CONTROLLER_BUTTON_INVALID;
     }
 }
+
+static void gamepad_device_selector(int player)
+{
+    if (player < 0 || player >= GS_MAX_GAMEPADS)
+        return;
+
+    const int max_detected_gamepads = 32;
+    int index_map[max_detected_gamepads];
+    index_map[0] = -1;
+    int count = 1;
+
+    std::string items;
+    items.reserve(4096);
+    items.append("<None>");
+    items.push_back('\0');
+
+    int num = SDL_NumJoysticks();
+
+    SDL_JoystickID current_id = -1;
+    if (IsValidPointer(application_gamepad[player]))
+        current_id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(application_gamepad[player]));
+
+    int selected = 0;
+
+    for (int i = 0; i < num && count < max_detected_gamepads; i++)
+    {
+        if (!SDL_IsGameController(i))
+            continue;
+
+        const char* name = SDL_GameControllerNameForIndex(i);
+        if (!IsValidPointer(name))
+            name = "Unknown Gamepad";
+
+        index_map[count] = i;
+
+        SDL_JoystickID id = SDL_JoystickGetDeviceInstanceID(i);
+
+        if (current_id == id)
+            selected = count;
+
+        char id_str[64];
+        SDL_JoystickGUID guid = SDL_JoystickGetDeviceGUID(i);
+        SDL_JoystickGetGUIDString(guid, id_str, sizeof(id_str));
+        size_t len = strlen(id_str);
+        const char* id_8 = id_str + (len > 8 ? len - 8 : 0);
+
+        char label[192];
+        snprintf(label, sizeof(label), "%s (ID: %s)", name, id_8);
+
+        items.append(label);
+        items.push_back('\0');
+        count++;
+    }
+
+    items.push_back('\0');
+
+    char label[32];
+    snprintf(label, sizeof(label), "##device_player%d", player + 1);
+
+    if (ImGui::Combo(label, &selected, items.c_str()))
+    {
+        int device_index = index_map[selected];
+        application_assign_gamepad(player, device_index);
+    }
+}
+
 
 static void popup_modal_keyboard()
 {

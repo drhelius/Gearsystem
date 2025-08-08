@@ -220,6 +220,93 @@ void application_update_title_with_rom(const char* rom)
     SDL_ERROR("SDL_SetWindowTitle");
 }
 
+void application_assign_gamepad(int slot, int device_index)
+{
+    if (slot < 0 || slot >= GS_MAX_GAMEPADS)
+        return;
+
+    if (device_index < 0)
+    {
+        if (IsValidPointer(application_gamepad[slot]))
+        {
+            SDL_GameControllerClose(application_gamepad[slot]);
+            application_gamepad[slot] = NULL;
+            Debug("Player %d controller set to None", slot + 1);
+        }
+        return;
+    }
+
+    if (device_index >= SDL_NumJoysticks())
+    {
+        Log("Warning: device_index %d out of range", device_index);
+        return;
+    }
+
+    if (!SDL_IsGameController(device_index))
+    {
+        Log("Warning: device_index %d is not a game controller", device_index);
+        return;
+    }
+
+    SDL_JoystickID wanted_id = SDL_JoystickGetDeviceInstanceID(device_index);
+
+    if (IsValidPointer(application_gamepad[slot]))
+    {
+        SDL_JoystickID current_id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(application_gamepad[slot]));
+        if (current_id == wanted_id)
+            return;
+    }
+
+    int other = -1;
+    for (int i = 0; i < GS_MAX_GAMEPADS; i++)
+    {
+        if (i == slot)
+            continue;
+
+        if (IsValidPointer(application_gamepad[i]))
+        {
+            SDL_JoystickID id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(application_gamepad[i]));
+            if (id == wanted_id)
+            {
+                other = i;
+                break;
+            }
+        }
+    }
+
+    if (other != -1)
+    {
+        if (IsValidPointer(application_gamepad[slot]))
+        {
+            SDL_GameControllerClose(application_gamepad[slot]);
+            application_gamepad[slot] = NULL;
+        }
+
+        application_gamepad[slot] = application_gamepad[other];
+        application_gamepad[other] = NULL;
+
+        Debug("Moved controller from Player %d to Player %d", other + 1, slot + 1);
+        return;
+    }
+
+    if (IsValidPointer(application_gamepad[slot]))
+    {
+        SDL_GameControllerClose(application_gamepad[slot]);
+        application_gamepad[slot] = NULL;
+    }
+
+    SDL_GameController* controller = SDL_GameControllerOpen(device_index);
+    if (!IsValidPointer(controller))
+    {
+        Log("SDL_GameControllerOpen failed for device_index %d", device_index);
+        SDL_ERROR("SDL_GameControllerOpen");
+        return;
+    }
+
+    application_gamepad[slot] = controller;
+    Debug("Game controller %d assigned to Player %d", device_index, slot + 1);
+}
+
 static bool sdl_init(void)
 {
     Debug("Initializing SDL...");    

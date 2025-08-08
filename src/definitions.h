@@ -96,6 +96,8 @@ typedef void (*RamChangedCallback) (void);
 #define FLAG_SIGN 0x80
 #define FLAG_NONE 0
 
+#define GS_MAX_GAMEPADS 2
+
 #define GS_RESOLUTION_MAX_WIDTH 256
 #define GS_RESOLUTION_MAX_HEIGHT 224
 
