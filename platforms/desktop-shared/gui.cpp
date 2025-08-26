@@ -881,6 +881,8 @@ static void main_menu(void)
             {
                 if (ImGui::BeginMenu("Player 1"))
                 {
+                    ImGui::TextDisabled("Keyboard Player 1");
+                    ImGui::Separator();
                     keyboard_configuration_item("Left:", &config_input[0].key_left, 0);
                     keyboard_configuration_item("Right:", &config_input[0].key_right, 0);
                     keyboard_configuration_item("Up:", &config_input[0].key_up, 0);
@@ -896,6 +898,8 @@ static void main_menu(void)
 
                 if (ImGui::BeginMenu("Player 2"))
                 {
+                    ImGui::TextDisabled("Keyboard Player 2");
+                    ImGui::Separator();
                     keyboard_configuration_item("Left:", &config_input[1].key_left, 1);
                     keyboard_configuration_item("Right:", &config_input[1].key_right, 1);
                     keyboard_configuration_item("Up:", &config_input[1].key_up, 1);
@@ -936,11 +940,13 @@ static void main_menu(void)
 
                     if (ImGui::BeginMenu("Button Configuration"))
                     {
+                        ImGui::TextDisabled("Gamepad Player 1");
+                        ImGui::Separator();
                         gamepad_configuration_item("1:", &config_input[0].gamepad_1, 0);
                         gamepad_configuration_item("2:", &config_input[0].gamepad_2, 0);
                         gamepad_configuration_item("START:", &config_input[0].gamepad_start, 0);
 
-                        popup_modal_gamepad(0);                 
+                        popup_modal_gamepad(0);
 
                         ImGui::EndMenu();
                     }
@@ -968,6 +974,8 @@ static void main_menu(void)
 
                     if (ImGui::BeginMenu("Button Configuration"))
                     {
+                        ImGui::TextDisabled("Gamepad Player 2");
+                        ImGui::Separator();
                         gamepad_configuration_item("1:", &config_input[1].gamepad_1, 1);
                         gamepad_configuration_item("2:", &config_input[1].gamepad_2, 1);
                         gamepad_configuration_item("START:", &config_input[1].gamepad_start, 1);
@@ -1707,10 +1715,29 @@ static void keyboard_configuration_item(const char* text, SDL_Scancode* key, int
 static void gamepad_configuration_item(const char* text, int* button, int player)
 {
     ImGui::Text("%s", text);
-    ImGui::SameLine(70);
+    ImGui::SameLine(120);
 
-    static const char* gamepad_names[16] = {"A", "B", "X" ,"Y", "BACK", "GUIDE", "START", "L3", "R3", "L1", "R1", "UP", "DOWN", "LEFT", "RIGHT", "15"};
-    const char* button_name = (*button >= 0 && *button < 16) ? gamepad_names[*button] : "";
+    const char* button_name = "";
+
+    if (*button == SDL_CONTROLLER_BUTTON_INVALID)
+    {
+        button_name = "";
+    }
+    else if (*button >= 0 && *button < SDL_CONTROLLER_BUTTON_MAX)
+    {
+        static const char* gamepad_names[21] = {"A", "B", "X" ,"Y", "BACK", "GUIDE", "START", "L3", "R3", "L1", "R1", "UP", "DOWN", "LEFT", "RIGHT", "MISC", "PAD1", "PAD2", "PAD3", "PAD4", "TOUCH"};
+        button_name = gamepad_names[*button];
+    }
+    else if (*button >= GAMEPAD_VBTN_AXIS_BASE)
+    {
+        int axis = *button - GAMEPAD_VBTN_AXIS_BASE;
+        if (axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT)
+            button_name = "L2";
+        else if (axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
+            button_name = "R2";
+        else
+            button_name = "??";
+    }
 
     char button_label[256];
     snprintf(button_label, sizeof(button_label), "%s##%s%d", button_name, text, player);
@@ -1841,6 +1868,21 @@ static void popup_modal_gamepad(int pad)
             if (SDL_GameControllerGetButton(application_gamepad[pad], (SDL_GameControllerButton)i))
             {
                 *configured_button = i;
+                ImGui::CloseCurrentPopup();
+                break;
+            }
+        }
+
+        for (int a = SDL_CONTROLLER_AXIS_LEFTX; a < SDL_CONTROLLER_AXIS_MAX; a++)
+        {
+            if (a != SDL_CONTROLLER_AXIS_TRIGGERLEFT && a != SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
+                continue;
+
+            Sint16 value = SDL_GameControllerGetAxis(application_gamepad[pad], (SDL_GameControllerAxis)a);
+
+            if (value > GAMEPAD_VBTN_AXIS_THRESHOLD)
+            {
+                *configured_button = GAMEPAD_VBTN_AXIS_BASE + a;
                 ImGui::CloseCurrentPopup();
                 break;
             }

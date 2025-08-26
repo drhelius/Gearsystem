@@ -694,40 +694,68 @@ static void sdl_events_emu(const SDL_Event* event)
                 if (!config_input[i].gamepad)
                     continue;
 
-                if (config_input[i].gamepad_directional == 0)
-                    continue;
-
                 if (event->caxis.which != id)
                     continue;
 
-                const int STICK_DEAD_ZONE = 8000;
-                    
-                if(event->caxis.axis == config_input[i].gamepad_x_axis)
+                if (config_input[i].gamepad_directional == 1)
                 {
-                    int x_motion = event->caxis.value * (config_input[i].gamepad_invert_x_axis ? -1 : 1);
+                    const int STICK_DEAD_ZONE = 8000;
 
-                    if (x_motion < -STICK_DEAD_ZONE)
-                        emu_key_pressed(pad, Key_Left);
-                    else if (x_motion > STICK_DEAD_ZONE)
-                        emu_key_pressed(pad, Key_Right);
-                    else
+                    if(event->caxis.axis == config_input[i].gamepad_x_axis)
                     {
-                        emu_key_released(pad, Key_Left);
-                        emu_key_released(pad, Key_Right);
+                        int x_motion = event->caxis.value * (config_input[i].gamepad_invert_x_axis ? -1 : 1);
+
+                        if (x_motion < -STICK_DEAD_ZONE)
+                            emu_key_pressed(pad, Key_Left);
+                        else if (x_motion > STICK_DEAD_ZONE)
+                            emu_key_pressed(pad, Key_Right);
+                        else
+                        {
+                            emu_key_released(pad, Key_Left);
+                            emu_key_released(pad, Key_Right);
+                        }
+                    }
+                    else if(event->caxis.axis == config_input[i].gamepad_y_axis)
+                    {
+                        int y_motion = event->caxis.value * (config_input[i].gamepad_invert_y_axis ? -1 : 1);
+
+                        if (y_motion < -STICK_DEAD_ZONE)
+                            emu_key_pressed(pad, Key_Up);
+                        else if (y_motion > STICK_DEAD_ZONE)
+                            emu_key_pressed(pad, Key_Down);
+                        else
+                        {
+                            emu_key_released(pad, Key_Up);
+                            emu_key_released(pad, Key_Down);
+                        }
                     }
                 }
-                else if(event->caxis.axis == config_input[i].gamepad_y_axis)
-                {
-                    int y_motion = event->caxis.value * (config_input[i].gamepad_invert_y_axis ? -1 : 1);
 
-                    if (y_motion < -STICK_DEAD_ZONE)
-                        emu_key_pressed(pad, Key_Up);
-                    else if (y_motion > STICK_DEAD_ZONE)
-                        emu_key_pressed(pad, Key_Down);
-                    else
+                if (event->caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT || event->caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
+                {
+                    int vbtn = GAMEPAD_VBTN_AXIS_BASE + event->caxis.axis;
+                    bool pressed = event->caxis.value > GAMEPAD_VBTN_AXIS_THRESHOLD;
+
+                    if (config_input[i].gamepad_1 == vbtn)
                     {
-                        emu_key_released(pad, Key_Up);
-                        emu_key_released(pad, Key_Down);
+                        if (pressed)
+                            emu_key_pressed(pad, Key_1);
+                        else
+                            emu_key_released(pad, Key_1);
+                    }
+                    if (config_input[i].gamepad_2 == vbtn)
+                    {
+                        if (pressed)
+                            emu_key_pressed(pad, Key_2);
+                        else
+                            emu_key_released(pad, Key_2);
+                    }
+                    if (config_input[i].gamepad_start == vbtn)
+                    {
+                        if (pressed)
+                            emu_key_pressed(pad, Key_Start);
+                        else
+                            emu_key_released(pad, Key_Start);
                     }
                 }
             }
