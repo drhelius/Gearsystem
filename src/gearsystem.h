@@ -20,6 +20,7 @@
 #ifndef GEARSYSTEM_H
 #define	GEARSYSTEM_H
 
+#include "common.h"
 #include "definitions.h"
 #include "log.h"
 #include "GearsystemCore.h"
