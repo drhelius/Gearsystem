@@ -49,6 +49,7 @@ public:
         CartridgeJanggunMapper,
         CartridgeMulti4PAKAllActionMapper,
         CartridgeJumboDahjeeMapper,
+        CartridgeHomebrewMapper,
         CartridgeNotSupported
     };
     

@@ -248,6 +248,10 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             m_Type = config.type;
             Log("Forcing Mapper: Jumbo Dahjee");
             break;
+        case Cartridge::CartridgeHomebrewMapper:
+            m_Type = config.type;
+            Log("Forcing Mapper: Homebrew");
+            break;
         default:
             Log("Not forcing Mapper: Auto");
             break;
@@ -665,6 +669,9 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeJumboDahjeeMapper:
             Log("Jumbo Dahjee mapper found");
             break;
+        case Cartridge::CartridgeHomebrewMapper:
+            Log("Homebrew mapper found");
+            break;
         case Cartridge::CartridgeNotSupported:
             Log("Cartridge not supported!!");
             break;
@@ -705,6 +712,9 @@ void Cartridge::GetInfoFromDB(u32 crc)
 
             switch (kGameDatabase[i].mapper)
             {
+                case GS_DB_HOMEBREW_MAPPER:
+                    m_Type = Cartridge::CartridgeHomebrewMapper;
+                    break;
                 case GS_DB_CODEMASTERS_MAPPER:
                     m_Type = Cartridge::CartridgeCodemastersMapper;
                     break;

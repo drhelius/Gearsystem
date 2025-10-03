@@ -43,6 +43,7 @@
 #include "JanggunMemoryRule.h"
 #include "Multi4PAKAllActionMemoryRule.h"
 #include "JumboDahjeeMemoryRule.h"
+#include "HomebrewMemoryRule.h"
 #include "SG1000MemoryRule.h"
 #include "SmsIOPorts.h"
 #include "GameGearIOPorts.h"
@@ -79,6 +80,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pSmsIOPorts);
     InitPointer(m_pGameGearIOPorts);
     InitPointer(m_pBootromMemoryRule);
+    InitPointer(m_pHomebrewMemoryRule);
     m_bPaused = true;
     m_pixelFormat = GS_PIXEL_RGBA8888;
     m_GlassesConfig = GearsystemCore::GlassesBothEyes;
@@ -109,6 +111,7 @@ GearsystemCore::~GearsystemCore()
     SafeDelete(m_pJanggunMemoryRule);
     SafeDelete(m_pMulti4PAKAllActionMemoryRule);
     SafeDelete(m_pJumboDahjeeMemoryRule);
+    SafeDelete(m_pHomebrewMemoryRule);
     SafeDelete(m_pCartridge);
     SafeDelete(m_pInput);
     SafeDelete(m_pVideo);
@@ -953,6 +956,7 @@ void GearsystemCore::InitMemoryRules()
     m_pMulti4PAKAllActionMemoryRule = new Multi4PAKAllActionMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pJumboDahjeeMemoryRule = new JumboDahjeeMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pBootromMemoryRule = new BootromMemoryRule(m_pMemory, m_pCartridge, m_pInput);
+    m_pHomebrewMemoryRule = new HomebrewMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
     m_pMemory->SetBootromRule(m_pBootromMemoryRule);
     m_pProcessor->SetIOPOrts(m_pSmsIOPorts);
@@ -1026,6 +1030,9 @@ bool GearsystemCore::AddMemoryRules()
         case Cartridge::CartridgeJumboDahjeeMapper:
             m_pMemory->SetCurrentRule(m_pJumboDahjeeMemoryRule);
             break;
+        case Cartridge::CartridgeHomebrewMapper:
+            m_pMemory->SetCurrentRule(m_pHomebrewMemoryRule);
+            break;
         case Cartridge::CartridgeNotSupported:
             notSupported = true;
             break;
@@ -1072,6 +1079,7 @@ void GearsystemCore::Reset()
     m_pKoreanMDFFF5MemoryRule->Reset();
     m_pMSXMemoryRule->Reset();
     m_pJanggunMemoryRule->Reset();
+    m_pHomebrewMemoryRule->Reset();
     m_pMulti4PAKAllActionMemoryRule->Reset();
     m_pJumboDahjeeMemoryRule->Reset();
     m_pBootromMemoryRule->Reset();
