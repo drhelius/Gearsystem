@@ -539,7 +539,8 @@ static void main_menu(void)
                     "Korean BFFC\0"
                     "Korean FFF3 FFFC\0"
                     "Korean MD FFF5\0"
-                    "Jumbo Dahjee\0\0");
+                    "Jumbo Dahjee\0"
+                    "Homebrew\0\0");
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
@@ -2265,6 +2266,8 @@ static Cartridge::CartridgeTypes get_mapper(int index)
             return Cartridge::CartridgeKoreanMDFFF5Mapper;
         case 19:
             return Cartridge::CartridgeJumboDahjeeMapper;
+        case 20:
+            return Cartridge::CartridgeHomebrewMapper;
         default:
             return Cartridge::CartridgeNotSupported;
     }

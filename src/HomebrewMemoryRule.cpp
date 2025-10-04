@@ -38,6 +38,24 @@ u8 HomebrewMemoryRule::PerformRead(u16 address)
 {
     if (address < 0x8000)
     {
+        if (m_bFlashIDMode)
+        {
+            // In flash ID mode, return manufacturer and device ID
+            if (address == 0x0000)
+            {
+                // Manufacturer ID (MCHP)
+                return 0xbf;
+            }
+            else if (address == 0x0001)
+            {
+                // Device ID (512KB flash)
+                return 0xb7;
+            }
+            else
+            {
+                return 0xFF;
+            }
+        }
         // First 48KB (fixed)
         return m_pMemory->Retrieve(address);
     }
@@ -53,10 +71,25 @@ u8 HomebrewMemoryRule::PerformRead(u16 address)
 
 void HomebrewMemoryRule::PerformWrite(u16 address, u8 value)
 {
-    if (address < 0xC000)
+    if (address < 0x8000)
     {
-        // ROM page 0, 1 and 2
-        Debug("--> ** Attempting to write on ROM address $%X %X", address, value);
+        switch (address)
+        {
+            case 0x5555:
+            case 0x2AAA:
+            case 0x0000:
+            {
+                // Handle flash commands
+                ProcessFlashAccess(address, value);
+                break;
+            }
+            default:
+            {
+                // ROM page 0, 1 and 2
+                Debug("--> ** Attempting to write on ROM address $%X %X", address, value);
+                break;
+            }
+        }   
     }
     else if (address < 0xE000)
     {
@@ -84,15 +117,51 @@ void HomebrewMemoryRule::PerformWrite(u16 address, u8 value)
             {
                 m_iMapperSlot = value & 31;
                 m_iMapperSlotAddress = m_iMapperSlot * 0x4000;
-                Debug("Setting slot 2 mapper to %d", m_iMapperSlot);
                 break;
             }
         }
     }
 }
 
+void HomebrewMemoryRule::ProcessFlashAccess(u16 address, u8 value)
+{
+    if (m_bFlashIDMode)
+    {
+        // In flash ID mode, any write resets the mode
+        m_bFlashIDMode = false;
+        m_iFlashIDStep = 0;
+        Debug("Exiting Flash ID mode");
+    }
+    else if (address == m_iFlashIDSequence[m_iFlashIDStep])
+    {
+        if (value == m_iFlashIDSequence[m_iFlashIDStep + 1])
+        {
+            m_iFlashIDStep += 2;
+            if (m_iFlashIDStep >= FLASH_ID_SEQUENCE_LENGTH)
+            {
+                // Entering flash ID mode
+                m_bFlashIDMode = true;
+                m_iFlashIDStep = 0;
+                Debug("Entering Flash ID mode");
+            }
+        }
+        else
+        {
+            // Incorrect value, reset sequence
+            m_iFlashIDStep = 0;
+        }
+    }
+    else
+    {
+        // Incorrect address, reset sequence
+        m_iFlashIDStep = 0;
+    }
+}
+
 void HomebrewMemoryRule::Reset()
 {
+    m_bFlashIDMode = false;
+    m_iFlashIDStep = 0;
 }
 
 u8* HomebrewMemoryRule::GetPage(int index)

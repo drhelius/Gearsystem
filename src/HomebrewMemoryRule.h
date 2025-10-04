@@ -22,10 +22,13 @@
 
 #include "MemoryRule.h"
 
+#define FLASH_ID_SEQUENCE_LENGTH 6
+
 class HomebrewMemoryRule : public MemoryRule
 {
 public:
     HomebrewMemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput);
+    void ProcessFlashAccess(u16 address, u8 value);
     virtual ~HomebrewMemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);
@@ -36,6 +39,9 @@ private:
     int m_iGameSlot;
     int m_iMapperSlot;
     int m_iMapperSlotAddress;
+    bool m_bFlashIDMode;
+    int m_iFlashIDStep;
+    const int m_iFlashIDSequence[FLASH_ID_SEQUENCE_LENGTH] = { 0x5555, 0xAA, 0x2AAA, 0x55, 0x5555, 0x90 };
 };
 
 #endif	/* HOMEBREWMORYRULE_H */

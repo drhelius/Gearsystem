@@ -63,9 +63,6 @@ struct GS_GameDBEntry
 
 const GS_GameDBEntry kGameDatabase[] =
 {
-    // HOMEBREW MAPPER
-    {0x13A605B6, GS_DB_HOMEBREW_MAPPER, GS_DB_FEATURE_NONE, "Escape Trilogy"},
-
     // CODEMASTERS MAPPER, PAL TIMING
     {0x29822980, GS_DB_CODEMASTERS_MAPPER, GS_DB_FEATURE_PAL, "Cosmic Spacehead"},
     {0x8813514B, GS_DB_CODEMASTERS_MAPPER, GS_DB_FEATURE_PAL, "Excellent Dizzy Collection [Proto]"},
