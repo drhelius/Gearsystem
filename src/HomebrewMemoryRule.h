@@ -23,6 +23,8 @@
 #include "MemoryRule.h"
 
 #define FLASH_ID_SEQUENCE_LENGTH 6
+#define FLASH_ERASE_SEQUENCE_LENGTH 10
+#define FLASH_WRITE_SEQUENCE_LENGTH 6
 
 class HomebrewMemoryRule : public MemoryRule
 {
@@ -40,8 +42,16 @@ private:
     int m_iMapperSlot;
     int m_iMapperSlotAddress;
     bool m_bFlashIDMode;
+    bool m_bFlashEraseMode;
+    bool m_bFlashWriteMode;
     int m_iFlashIDStep;
+    int m_iFlashEraseStep;
+    int m_iFlashWriteStep;
     const int m_iFlashIDSequence[FLASH_ID_SEQUENCE_LENGTH] = { 0x5555, 0xAA, 0x2AAA, 0x55, 0x5555, 0x90 };
+    const int m_iFlashEraseSequence[FLASH_ERASE_SEQUENCE_LENGTH] = { 0x5555, 0xAA, 0x2AAA, 0x55, 0x5555, 0x80, 0x5555, 0xaa, 0x2aaa, 0x55 };
+    const int m_iFlashWriteSequence[FLASH_WRITE_SEQUENCE_LENGTH] = { 0x5555, 0xAA, 0x2AAA, 0x55, 0x5555, 0xA0 };
+    // Helper to advance address/value sequences used for flash commands
+    bool AdvanceSequence(const int seq[], int len, int &step, u16 address, u8 value);
 };
 
 #endif	/* HOMEBREWMORYRULE_H */
