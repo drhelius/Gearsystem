@@ -597,7 +597,7 @@ static void set_variabless(void)
     struct retro_variable vars[] = {
         { "gearsystem_system", "System (restart); Auto|Master System / Mark III|Game Gear|SG-1000 / Multivision" },
         { "gearsystem_region", "Region (restart); Auto|Master System Japan|Master System Export|Game Gear Japan|Game Gear Export|Game Gear International" },
-        { "gearsystem_mapper", "Mapper (restart); Auto|ROM|SEGA|Codemasters|Korean|MSX|Janggun|SG-1000" },
+        { "gearsystem_mapper", "Mapper (restart); Auto|ROM|SEGA|Codemasters|Korean|MSX|Janggun|SG-1000|Homebrew" },
         { "gearsystem_timing", "Refresh Rate (restart); Auto|NTSC (60 Hz)|PAL (50 Hz)" },
         { "gearsystem_aspect_ratio", "Aspect Ratio; 1:1 PAR|4:3 DAR|16:9 DAR|16:10 DAR" },
         { "gearsystem_overscan", "Overscan; Disabled|Top+Bottom|Full (284 width)|Full (320 width)" },
@@ -782,6 +782,8 @@ static void check_variables(void)
             config.type = Cartridge::CartridgeMSXMapper;
         else if (strcmp(var.value, "Janggun") == 0)
             config.type = Cartridge::CartridgeJanggunMapper;
+        else if (strcmp(var.value, "Homebrew") == 0)
+            config.type = Cartridge::CartridgeHomebrewMapper;
         else
             config.type = Cartridge::CartridgeNotSupported;
     }
