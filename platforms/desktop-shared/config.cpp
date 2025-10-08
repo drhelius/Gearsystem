@@ -188,6 +188,7 @@ void config_read(void)
     config_emulator.ffwd_speed = read_int("Emulator", "FFWD", 1);
     config_emulator.save_slot = read_int("Emulator", "SaveSlot", 0);
     config_emulator.start_paused = read_bool("Emulator", "StartPaused", false);
+    config_emulator.pause_when_inactive = read_bool("Emulator", "PauseWhenInactive", true);
     config_emulator.system = read_int("Emulator", "System", 0);
     config_emulator.zone = read_int("Emulator", "Zone", 0);
     config_emulator.mapper = read_int("Emulator", "Mapper", 0);
@@ -314,6 +315,7 @@ void config_write(void)
     write_int("Emulator", "FFWD", config_emulator.ffwd_speed);
     write_int("Emulator", "SaveSlot", config_emulator.save_slot);
     write_bool("Emulator", "StartPaused", config_emulator.start_paused);
+    write_bool("Emulator", "PauseWhenInactive", config_emulator.pause_when_inactive);
     write_int("Emulator", "System", config_emulator.system);
     write_int("Emulator", "Zone", config_emulator.zone);
     write_int("Emulator", "Mapper", config_emulator.mapper);
