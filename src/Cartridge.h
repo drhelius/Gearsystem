@@ -45,6 +45,7 @@ public:
         CartridgeKoreanBFFCMapper,
         CartridgeKoreanFFF3FFFCMapper,
         CartridgeKoreanMDFFF5Mapper,
+        CartridgeKoreanMDFFF0Mapper,
         CartridgeMSXMapper,
         CartridgeJanggunMapper,
         CartridgeMulti4PAKAllActionMapper,

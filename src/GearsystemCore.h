@@ -44,6 +44,7 @@ class KoreanFFFEMemoryRule;
 class KoreanBFFCMemoryRule;
 class KoreanFFF3FFFCMemoryRule;
 class KoreanMDFFF5MemoryRule;
+class KoreanMDFFF0MemoryRule;
 class MSXMemoryRule;
 class JanggunMemoryRule;
 class Multi4PAKAllActionMemoryRule;
@@ -137,6 +138,7 @@ private:
     KoreanBFFCMemoryRule* m_pKoreanBFFCMemoryRule;
     KoreanFFF3FFFCMemoryRule* m_pKoreanFFF3FFFCMemoryRule;
     KoreanMDFFF5MemoryRule* m_pKoreanMDFFF5MemoryRule;
+    KoreanMDFFF0MemoryRule* m_pKoreanMDFFF0MemoryRule;
     MSXMemoryRule* m_pMSXMemoryRule;
     JanggunMemoryRule* m_pJanggunMemoryRule;
     Multi4PAKAllActionMemoryRule* m_pMulti4PAKAllActionMemoryRule;

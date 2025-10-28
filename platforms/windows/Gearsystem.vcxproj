@@ -76,6 +76,7 @@
     <ClCompile Include="..\..\src\KoreanBFFCMemoryRule.cpp" />
     <ClCompile Include="..\..\src\KoreanFFF3FFFCMemoryRule.cpp" />
     <ClCompile Include="..\..\src\KoreanMDFFF5MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\KoreanMDFFF0MemoryRule.cpp" />
     <ClCompile Include="..\..\src\Multi4PAKAllActionMemoryRule.cpp" />
     <ClCompile Include="..\..\src\JumboDahjeeMemoryRule.cpp" />
   </ItemGroup>
@@ -160,6 +161,7 @@
     <ClInclude Include="..\..\src\KoreanBFFCMemoryRule.h" />
     <ClInclude Include="..\..\src\KoreanFFF3FFFCMemoryRule.h" />
     <ClInclude Include="..\..\src\KoreanMDFFF5MemoryRule.h" />
+    <ClInclude Include="..\..\src\KoreanMDFFF0MemoryRule.h" />
     <ClInclude Include="..\..\src\Multi4PAKAllActionMemoryRule.h" />
     <ClInclude Include="..\..\src\JumboDahjeeMemoryRule.h" />
     <ClInclude Include="..\desktop-shared\stb\stb_image_write.h" />

@@ -551,6 +551,9 @@ static const char* get_mapper(Cartridge::CartridgeTypes type)
     case Cartridge::CartridgeKoreanMDFFF5Mapper:
         return "Korean MD FFF5";
         break;
+    case Cartridge::CartridgeKoreanMDFFF0Mapper:
+        return "Korean MD FFF0";
+        break;
     case Cartridge::CartridgeMSXMapper:
         return "MSX";
         break;

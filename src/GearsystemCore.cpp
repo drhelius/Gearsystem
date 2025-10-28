@@ -39,6 +39,7 @@
 #include "KoreanBFFCMemoryRule.h"
 #include "KoreanFFF3FFFCMemoryRule.h"
 #include "KoreanMDFFF5MemoryRule.h"
+#include "KoreanMDFFF0MemoryRule.h"
 #include "MSXMemoryRule.h"
 #include "JanggunMemoryRule.h"
 #include "Multi4PAKAllActionMemoryRule.h"
@@ -72,6 +73,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pKoreanBFFCMemoryRule);
     InitPointer(m_pKoreanFFF3FFFCMemoryRule);
     InitPointer(m_pKoreanMDFFF5MemoryRule);
+    InitPointer(m_pKoreanMDFFF0MemoryRule);
     InitPointer(m_pMSXMemoryRule);
     InitPointer(m_pJanggunMemoryRule);
     InitPointer(m_pMulti4PAKAllActionMemoryRule);
@@ -105,6 +107,7 @@ GearsystemCore::~GearsystemCore()
     SafeDelete(m_pKoreanBFFCMemoryRule);
     SafeDelete(m_pKoreanFFF3FFFCMemoryRule);
     SafeDelete(m_pKoreanMDFFF5MemoryRule);
+    SafeDelete(m_pKoreanMDFFF0MemoryRule);
     SafeDelete(m_pMSXMemoryRule);
     SafeDelete(m_pJanggunMemoryRule);
     SafeDelete(m_pMulti4PAKAllActionMemoryRule);
@@ -948,6 +951,7 @@ void GearsystemCore::InitMemoryRules()
     m_pKoreanBFFCMemoryRule = new KoreanBFFCMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pKoreanFFF3FFFCMemoryRule = new KoreanFFF3FFFCMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pKoreanMDFFF5MemoryRule = new KoreanMDFFF5MemoryRule(m_pMemory, m_pCartridge, m_pInput);
+    m_pKoreanMDFFF0MemoryRule = new KoreanMDFFF0MemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pMSXMemoryRule = new MSXMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pJanggunMemoryRule = new JanggunMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pMulti4PAKAllActionMemoryRule = new Multi4PAKAllActionMemoryRule(m_pMemory, m_pCartridge, m_pInput);
@@ -1014,6 +1018,9 @@ bool GearsystemCore::AddMemoryRules()
         case Cartridge::CartridgeKoreanMDFFF5Mapper:
             m_pMemory->SetCurrentRule(m_pKoreanMDFFF5MemoryRule);
             break;
+        case Cartridge::CartridgeKoreanMDFFF0Mapper:
+            m_pMemory->SetCurrentRule(m_pKoreanMDFFF0MemoryRule);
+            break;
         case Cartridge::CartridgeMSXMapper:
             m_pMemory->SetCurrentRule(m_pMSXMemoryRule);
             break;
@@ -1070,6 +1077,7 @@ void GearsystemCore::Reset()
     m_pKoreanBFFCMemoryRule->Reset();
     m_pKoreanFFF3FFFCMemoryRule->Reset();
     m_pKoreanMDFFF5MemoryRule->Reset();
+    m_pKoreanMDFFF0MemoryRule->Reset();
     m_pMSXMemoryRule->Reset();
     m_pJanggunMemoryRule->Reset();
     m_pMulti4PAKAllActionMemoryRule->Reset();
