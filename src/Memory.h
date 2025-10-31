@@ -26,6 +26,7 @@
 #include <vector>
 
 class Processor;
+class Cartridge;
 
 class Memory
 {
@@ -61,7 +62,7 @@ public:
     };
 
 public:
-    Memory();
+    Memory(Cartridge* pCartridge);
     ~Memory();
     void SetProcessor(Processor* pProcessor);
     void Init();
@@ -104,6 +105,7 @@ private:
 
 private:
     Processor* m_pProcessor;
+    Cartridge* m_pCartridge;
     MemoryRule* m_pCurrentMemoryRule;
     MemoryRule* m_pBootromMemoryRule;
     u8* m_pMap;

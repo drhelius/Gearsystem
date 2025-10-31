@@ -126,8 +126,8 @@ void GearsystemCore::Init(GS_Color_Format pixelFormat)
 
     m_pixelFormat = pixelFormat;
 
-    m_pMemory = new Memory();
     m_pCartridge = new Cartridge();
+    m_pMemory = new Memory(m_pCartridge);
     m_pProcessor = new Processor(m_pMemory);
     m_pVideo = new Video(m_pMemory, m_pProcessor, m_pCartridge);
     m_pInput = new Input(m_pProcessor, m_pVideo);

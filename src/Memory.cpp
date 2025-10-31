@@ -22,9 +22,11 @@
 #include <fstream>
 #include "Memory.h"
 #include "Processor.h"
+#include "Cartridge.h"
 
-Memory::Memory()
+Memory::Memory(Cartridge* pCartridge)
 {
+    m_pCartridge = pCartridge;
     InitPointer(m_pProcessor);
     InitPointer(m_pMap);
     InitPointer(m_pCurrentMemoryRule);
@@ -303,6 +305,9 @@ void Memory::LoadBootroom(const char* szFilePath, bool gg)
 
 bool Memory::IsBootromEnabled()
 {
+    if (m_pCartridge->IsSG1000())
+        return false;
+
     return (m_bBootromSMSEnabled && m_bBootromSMSLoaded && !m_bGameGear) || (m_bBootromGGEnabled && m_bBootromGGLoaded && m_bGameGear);
 }
 
