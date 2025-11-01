@@ -22,7 +22,9 @@
     <ClCompile Include="..\..\src\miniz\miniz.c" />
     <ClCompile Include="..\..\src\Audio.cpp" />
     <ClCompile Include="..\..\src\audio\Blip_Buffer.cpp" />
-    <ClCompile Include="..\..\src\audio\emu2413\emu2413.c" />
+    <ClCompile Include="..\..\src\audio\emu2413\emu2413.c">
+      <DisableSpecificWarnings>4244</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="..\..\src\audio\Stereo_Buffer.cpp" />
     <ClCompile Include="..\..\src\audio\Sms_Apu.cpp" />
     <ClCompile Include="..\..\src\BootromMemoryRule.cpp" />
