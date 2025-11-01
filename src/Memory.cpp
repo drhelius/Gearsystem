@@ -23,6 +23,7 @@
 #include "Memory.h"
 #include "Processor.h"
 #include "Cartridge.h"
+#include "common.h"
 
 Memory::Memory(Cartridge* pCartridge)
 {
@@ -155,7 +156,8 @@ void Memory::MemoryDump(const char* szFilePath)
 
     using namespace std;
 
-    ofstream myfile(szFilePath, ios::out | ios::trunc);
+    ofstream myfile;
+    open_ofstream_utf8(myfile, szFilePath, ios::out | ios::trunc);
 
     if (myfile.is_open())
     {
@@ -260,7 +262,8 @@ void Memory::LoadBootroom(const char* szFilePath, bool gg)
 
     u8* bootrom = gg ? m_pBootromGG : m_pBootromSMS;
 
-    ifstream file(szFilePath, ios::in | ios::binary | ios::ate);
+    ifstream file;
+    open_ifstream_utf8(file, szFilePath, ios::in | ios::binary | ios::ate);
 
     if (file.is_open())
     {

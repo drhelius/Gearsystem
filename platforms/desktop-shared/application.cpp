@@ -409,7 +409,8 @@ static void sdl_destroy(void)
 
 static void sdl_load_gamepad_mappings(void)
 {
-    std::ifstream file("gamecontrollerdb.txt");
+    std::ifstream file;
+    open_ifstream_utf8(file, "gamecontrollerdb.txt", std::ios::in);
     int added_mappings = 0;
     int updated_mappings = 0;
     int line_number = 0;

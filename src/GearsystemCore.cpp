@@ -49,6 +49,7 @@
 #include "SmsIOPorts.h"
 #include "GameGearIOPorts.h"
 #include "BootromMemoryRule.h"
+#include "common.h"
 
 GearsystemCore::GearsystemCore()
 {
@@ -269,7 +270,8 @@ void GearsystemCore::SaveDisassembledROM()
 
         Log("Saving Disassembled ROM %s...", path);
 
-        ofstream myfile(path, ios::out | ios::trunc);
+        ofstream myfile;
+        open_ofstream_utf8(myfile, path, ios::out | ios::trunc);
 
         if (myfile.is_open())
         {
@@ -514,7 +516,8 @@ void GearsystemCore::SaveRam(const char* szPath, bool fullPath)
 
         Log("Save file: %s", path.c_str());
 
-        ofstream file(path.c_str(), ios::out | ios::binary);
+        ofstream file;
+        open_ofstream_utf8(file, path.c_str(), ios::out | ios::binary);
 
         m_pMemory->GetCurrentRule()->SaveRam(file);
 
@@ -564,7 +567,7 @@ void GearsystemCore::LoadRam(const char* szPath, bool fullPath)
 
         ifstream file;
 
-        file.open(sav_path.c_str(), ios::in | ios::binary);
+        open_ifstream_utf8(file, sav_path.c_str(), ios::in | ios::binary);
 
         // check for old .gearsystem saves
         if (file.fail())
@@ -573,7 +576,7 @@ void GearsystemCore::LoadRam(const char* szPath, bool fullPath)
             string old_sav_file = rom_path + ".gearsystem";
 
             Log("Opening old save file: %s", old_sav_file.c_str());
-            file.open(old_sav_file.c_str(), ios::in | ios::binary);
+            open_ifstream_utf8(file, old_sav_file.c_str(), ios::in | ios::binary);
         }
 
         if (!file.fail())
@@ -657,7 +660,8 @@ void GearsystemCore::SaveState(const char* szPath, int index)
 
     Log("Save state file: %s", sstm.str().c_str());
 
-    ofstream file(sstm.str().c_str(), ios::out | ios::binary);
+    ofstream file;
+    open_ofstream_utf8(file, sstm.str().c_str(), ios::out | ios::binary);
 
     SaveState(file, size);
 
@@ -804,7 +808,7 @@ void GearsystemCore::LoadState(const char* szPath, int index)
 
     ifstream file;
 
-    file.open(sstm.str().c_str(), ios::in | ios::binary);
+    open_ifstream_utf8(file, sstm.str().c_str(), ios::in | ios::binary);
 
     if (!file.fail())
     {

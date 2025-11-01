@@ -23,6 +23,7 @@
 #include "Cartridge.h"
 #include "miniz/miniz.h"
 #include "log.h"
+#include "common.h"
 
 Cartridge::Cartridge()
 {
@@ -389,7 +390,8 @@ bool Cartridge::LoadFromFile(const char* path)
 
     SetROMPath(path);
 
-    ifstream file(path, ios::in | ios::binary | ios::ate);
+    ifstream file;
+    open_ifstream_utf8(file, path, ios::in | ios::binary | ios::ate);
 
     if (file.is_open())
     {
