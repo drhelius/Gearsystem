@@ -540,7 +540,8 @@ static void main_menu(void)
                     "Korean FFF3 FFFC\0"
                     "Korean MD FFF5\0"
                     "Korean MD FFF0\0"
-                    "Jumbo Dahjee\0\0");
+                    "Jumbo Dahjee\0"
+                    "EEPROM 93C46\0\0");
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
@@ -2269,6 +2270,8 @@ static Cartridge::CartridgeTypes get_mapper(int index)
             return Cartridge::CartridgeKoreanMDFFF0Mapper;
         case 20:
             return Cartridge::CartridgeJumboDahjeeMapper;
+        case 21:
+            return Cartridge::CartridgeEeprom93C46Mapper;
         default:
             return Cartridge::CartridgeNotSupported;
     }

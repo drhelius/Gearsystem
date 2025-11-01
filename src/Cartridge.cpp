@@ -249,6 +249,10 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             m_Type = config.type;
             Log("Forcing Mapper: Jumbo Dahjee");
             break;
+        case Cartridge::CartridgeEeprom93C46Mapper:
+            m_Type = config.type;
+            Log("Forcing Mapper: EEPROM 93C46");
+            break;
         default:
             Log("Not forcing Mapper: Auto");
             break;
@@ -675,6 +679,9 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeJumboDahjeeMapper:
             Log("Jumbo Dahjee mapper found");
             break;
+        case Cartridge::CartridgeEeprom93C46Mapper:
+            Log("EEPROM 93C46 mapper found");
+            break;
         case Cartridge::CartridgeNotSupported:
             Log("Cartridge not supported!!");
             break;
@@ -772,6 +779,9 @@ void Cartridge::GetInfoFromDB(u32 crc)
                     break;
                 case GS_DB_JUMBO_DAHJEE_MAPPER:
                     m_Type = Cartridge::CartridgeJumboDahjeeMapper;
+                    break;
+                case GS_DB_EEPROM_93C46_MAPPER:
+                    m_Type = Cartridge::CartridgeEeprom93C46Mapper;
                     break;
             }
 

@@ -44,6 +44,7 @@
 #include "JanggunMemoryRule.h"
 #include "Multi4PAKAllActionMemoryRule.h"
 #include "JumboDahjeeMemoryRule.h"
+#include "Eeprom93C46MemoryRule.h"
 #include "SG1000MemoryRule.h"
 #include "SmsIOPorts.h"
 #include "GameGearIOPorts.h"
@@ -78,6 +79,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pJanggunMemoryRule);
     InitPointer(m_pMulti4PAKAllActionMemoryRule);
     InitPointer(m_pJumboDahjeeMemoryRule);
+    InitPointer(m_pEeprom93C46MemoryRule);
     InitPointer(m_pSmsIOPorts);
     InitPointer(m_pGameGearIOPorts);
     InitPointer(m_pBootromMemoryRule);
@@ -112,6 +114,7 @@ GearsystemCore::~GearsystemCore()
     SafeDelete(m_pJanggunMemoryRule);
     SafeDelete(m_pMulti4PAKAllActionMemoryRule);
     SafeDelete(m_pJumboDahjeeMemoryRule);
+    SafeDelete(m_pEeprom93C46MemoryRule);
     SafeDelete(m_pCartridge);
     SafeDelete(m_pInput);
     SafeDelete(m_pVideo);
@@ -956,6 +959,7 @@ void GearsystemCore::InitMemoryRules()
     m_pJanggunMemoryRule = new JanggunMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pMulti4PAKAllActionMemoryRule = new Multi4PAKAllActionMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pJumboDahjeeMemoryRule = new JumboDahjeeMemoryRule(m_pMemory, m_pCartridge, m_pInput);
+    m_pEeprom93C46MemoryRule = new Eeprom93C46MemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pBootromMemoryRule = new BootromMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
     m_pMemory->SetBootromRule(m_pBootromMemoryRule);
@@ -1033,6 +1037,9 @@ bool GearsystemCore::AddMemoryRules()
         case Cartridge::CartridgeJumboDahjeeMapper:
             m_pMemory->SetCurrentRule(m_pJumboDahjeeMemoryRule);
             break;
+        case Cartridge::CartridgeEeprom93C46Mapper:
+            m_pMemory->SetCurrentRule(m_pEeprom93C46MemoryRule);
+            break;
         case Cartridge::CartridgeNotSupported:
             notSupported = true;
             break;
@@ -1082,6 +1089,7 @@ void GearsystemCore::Reset()
     m_pJanggunMemoryRule->Reset();
     m_pMulti4PAKAllActionMemoryRule->Reset();
     m_pJumboDahjeeMemoryRule->Reset();
+    m_pEeprom93C46MemoryRule->Reset();
     m_pBootromMemoryRule->Reset();
     m_pGameGearIOPorts->Reset();
     m_pSmsIOPorts->Reset();

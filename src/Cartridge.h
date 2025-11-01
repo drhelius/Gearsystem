@@ -50,6 +50,7 @@ public:
         CartridgeJanggunMapper,
         CartridgeMulti4PAKAllActionMapper,
         CartridgeJumboDahjeeMapper,
+        CartridgeEeprom93C46Mapper,
         CartridgeNotSupported
     };
     

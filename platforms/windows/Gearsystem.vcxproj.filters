@@ -216,6 +216,9 @@
     <ClCompile Include="..\..\src\JumboDahjeeMemoryRule.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Eeprom93C46MemoryRule.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\audio-shared\sound_queue.h">
@@ -468,6 +471,9 @@
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\JumboDahjeeMemoryRule.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Eeprom93C46MemoryRule.h">
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />

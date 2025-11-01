@@ -563,6 +563,9 @@ static const char* get_mapper(Cartridge::CartridgeTypes type)
     case Cartridge::CartridgeJumboDahjeeMapper:
         return "Jumbo Dahjee";
         break;
+    case Cartridge::CartridgeEeprom93C46Mapper:
+        return "EEPROM 93C46";
+        break;
     case Cartridge::CartridgeNotSupported:
         return "Not Supported";
         break;

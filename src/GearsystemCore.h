@@ -49,6 +49,7 @@ class MSXMemoryRule;
 class JanggunMemoryRule;
 class Multi4PAKAllActionMemoryRule;
 class JumboDahjeeMemoryRule;
+class Eeprom93C46MemoryRule;
 class MemoryRule;
 class SmsIOPorts;
 class GameGearIOPorts;
@@ -143,6 +144,7 @@ private:
     JanggunMemoryRule* m_pJanggunMemoryRule;
     Multi4PAKAllActionMemoryRule* m_pMulti4PAKAllActionMemoryRule;
     JumboDahjeeMemoryRule* m_pJumboDahjeeMemoryRule;
+    Eeprom93C46MemoryRule* m_pEeprom93C46MemoryRule;
     SmsIOPorts* m_pSmsIOPorts;
     GameGearIOPorts* m_pGameGearIOPorts;
     BootromMemoryRule* m_pBootromMemoryRule;

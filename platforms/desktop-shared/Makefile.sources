@@ -45,6 +45,7 @@ SOURCES_CXX := \
     $(SRC_DIR)/KoreanMDFFF0MemoryRule.cpp \
     $(SRC_DIR)/Multi4PAKAllActionMemoryRule.cpp \
     $(SRC_DIR)/JumboDahjeeMemoryRule.cpp \
+    $(SRC_DIR)/Eeprom93C46MemoryRule.cpp \
     $(SRC_DIR)/Memory.cpp \
     $(SRC_DIR)/MemoryRule.cpp \
     $(SRC_DIR)/MSXMemoryRule.cpp \
