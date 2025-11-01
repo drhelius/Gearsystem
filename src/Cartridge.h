@@ -129,6 +129,7 @@ private:
     bool m_bReady;
     char m_szFilePath[512];
     char m_szFileName[512];
+    char m_szFileNameInZip[512];
     int m_iROMBankCount16k;
     int m_iROMBankCount8k;
     bool m_bGameGear;

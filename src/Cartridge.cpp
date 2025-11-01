@@ -34,6 +34,7 @@ Cartridge::Cartridge()
     m_bReady = false;
     m_szFilePath[0] = 0;
     m_szFileName[0] = 0;
+    m_szFileNameInZip[0] = 0;
     m_iROMBankCount16k = 0;
     m_iROMBankCount8k = 0;
     m_bGameGear = false;
@@ -64,6 +65,7 @@ void Cartridge::Reset()
     m_bReady = false;
     m_szFilePath[0] = 0;
     m_szFileName[0] = 0;
+    m_szFileNameInZip[0] = 0;
     m_iROMBankCount16k = 0;
     m_iROMBankCount8k = 0;
     m_bGameGear = false;
@@ -121,11 +123,6 @@ Cartridge::CartridgeZones Cartridge::GetZone() const
 
 void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
 {
-    std::string fn(m_szFileName);
-    std::string extension = fn.substr(fn.find_last_of(".") + 1);
-    m_bGameGear = (extension == "gg");
-    m_bSG1000 = (extension == "sg" || extension == "mv");
-
     m_iCRC = CalculateCRC32(0, m_pROM, m_iROMSize);
     GatherMetadata(m_iCRC);
 
@@ -353,8 +350,8 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
 
         if ((extension == "sms") || (extension == "gg") || (extension == "sg") || (extension == "mv"))
         {
-            m_bGameGear = (extension == "gg");
-            m_bSG1000 = (extension == "sg" || extension == "mv");
+            strncpy(m_szFileNameInZip, file_stat.m_filename, 511);
+            m_szFileNameInZip[511] = 0;
 
             void *p;
             size_t uncomp_size;
@@ -409,8 +406,6 @@ bool Cartridge::LoadFromFile(const char* path)
         }
         else
         {
-            m_bGameGear = (extension == "gg");
-            m_bSG1000= (extension == "sg" || extension == "mv");
             m_bReady = LoadFromBuffer(reinterpret_cast<u8*> (memblock), size);
         }
 
@@ -523,6 +518,13 @@ void Cartridge::SetROMPath(const char* path)
 
 bool Cartridge::GatherMetadata(u32 crc)
 {
+    const char* filename_to_check = (m_szFileNameInZip[0] != 0) ? m_szFileNameInZip : m_szFileName;
+    std::string fn(filename_to_check);
+    std::string extension = fn.substr(fn.find_last_of(".") + 1);
+
+    m_bGameGear = (extension == "gg");
+    m_bSG1000 = (extension == "sg" || extension == "mv");
+
     m_bPAL = false;
 
     u16 headerLocation = 0x7FF0;
