@@ -25,7 +25,6 @@
 #define MINI_CASE_SENSITIVE
 #include "mINI/ini.h"
 #include "imgui/imgui.h"
-#include "gui_events.h"
 
 #ifdef CONFIG_IMPORT
     #define EXTERN
@@ -122,15 +121,38 @@ struct config_Input
     int gamepad_y_axis;
 };
 
-struct config_Key
+enum config_HotkeyIndex
 {
-    SDL_Scancode scancode;
-    SDL_Keymod modifier;
+    config_HotkeyIndex_OpenROM = 0,
+    config_HotkeyIndex_Quit,
+    config_HotkeyIndex_Reset,
+    config_HotkeyIndex_Pause,
+    config_HotkeyIndex_FFWD,
+    config_HotkeyIndex_SaveState,
+    config_HotkeyIndex_LoadState,
+    config_HotkeyIndex_Screenshot,
+    config_HotkeyIndex_Fullscreen,
+    config_HotkeyIndex_CaptureMouse,
+    config_HotkeyIndex_ShowMainMenu,
+    config_HotkeyIndex_DebugStep,
+    config_HotkeyIndex_DebugContinue,
+    config_HotkeyIndex_DebugNextFrame,
+    config_HotkeyIndex_DebugRunToCursor,
+    config_HotkeyIndex_DebugBreakpoint,
+    config_HotkeyIndex_DebugGoBack,
+    config_HotkeyIndex_SelectSlot1,
+    config_HotkeyIndex_SelectSlot2,
+    config_HotkeyIndex_SelectSlot3,
+    config_HotkeyIndex_SelectSlot4,
+    config_HotkeyIndex_SelectSlot5,
+    config_HotkeyIndex_COUNT
 };
 
-struct config_GuiShortCuts
+struct config_Hotkey
 {
-    config_Key shortcuts[gui_ShortCutEventMax];
+    SDL_Scancode key;
+    SDL_Keymod mod;
+    char str[64];
 };
 
 struct config_Debug
@@ -154,13 +176,14 @@ EXTERN config_Emulator config_emulator;
 EXTERN config_Video config_video;
 EXTERN config_Audio config_audio;
 EXTERN config_Input config_input[2];
+EXTERN config_Hotkey config_hotkeys[config_HotkeyIndex_COUNT];
 EXTERN config_Debug config_debug;
-EXTERN config_GuiShortCuts config_shortcuts;
 
 EXTERN void config_init(void);
 EXTERN void config_destroy(void);
 EXTERN void config_read(void);
 EXTERN void config_write(void);
+EXTERN void config_update_hotkey_string(config_Hotkey* hotkey);
 
 #undef CONFIG_IMPORT
 #undef EXTERN

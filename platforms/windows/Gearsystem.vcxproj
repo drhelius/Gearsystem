@@ -58,7 +58,6 @@
     <ClCompile Include="..\desktop-shared\gui_debug.cpp" />
     <ClCompile Include="..\desktop-shared\gui_debug_memory.cpp" />
     <ClCompile Include="..\desktop-shared\gui_debug_memeditor.cpp" />
-    <ClCompile Include="..\desktop-shared\gui_events.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui_demo.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui_draw.cpp" />
@@ -139,7 +138,6 @@
     <ClInclude Include="..\desktop-shared\gui_debug_memory.h" />
     <ClInclude Include="..\desktop-shared\gui_debug_memeditor.h" />
     <ClInclude Include="..\desktop-shared\gui_debug_constants.h" />
-    <ClInclude Include="..\desktop-shared\gui_events.h" />
     <ClInclude Include="..\desktop-shared\imgui\fonts\RobotoMedium.h" />
     <ClInclude Include="..\desktop-shared\imgui\imconfig.h" />
     <ClInclude Include="..\desktop-shared\imgui\imgui.h" />
@@ -171,9 +169,7 @@
     <ClInclude Include="..\desktop-shared\stb\stb_image_write.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="..\desktop-shared\gui_events.def" />
-  </ItemGroup>
+
   <ItemGroup>
     <Manifest Include="Gearsystem.manifest" />
   </ItemGroup>

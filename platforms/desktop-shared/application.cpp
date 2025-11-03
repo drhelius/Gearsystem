@@ -60,6 +60,7 @@ static void render(void);
 static void frame_throttle(void);
 static void save_window_size(void);
 static void log_sdl_error(const char* action, const char* file, int line);
+static bool check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat);
 
 #define SDL_ERROR(action) log_sdl_error(action, __FILE__, __LINE__)
 
@@ -776,26 +777,6 @@ static void sdl_events_emu(const SDL_Event* event)
 
             int key = event->key.keysym.scancode;
 
-            if (key == SDL_SCANCODE_ESCAPE)
-            {
-                config_emulator.fullscreen = false;
-                application_trigger_fullscreen(false);
-                break;
-            }
-
-            if (key == SDL_SCANCODE_F11)
-            {
-                config_emulator.fullscreen = !config_emulator.fullscreen;
-                application_trigger_fullscreen(config_emulator.fullscreen);
-                break;
-            }
-
-            if (key == SDL_SCANCODE_F12)
-            {
-                config_emulator.capture_mouse = !config_emulator.capture_mouse;
-                break;
-            }
-
             for (int i = 0; i < 2; i++)
             {
                 GS_Joypads pad = (i == 0) ? Joypad_1 : Joypad_2;
@@ -848,12 +829,103 @@ static void sdl_events_emu(const SDL_Event* event)
 
 static void sdl_shortcuts_gui(const SDL_Event* event)
 {
-    if (event->type == SDL_KEYDOWN)
+    if (event->type != SDL_KEYDOWN)
+        return;
+
+    // Check special case hotkeys first
+    if (check_hotkey(event, config_hotkeys[config_HotkeyIndex_Quit], false))
     {
-        int key = event->key.keysym.scancode;
-        int mod = event->key.keysym.mod;
-        gui_process_input(key, mod);
+        application_trigger_quit();
+        return;
     }
+
+    if (check_hotkey(event, config_hotkeys[config_HotkeyIndex_Fullscreen], false))
+    {
+        config_emulator.fullscreen = !config_emulator.fullscreen;
+        application_trigger_fullscreen(config_emulator.fullscreen);
+        return;
+    }
+
+    if (check_hotkey(event, config_hotkeys[config_HotkeyIndex_CaptureMouse], false))
+    {
+        config_emulator.capture_mouse = !config_emulator.capture_mouse;
+        return;
+    }
+
+    // Check slot selection hotkeys
+    for (int i = 0; i < 5; i++)
+    {
+        if (check_hotkey(event, config_hotkeys[config_HotkeyIndex_SelectSlot1 + i], false))
+        {
+            config_emulator.save_slot = i;
+            return;
+        }
+    }
+
+    // Check all hotkeys mapped to gui shortcuts
+    for (int i = 0; i < GUI_HOTKEY_MAP_COUNT; i++)
+    {
+        if (gui_hotkey_map[i].shortcut >= 0 && check_hotkey(event, config_hotkeys[gui_hotkey_map[i].config_index], gui_hotkey_map[i].allow_repeat))
+        {
+            gui_shortcut((gui_ShortCutEvent)gui_hotkey_map[i].shortcut);
+            return;
+        }
+    }
+
+    // Fixed hotkeys for debug copy/paste operations
+    int key = event->key.keysym.scancode;
+    SDL_Keymod mods = (SDL_Keymod)event->key.keysym.mod;
+
+    if (event->key.repeat == 0 && key == SDL_SCANCODE_C && (mods & KMOD_CTRL))
+    {
+        gui_shortcut(gui_ShortcutDebugCopy);
+        return;
+    }
+
+    if (event->key.repeat == 0 && key == SDL_SCANCODE_V && (mods & KMOD_CTRL))
+    {
+        gui_shortcut(gui_ShortcutDebugPaste);
+        return;
+    }
+
+    // ESC to exit fullscreen
+    if (event->key.repeat == 0 && key == SDL_SCANCODE_ESCAPE)
+    {
+        if (config_emulator.fullscreen && !config_emulator.always_show_menu)
+        {
+            config_emulator.fullscreen = false;
+            application_trigger_fullscreen(false);
+        }
+    }
+}
+
+static bool check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat)
+{
+    if (event->type != SDL_KEYDOWN)
+        return false;
+
+    if (!allow_repeat && event->key.repeat != 0)
+        return false;
+
+    if (event->key.keysym.scancode != hotkey.key)
+        return false;
+
+    SDL_Keymod mods = (SDL_Keymod)event->key.keysym.mod;
+    SDL_Keymod expected = hotkey.mod;
+
+    SDL_Keymod mods_normalized = (SDL_Keymod)0;
+    if (mods & (KMOD_LCTRL | KMOD_RCTRL)) mods_normalized = (SDL_Keymod)(mods_normalized | KMOD_CTRL);
+    if (mods & (KMOD_LSHIFT | KMOD_RSHIFT)) mods_normalized = (SDL_Keymod)(mods_normalized | KMOD_SHIFT);
+    if (mods & (KMOD_LALT | KMOD_RALT)) mods_normalized = (SDL_Keymod)(mods_normalized | KMOD_ALT);
+    if (mods & (KMOD_LGUI | KMOD_RGUI)) mods_normalized = (SDL_Keymod)(mods_normalized | KMOD_GUI);
+
+    SDL_Keymod expected_normalized = (SDL_Keymod)0;
+    if (expected & (KMOD_LCTRL | KMOD_RCTRL | KMOD_CTRL)) expected_normalized = (SDL_Keymod)(expected_normalized | KMOD_CTRL);
+    if (expected & (KMOD_LSHIFT | KMOD_RSHIFT | KMOD_SHIFT)) expected_normalized = (SDL_Keymod)(expected_normalized | KMOD_SHIFT);
+    if (expected & (KMOD_LALT | KMOD_RALT | KMOD_ALT)) expected_normalized = (SDL_Keymod)(expected_normalized | KMOD_ALT);
+    if (expected & (KMOD_LGUI | KMOD_RGUI | KMOD_GUI)) expected_normalized = (SDL_Keymod)(expected_normalized | KMOD_GUI);
+
+    return mods_normalized == expected_normalized;
 }
 
 static void sdl_add_gamepads(void)

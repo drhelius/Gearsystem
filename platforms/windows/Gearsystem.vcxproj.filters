@@ -162,9 +162,7 @@
     <ClCompile Include="..\..\src\MSXMemoryRule.cpp">
       <Filter>core</Filter>
     </ClCompile>
-    <ClCompile Include="..\desktop-shared\gui_events.cpp">
-      <Filter>desktop_shared</Filter>
-    </ClCompile>
+
     <ClCompile Include="..\..\src\audio\emu2413\emu2413.c">
       <Filter>core\audio\emu2413</Filter>
     </ClCompile>
@@ -401,9 +399,7 @@
     <ClInclude Include="..\..\src\MSXMemoryRule.h">
       <Filter>core</Filter>
     </ClInclude>
-    <ClInclude Include="..\desktop-shared\gui_events.h">
-      <Filter>desktop_shared</Filter>
-    </ClInclude>
+
     <ClInclude Include="..\..\src\YM2413.h">
       <Filter>core</Filter>
     </ClInclude>
@@ -477,11 +473,6 @@
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\desktop-shared\gui_events.def">
-      <Filter>desktop_shared</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="Gearsystem.manifest" />
