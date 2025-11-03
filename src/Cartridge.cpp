@@ -39,6 +39,7 @@ Cartridge::Cartridge()
     m_iROMBankCount16k = 0;
     m_iROMBankCount8k = 0;
     m_bGameGear = false;
+    m_bGameGearInSMSMode = false;
     m_bSG1000 = false;
     m_bPAL = false;
     m_bRAMWithoutBattery = false;
@@ -70,6 +71,7 @@ void Cartridge::Reset()
     m_iROMBankCount16k = 0;
     m_iROMBankCount8k = 0;
     m_bGameGear = false;
+    m_bGameGearInSMSMode = false;
     m_bSG1000 = false;
     m_bPAL = false;
     m_bRAMWithoutBattery = false;
@@ -86,6 +88,11 @@ u32 Cartridge::GetCRC() const
 bool Cartridge::IsGameGear() const
 {
     return m_bGameGear;
+}
+
+bool Cartridge::IsGameGearInSMSMode() const
+{
+    return m_bGameGearInSMSMode;
 }
 
 bool Cartridge::IsSG1000() const
@@ -791,6 +798,7 @@ void Cartridge::GetInfoFromDB(u32 crc)
             {
                 Log("Forcing Master System mode");
                 m_bGameGear = false;
+                m_bGameGearInSMSMode = true;
             }
 
             if (kGameDatabase[i].features & GS_DB_FEATURE_PAL)

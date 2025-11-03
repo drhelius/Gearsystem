@@ -308,7 +308,7 @@ void Memory::LoadBootroom(const char* szFilePath, bool gg)
 
 bool Memory::IsBootromEnabled()
 {
-    if (m_pCartridge->IsSG1000())
+    if (m_pCartridge->IsSG1000() || m_pCartridge->IsGameGearInSMSMode())
         return false;
 
     return (m_bBootromSMSEnabled && m_bBootromSMSLoaded && !m_bGameGear) || (m_bBootromGGEnabled && m_bBootromGGLoaded && m_bGameGear);

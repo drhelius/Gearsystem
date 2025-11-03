@@ -94,6 +94,7 @@ public:
     void Reset();
     u32 GetCRC() const;
     bool IsGameGear() const;
+    bool IsGameGearInSMSMode() const;
     bool IsSG1000() const;
     bool IsPAL() const;
     bool IsValidROM() const;
@@ -134,6 +135,7 @@ private:
     int m_iROMBankCount16k;
     int m_iROMBankCount8k;
     bool m_bGameGear;
+    bool m_bGameGearInSMSMode;
     bool m_bSG1000;
     bool m_bPAL;
     bool m_bRAMWithoutBattery;

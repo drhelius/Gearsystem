@@ -250,7 +250,7 @@ const GS_GameDBEntry kGameDatabase[] =
     // SMS MODE
     {0x6F8E46CF, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_SMS_MODE, "Alex Kidd in Miracle World [SMS-GG]"},
     {0x59840FD6, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_SMS_MODE, "Castle of Illusion - Starring Mickey Mouse [SMS-GG]"},
-    {0x9942B69B, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_SMS_MODE, "Castle of Illusion - Starring Mickey Mouse [SMS-GG]"},
+    {0x9942B69B, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_SMS_MODE, "Castle of Illusion - Starring Mickey Mouse (J) [SMS-GG]"},
     {0x44FBE8F6, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_SMS_MODE, "Chase H.Q. [SMS-GG]"},
     {0xA2F9C7AF, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_SMS_MODE, "Olympic Gold [B] [SMS-GG]"},
     {0x3382D73F, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_SMS_MODE, "Olympic Gold [TW] [SMS-GG]"},
