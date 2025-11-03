@@ -89,6 +89,9 @@ EXTERN void emu_set_overscan(int overscan);
 EXTERN void emu_set_hide_left_bar(int hide_left_bar);
 EXTERN void emu_disable_ym2413(bool disable);
 EXTERN void emu_save_screenshot(const char* file_path);
+EXTERN void emu_start_vgm_recording(const char* file_path);
+EXTERN void emu_stop_vgm_recording();
+EXTERN bool emu_is_vgm_recording();
 
 #undef EMU_IMPORT
 #undef EXTERN

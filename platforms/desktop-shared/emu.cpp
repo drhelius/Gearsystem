@@ -938,3 +938,40 @@ static void update_debug_sprite_buffers_sg1000(void)
         }
     }
 }
+
+void emu_start_vgm_recording(const char* file_path)
+{
+    if (!gearsystem->GetCartridge()->IsReady())
+        return;
+
+    if (gearsystem->GetAudio()->IsVgmRecording())
+    {
+        emu_stop_vgm_recording();
+    }
+
+    GS_RuntimeInfo runtime;
+    gearsystem->GetRuntimeInfo(runtime);
+
+    bool is_pal = (runtime.region == Region_PAL);
+    int clock_rate = is_pal ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC;
+    bool has_ym2413 = (gearsystem->GetAudio()->YM2413Read() != 0xFF);
+
+    if (gearsystem->GetAudio()->StartVgmRecording(file_path, clock_rate, is_pal, has_ym2413))
+    {
+        Log("VGM recording started: %s", file_path);
+    }
+}
+
+void emu_stop_vgm_recording()
+{
+    if (gearsystem->GetAudio()->IsVgmRecording())
+    {
+        gearsystem->GetAudio()->StopVgmRecording();
+        Log("VGM recording stopped");
+    }
+}
+
+bool emu_is_vgm_recording()
+{
+    return gearsystem->GetAudio()->IsVgmRecording();
+}

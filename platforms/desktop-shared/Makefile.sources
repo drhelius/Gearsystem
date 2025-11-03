@@ -60,6 +60,7 @@ SOURCES_CXX := \
     $(SRC_DIR)/BootromMemoryRule.cpp \
     $(SRC_DIR)/JanggunMemoryRule.cpp \
     $(SRC_DIR)/YM2413.cpp \
+    $(SRC_DIR)/VgmRecorder.cpp \
     $(SRC_DIR)/audio/Blip_Buffer.cpp \
     $(SRC_DIR)/audio/Sms_Apu.cpp \
     $(SRC_DIR)/audio/Stereo_Buffer.cpp \

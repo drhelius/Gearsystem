@@ -37,6 +37,7 @@ Audio::Audio(Cartridge * pCartridge)
     m_bYM2413ForceDisabled = false;
     m_bYM2413CartridgeNotSupported = false;
     m_bMute = false;
+    m_bVgmRecordingEnabled = false;
 }
 
 Audio::~Audio()
@@ -112,6 +113,11 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
                 pSampleBuffer[i] += (m_bYM2413Enabled && !m_bYM2413ForceDisabled && !m_bYM2413CartridgeNotSupported) ? m_pYM2413Buffer[i] : 0;
             }
         }
+
+#ifndef GEARSYSTEM_DISABLE_VGMRECORDER
+        if (m_bVgmRecordingEnabled)
+            m_VgmRecorder.UpdateTiming(count / 2);
+#endif
     }
 
     m_ElapsedCycles = 0;
@@ -149,4 +155,28 @@ void Audio::LoadState(std::istream& stream)
     m_pApu->reset(m_pCartridge->IsSG1000());
     m_pApu->volume(1.0);
     m_pBuffer->clear();
+}
+
+bool Audio::StartVgmRecording(const char* file_path, int clock_rate, bool is_pal, bool has_ym2413)
+{
+    if (m_bVgmRecordingEnabled)
+        return false;
+
+    m_VgmRecorder.Start(file_path, clock_rate, is_pal, has_ym2413);
+    m_bVgmRecordingEnabled = m_VgmRecorder.IsRecording();
+    return m_bVgmRecordingEnabled;
+}
+
+void Audio::StopVgmRecording()
+{
+    if (m_bVgmRecordingEnabled)
+    {
+        m_VgmRecorder.Stop();
+        m_bVgmRecordingEnabled = false;
+    }
+}
+
+bool Audio::IsVgmRecording() const
+{
+    return m_bVgmRecordingEnabled;
 }

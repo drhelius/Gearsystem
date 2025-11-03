@@ -169,6 +169,9 @@
     <ClCompile Include="..\..\src\YM2413.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\VgmRecorder.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
     <ClCompile Include="..\desktop-shared\nfd\nfd_win.cpp">
       <Filter>desktop_shared\nfd</Filter>
     </ClCompile>
@@ -401,6 +404,9 @@
     </ClInclude>
 
     <ClInclude Include="..\..\src\YM2413.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\VgmRecorder.h">
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\audio\emu2413\emu2413.h">
