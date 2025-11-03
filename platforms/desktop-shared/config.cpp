@@ -83,6 +83,14 @@ void config_init(void)
     config_input[1].gamepad_x_axis = 0;
     config_input[1].gamepad_y_axis = 1;
 
+    for (int i = 0; i < 2; i++)
+    {
+        for (int j = 0; j < config_HotkeyIndex_COUNT; j++)
+        {
+            config_input_gamepad_shortcuts[i].gamepad_shortcuts[j] = SDL_CONTROLLER_BUTTON_INVALID;
+        }
+    }
+
     config_hotkeys[config_HotkeyIndex_OpenROM] = make_hotkey(SDL_SCANCODE_O, KMOD_CTRL);
     config_hotkeys[config_HotkeyIndex_Quit] = make_hotkey(SDL_SCANCODE_Q, KMOD_CTRL);
     config_hotkeys[config_HotkeyIndex_Reset] = make_hotkey(SDL_SCANCODE_R, KMOD_CTRL);
@@ -242,6 +250,18 @@ void config_read(void)
     config_input[1].gamepad_x_axis = read_int("InputB", "GamepadX", SDL_CONTROLLER_AXIS_LEFTX);
     config_input[1].gamepad_y_axis = read_int("InputB", "GamepadY", SDL_CONTROLLER_AXIS_LEFTY);
 
+    for (int i = 0; i < 2; i++)
+    {
+        char input_group[32];
+        snprintf(input_group, sizeof(input_group), "InputGamepadShortcuts%d", i + 1);
+        for (int j = 0; j < config_HotkeyIndex_COUNT; j++)
+        {
+            char key_name[32];
+            snprintf(key_name, sizeof(key_name), "Shortcut%d", j);
+            config_input_gamepad_shortcuts[i].gamepad_shortcuts[j] = read_int(input_group, key_name, SDL_CONTROLLER_BUTTON_INVALID);
+        }
+    }
+
     config_hotkeys[config_HotkeyIndex_OpenROM] = read_hotkey("Hotkeys", "OpenROM", make_hotkey(SDL_SCANCODE_O, KMOD_CTRL));
     config_hotkeys[config_HotkeyIndex_Quit] = read_hotkey("Hotkeys", "Quit", make_hotkey(SDL_SCANCODE_Q, KMOD_CTRL));
     config_hotkeys[config_HotkeyIndex_Reset] = read_hotkey("Hotkeys", "Reset", make_hotkey(SDL_SCANCODE_R, KMOD_CTRL));
@@ -377,6 +397,18 @@ void config_write(void)
     write_int("InputB", "GamepadStart", config_input[1].gamepad_start);
     write_int("InputB", "GamepadX", config_input[1].gamepad_x_axis);
     write_int("InputB", "GamepadY", config_input[1].gamepad_y_axis);
+
+    for (int i = 0; i < 2; i++)
+    {
+        char input_group[32];
+        snprintf(input_group, sizeof(input_group), "InputGamepadShortcuts%d", i + 1);
+        for (int j = 0; j < config_HotkeyIndex_COUNT; j++)
+        {
+            char key_name[32];
+            snprintf(key_name, sizeof(key_name), "Shortcut%d", j);
+            write_int(input_group, key_name, config_input_gamepad_shortcuts[i].gamepad_shortcuts[j]);
+        }
+    }
 
     write_hotkey("Hotkeys", "OpenROM", config_hotkeys[config_HotkeyIndex_OpenROM]);
     write_hotkey("Hotkeys", "Quit", config_hotkeys[config_HotkeyIndex_Quit]);
