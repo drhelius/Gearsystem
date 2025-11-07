@@ -13,7 +13,6 @@ SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/gui_debug.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_memory.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_memeditor.cpp \
-    $(DESKTOP_SRC_DIR)/gui_events.cpp \
     $(DESKTOP_SRC_DIR)/application.cpp \
     $(DESKTOP_SRC_DIR)/config.cpp \
     $(DESKTOP_SRC_DIR)/renderer.cpp \
@@ -42,9 +41,11 @@ SOURCES_CXX := \
     $(SRC_DIR)/KoreanBFFCMemoryRule.cpp \
     $(SRC_DIR)/KoreanFFF3FFFCMemoryRule.cpp \
     $(SRC_DIR)/KoreanMDFFF5MemoryRule.cpp \
+    $(SRC_DIR)/KoreanMDFFF0MemoryRule.cpp \
     $(SRC_DIR)/Multi4PAKAllActionMemoryRule.cpp \
     $(SRC_DIR)/JumboDahjeeMemoryRule.cpp \
     $(SRC_DIR)/HomebrewMemoryRule.cpp \
+    $(SRC_DIR)/Eeprom93C46MemoryRule.cpp \
     $(SRC_DIR)/Memory.cpp \
     $(SRC_DIR)/MemoryRule.cpp \
     $(SRC_DIR)/MSXMemoryRule.cpp \
@@ -60,6 +61,7 @@ SOURCES_CXX := \
     $(SRC_DIR)/BootromMemoryRule.cpp \
     $(SRC_DIR)/JanggunMemoryRule.cpp \
     $(SRC_DIR)/YM2413.cpp \
+    $(SRC_DIR)/VgmRecorder.cpp \
     $(SRC_DIR)/audio/Blip_Buffer.cpp \
     $(SRC_DIR)/audio/Sms_Apu.cpp \
     $(SRC_DIR)/audio/Stereo_Buffer.cpp \

@@ -41,6 +41,7 @@ static bool running = true;
 static bool paused_when_focus_lost = false;
 static Uint64 frame_time_start = 0;
 static Uint64 frame_time_end = 0;
+static bool input_gamepad_shortcut_prev[2][config_HotkeyIndex_COUNT] = { };
 static Uint32 mouse_last_motion_time = 0;
 static const Uint32 mouse_hide_timeout_ms = 1500;
 
@@ -53,6 +54,8 @@ static void sdl_events_emu(const SDL_Event* event);
 static void sdl_shortcuts_gui(const SDL_Event* event);
 static void sdl_add_gamepads(void);
 static void sdl_remove_gamepad(SDL_JoystickID instance_id);
+static void input_check_gamepad_shortcuts(int controller);
+static bool input_get_button(SDL_GameController* controller, int mapping);
 static void handle_mouse_cursor(void);
 static void handle_menu(void);
 static void run_emulator(void);
@@ -60,6 +63,7 @@ static void render(void);
 static void frame_throttle(void);
 static void save_window_size(void);
 static void log_sdl_error(const char* action, const char* file, int line);
+static bool check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat);
 
 #define SDL_ERROR(action) log_sdl_error(action, __FILE__, __LINE__)
 
@@ -409,7 +413,8 @@ static void sdl_destroy(void)
 
 static void sdl_load_gamepad_mappings(void)
 {
-    std::ifstream file("gamecontrollerdb.txt");
+    std::ifstream file;
+    open_ifstream_utf8(file, "gamecontrollerdb.txt", std::ios::in);
     int added_mappings = 0;
     int updated_mappings = 0;
     int line_number = 0;
@@ -555,15 +560,18 @@ static void sdl_events_emu(const SDL_Event* event)
             {
                 case SDL_WINDOWEVENT_FOCUS_GAINED:
                 {
-                    if (!paused_when_focus_lost)
+                    if (config_emulator.pause_when_inactive && !paused_when_focus_lost)
                         emu_resume();
                 }
                 break;
 
                 case SDL_WINDOWEVENT_FOCUS_LOST:
                 {
-                    paused_when_focus_lost = emu_is_paused();
-                    emu_pause();
+                    if (config_emulator.pause_when_inactive)
+                    {
+                        paused_when_focus_lost = emu_is_paused();
+                        emu_pause();
+                    }
                 }
                 break;
             }
@@ -677,6 +685,8 @@ static void sdl_events_emu(const SDL_Event* event)
                     emu_key_released(pad, Key_Left);
                 else if (event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
                     emu_key_released(pad, Key_Right);
+
+                input_check_gamepad_shortcuts(i);
             }
         }
         break;
@@ -772,26 +782,6 @@ static void sdl_events_emu(const SDL_Event* event)
 
             int key = event->key.keysym.scancode;
 
-            if (key == SDL_SCANCODE_ESCAPE)
-            {
-                config_emulator.fullscreen = false;
-                application_trigger_fullscreen(false);
-                break;
-            }
-
-            if (key == SDL_SCANCODE_F11)
-            {
-                config_emulator.fullscreen = !config_emulator.fullscreen;
-                application_trigger_fullscreen(config_emulator.fullscreen);
-                break;
-            }
-
-            if (key == SDL_SCANCODE_F12)
-            {
-                config_emulator.capture_mouse = !config_emulator.capture_mouse;
-                break;
-            }
-
             for (int i = 0; i < 2; i++)
             {
                 GS_Joypads pad = (i == 0) ? Joypad_1 : Joypad_2;
@@ -844,12 +834,103 @@ static void sdl_events_emu(const SDL_Event* event)
 
 static void sdl_shortcuts_gui(const SDL_Event* event)
 {
-    if (event->type == SDL_KEYDOWN)
+    if (event->type != SDL_KEYDOWN)
+        return;
+
+    // Check special case hotkeys first
+    if (check_hotkey(event, config_hotkeys[config_HotkeyIndex_Quit], false))
     {
-        int key = event->key.keysym.scancode;
-        int mod = event->key.keysym.mod;
-        gui_process_input(key, mod);
+        application_trigger_quit();
+        return;
     }
+
+    if (check_hotkey(event, config_hotkeys[config_HotkeyIndex_Fullscreen], false))
+    {
+        config_emulator.fullscreen = !config_emulator.fullscreen;
+        application_trigger_fullscreen(config_emulator.fullscreen);
+        return;
+    }
+
+    if (check_hotkey(event, config_hotkeys[config_HotkeyIndex_CaptureMouse], false))
+    {
+        config_emulator.capture_mouse = !config_emulator.capture_mouse;
+        return;
+    }
+
+    // Check slot selection hotkeys
+    for (int i = 0; i < 5; i++)
+    {
+        if (check_hotkey(event, config_hotkeys[config_HotkeyIndex_SelectSlot1 + i], false))
+        {
+            config_emulator.save_slot = i;
+            return;
+        }
+    }
+
+    // Check all hotkeys mapped to gui shortcuts
+    for (int i = 0; i < GUI_HOTKEY_MAP_COUNT; i++)
+    {
+        if (gui_hotkey_map[i].shortcut >= 0 && check_hotkey(event, config_hotkeys[gui_hotkey_map[i].config_index], gui_hotkey_map[i].allow_repeat))
+        {
+            gui_shortcut((gui_ShortCutEvent)gui_hotkey_map[i].shortcut);
+            return;
+        }
+    }
+
+    // Fixed hotkeys for debug copy/paste operations
+    int key = event->key.keysym.scancode;
+    SDL_Keymod mods = (SDL_Keymod)event->key.keysym.mod;
+
+    if (event->key.repeat == 0 && key == SDL_SCANCODE_C && (mods & KMOD_CTRL))
+    {
+        gui_shortcut(gui_ShortcutDebugCopy);
+        return;
+    }
+
+    if (event->key.repeat == 0 && key == SDL_SCANCODE_V && (mods & KMOD_CTRL))
+    {
+        gui_shortcut(gui_ShortcutDebugPaste);
+        return;
+    }
+
+    // ESC to exit fullscreen
+    if (event->key.repeat == 0 && key == SDL_SCANCODE_ESCAPE)
+    {
+        if (config_emulator.fullscreen && !config_emulator.always_show_menu)
+        {
+            config_emulator.fullscreen = false;
+            application_trigger_fullscreen(false);
+        }
+    }
+}
+
+static bool check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat)
+{
+    if (event->type != SDL_KEYDOWN)
+        return false;
+
+    if (!allow_repeat && event->key.repeat != 0)
+        return false;
+
+    if (event->key.keysym.scancode != hotkey.key)
+        return false;
+
+    SDL_Keymod mods = (SDL_Keymod)event->key.keysym.mod;
+    SDL_Keymod expected = hotkey.mod;
+
+    SDL_Keymod mods_normalized = (SDL_Keymod)0;
+    if (mods & (KMOD_LCTRL | KMOD_RCTRL)) mods_normalized = (SDL_Keymod)(mods_normalized | KMOD_CTRL);
+    if (mods & (KMOD_LSHIFT | KMOD_RSHIFT)) mods_normalized = (SDL_Keymod)(mods_normalized | KMOD_SHIFT);
+    if (mods & (KMOD_LALT | KMOD_RALT)) mods_normalized = (SDL_Keymod)(mods_normalized | KMOD_ALT);
+    if (mods & (KMOD_LGUI | KMOD_RGUI)) mods_normalized = (SDL_Keymod)(mods_normalized | KMOD_GUI);
+
+    SDL_Keymod expected_normalized = (SDL_Keymod)0;
+    if (expected & (KMOD_LCTRL | KMOD_RCTRL | KMOD_CTRL)) expected_normalized = (SDL_Keymod)(expected_normalized | KMOD_CTRL);
+    if (expected & (KMOD_LSHIFT | KMOD_RSHIFT | KMOD_SHIFT)) expected_normalized = (SDL_Keymod)(expected_normalized | KMOD_SHIFT);
+    if (expected & (KMOD_LALT | KMOD_RALT | KMOD_ALT)) expected_normalized = (SDL_Keymod)(expected_normalized | KMOD_ALT);
+    if (expected & (KMOD_LGUI | KMOD_RGUI | KMOD_GUI)) expected_normalized = (SDL_Keymod)(expected_normalized | KMOD_GUI);
+
+    return mods_normalized == expected_normalized;
 }
 
 static void sdl_add_gamepads(void)
@@ -927,6 +1008,60 @@ static void sdl_add_gamepads(void)
 
         if (player1_connected && player2_connected)
             break;
+    }
+}
+
+static void input_check_gamepad_shortcuts(int controller)
+{
+    SDL_GameController* sdl_controller = application_gamepad[controller];
+    if (!IsValidPointer(sdl_controller))
+        return;
+
+    for (int i = 0; i < config_HotkeyIndex_COUNT; i++)
+    {
+        int button_mapping = config_input_gamepad_shortcuts[controller].gamepad_shortcuts[i];
+        if (button_mapping == SDL_CONTROLLER_BUTTON_INVALID)
+            continue;
+
+        bool button_pressed = input_get_button(sdl_controller, button_mapping);
+
+        if (button_pressed && !input_gamepad_shortcut_prev[controller][i])
+        {
+            if (i >= config_HotkeyIndex_SelectSlot1 && i <= config_HotkeyIndex_SelectSlot5)
+            {
+                config_emulator.save_slot = i - config_HotkeyIndex_SelectSlot1;
+            }
+            else
+            {
+                for (int j = 0; j < GUI_HOTKEY_MAP_COUNT; j++)
+                {
+                    if (gui_hotkey_map[j].config_index == i)
+                    {
+                        gui_shortcut((gui_ShortCutEvent)gui_hotkey_map[j].shortcut);
+                        break;
+                    }
+                }
+            }
+        }
+
+        input_gamepad_shortcut_prev[controller][i] = button_pressed;
+    }
+}
+
+static bool input_get_button(SDL_GameController* controller, int mapping)
+{
+    if (!IsValidPointer(controller))
+        return false;
+
+    if (mapping >= GAMEPAD_VBTN_AXIS_BASE)
+    {
+        int axis = mapping - GAMEPAD_VBTN_AXIS_BASE;
+        Sint16 value = SDL_GameControllerGetAxis(controller, (SDL_GameControllerAxis)axis);
+        return value > GAMEPAD_VBTN_AXIS_THRESHOLD;
+    }
+    else
+    {
+        return SDL_GameControllerGetButton(controller, (SDL_GameControllerButton)mapping) != 0;
     }
 }
 

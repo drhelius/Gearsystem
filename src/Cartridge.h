@@ -45,10 +45,12 @@ public:
         CartridgeKoreanBFFCMapper,
         CartridgeKoreanFFF3FFFCMapper,
         CartridgeKoreanMDFFF5Mapper,
+        CartridgeKoreanMDFFF0Mapper,
         CartridgeMSXMapper,
         CartridgeJanggunMapper,
         CartridgeMulti4PAKAllActionMapper,
         CartridgeJumboDahjeeMapper,
+        CartridgeEeprom93C46Mapper,
         CartridgeHomebrewMapper,
         CartridgeNotSupported
     };
@@ -93,6 +95,7 @@ public:
     void Reset();
     u32 GetCRC() const;
     bool IsGameGear() const;
+    bool IsGameGearInSMSMode() const;
     bool IsSG1000() const;
     bool IsPAL() const;
     bool IsValidROM() const;
@@ -129,9 +132,11 @@ private:
     bool m_bReady;
     char m_szFilePath[512];
     char m_szFileName[512];
+    char m_szFileNameInZip[512];
     int m_iROMBankCount16k;
     int m_iROMBankCount8k;
     bool m_bGameGear;
+    bool m_bGameGearInSMSMode;
     bool m_bSG1000;
     bool m_bPAL;
     bool m_bRAMWithoutBattery;

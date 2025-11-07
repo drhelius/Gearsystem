@@ -22,7 +22,9 @@
     <ClCompile Include="..\..\src\miniz\miniz.c" />
     <ClCompile Include="..\..\src\Audio.cpp" />
     <ClCompile Include="..\..\src\audio\Blip_Buffer.cpp" />
-    <ClCompile Include="..\..\src\audio\emu2413\emu2413.c" />
+    <ClCompile Include="..\..\src\audio\emu2413\emu2413.c">
+      <DisableSpecificWarnings>4244</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="..\..\src\audio\Stereo_Buffer.cpp" />
     <ClCompile Include="..\..\src\audio\Sms_Apu.cpp" />
     <ClCompile Include="..\..\src\BootromMemoryRule.cpp" />
@@ -48,6 +50,7 @@
     <ClCompile Include="..\..\src\SmsIOPorts.cpp" />
     <ClCompile Include="..\..\src\Video.cpp" />
     <ClCompile Include="..\..\src\YM2413.cpp" />
+    <ClCompile Include="..\..\src\VgmRecorder.cpp" />
     <ClCompile Include="..\audio-shared\sound_queue.cpp" />
     <ClCompile Include="..\desktop-shared\application.cpp" />
     <ClCompile Include="..\desktop-shared\config.cpp" />
@@ -56,7 +59,6 @@
     <ClCompile Include="..\desktop-shared\gui_debug.cpp" />
     <ClCompile Include="..\desktop-shared\gui_debug_memory.cpp" />
     <ClCompile Include="..\desktop-shared\gui_debug_memeditor.cpp" />
-    <ClCompile Include="..\desktop-shared\gui_events.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui_demo.cpp" />
     <ClCompile Include="..\desktop-shared\imgui\imgui_draw.cpp" />
@@ -76,9 +78,11 @@
     <ClCompile Include="..\..\src\KoreanBFFCMemoryRule.cpp" />
     <ClCompile Include="..\..\src\KoreanFFF3FFFCMemoryRule.cpp" />
     <ClCompile Include="..\..\src\KoreanMDFFF5MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\KoreanMDFFF0MemoryRule.cpp" />
     <ClCompile Include="..\..\src\Multi4PAKAllActionMemoryRule.cpp" />
     <ClCompile Include="..\..\src\JumboDahjeeMemoryRule.cpp" />
     <ClCompile Include="..\..\src\HomebrewMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\Eeprom93C46MemoryRule.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\log.h" />
@@ -126,6 +130,7 @@
     <ClInclude Include="..\..\src\SmsIOPorts.h" />
     <ClInclude Include="..\..\src\Video.h" />
     <ClInclude Include="..\..\src\YM2413.h" />
+    <ClInclude Include="..\..\src\VgmRecorder.h" />
     <ClInclude Include="..\audio-shared\sound_queue.h" />
     <ClInclude Include="..\desktop-shared\application.h" />
     <ClInclude Include="..\desktop-shared\backers.h" />
@@ -136,7 +141,6 @@
     <ClInclude Include="..\desktop-shared\gui_debug_memory.h" />
     <ClInclude Include="..\desktop-shared\gui_debug_memeditor.h" />
     <ClInclude Include="..\desktop-shared\gui_debug_constants.h" />
-    <ClInclude Include="..\desktop-shared\gui_events.h" />
     <ClInclude Include="..\desktop-shared\imgui\fonts\RobotoMedium.h" />
     <ClInclude Include="..\desktop-shared\imgui\imconfig.h" />
     <ClInclude Include="..\desktop-shared\imgui\imgui.h" />
@@ -161,14 +165,14 @@
     <ClInclude Include="..\..\src\KoreanBFFCMemoryRule.h" />
     <ClInclude Include="..\..\src\KoreanFFF3FFFCMemoryRule.h" />
     <ClInclude Include="..\..\src\KoreanMDFFF5MemoryRule.h" />
+    <ClInclude Include="..\..\src\KoreanMDFFF0MemoryRule.h" />
     <ClInclude Include="..\..\src\Multi4PAKAllActionMemoryRule.h" />
     <ClInclude Include="..\..\src\JumboDahjeeMemoryRule.h" />
+    <ClInclude Include="..\..\src\Eeprom93C46MemoryRule.h" />
     <ClInclude Include="..\desktop-shared\stb\stb_image_write.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="..\desktop-shared\gui_events.def" />
-  </ItemGroup>
+
   <ItemGroup>
     <Manifest Include="Gearsystem.manifest" />
   </ItemGroup>

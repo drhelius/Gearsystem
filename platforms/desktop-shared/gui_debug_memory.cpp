@@ -207,7 +207,7 @@ static void draw_tabs(void)
     }
     else
     {
-        if (cart->GetType() == Cartridge::CartridgeSegaMapper)
+        if ((cart->GetType() == Cartridge::CartridgeSegaMapper) || (cart->GetType() == Cartridge::CartridgeEeprom93C46Mapper))
         {
             draw_single_tab(MEMORY_EDITOR_FIXED_1K);
             draw_single_tab(MEMORY_EDITOR_ROM0_SEGA);

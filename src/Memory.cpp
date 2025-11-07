@@ -22,9 +22,12 @@
 #include <fstream>
 #include "Memory.h"
 #include "Processor.h"
+#include "Cartridge.h"
+#include "common.h"
 
-Memory::Memory()
+Memory::Memory(Cartridge* pCartridge)
 {
+    m_pCartridge = pCartridge;
     InitPointer(m_pProcessor);
     InitPointer(m_pMap);
     InitPointer(m_pCurrentMemoryRule);
@@ -158,7 +161,8 @@ void Memory::MemoryDump(const char* szFilePath)
 
     using namespace std;
 
-    ofstream myfile(szFilePath, ios::out | ios::trunc);
+    ofstream myfile;
+    open_ofstream_utf8(myfile, szFilePath, ios::out | ios::trunc);
 
     if (myfile.is_open())
     {
@@ -263,7 +267,8 @@ void Memory::LoadBootroom(const char* szFilePath, bool gg)
 
     u8* bootrom = gg ? m_pBootromGG : m_pBootromSMS;
 
-    ifstream file(szFilePath, ios::in | ios::binary | ios::ate);
+    ifstream file;
+    open_ifstream_utf8(file, szFilePath, ios::in | ios::binary | ios::ate);
 
     if (file.is_open())
     {
@@ -308,6 +313,9 @@ void Memory::LoadBootroom(const char* szFilePath, bool gg)
 
 bool Memory::IsBootromEnabled()
 {
+    if (m_pCartridge->IsSG1000() || m_pCartridge->IsGameGearInSMSMode())
+        return false;
+
     return (m_bBootromSMSEnabled && m_bBootromSMSLoaded && !m_bGameGear) || (m_bBootromGGEnabled && m_bBootromGGLoaded && m_bGameGear);
 }
 
