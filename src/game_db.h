@@ -148,6 +148,7 @@ const GS_GameDBEntry kGameDatabase[] =
     {0xBE9A7071, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_PAL, "Incredible Hulk"},
     {0x8AEB574B, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_PAL, "Indiana Jones and the Last Crusade: The Action Game"},
     {0x8D23587F, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_PAL, "James Bond 007: The Duel"},
+    {0x102D5FEA, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_PAL, "James Pond 2: Codename RoboCod"},
     {0x695A9A15, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_PAL, "Jungle Book"},
     {0x0667ED9F, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_PAL, "Jurassic Park"},
     {0x45C50294, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_PAL, "Jogos de Verao II (BR)"},
