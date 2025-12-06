@@ -78,6 +78,12 @@
     <ClCompile Include="..\desktop-shared\imgui\imgui_widgets.cpp">
       <Filter>desktop_shared\imgui</Filter>
     </ClCompile>
+    <ClCompile Include="..\desktop-shared\imgui\implot.cpp">
+      <Filter>desktop_shared\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\desktop-shared\imgui\implot_items.cpp">
+      <Filter>desktop_shared\imgui</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\Audio.cpp">
       <Filter>core</Filter>
     </ClCompile>
@@ -262,6 +268,12 @@
       <Filter>desktop_shared\imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\imstb_truetype.h">
+      <Filter>desktop_shared\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\imgui\implot.h">
+      <Filter>desktop_shared\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\imgui\implot_internal.h">
       <Filter>desktop_shared\imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\fonts\RobotoMedium.h">
