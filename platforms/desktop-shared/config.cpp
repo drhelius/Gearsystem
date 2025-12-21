@@ -208,6 +208,12 @@ void config_read(void)
     config_video.scanlines_filter = read_bool("Video", "ScanlinesFilter", true);
     config_video.scanlines_intensity = read_float("Video", "ScanlinesIntensity", 0.10f);
     config_video.sync = read_bool("Video", "Sync", true);
+    config_video.background_color[0] = read_float("Video", "BackgroundColorR", 0.1f);
+    config_video.background_color[1] = read_float("Video", "BackgroundColorG", 0.1f);
+    config_video.background_color[2] = read_float("Video", "BackgroundColorB", 0.1f);
+    config_video.background_color_debugger[0] = read_float("Video", "BackgroundColorDebuggerR", 0.2f);
+    config_video.background_color_debugger[1] = read_float("Video", "BackgroundColorDebuggerG", 0.2f);
+    config_video.background_color_debugger[2] = read_float("Video", "BackgroundColorDebuggerB", 0.2f);
     config_video.glasses = read_int("Video", "3DGlasses", 0);
     
     config_audio.enable = read_bool("Audio", "Enable", true);
@@ -356,6 +362,12 @@ void config_write(void)
     write_bool("Video", "ScanlinesFilter", config_video.scanlines_filter);
     write_float("Video", "ScanlinesIntensity", config_video.scanlines_intensity);
     write_bool("Video", "Sync", config_video.sync);
+    write_float("Video", "BackgroundColorR", config_video.background_color[0]);
+    write_float("Video", "BackgroundColorG", config_video.background_color[1]);
+    write_float("Video", "BackgroundColorB", config_video.background_color[2]);
+    write_float("Video", "BackgroundColorDebuggerR", config_video.background_color_debugger[0]);
+    write_float("Video", "BackgroundColorDebuggerG", config_video.background_color_debugger[1]);
+    write_float("Video", "BackgroundColorDebuggerB", config_video.background_color_debugger[2]);
     write_int("Video", "3DGlasses", config_video.glasses);
 
     write_bool("Audio", "Enable", config_audio.enable);
