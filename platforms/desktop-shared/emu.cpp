@@ -76,6 +76,7 @@ bool emu_init(void)
     emu_audio_sync = true;
     emu_debug_disable_breakpoints_cpu = false;
     emu_debug_disable_breakpoints_mem = false;
+    emu_debug_step_frames_pending = 0;
     emu_debug_tile_palette = 0;
     emu_savefiles_dir_option = 0;
     emu_savestates_dir_option = 0;
@@ -119,7 +120,18 @@ void emu_update(void)
                 debugging = true;
             }
 
-            debug_next_frame = false;
+            if (emu_debug_step_frames_pending > 0)
+            {
+                emu_debug_step_frames_pending--;
+                if (emu_debug_step_frames_pending > 0)
+                    debug_next_frame = true;
+                else
+                    debug_next_frame = false;
+            }
+            else
+            {
+                debug_next_frame = false;
+            }
             debug_step = false;
         }
 
