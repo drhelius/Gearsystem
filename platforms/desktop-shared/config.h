@@ -38,6 +38,7 @@ struct config_Emulator
 {
     bool maximized = false;
     bool fullscreen = false;
+    int fullscreen_mode = 1;
     bool always_show_menu = false;
     bool paused = false;
     int save_slot = 0;
