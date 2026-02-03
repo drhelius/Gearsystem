@@ -95,6 +95,7 @@
     <ClInclude Include="..\..\src\BootromMemoryRule.h" />
     <ClInclude Include="..\..\src\Cartridge.h" />
     <ClInclude Include="..\..\src\CodemastersMemoryRule.h" />
+    <ClInclude Include="..\..\src\common.h" />
     <ClInclude Include="..\..\src\definitions.h" />
     <ClInclude Include="..\..\src\GameGearIOPorts.h" />
     <ClInclude Include="..\..\src\game_db.h" />
@@ -134,6 +135,7 @@
     <ClInclude Include="..\desktop-shared\application.h" />
     <ClInclude Include="..\desktop-shared\backers.h" />
     <ClInclude Include="..\desktop-shared\config.h" />
+    <ClInclude Include="..\desktop-shared\console_utils.h" />
     <ClInclude Include="..\desktop-shared\emu.h" />
     <ClInclude Include="..\desktop-shared\gui.h" />
     <ClInclude Include="..\desktop-shared\gui_debug.h" />
@@ -155,6 +157,7 @@
     <ClInclude Include="..\desktop-shared\nfd\nfd.h" />
     <ClInclude Include="..\desktop-shared\nfd\nfd_sdl2.h" />
     <ClInclude Include="..\desktop-shared\renderer.h" />
+    <ClInclude Include="..\desktop-shared\utils.h" />
     <ClInclude Include="..\..\src\KoreanMSX32KB2000MemoryRule.h" />
     <ClInclude Include="..\..\src\Korean2000XOR1FMemoryRule.h" />
     <ClInclude Include="..\..\src\KoreanMSX8KB0300MemoryRule.h" />
