@@ -37,7 +37,11 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
       <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.8.6/Gearsystem-3.8.6-windows-arm64.zip">Gearsystem-3.8.6-windows-arm64.zip</a></td>
     </tr>
     <tr>
-      <td rowspan="2"><strong>macOS</strong></td>
+      <td rowspan="3"><strong>macOS</strong></td>
+      <td>Homebrew</td>
+      <td><code>brew install --cask drhelius/geardome/gearsystem</code></td>
+    </tr>
+    <tr>
       <td>Apple Silicon</td>
       <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.8.6/Gearsystem-3.8.6-macos-arm.zip">Gearsystem-3.8.6-macos-arm.zip</a></td>
     </tr>
