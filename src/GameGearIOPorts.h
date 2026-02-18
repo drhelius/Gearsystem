@@ -169,7 +169,7 @@ inline void GameGearIOPorts::DoOutput(u8 port, u8 value)
         else
             m_pVideo->WriteControl(value);
     }
-#ifdef DEBUG_GEARSYSTEM
+#ifdef GS_DEBUG
     else
     {
         // Writes have no effect.

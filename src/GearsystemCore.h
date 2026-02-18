@@ -109,6 +109,7 @@ public:
     Audio* GetAudio();
     Video* GetVideo();
     void SetGlassesConfig(GlassesConfig config);
+    u64 GetMasterClockCycles();
 
 private:
     void InitMemoryRules();
@@ -152,6 +153,7 @@ private:
     RamChangedCallback m_pRamChangedCallback;
     GS_Color_Format m_pixelFormat;
     GlassesConfig m_GlassesConfig;
+    u64 m_master_clock_cycles;
 };
 
 #endif	/* CORE_H */

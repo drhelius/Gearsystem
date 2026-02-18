@@ -138,7 +138,7 @@ void retro_init(void)
     else
         snprintf(retro_system_directory, sizeof(retro_system_directory), "%s", ".");
 
-    log_cb(RETRO_LOG_INFO, "%s (%s) libretro\n", GEARSYSTEM_TITLE, EMULATOR_BUILD);
+    log_cb(RETRO_LOG_INFO, "%s (%s) libretro\n", GS_TITLE, EMULATOR_BUILD);
 
     core = new GearsystemCore();
 
@@ -223,7 +223,7 @@ void retro_get_system_info(struct retro_system_info *info)
 {
     memset(info, 0, sizeof(*info));
     info->library_name     = "Gearsystem";
-    info->library_version  = GEARSYSTEM_VERSION;
+    info->library_version  = GS_VERSION;
     info->need_fullpath    = false;
     info->valid_extensions = "sms|gg|sg|mv|bin|rom";
 }

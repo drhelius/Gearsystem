@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ARM64">
@@ -19,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\miniz\miniz.c" />
     <ClCompile Include="..\..\src\Audio.cpp" />
     <ClCompile Include="..\..\src\audio\Blip_Buffer.cpp" />
     <ClCompile Include="..\..\src\audio\emu2413\emu2413.c">
@@ -30,16 +29,29 @@
     <ClCompile Include="..\..\src\BootromMemoryRule.cpp" />
     <ClCompile Include="..\..\src\Cartridge.cpp" />
     <ClCompile Include="..\..\src\CodemastersMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\Eeprom93C46MemoryRule.cpp" />
     <ClCompile Include="..\..\src\GameGearIOPorts.cpp" />
     <ClCompile Include="..\..\src\GearsystemCore.cpp" />
     <ClCompile Include="..\..\src\Input.cpp" />
     <ClCompile Include="..\..\src\JanggunMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\JumboDahjeeMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\Korean0000XORFFMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\Korean2000XOR1FMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\KoreanBFFCMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\KoreanFFF3FFFCMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\KoreanFFFEMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\KoreanFFFFHiComMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\KoreanMDFFF0MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\KoreanMDFFF5MemoryRule.cpp" />
     <ClCompile Include="..\..\src\KoreanMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\KoreanMSX32KB2000MemoryRule.cpp" />
+    <ClCompile Include="..\..\src\KoreanMSX8KB0300MemoryRule.cpp" />
     <ClCompile Include="..\..\src\KoreanMSXSMS8000MemoryRule.cpp" />
     <ClCompile Include="..\..\src\KoreanSMS32KB2000MemoryRule.cpp" />
     <ClCompile Include="..\..\src\Memory.cpp" />
     <ClCompile Include="..\..\src\MemoryRule.cpp" />
     <ClCompile Include="..\..\src\MSXMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\Multi4PAKAllActionMemoryRule.cpp" />
     <ClCompile Include="..\..\src\opcodes.cpp" />
     <ClCompile Include="..\..\src\opcodes_cb.cpp" />
     <ClCompile Include="..\..\src\opcodes_ed.cpp" />
@@ -51,41 +63,65 @@
     <ClCompile Include="..\..\src\Video.cpp" />
     <ClCompile Include="..\..\src\YM2413.cpp" />
     <ClCompile Include="..\..\src\VgmRecorder.cpp" />
-    <ClCompile Include="..\audio-shared\sound_queue.cpp" />
-    <ClCompile Include="..\desktop-shared\application.cpp" />
-    <ClCompile Include="..\desktop-shared\config.cpp" />
-    <ClCompile Include="..\desktop-shared\emu.cpp" />
-    <ClCompile Include="..\desktop-shared\gui.cpp" />
-    <ClCompile Include="..\desktop-shared\gui_debug.cpp" />
-    <ClCompile Include="..\desktop-shared\gui_debug_memory.cpp" />
-    <ClCompile Include="..\desktop-shared\gui_debug_memeditor.cpp" />
-    <ClCompile Include="..\desktop-shared\imgui\imgui.cpp" />
-    <ClCompile Include="..\desktop-shared\imgui\imgui_demo.cpp" />
-    <ClCompile Include="..\desktop-shared\imgui\imgui_draw.cpp" />
-    <ClCompile Include="..\desktop-shared\imgui\imgui_impl_opengl2.cpp" />
-    <ClCompile Include="..\desktop-shared\imgui\imgui_impl_sdl2.cpp" />
-    <ClCompile Include="..\desktop-shared\imgui\imgui_tables.cpp" />
-    <ClCompile Include="..\desktop-shared\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="..\desktop-shared\main.cpp" />
-    <ClCompile Include="..\desktop-shared\nfd\nfd_win.cpp" />
-    <ClCompile Include="..\desktop-shared\renderer.cpp" />
-    <ClCompile Include="..\..\src\KoreanMSX32KB2000MemoryRule.cpp" />
-    <ClCompile Include="..\..\src\Korean2000XOR1FMemoryRule.cpp" />
-    <ClCompile Include="..\..\src\KoreanMSX8KB0300MemoryRule.cpp" />
-    <ClCompile Include="..\..\src\Korean0000XORFFMemoryRule.cpp" />
-    <ClCompile Include="..\..\src\KoreanFFFFHiComMemoryRule.cpp" />
-    <ClCompile Include="..\..\src\KoreanFFFEMemoryRule.cpp" />
-    <ClCompile Include="..\..\src\KoreanBFFCMemoryRule.cpp" />
-    <ClCompile Include="..\..\src\KoreanFFF3FFFCMemoryRule.cpp" />
-    <ClCompile Include="..\..\src\KoreanMDFFF5MemoryRule.cpp" />
-    <ClCompile Include="..\..\src\KoreanMDFFF0MemoryRule.cpp" />
-    <ClCompile Include="..\..\src\Multi4PAKAllActionMemoryRule.cpp" />
-    <ClCompile Include="..\..\src\JumboDahjeeMemoryRule.cpp" />
-    <ClCompile Include="..\..\src\Eeprom93C46MemoryRule.cpp" />
+    <ClCompile Include="..\shared\dependencies\miniz\miniz.c">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\sound_queue.cpp" />
+    <ClCompile Include="..\shared\desktop\application.cpp" />
+    <ClCompile Include="..\shared\desktop\config.cpp" />
+    <ClCompile Include="..\shared\desktop\emu.cpp" />
+    <ClCompile Include="..\shared\desktop\gui.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_actions.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug_disassembler.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug_memeditor.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug_memory.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug_psg.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug_trace_logger.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_filedialogs.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_menus.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_popups.cpp" />
+    <ClCompile Include="..\shared\desktop\main.cpp" />
+    <ClCompile Include="..\shared\desktop\ogl_renderer.cpp" />
+    <ClCompile Include="..\shared\desktop\display.cpp" />
+    <ClCompile Include="..\shared\desktop\events.cpp" />
+    <ClCompile Include="..\shared\desktop\gamepad.cpp" />
+    <ClCompile Include="..\shared\desktop\mcp\mcp_debug_adapter.cpp" />
+    <ClCompile Include="..\shared\desktop\mcp\mcp_server.cpp" />
+    <ClCompile Include="..\shared\desktop\single_instance.cpp" />
+    <ClCompile Include="..\shared\dependencies\imgui\imgui.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\imgui_demo.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\imgui_draw.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\imgui_impl_opengl3.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\imgui_impl_sdl3.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\imgui_tables.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\imgui_widgets.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\implot.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\implot_demo.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\shared\dependencies\imgui\implot_items.cpp">
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\log.h" />
-    <ClInclude Include="..\..\src\miniz\miniz.h" />
     <ClInclude Include="..\..\src\Audio.h" />
     <ClInclude Include="..\..\src\audio\Blip_Buffer.h" />
     <ClInclude Include="..\..\src\audio\emu2413\emu2413.h" />
@@ -97,6 +133,7 @@
     <ClInclude Include="..\..\src\CodemastersMemoryRule.h" />
     <ClInclude Include="..\..\src\common.h" />
     <ClInclude Include="..\..\src\definitions.h" />
+    <ClInclude Include="..\..\src\Eeprom93C46MemoryRule.h" />
     <ClInclude Include="..\..\src\GameGearIOPorts.h" />
     <ClInclude Include="..\..\src\game_db.h" />
     <ClInclude Include="..\..\src\gearsystem.h" />
@@ -104,13 +141,25 @@
     <ClInclude Include="..\..\src\Input.h" />
     <ClInclude Include="..\..\src\IOPorts.h" />
     <ClInclude Include="..\..\src\JanggunMemoryRule.h" />
+    <ClInclude Include="..\..\src\JumboDahjeeMemoryRule.h" />
+    <ClInclude Include="..\..\src\Korean0000XORFFMemoryRule.h" />
+    <ClInclude Include="..\..\src\Korean2000XOR1FMemoryRule.h" />
+    <ClInclude Include="..\..\src\KoreanBFFCMemoryRule.h" />
+    <ClInclude Include="..\..\src\KoreanFFF3FFFCMemoryRule.h" />
+    <ClInclude Include="..\..\src\KoreanFFFEMemoryRule.h" />
+    <ClInclude Include="..\..\src\KoreanFFFFHiComMemoryRule.h" />
+    <ClInclude Include="..\..\src\KoreanMDFFF0MemoryRule.h" />
+    <ClInclude Include="..\..\src\KoreanMDFFF5MemoryRule.h" />
     <ClInclude Include="..\..\src\KoreanMemoryRule.h" />
+    <ClInclude Include="..\..\src\KoreanMSX32KB2000MemoryRule.h" />
+    <ClInclude Include="..\..\src\KoreanMSX8KB0300MemoryRule.h" />
     <ClInclude Include="..\..\src\KoreanMSXSMS8000MemoryRule.h" />
     <ClInclude Include="..\..\src\KoreanSMS32KB2000MemoryRule.h" />
     <ClInclude Include="..\..\src\Memory.h" />
     <ClInclude Include="..\..\src\MemoryRule.h" />
     <ClInclude Include="..\..\src\Memory_inline.h" />
     <ClInclude Include="..\..\src\MSXMemoryRule.h" />
+    <ClInclude Include="..\..\src\Multi4PAKAllActionMemoryRule.h" />
     <ClInclude Include="..\..\src\opcodecb_names.h" />
     <ClInclude Include="..\..\src\opcodeddcb_names.h" />
     <ClInclude Include="..\..\src\opcodedd_names.h" />
@@ -131,50 +180,59 @@
     <ClInclude Include="..\..\src\Video.h" />
     <ClInclude Include="..\..\src\YM2413.h" />
     <ClInclude Include="..\..\src\VgmRecorder.h" />
-    <ClInclude Include="..\audio-shared\sound_queue.h" />
-    <ClInclude Include="..\desktop-shared\application.h" />
-    <ClInclude Include="..\desktop-shared\backers.h" />
-    <ClInclude Include="..\desktop-shared\config.h" />
-    <ClInclude Include="..\desktop-shared\console_utils.h" />
-    <ClInclude Include="..\desktop-shared\emu.h" />
-    <ClInclude Include="..\desktop-shared\gui.h" />
-    <ClInclude Include="..\desktop-shared\gui_debug.h" />
-    <ClInclude Include="..\desktop-shared\gui_debug_memory.h" />
-    <ClInclude Include="..\desktop-shared\gui_debug_memeditor.h" />
-    <ClInclude Include="..\desktop-shared\gui_debug_constants.h" />
-    <ClInclude Include="..\desktop-shared\imgui\fonts\RobotoMedium.h" />
-    <ClInclude Include="..\desktop-shared\imgui\imconfig.h" />
-    <ClInclude Include="..\desktop-shared\imgui\imgui.h" />
-    <ClInclude Include="..\desktop-shared\imgui\imgui_impl_opengl2.h" />
-    <ClInclude Include="..\desktop-shared\imgui\imgui_impl_sdl2.h" />
-    <ClInclude Include="..\desktop-shared\imgui\imgui_internal.h" />
-    <ClInclude Include="..\desktop-shared\imgui\imstb_rectpack.h" />
-    <ClInclude Include="..\desktop-shared\imgui\imstb_textedit.h" />
-    <ClInclude Include="..\desktop-shared\imgui\imstb_truetype.h" />
-    <ClInclude Include="..\desktop-shared\imgui\keyboard.h" />
-    <ClInclude Include="..\desktop-shared\license.h" />
-    <ClInclude Include="..\desktop-shared\mINI\ini.h" />
-    <ClInclude Include="..\desktop-shared\nfd\nfd.h" />
-    <ClInclude Include="..\desktop-shared\nfd\nfd_sdl2.h" />
-    <ClInclude Include="..\desktop-shared\renderer.h" />
-    <ClInclude Include="..\desktop-shared\utils.h" />
-    <ClInclude Include="..\..\src\KoreanMSX32KB2000MemoryRule.h" />
-    <ClInclude Include="..\..\src\Korean2000XOR1FMemoryRule.h" />
-    <ClInclude Include="..\..\src\KoreanMSX8KB0300MemoryRule.h" />
-    <ClInclude Include="..\..\src\Korean0000XORFFMemoryRule.h" />
-    <ClInclude Include="..\..\src\KoreanFFFFHiComMemoryRule.h" />
-    <ClInclude Include="..\..\src\KoreanFFFEMemoryRule.h" />
-    <ClInclude Include="..\..\src\KoreanBFFCMemoryRule.h" />
-    <ClInclude Include="..\..\src\KoreanFFF3FFFCMemoryRule.h" />
-    <ClInclude Include="..\..\src\KoreanMDFFF5MemoryRule.h" />
-    <ClInclude Include="..\..\src\KoreanMDFFF0MemoryRule.h" />
-    <ClInclude Include="..\..\src\Multi4PAKAllActionMemoryRule.h" />
-    <ClInclude Include="..\..\src\JumboDahjeeMemoryRule.h" />
-    <ClInclude Include="..\..\src\Eeprom93C46MemoryRule.h" />
-    <ClInclude Include="..\desktop-shared\stb\stb_image_write.h" />
+    <ClInclude Include="..\shared\dependencies\glad\glad.h" />
+    <ClInclude Include="..\shared\dependencies\miniz\miniz.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\imgui_impl_sdl3.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\fonts\IconsMaterialDesign.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\fonts\MaterialIcons.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\fonts\RobotoMedium.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\imconfig.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\imgui.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\imgui_internal.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\implot.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\implot_internal.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\imstb_rectpack.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\imstb_textedit.h" />
+    <ClInclude Include="..\shared\dependencies\imgui\imstb_truetype.h" />
+    <ClInclude Include="..\shared\dependencies\json\json.hpp" />
+    <ClInclude Include="..\shared\dependencies\mINI\ini.h" />
+    <ClInclude Include="..\shared\dependencies\stb\stb_image_write.h" />
+    <ClInclude Include="..\shared\desktop\keyboard.h" />
+    <ClInclude Include="..\shared\desktop\sound_queue.h" />
+    <ClInclude Include="..\shared\desktop\single_instance.h" />
+    <ClInclude Include="..\shared\desktop\application.h" />
+    <ClInclude Include="..\shared\desktop\backers.h" />
+    <ClInclude Include="..\shared\desktop\config.h" />
+    <ClInclude Include="..\shared\desktop\console_utils.h" />
+    <ClInclude Include="..\shared\desktop\emu.h" />
+    <ClInclude Include="..\shared\desktop\gui.h" />
+    <ClInclude Include="..\shared\desktop\gui_actions.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_constants.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_disassembler.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_memeditor.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_memory.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_psg.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_text.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_trace_logger.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_widgets.h" />
+    <ClInclude Include="..\shared\desktop\gui_filedialogs.h" />
+    <ClInclude Include="..\shared\desktop\gui_menus.h" />
+    <ClInclude Include="..\shared\desktop\gui_popups.h" />
+    <ClInclude Include="..\shared\desktop\license.h" />
+    <ClInclude Include="..\shared\desktop\mcp\mcp_debug_adapter.h" />
+    <ClInclude Include="..\shared\desktop\mcp\mcp_manager.h" />
+    <ClInclude Include="..\shared\desktop\mcp\mcp_server.h" />
+    <ClInclude Include="..\shared\desktop\mcp\mcp_transport.h" />
+    <ClInclude Include="..\shared\desktop\ogl_renderer.h" />
+    <ClInclude Include="..\shared\desktop\display.h" />
+    <ClInclude Include="..\shared\desktop\events.h" />
+    <ClInclude Include="..\shared\desktop\gamepad.h" />
+    <ClInclude Include="..\shared\desktop\utils.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
-
   <ItemGroup>
     <Manifest Include="Gearsystem.manifest" />
   </ItemGroup>
@@ -185,9 +243,10 @@
     <ResourceCompile Include="Gearsystem.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{B12702AD-ABFB-343A-A199-8E24837244A3}</ProjectGuid>
     <RootNamespace>Gearsystem</RootNamespace>
-    <Keyword>Qt4VSv1.0</Keyword>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -264,7 +323,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;dependencies/SDL2-2.30.6/include;dependencies/SDL2-2.30.6/include/sdl2;release;.;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../../src;../shared/dependencies/imgui;../shared/dependencies/mINI;../shared/dependencies/stb;../shared/dependencies/miniz;../shared/dependencies/glad;../shared/dependencies/json;dependencies/SDL3/include;release;.;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-Zc:strictStrings -Zc:throwingNew -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
       <AssemblerListingLocation>release\</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>
@@ -273,7 +332,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <Optimization>MaxSpeed</Optimization>
-      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;NDEBUG;EMULATOR_BUILD="$(EmulatorBuild)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;UNICODE;WIN32;WIN64;NDEBUG;EMULATOR_BUILD="$(EmulatorBuild)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -283,8 +342,8 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;opengl32.lib;glu32.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>dependencies\SDL2-2.30.6\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL3.lib;opengl32.lib;glu32.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>dependencies\SDL3\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <IgnoreImportLibrary>true</IgnoreImportLibrary>
@@ -300,12 +359,12 @@
       <WarningLevel>0</WarningLevel>
     </Midl>
     <ResourceCompile>
-      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;QT_NO_DEBUG;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;dependencies/SDL2-2.30.6/include;dependencies/SDL2-2.30.6/include/sdl2;release;.;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../../src;../shared/dependencies/imgui;../shared/dependencies/mINI;../shared/dependencies/stb;../shared/dependencies/miniz;../shared/dependencies/glad;../shared/dependencies/json;dependencies/SDL3/include;release;.;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-Zc:strictStrings -Zc:throwingNew -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
       <AssemblerListingLocation>release\</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>
@@ -314,7 +373,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <Optimization>MaxSpeed</Optimization>
-      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;NDEBUG;EMULATOR_BUILD="$(EmulatorBuild)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;UNICODE;WIN32;WIN64;NDEBUG;EMULATOR_BUILD="$(EmulatorBuild)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -324,8 +383,8 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;opengl32.lib;glu32.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>dependencies\SDL2-2.30.6\lib\arm64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL3.lib;opengl32.lib;glu32.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>dependencies\SDL3\lib\arm64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <IgnoreImportLibrary>true</IgnoreImportLibrary>
@@ -341,12 +400,12 @@
       <WarningLevel>0</WarningLevel>
     </Midl>
     <ResourceCompile>
-      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;QT_NO_DEBUG;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;dependencies/SDL2-2.30.6/include;dependencies/SDL2-2.30.6/include/sdl2;debug;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../../src;../shared/dependencies/imgui;../shared/dependencies/mINI;../shared/dependencies/stb;../shared/dependencies/miniz;../shared/dependencies/glad;../shared/dependencies/json;dependencies/SDL3/include;debug;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-Zc:strictStrings -Zc:throwingNew -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
       <AssemblerListingLocation>debug\</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>
@@ -355,7 +414,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>DEBUG;UNICODE;WIN32;WIN64;EMULATOR_BUILD="$(EmulatorBuild)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;DEBUG;UNICODE;WIN32;WIN64;EMULATOR_BUILD="$(EmulatorBuild)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -365,8 +424,8 @@
       <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2main.lib;SDL2.lib;opengl32.lib;glu32.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>dependencies\SDL2-2.30.6\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL3.lib;opengl32.lib;glu32.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>dependencies\SDL3\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreImportLibrary>true</IgnoreImportLibrary>
@@ -381,12 +440,12 @@
       <WarningLevel>0</WarningLevel>
     </Midl>
     <ResourceCompile>
-      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;dependencies/SDL2-2.30.6/include;dependencies/SDL2-2.30.6/include/sdl2;debug;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../../src;../shared/dependencies/imgui;../shared/dependencies/mINI;../shared/dependencies/stb;../shared/dependencies/miniz;../shared/dependencies/glad;../shared/dependencies/json;dependencies/SDL3/include;debug;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-Zc:strictStrings -Zc:throwingNew -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
       <AssemblerListingLocation>debug\</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>
@@ -395,7 +454,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>DEBUG;UNICODE;WIN32;WIN64;EMULATOR_BUILD="$(EmulatorBuild)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;DEBUG;UNICODE;WIN32;WIN64;EMULATOR_BUILD="$(EmulatorBuild)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -405,8 +464,8 @@
       <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2main.lib;SDL2.lib;opengl32.lib;glu32.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>dependencies\SDL2-2.30.6\lib\arm64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL3.lib;opengl32.lib;glu32.lib;Shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>dependencies\SDL3\lib\arm64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreImportLibrary>true</IgnoreImportLibrary>
@@ -421,14 +480,9 @@
       <WarningLevel>0</WarningLevel>
     </Midl>
     <ResourceCompile>
-      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>UNICODE;WIN32;WIN64;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
-  <ProjectExtensions>
-    <VisualStudio>
-      <UserProperties UicDir=".\GeneratedFiles" RccDir=".\GeneratedFiles" Qt5Version_x0020_x64="$(DefaultQtVersion)" />
-    </VisualStudio>
-  </ProjectExtensions>
 </Project>

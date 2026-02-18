@@ -63,12 +63,12 @@ void Input::KeyPressed(GS_Joypads joypad, GS_Keys key)
 {
     if (joypad == Joypad_1)
     {
-        if (!m_bGameGear && (key == Key_Start) && IsSetBit(m_Joypad1, Key_Start))
+        if (!m_bGameGear && (key == Key_Start) && (m_Joypad1 & Key_Start))
             m_pProccesor->RequestNMI();
-        m_Joypad1 = UnsetBit(m_Joypad1, key);
+        m_Joypad1 &= ~key;
     }
     else
-        m_Joypad2 = UnsetBit(m_Joypad2, key);
+        m_Joypad2 &= ~key;
 
     if (!m_bGameGear && m_bPhaser && (key == Key_1))
     {
@@ -79,9 +79,9 @@ void Input::KeyPressed(GS_Joypads joypad, GS_Keys key)
 void Input::KeyReleased(GS_Joypads joypad, GS_Keys key)
 {
     if (joypad == Joypad_1)
-        m_Joypad1 = SetBit(m_Joypad1, key);
+        m_Joypad1 |= key;
     else
-        m_Joypad2 = SetBit(m_Joypad2, key);
+        m_Joypad2 |= key;
 }
 
 void Input::EnablePhaser(bool enable)

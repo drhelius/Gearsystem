@@ -30,7 +30,7 @@
 #include <sstream>
 
 #ifdef DEBUG
-#define DEBUG_GEARSYSTEM 1
+#define GS_DEBUG 1
 #endif
 
 #if defined(PS2) || defined(PSP)
@@ -41,9 +41,9 @@
     #define EMULATOR_BUILD "undefined"
 #endif
 
-#define GEARSYSTEM_TITLE "Gearsystem"
-#define GEARSYSTEM_VERSION EMULATOR_BUILD
-#define GEARSYSTEM_TITLE_ASCII "" \
+#define GS_TITLE "Gearsystem"
+#define GS_VERSION EMULATOR_BUILD
+#define GS_TITLE_ASCII "" \
 "   ____                               _                  \n" \
 "  / ___| ___  __ _ _ __ ___ _   _ ___| |_ ___ _ __ ___   \n" \
 " | |  _ / _ \\/ _` | '__/ __| | | / __| __/ _ \\ '_ ` _ \\  \n" \
@@ -59,7 +59,7 @@
 #define BLARGG_USE_NAMESPACE 1
 #endif
 
-//#define GEARSYSTEM_DISABLE_DISASSEMBLER
+//#define GS_DISABLE_DISASSEMBLER
 
 #define MAX_ROM_SIZE 0x800000
 
@@ -135,9 +135,10 @@ typedef void (*RamChangedCallback) (void);
 
 #define GS_AUDIO_SAMPLE_RATE 44100
 #define GS_AUDIO_BUFFER_SIZE 4096
+#define GS_AUDIO_QUEUE_SIZE 4096
 
 #define GS_SAVESTATE_MAGIC 0x03121220
-#define GS_SAVESTATE_VERSION 1
+#define GS_SAVESTATE_VERSION 100
 
 enum GS_Color_Format
 {
@@ -151,13 +152,14 @@ enum GS_Color_Format
 
 enum GS_Keys
 {
-    Key_Up = 0,
-    Key_Down = 1,
-    Key_Left = 2,
-    Key_Right = 3,
-    Key_1 = 4,
-    Key_2 = 5,
-    Key_Start = 6,
+    Key_None = 0x00,
+    Key_Up = 0x01,
+    Key_Down = 0x02,
+    Key_Left = 0x04,
+    Key_Right = 0x08,
+    Key_1 = 0x10,
+    Key_2 = 0x20,
+    Key_Start = 0x80,
 };
 
 enum GS_Joypads
@@ -232,6 +234,12 @@ inline unsigned int Pow2Ceil(u16 n)
     return n;
 }
 
+#if defined(MSB_FIRST) || defined(__BIG_ENDIAN__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+    #define GS_BIG_ENDIAN
+#else
+    #define GS_LITTLE_ENDIAN
+#endif
+
 #if defined(__GNUC__) || defined(__clang__)
     #define INLINE inline __attribute__((always_inline))
     #define NO_INLINE __attribute__((noinline))
@@ -243,16 +251,16 @@ inline unsigned int Pow2Ceil(u16 n)
     #define NO_INLINE
 #endif
 
-#if !defined(DEBUG_GEARSYSTEM)
+#if !defined(GS_DEBUG)
     #if defined(__GNUC__) || defined(__clang__)
         #if !defined(__OPTIMIZE__) && !defined(__OPTIMIZE_SIZE__)
             #warning "Compiling without optimizations."
-            #define GEARSYSTEM_NO_OPTIMIZATIONS
+            #define GS_NO_OPTIMIZATIONS
         #endif
     #elif defined(_MSC_VER)
         #if !defined(NDEBUG)
             #pragma message("Compiling without optimizations.")
-            #define GEARSYSTEM_NO_OPTIMIZATIONS
+            #define GS_NO_OPTIMIZATIONS
         #endif
     #endif
 #endif

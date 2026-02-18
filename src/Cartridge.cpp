@@ -21,7 +21,7 @@
 #include <algorithm>
 #include <ctype.h>
 #include "Cartridge.h"
-#include "miniz/miniz.h"
+#include "miniz.h"
 #include "log.h"
 #include "common.h"
 
@@ -35,6 +35,7 @@ Cartridge::Cartridge()
     m_bReady = false;
     m_szFilePath[0] = 0;
     m_szFileName[0] = 0;
+    m_szFileDirectory[0] = 0;
     m_szFileNameInZip[0] = 0;
     m_iROMBankCount16k = 0;
     m_iROMBankCount8k = 0;
@@ -67,6 +68,7 @@ void Cartridge::Reset()
     m_bReady = false;
     m_szFilePath[0] = 0;
     m_szFileName[0] = 0;
+    m_szFileDirectory[0] = 0;
     m_szFileNameInZip[0] = 0;
     m_iROMBankCount16k = 0;
     m_iROMBankCount8k = 0;
@@ -324,6 +326,11 @@ const char* Cartridge::GetFileName() const
     return m_szFileName;
 }
 
+const char* Cartridge::GetFileDirectory() const
+{
+    return m_szFileDirectory;
+}
+
 u8* Cartridge::GetROM() const
 {
     return m_pROM;
@@ -507,26 +514,23 @@ void Cartridge::SetROMPath(const char* path)
 
     std::string pathstr(path);
     std::string filename;
+    std::string directory;
 
-    size_t pos = pathstr.find_last_of("\\");
+    size_t pos = pathstr.find_last_of("/\\");
     if (pos != std::string::npos)
     {
-        filename.assign(pathstr.begin() + pos + 1, pathstr.end());
+        filename = pathstr.substr(pos + 1);
+        directory = pathstr.substr(0, pos);
     }
     else
     {
-        pos = pathstr.find_last_of("/");
-        if (pos != std::string::npos)
-        {
-            filename.assign(pathstr.begin() + pos + 1, pathstr.end());
-        }
-        else
-        {
-            filename = pathstr;
-        }
+        filename = pathstr;
+        directory = "";
     }
 
-    strcpy(m_szFileName, filename.c_str());
+    snprintf(m_szFilePath, sizeof(m_szFilePath), "%s", path);
+    snprintf(m_szFileName, sizeof(m_szFileName), "%s", filename.c_str());
+    snprintf(m_szFileDirectory, sizeof(m_szFileDirectory), "%s", directory.c_str());
 }
 
 bool Cartridge::GatherMetadata(u32 crc)

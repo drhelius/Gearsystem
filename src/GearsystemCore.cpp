@@ -126,7 +126,7 @@ GearsystemCore::~GearsystemCore()
 
 void GearsystemCore::Init(GS_Color_Format pixelFormat)
 {
-    Log("Loading %s core %s by Ignacio Sanchez", GEARSYSTEM_TITLE, GEARSYSTEM_VERSION);
+    Log("Loading %s core %s by Ignacio Sanchez", GS_TITLE, GS_VERSION);
 
     m_pixelFormat = pixelFormat;
 
@@ -166,9 +166,10 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
 #endif
             vblank = m_pVideo->Tick(clockCycles);
             m_pAudio->Tick(clockCycles);
+            m_master_clock_cycles += clockCycles;
             totalClocks += clockCycles;
 
-#ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
+#ifndef GS_DISABLE_DISASSEMBLER
             if ((step || (stopOnBreakpoints && m_pProcessor->BreakpointHit())))
             {
                 vblank = true;
@@ -352,6 +353,11 @@ Video* GearsystemCore::GetVideo()
 void GearsystemCore::SetGlassesConfig(GlassesConfig config)
 {
     m_GlassesConfig = config;
+}
+
+u64 GearsystemCore::GetMasterClockCycles()
+{
+    return m_master_clock_cycles;
 }
 
 void GearsystemCore::KeyPressed(GS_Joypads joypad, GS_Keys key)
@@ -1098,6 +1104,7 @@ void GearsystemCore::Reset()
     m_pGameGearIOPorts->Reset();
     m_pSmsIOPorts->Reset();
     m_bPaused = false;
+    m_master_clock_cycles = 0;
 }
 
 void GearsystemCore::RenderFrameBuffer(u8* finalFrameBuffer)

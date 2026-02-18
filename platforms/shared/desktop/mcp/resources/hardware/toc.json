@@ -1,0 +1,46 @@
+{
+  "toc": [
+    {
+      "uri": "huc6280_cpu",
+      "title": "HuC6280 CPU — 8-bit CMOS Microprocessor",
+      "description": "CPU architecture: registers, MMU memory banking, interrupts, timer, and I/O ports",
+      "mimeType": "text/markdown"
+    },
+    {
+      "uri": "huc6280_instructions",
+      "title": "HuC6280 Instruction Set Reference",
+      "description": "Complete opcode reference with addressing modes, cycle counts, and flags",
+      "mimeType": "text/markdown"
+    },
+    {
+      "uri": "huc6280_psg",
+      "title": "HuC6280 PSG — Programmable Sound Generator",
+      "description": "Audio hardware: 6 channels, waveform memory, noise generators, and I/O registers",
+      "mimeType": "text/markdown"
+    },
+    {
+      "uri": "huc6270_vdc",
+      "title": "HuC6270 VDC — Video Display Controller",
+      "description": "Video chip: VRAM access, registers, sprites, backgrounds, DMA, and interrupts",
+      "mimeType": "text/markdown"
+    },
+    {
+      "uri": "huc6260_vce",
+      "title": "HuC6260 VCE — Video Color Encoder",
+      "description": "Palette system: 512-color RAM, palette organization, and color register access",
+      "mimeType": "text/markdown"
+    },
+    {
+      "uri": "huc6202_vpc",
+      "title": "HuC6202 VPC — Video Priority Controller (SuperGrafx)",
+      "description": "SuperGrafx only: dual-VDC priority control and window configuration",
+      "mimeType": "text/markdown"
+    },
+    {
+      "uri": "memory_map",
+      "title": "PC Engine Memory Map",
+      "description": "Memory layout: logical/physical addressing, MMU pages, I/O ports, and ROM/RAM mapping",
+      "mimeType": "text/markdown"
+    }
+  ]
+}

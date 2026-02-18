@@ -290,7 +290,7 @@ void Processor::ExecuteOPCode()
 
 void Processor::InvalidOPCode()
 {
-#ifdef DEBUG_GEARSYSTEM
+#ifdef GS_DEBUG
     u16 opcode_address = PC.GetValue() - 1;
     u16 prefix_address = PC.GetValue() - 2;
     u8 opcode = m_pMemory->Read(opcode_address);
@@ -318,7 +318,7 @@ void Processor::InvalidOPCode()
 
 void Processor::UndocumentedOPCode()
 {
-#ifdef DEBUG_GEARSYSTEM
+#ifdef GS_DEBUG
     u16 opcode_address = PC.GetValue() - 1;
     u8 opcode = m_pMemory->Read(opcode_address);
 
@@ -328,7 +328,7 @@ void Processor::UndocumentedOPCode()
 
 void Processor::DisassembleNextOpcode()
 {
-#ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
+#ifndef GS_DISABLE_DISASSEMBLER
     if (Disassemble(PC.GetValue()) || m_bRequestMemBreakpoint)
         m_bBreakpointHit = true;
 #endif

@@ -109,6 +109,7 @@ public:
     int GetROMBankCount8k() const;
     const char* GetFilePath() const;
     const char* GetFileName() const;
+    const char* GetFileDirectory() const;
     u8* GetROM() const;
     bool LoadFromFile(const char* path);
     bool LoadFromBuffer(const u8* buffer, int size, const char* path = NULL);
@@ -131,6 +132,7 @@ private:
     bool m_bReady;
     char m_szFilePath[512];
     char m_szFileName[512];
+    char m_szFileDirectory[512];
     char m_szFileNameInZip[512];
     int m_iROMBankCount16k;
     int m_iROMBankCount8k;

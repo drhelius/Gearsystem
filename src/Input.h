@@ -84,7 +84,7 @@ inline u8 Input::GetPortDC()
 {
     if (m_bPhaser && !m_bGameGear)
     {
-        return IsSetBit(m_Joypad1, Key_1) ? 0xFF : 0xEF;
+        return (m_Joypad1 & Key_1) ? 0xFF : 0xEF;
     }
     else if (m_bPaddle && !m_bGameGear)
     {
@@ -117,7 +117,7 @@ inline u8 Input::GetPortDD()
 
 inline u8 Input::GetPort00()
 {
-    return (IsSetBit(m_Joypad1, Key_Start) ? 0x80 : 0) & 0x80;
+    return m_Joypad1 & Key_Start;
 }
 
 #endif	/* INPUT_H */

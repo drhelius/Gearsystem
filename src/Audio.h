@@ -79,7 +79,7 @@ inline void Audio::Tick(unsigned int clockCycles)
 inline void Audio::WriteAudioRegister(u8 value)
 {
     m_pApu->write_data(m_ElapsedCycles, value);
-#ifndef GEARSYSTEM_DISABLE_VGMRECORDER
+#ifndef GS_DISABLE_VGMRECORDER
     if (m_bVgmRecordingEnabled)
         m_VgmRecorder.WritePSG(value);
 #endif
@@ -88,7 +88,7 @@ inline void Audio::WriteAudioRegister(u8 value)
 inline void Audio::WriteGGStereoRegister(u8 value)
 {
     m_pApu->write_ggstereo(m_ElapsedCycles, value);
-#ifndef GEARSYSTEM_DISABLE_VGMRECORDER
+#ifndef GS_DISABLE_VGMRECORDER
     if (m_bVgmRecordingEnabled)
         m_VgmRecorder.WriteGGStereo(value);
 #endif
@@ -123,7 +123,7 @@ inline void Audio::YM2413Write(u8 port, u8 value)
 
     m_pYM2413->Write(port, value);
 
-#ifndef GEARSYSTEM_DISABLE_VGMRECORDER
+#ifndef GS_DISABLE_VGMRECORDER
     if (m_bVgmRecordingEnabled && (port == 0xF0 || port == 0xF1))
         m_VgmRecorder.WriteYM2413(port, value);
 #endif

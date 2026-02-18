@@ -83,7 +83,7 @@ void Memory::SetProcessor(Processor* pProcessor)
 void Memory::Init()
 {
     m_pMap = new u8[0x10000];
-#ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
+#ifndef GS_DISABLE_DISASSEMBLER
     m_pDisassembledMap = new stDisassembleRecord*[0x10000];
     for (int i = 0; i < 0x10000; i++)
     {
@@ -424,7 +424,7 @@ void Memory::CheckBreakpoints(u16 address, bool write)
 
 void Memory::ResetDisassembledMemory()
 {
-    #ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
+    #ifndef GS_DISABLE_DISASSEMBLER
 
     if (IsValidPointer(m_pDisassembledROMMap))
     {
@@ -446,7 +446,7 @@ void Memory::ResetDisassembledMemory()
 
 void Memory::ResetRomDisassembledMemory()
 {
-    #ifndef GEARSYSTEM_DISABLE_DISASSEMBLER
+    #ifndef GS_DISABLE_DISASSEMBLER
 
     m_BreakpointsCPU.clear();
 

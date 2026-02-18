@@ -114,7 +114,7 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
             }
         }
 
-#ifndef GEARSYSTEM_DISABLE_VGMRECORDER
+#ifndef GS_DISABLE_VGMRECORDER
         if (m_bVgmRecordingEnabled)
             m_VgmRecorder.UpdateTiming(count / 2);
 #endif

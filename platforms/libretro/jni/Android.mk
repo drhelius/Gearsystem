@@ -3,11 +3,12 @@ LOCAL_PATH := $(call my-dir)
 ROOT_DIR   := $(LOCAL_PATH)/../../..
 CORE_DIR   := $(ROOT_DIR)/platforms/libretro
 SOURCE_DIR := $(ROOT_DIR)/src
+DEPS_DIR   := $(ROOT_DIR)/platforms/shared/dependencies
 INCLUDES   := -I$(CORE_DIR)
 
 include $(CORE_DIR)/Makefile.common
 
-COREFLAGS := -DHAVE_STDINT_H -DHAVE_INTTYPES_H -D__LIBRETRO__ -DGEARSYSTEM_DISABLE_DISASSEMBLER -DGEARSYSTEM_DISABLE_VGMRECORDER $(INCLUDES)
+COREFLAGS := -DHAVE_STDINT_H -DHAVE_INTTYPES_H -D__LIBRETRO__ -DGS_DISABLE_DISASSEMBLER -DGS_DISABLE_VGMRECORDER $(INCLUDES)
 
 GIT_VERSION ?= " $(shell git describe --abbrev=7 --dirty --always --tags || echo unknown)"
 ifneq ($(GIT_VERSION)," unknown")
