@@ -773,7 +773,7 @@ static void set_style(void)
     style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.9999899864196777f, 0.9999899864196777f, 1.0f, 1.0f);
     style.Colors[ImGuiCol_CheckMark] = ImVec4(0.4117647058823529f, 0.7019607843137254f, 0.01568627450980392f, 1.0f);
     style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.4117647058823529f, 0.7019607843137254f, 0.01568627450980392f, 1.0f);
-    style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.4117647058823529f, 0.7019607843137254f, 0.01568627450980392f, 1.0f);
+    style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.7117647058823529f, 1.0f, 0.31568627450980392f, 1.0f);
     style.Colors[ImGuiCol_Button] = ImVec4(0.184547483921051f, 0.184547483921051f, 0.1845493316650391f, 1.0f);
     style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.4117647058823529f, 0.7019607843137254f, 0.01568627450980392f, 1.0f);
     style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.4117647058823529f, 0.7019607843137254f, 0.01568627450980392f, 1.0f);
