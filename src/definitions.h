@@ -189,6 +189,34 @@ struct GS_RuntimeInfo
     GS_Region region;
 };
 
+struct GS_SaveState_Header
+{
+    u32 magic;
+    u32 version;
+    u32 size;
+    s64 timestamp;
+    char rom_name[128];
+    u32 rom_crc;
+    u32 screenshot_size;
+    u16 screenshot_width;
+    u16 screenshot_height;
+    char emu_build[32];
+};
+
+struct GS_SaveState_Header_Libretro
+{
+    u32 magic;
+    u32 version;
+};
+
+struct GS_SaveState_Screenshot
+{
+    u32 width;
+    u32 height;
+    u32 size;
+    u8* data;
+};
+
 inline u8 SetBit(const u8 value, const u8 bit)
 {
     return value | (0x01 << bit);

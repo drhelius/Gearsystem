@@ -345,7 +345,6 @@ static void update_debug_textures(void)
 
 static void update_savestates_texture(void)
 {
-    /*
     int i = config_emulator.save_slot;
 
     if (IsValidPointer(emu_savestates_screenshots[i].data))
@@ -355,7 +354,6 @@ static void update_savestates_texture(void)
         glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_savestates);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) emu_savestates_screenshots[i].data);
     }
-    */
 }
 
 static void update_emu_texture(void)

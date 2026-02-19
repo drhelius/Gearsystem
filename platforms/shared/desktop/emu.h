@@ -44,10 +44,8 @@ enum Directory_Location
 };
 
 EXTERN u8* emu_frame_buffer;
-/*
 EXTERN GS_SaveState_Header emu_savestates[5];
 EXTERN GS_SaveState_Screenshot emu_savestates_screenshots[5];
-*/
 EXTERN u8* emu_debug_sprite_buffers[64];
 EXTERN u8* emu_debug_background_buffer;
 EXTERN u8* emu_debug_tile_buffer;

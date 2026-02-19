@@ -1531,7 +1531,6 @@ static void gamepad_device_selector(int player)
 
 static void draw_savestate_slot_info(int slot)
 {
-    /*
     if (emu_savestates[slot].rom_name[0] != 0)
     {
         if (emu_savestates[slot].version != GS_SAVESTATE_VERSION)
@@ -1558,5 +1557,4 @@ static void draw_savestate_slot_info(int slot)
     {
         ImGui::TextColored(ImVec4(0.50f, 0.50f, 0.50f, 1.0f), "Slot %d is empty", slot + 1);
     }
-        */
 }

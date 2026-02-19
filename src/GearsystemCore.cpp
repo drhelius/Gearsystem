@@ -50,6 +50,7 @@
 #include "GameGearIOPorts.h"
 #include "BootromMemoryRule.h"
 #include "common.h"
+#include "memory_stream.h"
 
 GearsystemCore::GearsystemCore()
 {
@@ -84,6 +85,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pSmsIOPorts);
     InitPointer(m_pGameGearIOPorts);
     InitPointer(m_pBootromMemoryRule);
+    InitPointer(m_pFrameBuffer);
     m_bPaused = true;
     m_pixelFormat = GS_PIXEL_RGBA8888;
     m_GlassesConfig = GearsystemCore::GlassesBothEyes;
@@ -151,6 +153,7 @@ void GearsystemCore::Init(GS_Color_Format pixelFormat)
 
 bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool step, bool stopOnBreakpoints)
 {
+    m_pFrameBuffer = pFrameBuffer;
     bool breakpoint = false;
 
     if (!m_bPaused && m_pCartridge->IsReady())
@@ -607,315 +610,407 @@ void GearsystemCore::LoadRam(const char* szPath, bool fullPath)
     }
 }
 
-void GearsystemCore::SaveState(int index)
+std::string GearsystemCore::GetSaveStatePath(const char* path, int index)
 {
-    if (m_pMemory->GetCurrentSlot() == Memory::BiosSlot)
-    {
-        Log("Save states disabled when running BIOS");
-        return;
-    }
-
-    Log("Creating save state %d...", index);
-
-    SaveState(NULL, index);
-
-    Debug("Save state %d created", index);
-}
-
-void GearsystemCore::SaveState(const char* szPath, int index)
-{
-    if (m_pMemory->GetCurrentSlot() == Memory::BiosSlot)
-    {
-        Log("Save states disabled when running BIOS");
-        return;
-    }
-
-    Log("Creating save state...");
+    if (index < 0)
+        return path;
 
     using namespace std;
+    string full_path;
 
-    size_t size;
-    SaveState(NULL, size);
-
-    u8* buffer = new u8[size];
-    string path = "";
-
-    if (IsValidPointer(szPath))
+    if (IsValidPointer(path))
     {
-        path += szPath;
-        path += "/";
-        path += m_pCartridge->GetFileName();
+        full_path = path;
+        full_path += "/";
+        full_path += m_pCartridge->GetFileName();
     }
     else
-    {
-        path = m_pCartridge->GetFilePath();
-    }
+        full_path = m_pCartridge->GetFilePath();
 
-    string::size_type i = path.rfind('.', path.length());
+    string::size_type dot_index = full_path.rfind('.');
 
-    if (i != string::npos) {
-        path.replace(i + 1, 3, "state");
-    }
+    if (dot_index != string::npos)
+        full_path.replace(dot_index + 1, full_path.length() - dot_index - 1, "state");
 
-    std::stringstream sstm;
+    stringstream ss;
+    ss << index;
+    full_path += ss.str();
 
-    if (index < 0)
-        sstm << szPath;
-    else
-        sstm << path << index;
-
-    Log("Save state file: %s", sstm.str().c_str());
-
-    ofstream file;
-    open_ofstream_utf8(file, sstm.str().c_str(), ios::out | ios::binary);
-
-    SaveState(file, size);
-
-    SafeDeleteArray(buffer);
-
-    file.close();
-
-    Debug("Save state created");
+    return full_path;
 }
 
-bool GearsystemCore::SaveState(u8* buffer, size_t& size)
+bool GearsystemCore::SaveState(const char* path, int index, bool screenshot)
 {
-    if (m_pMemory->GetCurrentSlot() == Memory::BiosSlot)
-    {
-        Debug("Save states disabled when running BIOS");
-        return false;
-    }
+    using namespace std;
 
-    bool ret = false;
+    string full_path = GetSaveStatePath(path, index);
+    Debug("Saving state to %s...", full_path.c_str());
 
-    if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()))
-    {
-        using namespace std;
+    ofstream stream;
+    open_ofstream_utf8(stream, full_path.c_str(), ios::out | ios::binary);
 
-        stringstream stream;
-
-        if (SaveState(stream, size))
-            ret = true;
-
-        if (IsValidPointer(buffer))
-        {
-            Log("Saving state to buffer [%d bytes]...", size);
-            memcpy(buffer, stream.str().c_str(), size);
-            ret = true;
-        }
-    }
+    size_t size;
+    bool ret = SaveState(stream, size, screenshot);
+    if (ret)
+        Log("Saved state to %s", full_path.c_str());
     else
-    {
-        Log("Invalid rom or memory rule.");
-    }
-
+        Error("Failed to save state to %s", full_path.c_str());
     return ret;
 }
 
-bool GearsystemCore::SaveState(std::ostream& stream, size_t& size)
+bool GearsystemCore::SaveState(u8* buffer, size_t& size, bool screenshot)
 {
-    if (m_pMemory->GetCurrentSlot() == Memory::BiosSlot)
+    using namespace std;
+
+    Debug("Saving state to buffer [%d bytes]...", size);
+
+    if (!m_pCartridge->IsReady())
     {
-        Debug("Save states disabled when running BIOS");
+        Error("Cartridge is not ready when trying to save state");
         return false;
     }
 
-    if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()))
+    if (!IsValidPointer(buffer))
     {
-        Debug("Gathering save state data...");
-
-        using namespace std;
-
-        m_pMemory->SaveState(stream);
-        m_pProcessor->SaveState(stream);
-        m_pAudio->SaveState(stream);
-        m_pVideo->SaveState(stream);
-        m_pInput->SaveState(stream);
-        m_pMemory->GetCurrentRule()->SaveState(stream);
-        m_pProcessor->GetIOPOrts()->SaveState(stream);
-
-        size = static_cast<size_t>(stream.tellp());
-        size += (sizeof(u32) * 3);
-
-        u32 header_magic = GS_SAVESTATE_MAGIC;
-        u32 header_version = GS_SAVESTATE_VERSION;
-        u32 header_size = static_cast<u32>(size);
-
-        stream.write(reinterpret_cast<const char*> (&header_magic), sizeof(header_magic));
-        stream.write(reinterpret_cast<const char*> (&header_version), sizeof(header_version));
-        stream.write(reinterpret_cast<const char*> (&header_size), sizeof(header_size));
-
-        Log("Save state size: %d", static_cast<size_t>(stream.tellp()));
-
+        stringstream stream;
+        if (!SaveState(stream, size, screenshot))
+        {
+            Error("Failed to save state to stream to calculate size");
+            return false;
+        }
         return true;
     }
+    else
+    {
+        memory_stream direct_stream(reinterpret_cast<char*>(buffer), size);
 
-    Log("Invalid rom or memory rule.");
+        if (!SaveState(direct_stream, size, screenshot))
+        {
+            Error("Failed to save state to buffer");
+            return false;
+        }
 
-    return false;
+        size = direct_stream.size();
+        return true;
+    }
 }
 
-void GearsystemCore::LoadState(int index)
+bool GearsystemCore::SaveState(std::ostream& stream, size_t& size, bool screenshot)
 {
-    if (m_pMemory->GetCurrentSlot() == Memory::BiosSlot)
-    {
-        Debug("Save states disabled when running BIOS");
-        return;
-    }
-
-    Log("Loading save state %d...", index);
-
-    LoadState(NULL, index);
-
-    Debug("State %d file loaded", index);
-}
-
-void GearsystemCore::LoadState(const char* szPath, int index)
-{
-    if (m_pMemory->GetCurrentSlot() == Memory::BiosSlot)
-    {
-        Debug("Save states disabled when running BIOS");
-        return;
-    }
-
-    Log("Loading save state...");
-
     using namespace std;
 
-    string sav_path = "";
-
-    if (IsValidPointer(szPath))
+    if (!m_pCartridge->IsReady())
     {
-        sav_path += szPath;
-        sav_path += "/";
-        sav_path += m_pCartridge->GetFileName();
+        Error("Cartridge is not ready when trying to save state");
+        return false;
+    }
+
+    Debug("Serializing save state...");
+
+    m_pMemory->SaveState(stream);
+    m_pProcessor->SaveState(stream);
+    m_pAudio->SaveState(stream);
+    m_pVideo->SaveState(stream);
+    m_pInput->SaveState(stream);
+    m_pMemory->GetCurrentRule()->SaveState(stream);
+    m_pProcessor->GetIOPOrts()->SaveState(stream);
+
+#if defined(__LIBRETRO__)
+    GS_SaveState_Header_Libretro header;
+    header.magic = GS_SAVESTATE_MAGIC;
+    header.version = GS_SAVESTATE_VERSION;
+    Debug("Save state header magic: 0x%08x", header.magic);
+    Debug("Save state header version: %d", header.version);
+#else
+    GS_SaveState_Header header;
+    header.magic = GS_SAVESTATE_MAGIC;
+    header.version = GS_SAVESTATE_VERSION;
+
+    header.timestamp = time(NULL);
+    strncpy_fit(header.rom_name, m_pCartridge->GetFileName(), sizeof(header.rom_name));
+    header.rom_crc = m_pCartridge->GetCRC();
+    strncpy_fit(header.emu_build, GS_VERSION, sizeof(header.emu_build));
+
+    Debug("Save state header magic: 0x%08x", header.magic);
+    Debug("Save state header version: %d", header.version);
+    Debug("Save state header timestamp: %d", header.timestamp);
+    Debug("Save state header rom name: %s", header.rom_name);
+    Debug("Save state header rom crc: 0x%08x", header.rom_crc);
+    Debug("Save state header emu build: %s", header.emu_build);
+
+    if (screenshot)
+    {
+        GS_RuntimeInfo runtime_info;
+        GetRuntimeInfo(runtime_info);
+        header.screenshot_width = runtime_info.screen_width;
+        header.screenshot_height = runtime_info.screen_height;
+
+        int bytes_per_pixel = 2;
+        if (m_pixelFormat == GS_PIXEL_RGBA8888 || m_pixelFormat == GS_PIXEL_BGRA8888)
+            bytes_per_pixel = 4;
+
+        u8* frame_buffer = m_pFrameBuffer;
+
+        header.screenshot_size = header.screenshot_width * header.screenshot_height * bytes_per_pixel;
+        stream.write(reinterpret_cast<const char*>(frame_buffer), header.screenshot_size);
     }
     else
     {
-        sav_path = m_pCartridge->GetFilePath();
+        header.screenshot_size = 0;
+        header.screenshot_width = 0;
+        header.screenshot_height = 0;
     }
 
-    string rom_path = sav_path;
+    Debug("Save state header screenshot size: %d", header.screenshot_size);
+    Debug("Save state header screenshot width: %d", header.screenshot_width);
+    Debug("Save state header screenshot height: %d", header.screenshot_height);
+#endif
 
-    string::size_type i = sav_path.rfind('.', sav_path.length());
+    size = static_cast<size_t>(stream.tellp());
+    size += sizeof(header);
 
-    if (i != string::npos) {
-        sav_path.replace(i + 1, 3, "state");
-    }
+#if !defined(__LIBRETRO__)
+    header.size = static_cast<u32>(size);
+    Debug("Save state header size: %d", header.size);
+#endif
 
-    std::stringstream sstm;
+    stream.write(reinterpret_cast<const char*>(&header), sizeof(header));
+    return true;
+}
 
-    if (index < 0)
-        sstm << szPath;
-    else
-        sstm << sav_path << index;
+bool GearsystemCore::LoadState(const char* path, int index)
+{
+    using namespace std;
+    bool ret = false;
 
-    Log("Opening save file: %s", sstm.str().c_str());
+    string full_path = GetSaveStatePath(path, index);
+    Debug("Loading state from %s...", full_path.c_str());
 
-    ifstream file;
+    ifstream stream;
+    open_ifstream_utf8(stream, full_path.c_str(), ios::in | ios::binary);
 
-    open_ifstream_utf8(file, sstm.str().c_str(), ios::in | ios::binary);
-
-    if (!file.fail())
+    if (!stream.fail())
     {
-        if (LoadState(file))
-        {
-            Debug("Save state loaded");
-        }
+        ret = LoadState(stream);
+
+        if (ret)
+            Log("Loaded state from %s", full_path.c_str());
+        else
+            Error("Failed to load state from %s", full_path.c_str());
     }
     else
     {
-        Log("Save state file doesn't exist");
+        Error("Load state file doesn't exist: %s", full_path.c_str());
     }
 
-    file.close();
+    stream.close();
+    return ret;
 }
 
 bool GearsystemCore::LoadState(const u8* buffer, size_t size)
 {
-    if (m_pMemory->GetCurrentSlot() == Memory::BiosSlot)
+    using namespace std;
+
+    Debug("Loading state to buffer [%d bytes]...", size);
+
+    if (!m_pCartridge->IsReady())
     {
-        Debug("Save states disabled when running BIOS");
+        Error("Cartridge is not ready when trying to load state");
         return false;
     }
 
-    if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()) && (size > 0) && IsValidPointer(buffer))
+    if (!IsValidPointer(buffer) || (size == 0))
     {
-        Debug("Gathering load state data [%d bytes]...", size);
-
-        using namespace std;
-
-        stringstream stream;
-
-        stream.write(reinterpret_cast<const char*> (buffer), size);
-
-        return LoadState(stream);
+        Error("Invalid load state buffer");
+        return false;
     }
 
-    Log("Invalid rom or memory rule.");
-
-    return false;
+    memory_input_stream direct_stream(reinterpret_cast<const char*>(buffer), size);
+    return LoadState(direct_stream);
 }
 
 bool GearsystemCore::LoadState(std::istream& stream)
 {
-    if (m_pMemory->GetCurrentSlot() == Memory::BiosSlot)
+    using namespace std;
+
+    if (!m_pCartridge->IsReady())
     {
-        Debug("Save states disabled when running BIOS");
+        Error("Cartridge is not ready when trying to load state");
         return false;
     }
 
-    if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()))
+#if defined(__LIBRETRO__)
+    GS_SaveState_Header_Libretro header;
+#else
+    GS_SaveState_Header header;
+#endif
+
+    stream.seekg(0, ios::end);
+    size_t size = static_cast<size_t>(stream.tellg());
+    stream.seekg(0, ios::beg);
+
+    stream.seekg(size - sizeof(header), ios::beg);
+    stream.read(reinterpret_cast<char*> (&header), sizeof(header));
+    stream.seekg(0, ios::beg);
+
+    Debug("Load state header magic: 0x%08x", header.magic);
+    Debug("Load state header version: %d", header.version);
+
+    if ((header.magic != GS_SAVESTATE_MAGIC))
     {
-        using namespace std;
-
-        u32 header_magic = 0;
-        u32 header_size = 0;
-        u32 header_version = 0;
-
-        stream.seekg(0, ios::end);
-        size_t size = static_cast<size_t>(stream.tellg());
-        stream.seekg(0, ios::beg);
-
-        Debug("Load state stream size: %d", size);
-
-        stream.seekg(size - (3 * sizeof(u32)), ios::beg);
-        stream.read(reinterpret_cast<char*> (&header_magic), sizeof(header_magic));
-        stream.read(reinterpret_cast<char*> (&header_version), sizeof(header_version));
-        stream.read(reinterpret_cast<char*> (&header_size), sizeof(header_size));
-        stream.seekg(0, ios::beg);
-
-        Debug("Load state magic: 0x%08x", header_magic);
-        Debug("Load state version: %d", header_version);
-        Debug("Load state size: %d", header_size);
-
-        if ((header_size == size) && (header_magic == GS_SAVESTATE_MAGIC) && (header_version == GS_SAVESTATE_VERSION))
-        {
-            Log("Loading state...");
-
-            m_pMemory->LoadState(stream);
-            m_pProcessor->LoadState(stream);
-            m_pAudio->LoadState(stream);
-            m_pVideo->LoadState(stream);
-            m_pInput->LoadState(stream);
-            m_pMemory->GetCurrentRule()->LoadState(stream);
-            m_pProcessor->GetIOPOrts()->LoadState(stream);
-
-            return true;
-        }
-        else
-        {
-            Log("Invalid save state size or header");
-            if (header_version != GS_SAVESTATE_VERSION)
-                Log("Save state version mismatch. Expected: %d, Found: %d", GS_SAVESTATE_VERSION, header_version);
-        }
-    }
-    else
-    {
-        Log("Invalid rom or memory rule");
+        Log("Invalid save state: 0x%08x", header.magic);
+        return false;
     }
 
-    return false;
+    if (header.version != GS_SAVESTATE_VERSION)
+    {
+        Error("Invalid save state version: %d", header.version);
+        return false;
+    }
+
+#if !defined(__LIBRETRO__)
+    Debug("Load state header size: %d", header.size);
+    Debug("Load state header timestamp: %d", header.timestamp);
+    Debug("Load state header rom name: %s", header.rom_name);
+    Debug("Load state header rom crc: 0x%08x", header.rom_crc);
+    Debug("Load state header screenshot size: %d", header.screenshot_size);
+    Debug("Load state header screenshot width: %d", header.screenshot_width);
+    Debug("Load state header screenshot height: %d", header.screenshot_height);
+    Debug("Load state header emu build: %s", header.emu_build);
+
+    if ((header.magic != GS_SAVESTATE_MAGIC))
+    {
+        Log("Invalid save state: 0x%08x", header.magic);
+        return false;
+    }
+
+    if (header.version != GS_SAVESTATE_VERSION)
+    {
+        Error("Invalid save state version: %d", header.version);
+        return false;
+    }
+
+    if (header.size != size)
+    {
+        Error("Invalid save state size: %d", header.size);
+        return false;
+    }
+
+    if (header.rom_crc != m_pCartridge->GetCRC())
+    {
+        Error("Invalid save state rom crc: 0x%08x", header.rom_crc);
+        return false;
+    }
+#endif
+
+    Debug("Unserializing save state...");
+
+    m_pMemory->LoadState(stream);
+    m_pProcessor->LoadState(stream);
+    m_pAudio->LoadState(stream);
+    m_pVideo->LoadState(stream);
+    m_pInput->LoadState(stream);
+    m_pMemory->GetCurrentRule()->LoadState(stream);
+    m_pProcessor->GetIOPOrts()->LoadState(stream);
+
+    return true;
+}
+
+bool GearsystemCore::GetSaveStateHeader(int index, const char* path, GS_SaveState_Header* header)
+{
+    using namespace std;
+
+    string full_path = GetSaveStatePath(path, index);
+    Debug("Loading state header from %s...", full_path.c_str());
+
+    ifstream stream;
+    open_ifstream_utf8(stream, full_path.c_str(), ios::in | ios::binary);
+
+    if (stream.fail())
+    {
+        Debug("ERROR: Savestate file doesn't exist %s", full_path.c_str());
+        stream.close();
+        return false;
+    }
+
+    stream.seekg(0, ios::end);
+    size_t savestate_size = static_cast<size_t>(stream.tellg());
+    stream.seekg(0, ios::beg);
+
+    stream.seekg(savestate_size - sizeof(GS_SaveState_Header), ios::beg);
+    stream.read(reinterpret_cast<char*> (header), sizeof(GS_SaveState_Header));
+    stream.seekg(0, ios::beg);
+
+    // for older versions of the save state whithout build in header
+    if (header->magic != GS_SAVESTATE_MAGIC)
+    {
+        stream.seekg(savestate_size - sizeof(GS_SaveState_Header) + 32, ios::beg);
+        stream.read(reinterpret_cast<char*> (header), sizeof(GS_SaveState_Header));
+        stream.seekg(0, ios::beg);
+
+        if (header->magic != GS_SAVESTATE_MAGIC)
+            return false;
+
+        header->size += 32;
+        header->emu_build[0] = 0;
+    }
+
+    return true;
+}
+
+bool GearsystemCore::GetSaveStateScreenshot(int index, const char* path, GS_SaveState_Screenshot* screenshot)
+{
+    using namespace std;
+
+    if (!IsValidPointer(screenshot->data) || (screenshot->size == 0))
+    {
+        Error("Invalid save state screenshot buffer");
+        return false;
+    }
+
+    string full_path = GetSaveStatePath(path, index);
+    Debug("Loading state screenshot from %s...", full_path.c_str());
+
+    ifstream stream;
+    open_ifstream_utf8(stream, full_path.c_str(), ios::in | ios::binary);
+
+    if (stream.fail())
+    {
+        Error("Savestate file doesn't exist %s", full_path.c_str());
+        stream.close();
+        return false;
+    }
+
+    GS_SaveState_Header header;
+    GetSaveStateHeader(index, path, &header);
+
+    if (header.screenshot_size == 0)
+    {
+        Debug("No screenshot data");
+        stream.close();
+        return false;
+    }
+
+    if (screenshot->size < header.screenshot_size)
+    {
+        Error("Invalid screenshot buffer size %d < %d", screenshot->size, header.screenshot_size);
+        stream.close();
+        return false;
+    }
+
+    screenshot->size = header.screenshot_size;
+    screenshot->width = header.screenshot_width;
+    screenshot->height = header.screenshot_height;
+
+    Debug("Screenshot size: %d bytes", screenshot->size);
+    Debug("Screenshot width: %d", screenshot->width);
+    Debug("Screenshot height: %d", screenshot->height);
+
+    stream.seekg(header.size - sizeof(header) - screenshot->size, ios::beg);
+    stream.read(reinterpret_cast<char*> (screenshot->data), screenshot->size);
+    stream.close();
+
+    return true;
 }
 
 void GearsystemCore::SetCheat(const char* szCheat)

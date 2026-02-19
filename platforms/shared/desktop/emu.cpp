@@ -86,10 +86,9 @@ bool emu_init(void)
 
     sound_queue_init();
 
-/*
     for (int i = 0; i < 5; i++)
         InitPointer(emu_savestates_screenshots[i].data);
-*/
+
     audio_enabled = true;
     emu_audio_sync = true;
     emu_debug_disable_breakpoints = false;
@@ -121,10 +120,9 @@ void emu_destroy(void)
     SafeDelete(gearsystem);
     SafeDeleteArray(emu_frame_buffer);
     destroy_debug();
-/*
+
     for (int i = 0; i < 5; i++)
         SafeDeleteArray(emu_savestates_screenshots[i].data);
-*/
 }
 
 static void load_media_thread_func(void)
@@ -363,14 +361,12 @@ void emu_load_ram(const char* file_path, Cartridge::ForceConfiguration config)
 
 void emu_save_state_slot(int index)
 {
-/*
     if (!emu_is_empty())
     {
         const char* dir = get_configurated_dir(config_emulator.savestates_dir_option, config_emulator.savestates_path.c_str());
         gearsystem->SaveState(dir, index, true);
         update_savestates_data();
     }
-*/
 }
 
 void emu_load_state_slot(int index)
@@ -384,26 +380,20 @@ void emu_load_state_slot(int index)
 
 void emu_save_state_file(const char* file_path)
 {
-    /*
     if (!emu_is_empty())
         gearsystem->SaveState(file_path, -1, true);
-    */
 }
 
 void emu_load_state_file(const char* file_path)
 {
-    /*
     if (!emu_is_empty())
         gearsystem->LoadState(file_path);
-    */
 }
 
 void update_savestates_data(void)
 {
     if (emu_is_empty())
         return;
-
-    /*
 
     for (int i = 0; i < 5; i++)
     {
@@ -422,7 +412,6 @@ void update_savestates_data(void)
             gearsystem->GetSaveStateScreenshot(i + 1, dir, &emu_savestates_screenshots[i]);
         }
     }
-        */
 }
 
 void emu_add_cheat(const char* cheat)
