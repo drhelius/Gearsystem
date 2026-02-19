@@ -139,6 +139,7 @@ typedef void (*RamChangedCallback) (void);
 
 #define GS_SAVESTATE_MAGIC 0x03121220
 #define GS_SAVESTATE_VERSION 100
+#define GS_SAVESTATE_VERSION_V1 1
 
 enum GS_Color_Format
 {

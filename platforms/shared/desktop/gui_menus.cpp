@@ -1535,9 +1535,16 @@ static void draw_savestate_slot_info(int slot)
     {
         if (emu_savestates[slot].version != GS_SAVESTATE_VERSION)
         {
-            ImGui::TextColored(ImVec4(0.98f, 0.15f, 0.45f, 1.0f), "This savestate is from an older version and will not work" );
-            if (emu_savestates[slot].emu_build[0] != 0)
-                ImGui::TextColored(ImVec4(0.98f, 0.15f, 0.45f, 1.0f), "Use %s - %s", GS_TITLE, emu_savestates[slot].emu_build);
+            if (emu_savestates[slot].version == GS_SAVESTATE_VERSION_V1)
+            {
+                ImGui::TextColored(ImVec4(1.0f, 0.80f, 0.0f, 1.0f), "This save state is from an older version");
+            }
+            else
+            {
+                ImGui::TextColored(ImVec4(0.98f, 0.15f, 0.45f, 1.0f), "This save state is from an older version and will not work");
+                if (emu_savestates[slot].emu_build[0] != 0)
+                    ImGui::TextColored(ImVec4(0.98f, 0.15f, 0.45f, 1.0f), "Use %s - %s", GS_TITLE, emu_savestates[slot].emu_build);
+            }
             ImGui::Separator();
         }
 

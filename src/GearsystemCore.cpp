@@ -849,6 +849,12 @@ bool GearsystemCore::LoadState(std::istream& stream)
     size_t size = static_cast<size_t>(stream.tellg());
     stream.seekg(0, ios::beg);
 
+    if (size < sizeof(header))
+    {
+        Log("Save state too small for current header (%d bytes), trying V1 format...", static_cast<int>(size));
+        return LoadStateV1(stream, size);
+    }
+
     stream.seekg(size - sizeof(header), ios::beg);
     stream.read(reinterpret_cast<char*> (&header), sizeof(header));
     stream.seekg(0, ios::beg);
@@ -856,16 +862,10 @@ bool GearsystemCore::LoadState(std::istream& stream)
     Debug("Load state header magic: 0x%08x", header.magic);
     Debug("Load state header version: %d", header.version);
 
-    if ((header.magic != GS_SAVESTATE_MAGIC))
+    if (header.magic != GS_SAVESTATE_MAGIC || header.version != GS_SAVESTATE_VERSION)
     {
-        Log("Invalid save state: 0x%08x", header.magic);
-        return false;
-    }
-
-    if (header.version != GS_SAVESTATE_VERSION)
-    {
-        Error("Invalid save state version: %d", header.version);
-        return false;
+        Log("Save state header does not match current version, trying V1 format...");
+        return LoadStateV1(stream, size);
     }
 
 #if !defined(__LIBRETRO__)
@@ -877,18 +877,6 @@ bool GearsystemCore::LoadState(std::istream& stream)
     Debug("Load state header screenshot width: %d", header.screenshot_width);
     Debug("Load state header screenshot height: %d", header.screenshot_height);
     Debug("Load state header emu build: %s", header.emu_build);
-
-    if ((header.magic != GS_SAVESTATE_MAGIC))
-    {
-        Log("Invalid save state: 0x%08x", header.magic);
-        return false;
-    }
-
-    if (header.version != GS_SAVESTATE_VERSION)
-    {
-        Error("Invalid save state version: %d", header.version);
-        return false;
-    }
 
     if (header.size != size)
     {
@@ -904,6 +892,61 @@ bool GearsystemCore::LoadState(std::istream& stream)
 #endif
 
     Debug("Unserializing save state...");
+
+    m_pMemory->LoadState(stream);
+    m_pProcessor->LoadState(stream);
+    m_pAudio->LoadState(stream);
+    m_pVideo->LoadState(stream);
+    m_pInput->LoadState(stream);
+    m_pMemory->GetCurrentRule()->LoadState(stream);
+    m_pProcessor->GetIOPOrts()->LoadState(stream);
+
+    return true;
+}
+
+bool GearsystemCore::LoadStateV1(std::istream& stream, size_t size)
+{
+    using namespace std;
+
+    if (size < (3 * sizeof(u32)))
+    {
+        Error("Save state too small for V1 header (%d bytes)", static_cast<int>(size));
+        return false;
+    }
+
+    u32 v1_magic = 0;
+    u32 v1_version = 0;
+    u32 v1_size = 0;
+
+    stream.seekg(size - (3 * sizeof(u32)), ios::beg);
+    stream.read(reinterpret_cast<char*>(&v1_magic), sizeof(v1_magic));
+    stream.read(reinterpret_cast<char*>(&v1_version), sizeof(v1_version));
+    stream.read(reinterpret_cast<char*>(&v1_size), sizeof(v1_size));
+    stream.seekg(0, ios::beg);
+
+    Debug("Load state V1 magic: 0x%08x", v1_magic);
+    Debug("Load state V1 version: %d", v1_version);
+    Debug("Load state V1 size: %d", v1_size);
+
+    if (v1_magic != GS_SAVESTATE_MAGIC)
+    {
+        Error("Invalid V1 save state magic: 0x%08x", v1_magic);
+        return false;
+    }
+
+    if (v1_version != GS_SAVESTATE_VERSION_V1)
+    {
+        Error("Invalid V1 save state version: %d", v1_version);
+        return false;
+    }
+
+    if (v1_size != size)
+    {
+        Error("Invalid V1 save state size: %d (expected %d)", v1_size, static_cast<int>(size));
+        return false;
+    }
+
+    Log("Loading V1 save state (%d bytes)...", static_cast<int>(size));
 
     m_pMemory->LoadState(stream);
     m_pProcessor->LoadState(stream);
@@ -937,19 +980,74 @@ bool GearsystemCore::GetSaveStateHeader(int index, const char* path, GS_SaveStat
     size_t savestate_size = static_cast<size_t>(stream.tellg());
     stream.seekg(0, ios::beg);
 
+    if (savestate_size < sizeof(GS_SaveState_Header))
+    {
+        if (savestate_size < (3 * sizeof(u32)))
+        {
+            stream.close();
+            return false;
+        }
+
+        u32 v1_magic = 0;
+        u32 v1_version = 0;
+        u32 v1_size = 0;
+
+        stream.seekg(savestate_size - (3 * sizeof(u32)), ios::beg);
+        stream.read(reinterpret_cast<char*>(&v1_magic), sizeof(v1_magic));
+        stream.read(reinterpret_cast<char*>(&v1_version), sizeof(v1_version));
+        stream.read(reinterpret_cast<char*>(&v1_size), sizeof(v1_size));
+        stream.close();
+
+        if (v1_magic != GS_SAVESTATE_MAGIC || v1_version != GS_SAVESTATE_VERSION_V1 || v1_size != savestate_size)
+            return false;
+
+        memset(header, 0, sizeof(GS_SaveState_Header));
+        header->magic = v1_magic;
+        header->version = v1_version;
+        header->size = v1_size;
+        strncpy_fit(header->rom_name, m_pCartridge->GetFileName(), sizeof(header->rom_name));
+        return true;
+    }
+
     stream.seekg(savestate_size - sizeof(GS_SaveState_Header), ios::beg);
     stream.read(reinterpret_cast<char*> (header), sizeof(GS_SaveState_Header));
     stream.seekg(0, ios::beg);
 
-    // for older versions of the save state whithout build in header
+    // for older versions of the save state without build in header
     if (header->magic != GS_SAVESTATE_MAGIC)
     {
-        stream.seekg(savestate_size - sizeof(GS_SaveState_Header) + 32, ios::beg);
-        stream.read(reinterpret_cast<char*> (header), sizeof(GS_SaveState_Header));
-        stream.seekg(0, ios::beg);
+        if (savestate_size >= sizeof(GS_SaveState_Header) - 32)
+        {
+            stream.seekg(savestate_size - sizeof(GS_SaveState_Header) + 32, ios::beg);
+            stream.read(reinterpret_cast<char*> (header), sizeof(GS_SaveState_Header));
+            stream.seekg(0, ios::beg);
+        }
 
         if (header->magic != GS_SAVESTATE_MAGIC)
-            return false;
+        {
+            // try V1 format (12-byte footer: magic + version + size)
+            stream.clear();
+
+            u32 v1_magic = 0;
+            u32 v1_version = 0;
+            u32 v1_size = 0;
+
+            stream.seekg(savestate_size - (3 * sizeof(u32)), ios::beg);
+            stream.read(reinterpret_cast<char*>(&v1_magic), sizeof(v1_magic));
+            stream.read(reinterpret_cast<char*>(&v1_version), sizeof(v1_version));
+            stream.read(reinterpret_cast<char*>(&v1_size), sizeof(v1_size));
+            stream.close();
+
+            if (v1_magic != GS_SAVESTATE_MAGIC || v1_version != GS_SAVESTATE_VERSION_V1 || v1_size != savestate_size)
+                return false;
+
+            memset(header, 0, sizeof(GS_SaveState_Header));
+            header->magic = v1_magic;
+            header->version = v1_version;
+            header->size = v1_size;
+            strncpy_fit(header->rom_name, m_pCartridge->GetFileName(), sizeof(header->rom_name));
+            return true;
+        }
 
         header->size += 32;
         header->emu_build[0] = 0;
@@ -1005,6 +1103,13 @@ bool GearsystemCore::GetSaveStateScreenshot(int index, const char* path, GS_Save
     Debug("Screenshot size: %d bytes", screenshot->size);
     Debug("Screenshot width: %d", screenshot->width);
     Debug("Screenshot height: %d", screenshot->height);
+
+    if (header.size < sizeof(header) + screenshot->size)
+    {
+        Error("Invalid screenshot offset: header size %d too small for screenshot %d", header.size, screenshot->size);
+        stream.close();
+        return false;
+    }
 
     stream.seekg(header.size - sizeof(header) - screenshot->size, ios::beg);
     stream.read(reinterpret_cast<char*> (screenshot->data), screenshot->size);

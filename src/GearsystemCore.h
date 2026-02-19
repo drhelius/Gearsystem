@@ -116,6 +116,7 @@ private:
     void RenderFrameBuffer(u8* finalFrameBuffer);
     bool SaveState(std::ostream& stream, size_t& size, bool screenshot);
     bool LoadState(std::istream& stream);
+    bool LoadStateV1(std::istream& stream, size_t size);
     std::string GetSaveStatePath(const char* path, int index);
 
 private:
