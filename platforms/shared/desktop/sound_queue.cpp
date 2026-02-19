@@ -181,7 +181,7 @@ void sound_queue_write(s16* samples, int count, bool sync)
         int room = sound_queue_max_queued_bytes - queued;
         if (room < bytes)
         {
-            Debug("Sound Queue: Sync overrun, queued %d >= max %d, waiting...", queued, sound_queue_max_queued_bytes);
+            Debug("Sound Queue: Sync wait, need %d bytes but only %d free (queued %d, max %d)", bytes, room, queued, sound_queue_max_queued_bytes);
             int needed = bytes - room;
             int wait_ms = (needed * 1000) / sound_queue_bytes_per_second;
             if (wait_ms >= 1)
