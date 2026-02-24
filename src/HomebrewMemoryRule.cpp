@@ -57,7 +57,11 @@ u8 HomebrewMemoryRule::PerformRead(u16 address)
     {
         // ROM slot 2
         u8* pROM = m_pCartridge->GetROM();
-        return pROM[((address - 0x8000) + m_iMapperSlotAddress) | (m_iGameSlot << 17)];
+        u32 romIndex = ((address - 0x8000) + m_iMapperSlotAddress) | (m_iGameSlot << 17);
+        // Add bounds check to prevent buffer overflow
+        if (romIndex < 0x600000)  // 3 slots * 512KB max
+            return pROM[romIndex];
+        return 0xFF;
     }
 
     return m_pMemory->Retrieve(address);
@@ -79,7 +83,7 @@ void HomebrewMemoryRule::PerformWrite(u16 address, u8 value)
                 {
                     // Any write exits flash ID mode
                     Debug("Exiting Flash ID mode");
-                    Reset();
+                    ResetFlashState();
                 }
                 else if (m_bFlashEraseMode)
                 {
@@ -89,17 +93,21 @@ void HomebrewMemoryRule::PerformWrite(u16 address, u8 value)
                         Debug("Erasing flash sector");
                         u8* pROM = m_pCartridge->GetROM();
                         // Calculate base ROM offset for the sector being erased
-                        int sectorOffset = ((address - 0x8000) + m_iMapperSlotAddress) | (m_iGameSlot << 17);
+                        u32 sectorOffset = ((address - 0x8000) + m_iMapperSlotAddress) | (m_iGameSlot << 17);
                         // Ensure sectorOffset points to the start of a 0x4000 sector
                         sectorOffset &= ~0x3FFF;
-                        for (int i = 0; i < 0x4000; i++)
+                        // Bounds check before erasing
+                        if (sectorOffset + 0x4000 <= 0x600000)
                         {
-                            pROM[sectorOffset + i] = 0xFF;
-                            // Update the emulator memory map for the visible address range
-                            m_pMemory->Load(0x8000 + (sectorOffset + i - ((m_iGameSlot << 17) + m_iMapperSlotAddress)), 0xFF);
+                            for (u32 i = 0; i < 0x4000; i++)
+                            {
+                                pROM[sectorOffset + i] = 0xFF;
+                            }
+                            // Reload the memory slot to reflect the erased data
+                            m_pMemory->LoadSlotsFromROM(pROM, (1024 * 48), (m_iGameSlot << 17));
                         }
                     }
-                    Reset();
+                    ResetFlashState();
                     Debug("Exiting Flash Erase mode");
                 }
                 else if (m_bFlashWriteMode)
@@ -107,9 +115,14 @@ void HomebrewMemoryRule::PerformWrite(u16 address, u8 value)
                     // Write byte command
                     Debug("Writing byte %X to flash address %X", value, address);
                     u8* pROM = m_pCartridge->GetROM();
-                    pROM[((address - 0x8000) + m_iMapperSlotAddress) | (m_iGameSlot << 17)] = value;
-                    m_pMemory->Load(address, value);
-                    Reset();
+                    u32 romIndex = ((address - 0x8000) + m_iMapperSlotAddress) | (m_iGameSlot << 17);
+                    // Add bounds check to prevent buffer overflow
+                    if (romIndex < 0x600000)  // 3 slots * 512KB max
+                    {
+                        pROM[romIndex] = value;
+                        m_pMemory->Load(address, value);
+                    }
+                    ResetFlashState();
                     Debug("Exiting Flash Write mode");
                 }
                 else
@@ -169,7 +182,8 @@ void HomebrewMemoryRule::ProcessFlashAccess(u16 address, u8 value)
 bool HomebrewMemoryRule::AdvanceSequence(const int seq[], int len, int &step, u16 address, u8 value)
 {
     // Each sequence is address,value pairs. step is the index into seq (0..len-1)
-    if (step < 0 || step >= len)
+    // Each entry consumes 2 indices (address and value), so need step+1 < len
+    if (step < 0 || step + 1 >= len)
     {
         step = 0;
         return false;
@@ -202,6 +216,14 @@ bool HomebrewMemoryRule::AdvanceSequence(const int seq[], int len, int &step, u1
 
 void HomebrewMemoryRule::Reset()
 {
+    m_iGameSlot = 0;
+    m_iMapperSlot = 0;
+    m_iMapperSlotAddress = 0;
+    ResetFlashState();
+}
+
+void HomebrewMemoryRule::ResetFlashState()
+{
     m_bFlashIDMode = false;
     m_iFlashIDStep = 0;
     m_bFlashEraseMode = false;
@@ -224,4 +246,30 @@ int HomebrewMemoryRule::GetBank(int index)
         return index;
     else
         return 0;
+}
+
+void HomebrewMemoryRule::SaveState(std::ostream& stream)
+{
+    stream.write(reinterpret_cast<const char*> (&m_iGameSlot), sizeof(m_iGameSlot));
+    stream.write(reinterpret_cast<const char*> (&m_iMapperSlot), sizeof(m_iMapperSlot));
+    stream.write(reinterpret_cast<const char*> (&m_iMapperSlotAddress), sizeof(m_iMapperSlotAddress));
+    stream.write(reinterpret_cast<const char*> (&m_bFlashIDMode), sizeof(m_bFlashIDMode));
+    stream.write(reinterpret_cast<const char*> (&m_bFlashEraseMode), sizeof(m_bFlashEraseMode));
+    stream.write(reinterpret_cast<const char*> (&m_bFlashWriteMode), sizeof(m_bFlashWriteMode));
+    stream.write(reinterpret_cast<const char*> (&m_iFlashIDStep), sizeof(m_iFlashIDStep));
+    stream.write(reinterpret_cast<const char*> (&m_iFlashEraseStep), sizeof(m_iFlashEraseStep));
+    stream.write(reinterpret_cast<const char*> (&m_iFlashWriteStep), sizeof(m_iFlashWriteStep));
+}
+
+void HomebrewMemoryRule::LoadState(std::istream& stream)
+{
+    stream.read(reinterpret_cast<char*> (&m_iGameSlot), sizeof(m_iGameSlot));
+    stream.read(reinterpret_cast<char*> (&m_iMapperSlot), sizeof(m_iMapperSlot));
+    stream.read(reinterpret_cast<char*> (&m_iMapperSlotAddress), sizeof(m_iMapperSlotAddress));
+    stream.read(reinterpret_cast<char*> (&m_bFlashIDMode), sizeof(m_bFlashIDMode));
+    stream.read(reinterpret_cast<char*> (&m_bFlashEraseMode), sizeof(m_bFlashEraseMode));
+    stream.read(reinterpret_cast<char*> (&m_bFlashWriteMode), sizeof(m_bFlashWriteMode));
+    stream.read(reinterpret_cast<char*> (&m_iFlashIDStep), sizeof(m_iFlashIDStep));
+    stream.read(reinterpret_cast<char*> (&m_iFlashEraseStep), sizeof(m_iFlashEraseStep));
+    stream.read(reinterpret_cast<char*> (&m_iFlashWriteStep), sizeof(m_iFlashWriteStep));
 }

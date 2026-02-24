@@ -76,6 +76,7 @@ private:
     stPhaser m_PhaserOffset;
     bool m_bPaddle;
     stPaddle m_Paddle;
+    bool m_bResetPressed;
 };
 
 #include "Video.h"
@@ -100,19 +101,24 @@ inline u8 Input::GetPortDC()
 
 inline u8 Input::GetPortDD()
 {
+    u8 dd;
     if (m_bPhaser && !m_bGameGear)
     {
-        u8 dd = ((m_Joypad2 >> 2) & 0x0F) | 0xF0;
+        dd = ((m_Joypad2 >> 2) & 0x0F) | 0xF0;
 
         if (m_pVideo->IsPhaserDetected())
             dd = UnsetBit(dd, 6);
-
-        return dd;
     }
     else
     {
-        return ((m_Joypad2 >> 2) & 0x0F) | 0xF0;
+        dd = ((m_Joypad2 >> 2) & 0x0F) | 0xF0;
     }
+
+    // Clear bit 4 when reset button is pressed
+    if (m_bResetPressed)
+        dd = UnsetBit(dd, 4);
+
+    return dd;
 }
 
 inline u8 Input::GetPort00()

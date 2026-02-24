@@ -635,6 +635,8 @@ static void sdl_events_emu(const SDL_Event* event)
                     emu_key_pressed(pad, Key_2);
                 else if (event->cbutton.button == config_input[i].gamepad_start)
                     emu_key_pressed(pad, Key_Start);
+                else if (event->cbutton.button == config_input[i].gamepad_reset)
+                    emu_key_pressed(pad, Key_Reset);
 
                 if (config_input[i].gamepad_directional == 1)
                     continue;
@@ -673,6 +675,8 @@ static void sdl_events_emu(const SDL_Event* event)
                     emu_key_released(pad, Key_2);
                 else if (event->cbutton.button == config_input[i].gamepad_start)
                     emu_key_released(pad, Key_Start);
+                else if (event->cbutton.button == config_input[i].gamepad_reset)
+                    emu_key_released(pad, Key_Reset);
 
                 if (config_input[i].gamepad_directional == 1)
                     continue;
@@ -767,6 +771,13 @@ static void sdl_events_emu(const SDL_Event* event)
                         else
                             emu_key_released(pad, Key_Start);
                     }
+                    if (config_input[i].gamepad_reset == vbtn)
+                    {
+                        if (pressed)
+                            emu_key_pressed(pad, Key_Reset);
+                        else
+                            emu_key_released(pad, Key_Reset);
+                    }
                 }
             }
         }
@@ -800,6 +811,8 @@ static void sdl_events_emu(const SDL_Event* event)
                     emu_key_pressed(pad, Key_2);
                 else if (key == config_input[i].key_start)
                     emu_key_pressed(pad, Key_Start);
+                else if (key == config_input[i].key_reset)
+                    emu_key_pressed(pad, Key_Reset);
             }
         }
         break;
@@ -826,6 +839,8 @@ static void sdl_events_emu(const SDL_Event* event)
                     emu_key_released(pad, Key_2);
                 else if (key == config_input[i].key_start)
                     emu_key_released(pad, Key_Start);
+                else if (key == config_input[i].key_reset)
+                    emu_key_released(pad, Key_Reset);
             }
         }
         break;

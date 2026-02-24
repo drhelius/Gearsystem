@@ -39,6 +39,7 @@ Input::Input(Processor* pProcessor, Video* pVideo)
     m_Paddle.x = 128.0f;
     m_Paddle.reg = 128;
     m_Paddle.flip = 0;
+    m_bResetPressed = false;
 }
 
 void Input::Init()
@@ -57,10 +58,17 @@ void Input::Reset(bool bGameGear)
     m_Paddle.x = 128.0f;
     m_Paddle.reg = 128;
     m_Paddle.flip = 0;
+    m_bResetPressed = false;
 }
 
 void Input::KeyPressed(GS_Joypads joypad, GS_Keys key)
 {
+    if (key == Key_Reset)
+    {
+        m_bResetPressed = true;
+        return;
+    }
+
     if (joypad == Joypad_1)
     {
         if (!m_bGameGear && (key == Key_Start) && IsSetBit(m_Joypad1, Key_Start))
@@ -78,6 +86,12 @@ void Input::KeyPressed(GS_Joypads joypad, GS_Keys key)
 
 void Input::KeyReleased(GS_Joypads joypad, GS_Keys key)
 {
+    if (key == Key_Reset)
+    {
+        m_bResetPressed = false;
+        return;
+    }
+
     if (joypad == Joypad_1)
         m_Joypad1 = SetBit(m_Joypad1, key);
     else

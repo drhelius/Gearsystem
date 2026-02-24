@@ -912,6 +912,7 @@ static void main_menu(void)
                     keyboard_configuration_item("1:", &config_input[0].key_1, 0);
                     keyboard_configuration_item("2:", &config_input[0].key_2, 0);
                     keyboard_configuration_item("Start:", &config_input[0].key_start, 0);
+                    keyboard_configuration_item("Reset:", &config_input[0].key_reset, 0);
 
                     popup_modal_keyboard();
 
@@ -929,6 +930,7 @@ static void main_menu(void)
                     keyboard_configuration_item("1:", &config_input[1].key_1, 1);
                     keyboard_configuration_item("2:", &config_input[1].key_2, 1);
                     keyboard_configuration_item("Start:", &config_input[1].key_start, 1);
+                    keyboard_configuration_item("Reset:", &config_input[1].key_reset, 1);
 
                     popup_modal_keyboard();
 
@@ -967,6 +969,7 @@ static void main_menu(void)
                         gamepad_configuration_item("1:", &config_input[0].gamepad_1, 0);
                         gamepad_configuration_item("2:", &config_input[0].gamepad_2, 0);
                         gamepad_configuration_item("START:", &config_input[0].gamepad_start, 0);
+                        gamepad_configuration_item("RESET:", &config_input[0].gamepad_reset, 0);
 
                         popup_modal_gamepad(0);
 
@@ -1026,6 +1029,7 @@ static void main_menu(void)
                         gamepad_configuration_item("1:", &config_input[1].gamepad_1, 1);
                         gamepad_configuration_item("2:", &config_input[1].gamepad_2, 1);
                         gamepad_configuration_item("START:", &config_input[1].gamepad_start, 1);
+                        gamepad_configuration_item("RESET:", &config_input[1].gamepad_reset, 1);
 
                         popup_modal_gamepad(1);
 
