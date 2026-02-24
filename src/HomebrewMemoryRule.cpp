@@ -142,7 +142,7 @@ void HomebrewMemoryRule::PerformWrite(u16 address, u8 value)
                         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), (1024 * 48), (m_iGameSlot << 17));
                         break;
                     case 0xFFFF:
-                        m_iMapperSlot = value & 31;
+                        m_iMapperSlot = value & 7;
                         m_iMapperSlotAddress = m_iMapperSlot * 0x4000;
                         break;
                 }
