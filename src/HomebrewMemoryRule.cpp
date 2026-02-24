@@ -57,7 +57,7 @@ u8 HomebrewMemoryRule::PerformRead(u16 address)
     {
         // ROM slot 2
         u8* pROM = m_pCartridge->GetROM();
-        u32 romIndex = ((address - 0x8000) + m_iMapperSlotAddress) | (m_iGameSlot << 17);
+        u32 romIndex = (m_iGameSlot << 17) + m_iMapperSlotAddress + (address - 0x8000);
         // Add bounds check to prevent buffer overflow
         if (romIndex < (u32)m_pCartridge->GetROMSize())
             return pROM[romIndex];
@@ -93,7 +93,7 @@ void HomebrewMemoryRule::PerformWrite(u16 address, u8 value)
                         Debug("Erasing flash sector");
                         u8* pROM = m_pCartridge->GetROM();
                         // Calculate base ROM offset for the sector being erased
-                        u32 sectorOffset = ((address - 0x8000) + m_iMapperSlotAddress) | (m_iGameSlot << 17);
+                        u32 sectorOffset = (m_iGameSlot << 17) + m_iMapperSlotAddress + (address - 0x8000);
                         // Ensure sectorOffset points to the start of a 0x4000 sector
                         sectorOffset &= ~0x3FFF;
                         // Bounds check before erasing
@@ -115,7 +115,7 @@ void HomebrewMemoryRule::PerformWrite(u16 address, u8 value)
                     // Write byte command
                     Debug("Writing byte %X to flash address %X", value, address);
                     u8* pROM = m_pCartridge->GetROM();
-                    u32 romIndex = ((address - 0x8000) + m_iMapperSlotAddress) | (m_iGameSlot << 17);
+                    u32 romIndex = (m_iGameSlot << 17) + m_iMapperSlotAddress + (address - 0x8000);
                     // Add bounds check to prevent buffer overflow
                     if (romIndex < (u32)m_pCartridge->GetROMSize())
                     {
