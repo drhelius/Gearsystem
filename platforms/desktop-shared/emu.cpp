@@ -76,6 +76,7 @@ bool emu_init(void)
     emu_audio_sync = true;
     emu_debug_disable_breakpoints_cpu = false;
     emu_debug_disable_breakpoints_mem = false;
+    emu_debug_step_frames_pending = 0;
     emu_debug_tile_palette = 0;
     emu_savefiles_dir_option = 0;
     emu_savestates_dir_option = 0;
@@ -98,6 +99,7 @@ void emu_destroy(void)
 void emu_load_rom(const char* file_path, Cartridge::ForceConfiguration config)
 {
     reset_buffers();
+    emu_audio_reset();
     save_ram();
     gearsystem->LoadROM(file_path, &config);
     load_ram();
@@ -119,7 +121,18 @@ void emu_update(void)
                 debugging = true;
             }
 
-            debug_next_frame = false;
+            if (emu_debug_step_frames_pending > 0)
+            {
+                emu_debug_step_frames_pending--;
+                if (emu_debug_step_frames_pending > 0)
+                    debug_next_frame = true;
+                else
+                    debug_next_frame = false;
+            }
+            else
+            {
+                debug_next_frame = false;
+            }
             debug_step = false;
         }
 
@@ -198,6 +211,7 @@ bool emu_is_empty(void)
 void emu_reset(Cartridge::ForceConfiguration config)
 {
     reset_buffers();
+    emu_audio_reset();
     save_ram();
     gearsystem->ResetROM(&config);
     load_ram();

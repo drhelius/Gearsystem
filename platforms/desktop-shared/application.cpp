@@ -41,9 +41,19 @@ static bool running = true;
 static bool paused_when_focus_lost = false;
 static Uint64 frame_time_start = 0;
 static Uint64 frame_time_end = 0;
+static int monitor_refresh_rate = 60;
+static int vsync_frames_per_emu_frame = 1;
+static int vsync_frame_counter = 0;
 static bool input_gamepad_shortcut_prev[2][config_HotkeyIndex_COUNT] = { };
 static Uint32 mouse_last_motion_time = 0;
 static const Uint32 mouse_hide_timeout_ms = 1500;
+#if !defined(__APPLE__)
+static int borderless_saved_x = 0;
+static int borderless_saved_y = 0;
+static int borderless_saved_w = 0;
+static int borderless_saved_h = 0;
+static bool borderless_active = false;
+#endif
 
 static bool sdl_init(void);
 static void sdl_destroy(void);
@@ -59,8 +69,11 @@ static bool input_get_button(SDL_GameController* controller, int mapping);
 static void handle_mouse_cursor(void);
 static void handle_menu(void);
 static void run_emulator(void);
+static bool should_run_emu_frame(void);
 static void render(void);
 static void frame_throttle(void);
+static void update_frame_pacing(void);
+static void recreate_gl_context_for_display_change(void);
 static void save_window_size(void);
 static void log_sdl_error(const char* action, const char* file, int line);
 static bool check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat);
@@ -73,6 +86,7 @@ static void* macos_fullscreen_observer = NULL;
 static void* macos_nswindow = NULL;
 extern "C" void* macos_install_fullscreen_observer(void* nswindow, void(*enter_cb)(), void(*exit_cb)());
 extern "C" void macos_set_native_fullscreen(void* nswindow, bool enter);
+extern "C" void macos_kill_autofill_helpers(const char* app_name);
 #endif
 
 int application_init(const char* rom_file, const char* symbol_file, bool force_fullscreen, bool force_windowed)
@@ -100,11 +114,6 @@ int application_init(const char* rom_file, const char* symbol_file, bool force_f
         return 1;
     }
 
-    strcpy(emu_savefiles_path, config_emulator.savefiles_path.c_str());
-    strcpy(emu_savestates_path, config_emulator.savestates_path.c_str());
-    emu_savefiles_dir_option = config_emulator.savefiles_dir_option;
-    emu_savestates_dir_option = config_emulator.savestates_dir_option;
-
     if (!emu_init())
     {
         Log("ERROR: Failed to initialize emulator");
@@ -129,7 +138,7 @@ int application_init(const char* rom_file, const char* symbol_file, bool force_f
         return 5;
     }
 
-    SDL_GL_SetSwapInterval(config_video.sync ? 1 : 0);
+    application_set_vsync(config_video.sync);
 
     if (config_emulator.fullscreen)
         application_trigger_fullscreen(true);
@@ -139,12 +148,18 @@ int application_init(const char* rom_file, const char* symbol_file, bool force_f
         Log ("Rom file argument: %s", rom_file);
         gui_load_rom(rom_file);
     }
+
     if (IsValidPointer(symbol_file) && (strlen(symbol_file) > 0))
     {
         Log ("Symbol file argument: %s", symbol_file);
         gui_debug_reset_symbols();
         gui_debug_load_symbols_file(symbol_file);
     }
+
+    strcpy(emu_savefiles_path, config_emulator.savefiles_path.c_str());
+    strcpy(emu_savestates_path, config_emulator.savestates_path.c_str());
+    emu_savefiles_dir_option = config_emulator.savefiles_dir_option;
+    emu_savestates_dir_option = config_emulator.savestates_dir_option;
 
     return 0;
 }
@@ -159,6 +174,10 @@ void application_destroy(void)
     ImGui_ImplSDL2_Shutdown();
     gui_destroy();
     sdl_destroy();
+
+#if defined(__APPLE__)
+    macos_kill_autofill_helpers(GEARSYSTEM_TITLE);
+#endif
 }
 
 void application_mainloop(void)
@@ -204,16 +223,113 @@ void application_trigger_fullscreen(bool fullscreen)
 #if defined(__APPLE__)
     macos_set_native_fullscreen(macos_nswindow, fullscreen);
 #else
-    SDL_SetWindowFullscreen(application_sdl_window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
-    SDL_ERROR("SDL_SetWindowFullscreen");
+    if (fullscreen)
+    {
+        // Exit borderless first if switching to an SDL fullscreen mode
+        if (borderless_active && config_emulator.fullscreen_mode != 2)
+        {
+            SDL_SetWindowBordered(application_sdl_window, SDL_TRUE);
+            SDL_ERROR("SDL_SetWindowBordered");
+
+            SDL_SetWindowPosition(application_sdl_window, borderless_saved_x, borderless_saved_y);
+            SDL_ERROR("SDL_SetWindowPosition");
+
+            SDL_SetWindowSize(application_sdl_window, borderless_saved_w, borderless_saved_h);
+            SDL_ERROR("SDL_SetWindowSize");
+
+            borderless_active = false;
+        }
+
+        switch (config_emulator.fullscreen_mode)
+        {
+            case 0:  // Exclusive (SDL_WINDOW_FULLSCREEN)
+            {
+                int display = SDL_GetWindowDisplayIndex(application_sdl_window);
+                SDL_ERROR("SDL_GetWindowDisplayIndex");
+
+                SDL_DisplayMode mode;
+                SDL_GetDesktopDisplayMode(display, &mode);
+                SDL_ERROR("SDL_GetDesktopDisplayMode");
+
+                SDL_SetWindowDisplayMode(application_sdl_window, &mode);
+                SDL_ERROR("SDL_SetWindowDisplayMode");
+
+                SDL_SetWindowFullscreen(application_sdl_window, SDL_WINDOW_FULLSCREEN);
+                SDL_ERROR("SDL_SetWindowFullscreen");
+                break;
+            }
+            case 1:  // Fake Exclusive (SDL_WINDOW_FULLSCREEN_DESKTOP)
+                SDL_SetWindowFullscreen(application_sdl_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+                SDL_ERROR("SDL_SetWindowFullscreen");
+                break;
+            case 2:  // Borderless windowed
+            {
+                SDL_SetWindowFullscreen(application_sdl_window, 0);
+                SDL_ERROR("SDL_SetWindowFullscreen");
+
+                SDL_GetWindowPosition(application_sdl_window, &borderless_saved_x, &borderless_saved_y);
+                SDL_GetWindowSize(application_sdl_window, &borderless_saved_w, &borderless_saved_h);
+
+                SDL_SetWindowBordered(application_sdl_window, SDL_FALSE);
+                SDL_ERROR("SDL_SetWindowBordered");
+
+                int display = SDL_GetWindowDisplayIndex(application_sdl_window);
+                SDL_ERROR("SDL_GetWindowDisplayIndex");
+
+                SDL_Rect rect;
+                SDL_GetDisplayBounds(display, &rect);
+                SDL_ERROR("SDL_GetDisplayBounds");
+
+                SDL_SetWindowPosition(application_sdl_window, rect.x, rect.y);
+                SDL_ERROR("SDL_SetWindowPosition");
+
+                SDL_SetWindowSize(application_sdl_window, rect.w, rect.h);
+                SDL_ERROR("SDL_SetWindowSize");
+
+                borderless_active = true;
+                break;
+            }
+            default:
+                Log("Invalid fullscreen mode: %d", config_emulator.fullscreen_mode);
+                break;
+        }
+    }
+    else
+    {
+        if (borderless_active)
+        {
+            SDL_SetWindowBordered(application_sdl_window, SDL_TRUE);
+            SDL_ERROR("SDL_SetWindowBordered");
+
+            SDL_SetWindowPosition(application_sdl_window, borderless_saved_x, borderless_saved_y);
+            SDL_ERROR("SDL_SetWindowPosition");
+
+            SDL_SetWindowSize(application_sdl_window, borderless_saved_w, borderless_saved_h);
+            SDL_ERROR("SDL_SetWindowSize");
+
+            borderless_active = false;
+        }
+        else
+        {
+            SDL_SetWindowFullscreen(application_sdl_window, 0);
+            SDL_ERROR("SDL_SetWindowFullscreen");
+        }
+    }
 #endif
     mouse_last_motion_time = SDL_GetTicks();
+    update_frame_pacing();
 }
 
 void application_trigger_fit_to_content(int width, int height)
 {
     SDL_SetWindowSize(application_sdl_window, width, height);
     SDL_ERROR("SDL_SetWindowSize");
+}
+
+void application_set_vsync(bool enabled)
+{
+    SDL_GL_SetSwapInterval(enabled ? 1 : 0);
+    update_frame_pacing();
 }
 
 void application_update_title_with_rom(const char* rom)
@@ -560,6 +676,7 @@ static void sdl_events_emu(const SDL_Event* event)
             {
                 case SDL_WINDOWEVENT_FOCUS_GAINED:
                 {
+                    application_set_vsync(config_video.sync);
                     if (config_emulator.pause_when_inactive && !paused_when_focus_lost)
                         emu_resume();
                 }
@@ -567,11 +684,19 @@ static void sdl_events_emu(const SDL_Event* event)
 
                 case SDL_WINDOWEVENT_FOCUS_LOST:
                 {
+                    application_set_vsync(false);
                     if (config_emulator.pause_when_inactive)
                     {
                         paused_when_focus_lost = emu_is_paused();
                         emu_pause();
                     }
+                }
+                break;
+
+                case SDL_WINDOWEVENT_DISPLAY_CHANGED:
+                {
+                    if (config_video.sync)
+                        recreate_gl_context_for_display_change();
                 }
                 break;
             }
@@ -1100,9 +1225,26 @@ static void sdl_remove_gamepad(SDL_JoystickID instance_id)
 
 static void run_emulator(void)
 {
+    if (!should_run_emu_frame())
+        return;
+
     config_emulator.paused = emu_is_paused();
     emu_audio_sync = config_audio.sync;
     emu_update();
+}
+
+static bool should_run_emu_frame(void)
+{
+    if (config_video.sync && vsync_frames_per_emu_frame > 1 && !config_emulator.ffwd)
+    {
+        bool should_run = (vsync_frame_counter == 0);
+        vsync_frame_counter++;
+        if (vsync_frame_counter >= vsync_frames_per_emu_frame)
+            vsync_frame_counter = 0;
+        return should_run;
+    }
+
+    return true;
 }
 
 static void render(void)
@@ -1159,6 +1301,37 @@ static void frame_throttle(void)
     }
 }
 
+static void update_frame_pacing(void)
+{
+    int display = SDL_GetWindowDisplayIndex(application_sdl_window);
+    SDL_ERROR("SDL_GetWindowDisplayIndex");
+
+    if (display < 0)
+        display = 0;
+
+    SDL_DisplayMode mode;
+    if (SDL_GetCurrentDisplayMode(display, &mode) == 0 && mode.refresh_rate > 0)
+        monitor_refresh_rate = mode.refresh_rate;
+    else
+    {
+        SDL_ERROR("SDL_GetCurrentDisplayMode");
+        monitor_refresh_rate = 60;
+    }
+
+    const int emu_fps = 60;
+
+    if (monitor_refresh_rate <= emu_fps + 5)
+        vsync_frames_per_emu_frame = 1;
+    else
+        vsync_frames_per_emu_frame = (monitor_refresh_rate + emu_fps / 2) / emu_fps;
+
+    vsync_frames_per_emu_frame = CLAMP(vsync_frames_per_emu_frame, 1, 8);
+
+    vsync_frame_counter = 0;
+
+    Debug("Monitor refresh rate: %d Hz, vsync frames per emu frame: %d", monitor_refresh_rate, vsync_frames_per_emu_frame);
+}
+
 static void save_window_size(void)
 {
     if (!config_emulator.fullscreen)
@@ -1178,5 +1351,24 @@ static void log_sdl_error(const char* action, const char* file, int line)
     {
         Log("SDL Error: %s (%s:%d) - %s", action, file, line, error);
         SDL_ClearError();
+    }
+}
+
+static void recreate_gl_context_for_display_change(void)
+{
+    renderer_destroy();
+    ImGui_ImplSDL2_Shutdown();
+
+    SDL_GLContext old_context = gl_context;
+    gl_context = SDL_GL_CreateContext(application_sdl_window);
+
+    if (gl_context)
+    {
+        SDL_GL_MakeCurrent(application_sdl_window, gl_context);
+        SDL_GL_DeleteContext(old_context);
+        SDL_GL_SetSwapInterval(1);
+        ImGui_ImplSDL2_InitForOpenGL(application_sdl_window, gl_context);
+        renderer_init();
+        update_frame_pacing();
     }
 }

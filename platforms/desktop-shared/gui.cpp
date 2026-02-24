@@ -788,6 +788,18 @@ static void main_menu(void)
                 application_trigger_fullscreen(config_emulator.fullscreen);
             }
 
+#if !defined(__APPLE__)
+            if (ImGui::BeginMenu("Fullscreen Mode"))
+            {
+                ImGui::PushItemWidth(130.0f);
+                ImGui::Combo("##fullscreen_mode", &config_emulator.fullscreen_mode, "Exclusive\0Fake Exclusive\0Borderless\0\0");
+                ImGui::PopItemWidth();
+                ImGui::EndMenu();
+            }
+#endif
+
+            ImGui::Separator();
+
             ImGui::MenuItem("Always Show Menu", config_hotkeys[config_HotkeyIndex_ShowMainMenu].str, &config_emulator.always_show_menu);
             if (ImGui::IsItemHovered())
             {
@@ -849,7 +861,7 @@ static void main_menu(void)
 
             if (ImGui::MenuItem("Vertical Sync", "", &config_video.sync))
             {
-                SDL_GL_SetSwapInterval(config_video.sync ? 1 : 0);
+                application_set_vsync(config_video.sync);
 
                 if (config_video.sync)
                 {
@@ -889,6 +901,27 @@ static void main_menu(void)
                     emu_set_3d_glasses_config(config_video.glasses);
                 }
                 ImGui::PopItemWidth();
+                ImGui::EndMenu();
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::BeginMenu("Background Color"))
+            {
+                ImGui::ColorEdit3("##normal_bg", config_video.background_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_Float);
+                ImGui::SameLine();
+                ImGui::Text("Normal Background");
+
+                ImGui::Separator();
+
+                if (ImGui::ColorEdit3("##debugger_bg", config_video.background_color_debugger, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_Float))
+                {
+                    ImGuiStyle& style = ImGui::GetStyle();
+                    style.Colors[ImGuiCol_DockingEmptyBg] = ImVec4(config_video.background_color_debugger[0], config_video.background_color_debugger[1], config_video.background_color_debugger[2], 1.0f);
+                }
+                ImGui::SameLine();
+                ImGui::Text("Debugger Background");
+
                 ImGui::EndMenu();
             }
 
@@ -1163,7 +1196,7 @@ static void main_menu(void)
                 if (!config_audio.sync)
                 {
                     config_video.sync = false;
-                    SDL_GL_SetSwapInterval(0);
+                    application_set_vsync(false);
                 }
             }
 
@@ -2332,12 +2365,12 @@ static void menu_ffwd(void)
     if (config_emulator.ffwd)
     {
         gui_set_status_message("Fast Forward ON", 3000);
-        SDL_GL_SetSwapInterval(0);
+        application_set_vsync(false);
     }
     else
     {
         gui_set_status_message("Fast Forward OFF", 3000);
-        SDL_GL_SetSwapInterval(config_video.sync ? 1 : 0);
+        application_set_vsync(config_video.sync);
         emu_audio_reset();
     }
 }
@@ -2568,7 +2601,7 @@ static void set_style(void)
     style.GrabRounding = 2.0f;
     style.TabRounding = 3.5f;
     style.TabBorderSize = 0.0f;
-    style.TabMinWidthForCloseButton = 0.0f;
+    style.TabCloseButtonMinWidthUnselected = 0.0f;
     style.ColorButtonPosition = ImGuiDir_Right;
     style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
     style.SelectableTextAlign = ImVec2(0.0f, 0.0f);
@@ -2628,7 +2661,7 @@ static void set_style(void)
     style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.1450980454683304f, 0.1450980454683304f, 0.1490196138620377f, 0.7f);
 
     style.Colors[ImGuiCol_DockingPreview] = style.Colors[ImGuiCol_HeaderActive] * ImVec4(1.0f, 1.0f, 1.0f, 0.7f);
-    style.Colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+    style.Colors[ImGuiCol_DockingEmptyBg] = ImVec4(config_video.background_color_debugger[0], config_video.background_color_debugger[1], config_video.background_color_debugger[2], 1.00f);
     style.Colors[ImGuiCol_TabHovered] = style.Colors[ImGuiCol_HeaderHovered];
     //style.Colors[ImGuiCol_Tab] = lerp(style.Colors[ImGuiCol_Header], style.Colors[ImGuiCol_TitleBgActive], 0.80f);
     style.Colors[ImGuiCol_TabSelected] = lerp(style.Colors[ImGuiCol_HeaderActive], style.Colors[ImGuiCol_TitleBgActive], 0.60f);

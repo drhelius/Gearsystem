@@ -19,9 +19,12 @@
 
 #include "../../src/gearsystem.h"
 #include "application.h"
+#include "console_utils.h"
 
 int main(int argc, char* argv[])
 {
+    attach_parent_console(argc, argv);
+
     char* rom_file = NULL;
     char* symbol_file = NULL;
     bool show_usage = false;

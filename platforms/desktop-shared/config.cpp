@@ -148,6 +148,7 @@ void config_read(void)
 
     config_emulator.maximized = read_bool("Emulator", "Maximized", false);
     config_emulator.fullscreen = read_bool("Emulator", "FullScreen", false);
+    config_emulator.fullscreen_mode = read_int("Emulator", "FullScreenMode", 1);
     config_emulator.always_show_menu = read_bool("Emulator", "AlwaysShowMenu", false);
     config_emulator.ffwd_speed = read_int("Emulator", "FFWD", 1);
     config_emulator.save_slot = read_int("Emulator", "SaveSlot", 0);
@@ -212,6 +213,12 @@ void config_read(void)
     config_video.scanlines_filter = read_bool("Video", "ScanlinesFilter", true);
     config_video.scanlines_intensity = read_float("Video", "ScanlinesIntensity", 0.10f);
     config_video.sync = read_bool("Video", "Sync", true);
+    config_video.background_color[0] = read_float("Video", "BackgroundColorR", 0.1f);
+    config_video.background_color[1] = read_float("Video", "BackgroundColorG", 0.1f);
+    config_video.background_color[2] = read_float("Video", "BackgroundColorB", 0.1f);
+    config_video.background_color_debugger[0] = read_float("Video", "BackgroundColorDebuggerR", 0.2f);
+    config_video.background_color_debugger[1] = read_float("Video", "BackgroundColorDebuggerG", 0.2f);
+    config_video.background_color_debugger[2] = read_float("Video", "BackgroundColorDebuggerB", 0.2f);
     config_video.glasses = read_int("Video", "3DGlasses", 0);
     
     config_audio.enable = read_bool("Audio", "Enable", true);
@@ -314,6 +321,7 @@ void config_write(void)
 
     write_bool("Emulator", "Maximized", config_emulator.maximized);
     write_bool("Emulator", "FullScreen", config_emulator.fullscreen);
+    write_int("Emulator", "FullScreenMode", config_emulator.fullscreen_mode);
     write_bool("Emulator", "AlwaysShowMenu", config_emulator.always_show_menu);
     write_int("Emulator", "FFWD", config_emulator.ffwd_speed);
     write_int("Emulator", "SaveSlot", config_emulator.save_slot);
@@ -364,6 +372,12 @@ void config_write(void)
     write_bool("Video", "ScanlinesFilter", config_video.scanlines_filter);
     write_float("Video", "ScanlinesIntensity", config_video.scanlines_intensity);
     write_bool("Video", "Sync", config_video.sync);
+    write_float("Video", "BackgroundColorR", config_video.background_color[0]);
+    write_float("Video", "BackgroundColorG", config_video.background_color[1]);
+    write_float("Video", "BackgroundColorB", config_video.background_color[2]);
+    write_float("Video", "BackgroundColorDebuggerR", config_video.background_color_debugger[0]);
+    write_float("Video", "BackgroundColorDebuggerG", config_video.background_color_debugger[1]);
+    write_float("Video", "BackgroundColorDebuggerB", config_video.background_color_debugger[2]);
     write_int("Video", "3DGlasses", config_video.glasses);
 
     write_bool("Audio", "Enable", config_audio.enable);
@@ -503,9 +517,14 @@ static float read_float(const char* group, const char* key, float default_value)
     if(value.empty())
         ret = default_value;
     else
-        ret = strtof(value.c_str(), NULL);
+    {
+        std::istringstream iss(value);
+        iss.imbue(std::locale::classic());
+        if (!(iss >> ret))
+            ret = default_value;
+    }
 
-    Debug("Load setting: [%s][%s]=%.2f", group, key, ret);
+    Debug("Load float setting: [%s][%s]=%.2f", group, key, ret);
     return ret;
 }
 

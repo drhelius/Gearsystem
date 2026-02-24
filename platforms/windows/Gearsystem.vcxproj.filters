@@ -231,6 +231,9 @@
     <ClInclude Include="..\desktop-shared\config.h">
       <Filter>desktop_shared</Filter>
     </ClInclude>
+    <ClInclude Include="..\desktop-shared\console_utils.h">
+      <Filter>desktop_shared</Filter>
+    </ClInclude>
     <ClInclude Include="..\desktop-shared\emu.h">
       <Filter>desktop_shared</Filter>
     </ClInclude>
@@ -238,6 +241,9 @@
       <Filter>desktop_shared</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\renderer.h">
+      <Filter>desktop_shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\desktop-shared\utils.h">
       <Filter>desktop_shared</Filter>
     </ClInclude>
     <ClInclude Include="..\desktop-shared\imgui\imconfig.h">
@@ -280,6 +286,9 @@
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\CodemastersMemoryRule.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common.h">
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\definitions.h">
