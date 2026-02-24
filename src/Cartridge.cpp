@@ -625,6 +625,21 @@ bool Cartridge::GatherMetadata(u32 crc)
 
     GetInfoFromDB(crc);
 
+    // Homebrew mapper emulates a 512KB flash chip (4 slots × 128KB)
+    // Expand ROM buffer if needed to accommodate writes to high banks
+    if (m_Type == CartridgeHomebrewMapper && m_iROMSize < 0x80000)
+    {
+        int originalSize = m_iROMSize;
+        m_iROMSize = 0x80000;  // 512KB
+        u8* newROM = new u8[m_iROMSize];
+        memcpy(newROM, m_pROM, originalSize);
+        // Fill the rest with 0xFF (erased flash)
+        memset(newROM + originalSize, 0xFF, m_iROMSize - originalSize);
+        SafeDeleteArray(m_pROM);
+        m_pROM = newROM;
+        Log("Expanded ROM buffer from %d KB to 512 KB for homebrew mapper", originalSize / 1024);
+    }
+
     switch (m_Type)
     {
         case Cartridge::CartridgeRomOnlyMapper:
