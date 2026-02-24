@@ -59,7 +59,7 @@ u8 HomebrewMemoryRule::PerformRead(u16 address)
         u8* pROM = m_pCartridge->GetROM();
         u32 romIndex = ((address - 0x8000) + m_iMapperSlotAddress) | (m_iGameSlot << 17);
         // Add bounds check to prevent buffer overflow
-        if (romIndex < 0x600000)  // 3 slots * 512KB max
+        if (romIndex < (u32)m_pCartridge->GetROMSize())
             return pROM[romIndex];
         return 0xFF;
     }
@@ -97,7 +97,7 @@ void HomebrewMemoryRule::PerformWrite(u16 address, u8 value)
                         // Ensure sectorOffset points to the start of a 0x4000 sector
                         sectorOffset &= ~0x3FFF;
                         // Bounds check before erasing
-                        if (sectorOffset + 0x4000 <= 0x600000)
+                        if (sectorOffset + 0x4000 <= (u32)m_pCartridge->GetROMSize())
                         {
                             for (u32 i = 0; i < 0x4000; i++)
                             {
@@ -117,7 +117,7 @@ void HomebrewMemoryRule::PerformWrite(u16 address, u8 value)
                     u8* pROM = m_pCartridge->GetROM();
                     u32 romIndex = ((address - 0x8000) + m_iMapperSlotAddress) | (m_iGameSlot << 17);
                     // Add bounds check to prevent buffer overflow
-                    if (romIndex < 0x600000)  // 3 slots * 512KB max
+                    if (romIndex < (u32)m_pCartridge->GetROMSize())
                     {
                         pROM[romIndex] = value;
                         m_pMemory->Load(address, value);
