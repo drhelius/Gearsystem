@@ -638,6 +638,12 @@ bool Cartridge::GatherMetadata(u32 crc)
         SafeDeleteArray(m_pROM);
         m_pROM = newROM;
         Log("Expanded ROM buffer from %d KB to 512 KB for homebrew mapper", originalSize / 1024);
+
+        // Recalculate bank counts for the expanded ROM size
+        m_iROMBankCount16k = std::max(Pow2Ceil(m_iROMSize / 0x4000), 1u);
+        m_iROMBankCount8k = std::max(Pow2Ceil(m_iROMSize / 0x2000), 1u);
+        Log("ROM Bank Count (16KB): %d", m_iROMBankCount16k);
+        Log("ROM Bank Count (8KB): %d", m_iROMBankCount8k);
     }
 
     switch (m_Type)
