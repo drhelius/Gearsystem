@@ -257,9 +257,9 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             m_Type = config.type;
             Log("Forcing Mapper: Jumbo Dahjee");
             break;
-        case Cartridge::CartridgeHomebrewMapper:
+        case Cartridge::CartridgeIratahackMapper:
             m_Type = config.type;
-            Log("Forcing Mapper: Homebrew");
+            Log("Forcing Mapper: Iratahack");
             break;
         case Cartridge::CartridgeEeprom93C46Mapper:
             m_Type = config.type;
@@ -297,9 +297,9 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             break;
     }
 
-    // Homebrew mapper emulates a 512KB flash chip (4 slots × 128KB)
+    // Iratahack mapper emulates a 512KB flash chip (4 slots × 128KB)
     // Expand ROM buffer if needed to accommodate writes to high banks
-    if (m_Type == CartridgeHomebrewMapper && m_iROMSize < 0x80000)
+    if (m_Type == CartridgeIratahackMapper && m_iROMSize < 0x80000)
     {
         int originalSize = m_iROMSize;
         m_iROMSize = 0x80000;  // 512KB
@@ -309,7 +309,7 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
         memset(newROM + originalSize, 0xFF, m_iROMSize - originalSize);
         SafeDeleteArray(m_pROM);
         m_pROM = newROM;
-        Log("Expanded ROM buffer from %d KB to 512 KB for homebrew mapper", originalSize / 1024);
+        Log("Expanded ROM buffer from %d KB to 512 KB for Iratahack mapper", originalSize / 1024);
 
         // Recalculate bank counts for the expanded ROM size
         m_iROMBankCount16k = std::max(Pow2Ceil(m_iROMSize / 0x4000), 1u);
@@ -646,9 +646,9 @@ bool Cartridge::GatherMetadata(u32 crc)
 
     GetInfoFromDB(crc);
 
-    // Homebrew mapper emulates a 512KB flash chip (4 slots × 128KB)
+    // Iratahack mapper emulates a 512KB flash chip (4 slots × 128KB)
     // Expand ROM buffer if needed to accommodate writes to high banks
-    if (m_Type == CartridgeHomebrewMapper && m_iROMSize < 0x80000)
+    if (m_Type == CartridgeIratahackMapper && m_iROMSize < 0x80000)
     {
         int originalSize = m_iROMSize;
         m_iROMSize = 0x80000;  // 512KB
@@ -658,7 +658,7 @@ bool Cartridge::GatherMetadata(u32 crc)
         memset(newROM + originalSize, 0xFF, m_iROMSize - originalSize);
         SafeDeleteArray(m_pROM);
         m_pROM = newROM;
-        Log("Expanded ROM buffer from %d KB to 512 KB for homebrew mapper", originalSize / 1024);
+        Log("Expanded ROM buffer from %d KB to 512 KB for Iratahack mapper", originalSize / 1024);
 
         // Recalculate bank counts for the expanded ROM size
         m_iROMBankCount16k = std::max(Pow2Ceil(m_iROMSize / 0x4000), 1u);
@@ -734,8 +734,8 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeJumboDahjeeMapper:
             Log("Jumbo Dahjee mapper found");
             break;
-        case Cartridge::CartridgeHomebrewMapper:
-            Log("Homebrew mapper found");
+        case Cartridge::CartridgeIratahackMapper:
+            Log("Iratahack mapper found");
             break;
         case Cartridge::CartridgeEeprom93C46Mapper:
             Log("EEPROM 93C46 mapper found");
@@ -780,8 +780,8 @@ void Cartridge::GetInfoFromDB(u32 crc)
 
             switch (kGameDatabase[i].mapper)
             {
-                case GS_DB_HOMEBREW_MAPPER:
-                    m_Type = Cartridge::CartridgeHomebrewMapper;
+                case GS_DB_IRATAHACK_MAPPER:
+                    m_Type = Cartridge::CartridgeIratahackMapper;
                     break;
                 case GS_DB_CODEMASTERS_MAPPER:
                     m_Type = Cartridge::CartridgeCodemastersMapper;

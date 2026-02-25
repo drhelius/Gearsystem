@@ -17,24 +17,23 @@
  *
  */
 
-#include "HomebrewMemoryRule.h"
+#include "IratahackMemoryRule.h"
 #include "Memory.h"
 #include "Cartridge.h"
 
-HomebrewMemoryRule::HomebrewMemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput) : MemoryRule(pMemory, pCartridge, pInput)
+IratahackMemoryRule::IratahackMemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput) : MemoryRule(pMemory, pCartridge, pInput)
 {
-    // This is only done on POR
     Debug("Resetting game slot and mapper");
     m_iGameSlot = 0;
     m_iMapperSlot = 0;
     Reset();
 }
 
-HomebrewMemoryRule::~HomebrewMemoryRule()
+IratahackMemoryRule::~IratahackMemoryRule()
 {
 }
 
-u8 HomebrewMemoryRule::PerformRead(u16 address)
+u8 IratahackMemoryRule::PerformRead(u16 address)
 {
     if (address < 0x8000)
     {
@@ -67,7 +66,7 @@ u8 HomebrewMemoryRule::PerformRead(u16 address)
     return m_pMemory->Retrieve(address);
 }
 
-void HomebrewMemoryRule::PerformWrite(u16 address, u8 value)
+void IratahackMemoryRule::PerformWrite(u16 address, u8 value)
 {
     switch (address)
     {
@@ -154,7 +153,7 @@ void HomebrewMemoryRule::PerformWrite(u16 address, u8 value)
     }   
 }
 
-void HomebrewMemoryRule::ProcessFlashAccess(u16 address, u8 value)
+void IratahackMemoryRule::ProcessFlashAccess(u16 address, u8 value)
 {
     // Use helper to advance each of the sequences; if completed, enter the corresponding mode
     if (AdvanceSequence(m_iFlashWriteSequence, FLASH_WRITE_SEQUENCE_LENGTH, m_iFlashWriteStep, address, value))
@@ -179,7 +178,7 @@ void HomebrewMemoryRule::ProcessFlashAccess(u16 address, u8 value)
     }
 }
 
-bool HomebrewMemoryRule::AdvanceSequence(const int seq[], int len, int &step, u16 address, u8 value)
+bool IratahackMemoryRule::AdvanceSequence(const int seq[], int len, int &step, u16 address, u8 value)
 {
     // Each sequence is address,value pairs. step is the index into seq (0..len-1)
     // Each entry consumes 2 indices (address and value), so need step+1 < len
@@ -214,7 +213,7 @@ bool HomebrewMemoryRule::AdvanceSequence(const int seq[], int len, int &step, u1
     return false;
 }
 
-void HomebrewMemoryRule::Reset()
+void IratahackMemoryRule::Reset()
 {
     m_iGameSlot = 0;
     m_iMapperSlot = 0;
@@ -222,7 +221,7 @@ void HomebrewMemoryRule::Reset()
     ResetFlashState();
 }
 
-void HomebrewMemoryRule::ResetFlashState()
+void IratahackMemoryRule::ResetFlashState()
 {
     m_bFlashIDMode = false;
     m_iFlashIDStep = 0;
@@ -232,7 +231,7 @@ void HomebrewMemoryRule::ResetFlashState()
     m_iFlashWriteStep = 0;
 }
 
-u8* HomebrewMemoryRule::GetPage(int index)
+u8* IratahackMemoryRule::GetPage(int index)
 {
     if ((index >= 0) && (index < 3))
         return m_pMemory->GetMemoryMap() + (0x4000 * index);
@@ -240,7 +239,7 @@ u8* HomebrewMemoryRule::GetPage(int index)
         return NULL;
 }
 
-int HomebrewMemoryRule::GetBank(int index)
+int IratahackMemoryRule::GetBank(int index)
 {
     if ((index >= 0) && (index < 3))
         return index;
@@ -248,7 +247,7 @@ int HomebrewMemoryRule::GetBank(int index)
         return 0;
 }
 
-void HomebrewMemoryRule::SaveState(std::ostream& stream)
+void IratahackMemoryRule::SaveState(std::ostream& stream)
 {
     stream.write(reinterpret_cast<const char*> (&m_iGameSlot), sizeof(m_iGameSlot));
     stream.write(reinterpret_cast<const char*> (&m_iMapperSlot), sizeof(m_iMapperSlot));
@@ -261,7 +260,7 @@ void HomebrewMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_iFlashWriteStep), sizeof(m_iFlashWriteStep));
 }
 
-void HomebrewMemoryRule::LoadState(std::istream& stream)
+void IratahackMemoryRule::LoadState(std::istream& stream)
 {
     stream.read(reinterpret_cast<char*> (&m_iGameSlot), sizeof(m_iGameSlot));
     stream.read(reinterpret_cast<char*> (&m_iMapperSlot), sizeof(m_iMapperSlot));

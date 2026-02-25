@@ -49,7 +49,7 @@ class MSXMemoryRule;
 class JanggunMemoryRule;
 class Multi4PAKAllActionMemoryRule;
 class JumboDahjeeMemoryRule;
-class HomebrewMemoryRule;
+class IratahackMemoryRule;
 class Eeprom93C46MemoryRule;
 class MemoryRule;
 class SmsIOPorts;
@@ -149,7 +149,7 @@ private:
     SmsIOPorts* m_pSmsIOPorts;
     GameGearIOPorts* m_pGameGearIOPorts;
     BootromMemoryRule* m_pBootromMemoryRule;
-    HomebrewMemoryRule* m_pHomebrewMemoryRule;
+    IratahackMemoryRule* m_pIratahackMemoryRule;
     bool m_bPaused;
     RamChangedCallback m_pRamChangedCallback;
     GS_Color_Format m_pixelFormat;

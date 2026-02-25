@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef HOMEBREWMORYRULE_H
-#define	HOMEBREWMORYRULE_H
+#ifndef IRATAHACKMEMORYRULE_H
+#define	IRATAHACKMEMORYRULE_H
 
 #include "MemoryRule.h"
 
@@ -26,12 +26,12 @@
 #define FLASH_ERASE_SEQUENCE_LENGTH 10
 #define FLASH_WRITE_SEQUENCE_LENGTH 6
 
-class HomebrewMemoryRule : public MemoryRule
+class IratahackMemoryRule : public MemoryRule
 {
 public:
-    HomebrewMemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput);
+    IratahackMemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput);
     void ProcessFlashAccess(u16 address, u8 value);
-    virtual ~HomebrewMemoryRule();
+    virtual ~IratahackMemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);
     virtual void Reset();
@@ -57,4 +57,4 @@ private:
     void ResetFlashState();
 };
 
-#endif	/* HOMEBREWMORYRULE_H */
+#endif	/* IRATAHACKMEMORYRULE_H */

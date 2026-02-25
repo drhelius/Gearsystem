@@ -81,7 +81,7 @@
     <ClCompile Include="..\..\src\KoreanMDFFF0MemoryRule.cpp" />
     <ClCompile Include="..\..\src\Multi4PAKAllActionMemoryRule.cpp" />
     <ClCompile Include="..\..\src\JumboDahjeeMemoryRule.cpp" />
-    <ClCompile Include="..\..\src\HomebrewMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\IratahackMemoryRule.cpp" />
     <ClCompile Include="..\..\src\Eeprom93C46MemoryRule.cpp" />
   </ItemGroup>
   <ItemGroup>
