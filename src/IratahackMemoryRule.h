@@ -30,7 +30,6 @@ class IratahackMemoryRule : public MemoryRule
 {
 public:
     IratahackMemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput);
-    void ProcessFlashAccess(u16 address, u8 value);
     virtual ~IratahackMemoryRule();
     virtual u8 PerformRead(u16 address);
     virtual void PerformWrite(u16 address, u8 value);
@@ -39,7 +38,14 @@ public:
     virtual int GetBank(int index);
     virtual void SaveState(std::ostream& stream);
     virtual void LoadState(std::istream& stream);
+
 private:
+    void ProcessFlashAccess(u16 address, u8 value);
+    bool AdvanceSequence(const int seq[], int len, int &step, u16 address, u8 value);
+    void ResetFlashState();
+    void SyncMemoryMap();
+    void SyncSlot2();
+
     int m_iGameSlot;
     int m_iMapperSlot;
     int m_iMapperSlotAddress;
@@ -52,9 +58,6 @@ private:
     const int m_iFlashIDSequence[FLASH_ID_SEQUENCE_LENGTH] = { 0x5555, 0xAA, 0x2AAA, 0x55, 0x5555, 0x90 };
     const int m_iFlashEraseSequence[FLASH_ERASE_SEQUENCE_LENGTH] = { 0x5555, 0xAA, 0x2AAA, 0x55, 0x5555, 0x80, 0x5555, 0xaa, 0x2aaa, 0x55 };
     const int m_iFlashWriteSequence[FLASH_WRITE_SEQUENCE_LENGTH] = { 0x5555, 0xAA, 0x2AAA, 0x55, 0x5555, 0xA0 };
-    // Helper to advance address/value sequences used for flash commands
-    bool AdvanceSequence(const int seq[], int len, int &step, u16 address, u8 value);
-    void ResetFlashState();
 };
 
 #endif	/* IRATAHACKMEMORYRULE_H */

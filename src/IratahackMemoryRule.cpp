@@ -51,6 +51,12 @@ u8 IratahackMemoryRule::PerformRead(u16 address)
                     return 0xFF;
             }
         }
+        // ROM slots 0 and 1
+        u8* pROM = m_pCartridge->GetROM();
+        u32 romIndex = (m_iGameSlot << 17) + address;
+        if (romIndex < (u32)m_pCartridge->GetROMSize())
+            return pROM[romIndex];
+        return 0xFF;
     }
     else if (address < 0xC000)
     {
@@ -102,8 +108,7 @@ void IratahackMemoryRule::PerformWrite(u16 address, u8 value)
                             {
                                 pROM[sectorOffset + i] = 0xFF;
                             }
-                            // Reload the memory slot to reflect the erased data
-                            m_pMemory->LoadSlotsFromROM(pROM, (1024 * 48), (m_iGameSlot << 17));
+                            SyncMemoryMap();
                         }
                     }
                     ResetFlashState();
@@ -119,6 +124,7 @@ void IratahackMemoryRule::PerformWrite(u16 address, u8 value)
                     if (romIndex < (u32)m_pCartridge->GetROMSize())
                     {
                         pROM[romIndex] = value;
+                        // Sync memory map for debug window (GetPage returns memory map pointers)
                         m_pMemory->Load(address, value);
                     }
                     ResetFlashState();
@@ -138,11 +144,12 @@ void IratahackMemoryRule::PerformWrite(u16 address, u8 value)
                         // Flash address lines A18-A17
                         m_iGameSlot = value & 3;
                         Debug("Setting game mapper to %d", m_iGameSlot);
-                        m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), (1024 * 48), (m_iGameSlot << 17));
+                        SyncMemoryMap();
                         break;
                     case 0xFFFF:
                         m_iMapperSlot = value & 7;
                         m_iMapperSlotAddress = m_iMapperSlot * 0x4000;
+                        SyncSlot2();
                         break;
                 }
                 // RAM and shadow RAM
@@ -231,6 +238,23 @@ void IratahackMemoryRule::ResetFlashState()
     m_iFlashWriteStep = 0;
 }
 
+void IratahackMemoryRule::SyncMemoryMap()
+{
+    m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), (1024 * 48), (m_iGameSlot << 17));
+}
+
+void IratahackMemoryRule::SyncSlot2()
+{
+    u8* pROM = m_pCartridge->GetROM();
+    u32 srcOffset = (m_iGameSlot << 17) + m_iMapperSlotAddress;
+    if (srcOffset + 0x4000 <= (u32)m_pCartridge->GetROMSize())
+    {
+        u8* pDst = m_pMemory->GetMemoryMap() + 0x8000;
+        for (int i = 0; i < 0x4000; i++)
+            pDst[i] = pROM[srcOffset + i];
+    }
+}
+
 u8* IratahackMemoryRule::GetPage(int index)
 {
     if ((index >= 0) && (index < 3))
@@ -241,10 +265,19 @@ u8* IratahackMemoryRule::GetPage(int index)
 
 int IratahackMemoryRule::GetBank(int index)
 {
-    if ((index >= 0) && (index < 3))
-        return index;
-    else
-        return 0;
+    int gameBank = m_iGameSlot * 8;  // Each 128KB game has 8 x 16KB banks
+
+    switch (index)
+    {
+        case 0:
+            return gameBank;
+        case 1:
+            return gameBank + 1;
+        case 2:
+            return gameBank + m_iMapperSlot;
+        default:
+            return 0;
+    }
 }
 
 void IratahackMemoryRule::SaveState(std::ostream& stream)
@@ -271,4 +304,7 @@ void IratahackMemoryRule::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_iFlashIDStep), sizeof(m_iFlashIDStep));
     stream.read(reinterpret_cast<char*> (&m_iFlashEraseStep), sizeof(m_iFlashEraseStep));
     stream.read(reinterpret_cast<char*> (&m_iFlashWriteStep), sizeof(m_iFlashWriteStep));
+
+    SyncMemoryMap();
+    SyncSlot2();
 }
