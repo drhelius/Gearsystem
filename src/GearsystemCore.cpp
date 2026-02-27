@@ -367,6 +367,11 @@ void GearsystemCore::KeyReleased(GS_Joypads joypad, GS_Keys key)
     m_pInput->KeyReleased(joypad, key);
 }
 
+void GearsystemCore::SetReset(bool pressed)
+{
+    m_pInput->SetReset(pressed);
+}
+
 void GearsystemCore::SetPhaser(int x, int y)
 {
     int y_adjust = m_pCartridge->IsPAL() ? GS_RESOLUTION_SMS_OVERSCAN_V_PAL : GS_RESOLUTION_SMS_OVERSCAN_V;

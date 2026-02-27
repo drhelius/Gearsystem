@@ -61,14 +61,13 @@ void Input::Reset(bool bGameGear)
     m_bResetPressed = false;
 }
 
+void Input::SetReset(bool pressed)
+{
+    m_bResetPressed = pressed;
+}
+
 void Input::KeyPressed(GS_Joypads joypad, GS_Keys key)
 {
-    if (key == Key_Reset)
-    {
-        m_bResetPressed = true;
-        return;
-    }
-
     if (joypad == Joypad_1)
     {
         if (!m_bGameGear && (key == Key_Start) && IsSetBit(m_Joypad1, Key_Start))
@@ -86,12 +85,6 @@ void Input::KeyPressed(GS_Joypads joypad, GS_Keys key)
 
 void Input::KeyReleased(GS_Joypads joypad, GS_Keys key)
 {
-    if (key == Key_Reset)
-    {
-        m_bResetPressed = false;
-        return;
-    }
-
     if (joypad == Joypad_1)
         m_Joypad1 = SetBit(m_Joypad1, key);
     else

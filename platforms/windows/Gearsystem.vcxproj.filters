@@ -211,6 +211,9 @@
     <ClCompile Include="..\..\src\Multi4PAKAllActionMemoryRule.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\IratahackMemoryRule.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\miniz\miniz.c">
       <Filter>core\miniz</Filter>
     </ClCompile>
@@ -455,6 +458,9 @@
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Multi4PAKAllActionMemoryRule.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\IratahackMemoryRule.h">
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\miniz\miniz.h">

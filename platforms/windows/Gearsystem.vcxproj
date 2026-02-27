@@ -171,6 +171,7 @@
     <ClInclude Include="..\..\src\KoreanMDFFF0MemoryRule.h" />
     <ClInclude Include="..\..\src\Multi4PAKAllActionMemoryRule.h" />
     <ClInclude Include="..\..\src\JumboDahjeeMemoryRule.h" />
+    <ClInclude Include="..\..\src\IratahackMemoryRule.h" />
     <ClInclude Include="..\..\src\Eeprom93C46MemoryRule.h" />
     <ClInclude Include="..\desktop-shared\stb\stb_image_write.h" />
     <ClInclude Include="resource.h" />

@@ -48,6 +48,7 @@ public:
     void Reset(bool bGameGear);
     void KeyPressed(GS_Joypads joypad, GS_Keys key);
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
+    void SetReset(bool pressed);
     void EnablePhaser(bool enable);
     void SetPhaser(int x, int y);
     void SetPhaserOffset(int x, int y);
@@ -114,8 +115,7 @@ inline u8 Input::GetPortDD()
         dd = ((m_Joypad2 >> 2) & 0x0F) | 0xF0;
     }
 
-    // Clear bit 4 when reset button is pressed
-    if (m_bResetPressed)
+    if (!m_bGameGear && m_bResetPressed)
         dd = UnsetBit(dd, 4);
 
     return dd;

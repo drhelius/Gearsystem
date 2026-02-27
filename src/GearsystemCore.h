@@ -78,6 +78,7 @@ public:
     bool GetRuntimeInfo(GS_RuntimeInfo& runtime_info);
     void KeyPressed(GS_Joypads joypad, GS_Keys key);
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
+    void SetReset(bool pressed);
     void SetPhaser(int x, int y);
     void SetPhaserOffset(int x, int y);
     void EnablePhaser(bool enable);

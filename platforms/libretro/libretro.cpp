@@ -523,9 +523,9 @@ static void update_input(void)
             else
                 core->KeyReleased(static_cast<GS_Joypads>(player), Key_Start);
             if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
-                core->KeyPressed(static_cast<GS_Joypads>(player), Key_Reset);
+                core->SetReset(true);
             else
-                core->KeyReleased(static_cast<GS_Joypads>(player), Key_Reset);
+                core->SetReset(false);
 
             break;
         }
