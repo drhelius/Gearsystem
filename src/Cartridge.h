@@ -115,6 +115,7 @@ public:
     bool LoadFromBuffer(const u8* buffer, int size, const char* path = NULL);
     void SetGameGenieCheat(const char* szCheat);
     void ClearGameGenieCheats();
+    void ExpandROMBuffer(int newSize, u8 fillValue = 0xFF);
 
 private:
     bool GatherMetadata(u32 crc);

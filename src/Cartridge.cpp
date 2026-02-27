@@ -296,27 +296,6 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             Log("Not forcing Zone: Auto");
             break;
     }
-
-    // Iratahack mapper emulates a 512KB flash chip (4 slots × 128KB)
-    // Expand ROM buffer if needed to accommodate writes to high banks
-    if (m_Type == CartridgeIratahackMapper && m_iROMSize < 0x80000)
-    {
-        int originalSize = m_iROMSize;
-        m_iROMSize = 0x80000;  // 512KB
-        u8* newROM = new u8[m_iROMSize];
-        memcpy(newROM, m_pROM, originalSize);
-        // Fill the rest with 0xFF (erased flash)
-        memset(newROM + originalSize, 0xFF, m_iROMSize - originalSize);
-        SafeDeleteArray(m_pROM);
-        m_pROM = newROM;
-        Log("Expanded ROM buffer from %d KB to 512 KB for Iratahack mapper", originalSize / 1024);
-
-        // Recalculate bank counts for the expanded ROM size
-        m_iROMBankCount16k = std::max(Pow2Ceil(m_iROMSize / 0x4000), 1u);
-        m_iROMBankCount8k = std::max(Pow2Ceil(m_iROMSize / 0x2000), 1u);
-        Log("ROM Bank Count (16KB): %d", m_iROMBankCount16k);
-        Log("ROM Bank Count (8KB): %d", m_iROMBankCount8k);
-    }
 }
 
 int Cartridge::GetFeatures() const
@@ -646,27 +625,6 @@ bool Cartridge::GatherMetadata(u32 crc)
 
     GetInfoFromDB(crc);
 
-    // Iratahack mapper emulates a 512KB flash chip (4 slots × 128KB)
-    // Expand ROM buffer if needed to accommodate writes to high banks
-    if (m_Type == CartridgeIratahackMapper && m_iROMSize < 0x80000)
-    {
-        int originalSize = m_iROMSize;
-        m_iROMSize = 0x80000;  // 512KB
-        u8* newROM = new u8[m_iROMSize];
-        memcpy(newROM, m_pROM, originalSize);
-        // Fill the rest with 0xFF (erased flash)
-        memset(newROM + originalSize, 0xFF, m_iROMSize - originalSize);
-        SafeDeleteArray(m_pROM);
-        m_pROM = newROM;
-        Log("Expanded ROM buffer from %d KB to 512 KB for Iratahack mapper", originalSize / 1024);
-
-        // Recalculate bank counts for the expanded ROM size
-        m_iROMBankCount16k = std::max(Pow2Ceil(m_iROMSize / 0x4000), 1u);
-        m_iROMBankCount8k = std::max(Pow2Ceil(m_iROMSize / 0x2000), 1u);
-        Log("ROM Bank Count (16KB): %d", m_iROMBankCount16k);
-        Log("ROM Bank Count (8KB): %d", m_iROMBankCount8k);
-    }
-
     switch (m_Type)
     {
         case Cartridge::CartridgeRomOnlyMapper:
@@ -884,6 +842,27 @@ void Cartridge::GetInfoFromDB(u32 crc)
     {
         Log("ROM not found in database. CRC: %X", crc);
     }
+}
+
+void Cartridge::ExpandROMBuffer(int newSize, u8 fillValue)
+{
+    if (m_iROMSize >= newSize)
+        return;
+
+    int originalSize = m_iROMSize;
+    m_iROMSize = newSize;
+    u8* newROM = new u8[m_iROMSize];
+    memcpy(newROM, m_pROM, originalSize);
+    memset(newROM + originalSize, fillValue, m_iROMSize - originalSize);
+    SafeDeleteArray(m_pROM);
+    m_pROM = newROM;
+    Log("Expanded ROM buffer from %d KB to %d KB", originalSize / 1024, newSize / 1024);
+
+    // Recalculate bank counts for the expanded ROM size
+    m_iROMBankCount16k = std::max(Pow2Ceil(m_iROMSize / 0x4000), 1u);
+    m_iROMBankCount8k = std::max(Pow2Ceil(m_iROMSize / 0x2000), 1u);
+    Log("ROM Bank Count (16KB): %d", m_iROMBankCount16k);
+    Log("ROM Bank Count (8KB): %d", m_iROMBankCount8k);
 }
 
 void Cartridge::SetGameGenieCheat(const char* szCheat)
