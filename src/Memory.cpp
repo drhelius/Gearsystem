@@ -138,20 +138,15 @@ u8* Memory::GetMemoryMap()
     return m_pMap;
 }
 
-void Memory::LoadSlotsFromROM(u8* pTheROM, int size, int ROMStart)
+void Memory::LoadSlotsFromROM(u8* pTheROM, int size)
 {
     // loads the first 48KB only (bank 0, 1 and 2)
     int i;
     for (i = 0; ((i < 0xC000) && (i < size)); i++)
     {
-        m_pMap[i] = pTheROM[i+ROMStart];
+        m_pMap[i] = pTheROM[i];
     }
     Debug("%d bytes copied from cartridge", i);
-}
-
-void Memory::LoadSlotsFromROM(u8* pTheROM, int size)
-{
-    LoadSlotsFromROM(pTheROM, size, 0);
 }
 
 void Memory::MemoryDump(const char* szFilePath)

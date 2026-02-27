@@ -59,14 +59,14 @@ void config_init(void)
     config_input[0].key_1 = SDL_SCANCODE_A;
     config_input[0].key_2 = SDL_SCANCODE_S;
     config_input[0].key_start = SDL_SCANCODE_RETURN;
-    config_input[0].key_reset = SDL_SCANCODE_BACKSPACE;
+    config_input[0].key_reset = SDL_SCANCODE_UNKNOWN;
     config_input[0].gamepad = true;
     config_input[0].gamepad_invert_x_axis = false;
     config_input[0].gamepad_invert_y_axis = false;
     config_input[0].gamepad_1 = 1;
     config_input[0].gamepad_2 = 2;
     config_input[0].gamepad_start = 9;
-    config_input[0].gamepad_reset = 8;
+    config_input[0].gamepad_reset = SDL_CONTROLLER_BUTTON_INVALID;
     config_input[0].gamepad_x_axis = 0;
     config_input[0].gamepad_y_axis = 1;
     config_input[1].key_left = SDL_SCANCODE_J;
@@ -76,14 +76,14 @@ void config_init(void)
     config_input[1].key_1 = SDL_SCANCODE_G;
     config_input[1].key_2 = SDL_SCANCODE_H;
     config_input[1].key_start = SDL_SCANCODE_RSHIFT;
-    config_input[1].key_reset = SDL_SCANCODE_BACKSLASH;
+    config_input[1].key_reset = SDL_SCANCODE_UNKNOWN;
     config_input[1].gamepad = true;
     config_input[1].gamepad_invert_x_axis = false;
     config_input[1].gamepad_invert_y_axis = false;
     config_input[1].gamepad_1 = 1;
     config_input[1].gamepad_2 = 2;
     config_input[1].gamepad_start = 9;
-    config_input[1].gamepad_reset = 8;
+    config_input[1].gamepad_reset = SDL_CONTROLLER_BUTTON_INVALID;
     config_input[1].gamepad_x_axis = 0;
     config_input[1].gamepad_y_axis = 1;
 
@@ -232,7 +232,7 @@ void config_read(void)
     config_input[0].key_1 = (SDL_Scancode)read_int("InputA", "Key1", SDL_SCANCODE_A);
     config_input[0].key_2 = (SDL_Scancode)read_int("InputA", "Key2", SDL_SCANCODE_S);
     config_input[0].key_start = (SDL_Scancode)read_int("InputA", "KeyStart", SDL_SCANCODE_RETURN);
-    config_input[0].key_reset = (SDL_Scancode)read_int("InputA", "KeyReset", SDL_SCANCODE_BACKSPACE);
+    config_input[0].key_reset = (SDL_Scancode)read_int("InputA", "KeyReset", SDL_SCANCODE_UNKNOWN);
 
     config_input[0].gamepad = read_bool("InputA", "Gamepad", true);
     config_input[0].gamepad_directional = read_int("InputA", "GamepadDirectional", 0);
@@ -241,7 +241,7 @@ void config_read(void)
     config_input[0].gamepad_1 = read_int("InputA", "Gamepad1", SDL_CONTROLLER_BUTTON_A);
     config_input[0].gamepad_2 = read_int("InputA", "Gamepad2", SDL_CONTROLLER_BUTTON_B);
     config_input[0].gamepad_start = read_int("InputA", "GamepadStart", SDL_CONTROLLER_BUTTON_START);
-    config_input[0].gamepad_reset = read_int("InputA", "GamepadReset", SDL_CONTROLLER_BUTTON_BACK);
+    config_input[0].gamepad_reset = read_int("InputA", "GamepadReset", SDL_CONTROLLER_BUTTON_INVALID);
     config_input[0].gamepad_x_axis = read_int("InputA", "GamepadX", SDL_CONTROLLER_AXIS_LEFTX);
     config_input[0].gamepad_y_axis = read_int("InputA", "GamepadY", SDL_CONTROLLER_AXIS_LEFTY);
 
@@ -252,7 +252,7 @@ void config_read(void)
     config_input[1].key_1 = (SDL_Scancode)read_int("InputB", "Key1", SDL_SCANCODE_G);
     config_input[1].key_2 = (SDL_Scancode)read_int("InputB", "Key2", SDL_SCANCODE_H);
     config_input[1].key_start = (SDL_Scancode)read_int("InputB", "KeyStart", SDL_SCANCODE_RSHIFT);
-    config_input[1].key_reset = (SDL_Scancode)read_int("InputB", "KeyReset", SDL_SCANCODE_BACKSLASH);
+    config_input[1].key_reset = (SDL_Scancode)read_int("InputB", "KeyReset", SDL_SCANCODE_UNKNOWN);
 
     config_input[1].gamepad = read_bool("InputB", "Gamepad", true);
     config_input[1].gamepad_directional = read_int("InputB", "GamepadDirectional", 0);
@@ -261,7 +261,7 @@ void config_read(void)
     config_input[1].gamepad_1 = read_int("InputB", "Gamepad1", SDL_CONTROLLER_BUTTON_A);
     config_input[1].gamepad_2 = read_int("InputB", "Gamepad2", SDL_CONTROLLER_BUTTON_B);
     config_input[1].gamepad_start = read_int("InputB", "GamepadStart", SDL_CONTROLLER_BUTTON_START);
-    config_input[1].gamepad_reset = read_int("InputB", "GamepadReset", SDL_CONTROLLER_BUTTON_BACK);
+    config_input[1].gamepad_reset = read_int("InputB", "GamepadReset", SDL_CONTROLLER_BUTTON_INVALID);
     config_input[1].gamepad_x_axis = read_int("InputB", "GamepadX", SDL_CONTROLLER_AXIS_LEFTX);
     config_input[1].gamepad_y_axis = read_int("InputB", "GamepadY", SDL_CONTROLLER_AXIS_LEFTY);
 

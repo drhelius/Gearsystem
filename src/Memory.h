@@ -78,7 +78,6 @@ public:
     stDisassembleRecord** GetDisassembledMemoryMap();
     stDisassembleRecord** GetDisassembledROMMemoryMap();
     void LoadSlotsFromROM(u8* pTheROM, int size);
-    void LoadSlotsFromROM(u8* pTheROM, int size, int ROMStart);
     void MemoryDump(const char* szFilePath);
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);

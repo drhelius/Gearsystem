@@ -521,6 +521,7 @@ static void main_menu(void)
                     "Korean MD FFF0\0"
                     "Jumbo Dahjee\0"
                     "EEPROM 93C46\0"
+                    "Multi 4PAK All Action\0"
                     "Iratahack\0\0");
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
@@ -2511,6 +2512,8 @@ static Cartridge::CartridgeTypes get_mapper(int index)
         case 21:
             return Cartridge::CartridgeEeprom93C46Mapper;
         case 22:
+            return Cartridge::CartridgeMulti4PAKAllActionMapper;
+        case 23:
             return Cartridge::CartridgeIratahackMapper;
         default:
             return Cartridge::CartridgeNotSupported;

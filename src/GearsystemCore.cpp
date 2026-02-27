@@ -1046,8 +1046,6 @@ bool GearsystemCore::AddMemoryRules()
             m_pMemory->SetCurrentRule(m_pJumboDahjeeMemoryRule);
             break;
         case Cartridge::CartridgeIratahackMapper:
-            // Expand ROM to 512KB for flash emulation (4 slots × 128KB)
-            m_pCartridge->ExpandROMBuffer(0x80000, 0xFF);
             m_pMemory->SetCurrentRule(m_pIratahackMemoryRule);
             break;
         case Cartridge::CartridgeEeprom93C46Mapper:

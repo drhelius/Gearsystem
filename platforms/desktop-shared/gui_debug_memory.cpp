@@ -53,12 +53,17 @@ void gui_debug_memory_reset(void)
     Video* video = core->GetVideo();
 
     mem_edit[MEMORY_EDITOR_FIXED_1K].Reset("FIXED 1KB", memory->GetMemoryMap(), 0x400, 0);
-    mem_edit[MEMORY_EDITOR_ROM0_SEGA].Reset("ROM0", memory->GetCurrentRule()->GetPage(0) + 0x400, 0x4000 - 0x400, 0x400);
-    mem_edit[MEMORY_EDITOR_ROM0].Reset("ROM0", memory->GetCurrentRule()->GetPage(0), 0x4000, 0);
-    mem_edit[MEMORY_EDITOR_ROM1].Reset("ROM1", memory->GetCurrentRule()->GetPage(1), 0x4000, 0x4000);
-    mem_edit[MEMORY_EDITOR_ROM2_CODEMASTERS].Reset("ROM2", memory->GetCurrentRule()->GetPage(2), 0x2000, 0x8000);
+    bool flash = (core->GetCartridge()->GetType() == Cartridge::CartridgeIratahackMapper);
+    const char* slot0_label = flash ? "FLASH0" : "ROM0";
+    const char* slot1_label = flash ? "FLASH1" : "ROM1";
+    const char* slot2_label = flash ? "FLASH2" : "ROM2";
+
+    mem_edit[MEMORY_EDITOR_ROM0_SEGA].Reset(slot0_label, memory->GetCurrentRule()->GetPage(0) + 0x400, 0x4000 - 0x400, 0x400);
+    mem_edit[MEMORY_EDITOR_ROM0].Reset(slot0_label, memory->GetCurrentRule()->GetPage(0), 0x4000, 0);
+    mem_edit[MEMORY_EDITOR_ROM1].Reset(slot1_label, memory->GetCurrentRule()->GetPage(1), 0x4000, 0x4000);
+    mem_edit[MEMORY_EDITOR_ROM2_CODEMASTERS].Reset(slot2_label, memory->GetCurrentRule()->GetPage(2), 0x2000, 0x8000);
     mem_edit[MEMORY_EDITOR_EXT_RAM].Reset("EXT RAM", memory->GetCurrentRule()->GetRamBanks(), 0x2000, 0xA000);
-    mem_edit[MEMORY_EDITOR_ROM2].Reset("ROM2", memory->GetCurrentRule()->GetPage(2), 0x4000, 0x8000);
+    mem_edit[MEMORY_EDITOR_ROM2].Reset(slot2_label, memory->GetCurrentRule()->GetPage(2), 0x4000, 0x8000);
     mem_edit[MEMORY_EDITOR_RAM].Reset("RAM", memory->GetMemoryMap() + 0xC000, 0x4000, 0xC000);
     mem_edit[MEMORY_EDITOR_VRAM].Reset("VRAM", video->GetVRAM(), 0x4000, 0);
     mem_edit[MEMORY_EDITOR_CRAM].Reset("CRAM", video->GetCRAM(), 0x40, 0);
@@ -67,7 +72,7 @@ void gui_debug_memory_reset(void)
     {
         int page = i - MEMORY_EDITOR_ROM0_8K;
         char label[16];
-        snprintf(label, 16, "ROM%d", page);
+        snprintf(label, 16, "%s%d", flash ? "FLASH" : "ROM", page);
         mem_edit[i].Reset(label, memory->GetCurrentRule()->GetPage(page), 0x2000, 0x2000 * page);
     }
 }
@@ -96,11 +101,14 @@ void gui_debug_window_memory(void)
     ImGui::PushFont(gui_default_font);
     ImGui::TextColored(green, "  BANKS: ");ImGui::SameLine();
 
+    bool flash = (cart->GetType() == Cartridge::CartridgeIratahackMapper);
+    const char* slot_prefix = flash ? "FLASH" : "ROM";
+
     if (memory->GetCurrentRule()->Has8kBanks())
     {
         for (int i = 0; i < 6; i++)
         {
-            ImGui::TextColored(cyan, "ROM%d", i);ImGui::SameLine();
+            ImGui::TextColored(cyan, "%s%d", slot_prefix, i);ImGui::SameLine();
             ImGui::Text("$%02X", memory->GetCurrentRule()->GetBank(i));
             if (i != 5)
                 ImGui::SameLine();
@@ -110,7 +118,7 @@ void gui_debug_window_memory(void)
     {
         for (int i = 0; i < 3; i++)
         {
-            ImGui::TextColored(cyan, "ROM%d", i);ImGui::SameLine();
+            ImGui::TextColored(cyan, "%s%d", slot_prefix, i);ImGui::SameLine();
             ImGui::Text("$%02X", memory->GetCurrentRule()->GetBank(i));
             if (i != 2)
                 ImGui::SameLine();

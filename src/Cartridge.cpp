@@ -257,13 +257,13 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             m_Type = config.type;
             Log("Forcing Mapper: Jumbo Dahjee");
             break;
-        case Cartridge::CartridgeIratahackMapper:
-            m_Type = config.type;
-            Log("Forcing Mapper: Iratahack");
-            break;
         case Cartridge::CartridgeEeprom93C46Mapper:
             m_Type = config.type;
             Log("Forcing Mapper: EEPROM 93C46");
+            break;
+        case Cartridge::CartridgeIratahackMapper:
+            m_Type = config.type;
+            Log("Forcing Mapper: Iratahack");
             break;
         default:
             Log("Not forcing Mapper: Auto");
@@ -842,27 +842,6 @@ void Cartridge::GetInfoFromDB(u32 crc)
     {
         Log("ROM not found in database. CRC: %X", crc);
     }
-}
-
-void Cartridge::ExpandROMBuffer(int newSize, u8 fillValue)
-{
-    if (m_iROMSize >= newSize)
-        return;
-
-    int originalSize = m_iROMSize;
-    m_iROMSize = newSize;
-    u8* newROM = new u8[m_iROMSize];
-    memcpy(newROM, m_pROM, originalSize);
-    memset(newROM + originalSize, fillValue, m_iROMSize - originalSize);
-    SafeDeleteArray(m_pROM);
-    m_pROM = newROM;
-    Log("Expanded ROM buffer from %d KB to %d KB", originalSize / 1024, newSize / 1024);
-
-    // Recalculate bank counts for the expanded ROM size
-    m_iROMBankCount16k = std::max(Pow2Ceil(m_iROMSize / 0x4000), 1u);
-    m_iROMBankCount8k = std::max(Pow2Ceil(m_iROMSize / 0x2000), 1u);
-    Log("ROM Bank Count (16KB): %d", m_iROMBankCount16k);
-    Log("ROM Bank Count (8KB): %d", m_iROMBankCount8k);
 }
 
 void Cartridge::SetGameGenieCheat(const char* szCheat)
