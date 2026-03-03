@@ -125,12 +125,25 @@ int MSXMemoryRule::GetBank(int index)
     switch (index)
     {
         case 0:
+            return 0;
         case 1:
+            return 1;
         case 2:
-            return m_iMapperSlot[index];
+            return m_iMapperSlot[2];
+        case 3:
+            return m_iMapperSlot[3];
+        case 4:
+            return m_iMapperSlot[0];
+        case 5:
+            return m_iMapperSlot[1];
         default:
             return 0;
     }
+}
+
+bool MSXMemoryRule::Has8kBanks()
+{
+    return true;
 }
 
 void MSXMemoryRule::SaveState(std::ostream& stream)

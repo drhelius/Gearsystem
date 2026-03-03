@@ -154,8 +154,8 @@ void JanggunMemoryRule::Reset()
 {
     for (int i = 0; i < 4; i++)
     {
-        m_iMapperSlot[i] = i;
-        m_iMapperSlotAddress[i] = i * 0x4000;
+        m_iMapperSlot[i] = i + 2;
+        m_iMapperSlotAddress[i] = (i + 2) * 0x2000;
         m_bReverseFlags[i] = false;
     }
 }
@@ -179,13 +179,25 @@ int JanggunMemoryRule::GetBank(int index)
     switch (index)
     {
         case 0:
+            return 0;
         case 1:
+            return 1;
         case 2:
+            return m_iMapperSlot[0];
         case 3:
-            return m_iMapperSlot[index];
+            return m_iMapperSlot[1];
+        case 4:
+            return m_iMapperSlot[2];
+        case 5:
+            return m_iMapperSlot[3];
         default:
             return 0;
     }
+}
+
+bool JanggunMemoryRule::Has8kBanks()
+{
+    return true;
 }
 
 void JanggunMemoryRule::SaveState(std::ostream& stream)
