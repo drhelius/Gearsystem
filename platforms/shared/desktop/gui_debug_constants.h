@@ -108,13 +108,19 @@ static const stDebugLabel k_debug_labels[k_debug_label_count] =
     { 0x06, "GG_STEREO" },
 };
 
-static const int k_bios_symbol_count = 3;
+static const int k_debug_symbol_count = 9;
 
-static const stDebugLabel k_bios_symbols[k_bios_symbol_count] = 
+static const stDebugLabel k_debug_symbols[k_debug_symbol_count] = 
 {
-    { 0x0000, "BIOS_ENTRY"  },
-    { 0x0038, "INT_HANDLER" },
-    { 0x0066, "NMI_HANDLER" },
+    { 0x0000, "RST_00" },
+    { 0x0008, "RST_08" },
+    { 0x0010, "RST_10" },
+    { 0x0018, "RST_18" },
+    { 0x0020, "RST_20" },
+    { 0x0028, "RST_28" },
+    { 0x0030, "RST_30" },
+    { 0x0038, "RST_38" },
+    { 0x0066, "NMI_Interrupt" },
 };
 
 #endif /* GUI_DEBUG_CONSTANTS_H */
