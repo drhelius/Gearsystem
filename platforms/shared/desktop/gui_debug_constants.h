@@ -79,33 +79,56 @@ struct stDebugLabel
     const char* label;
 };
 
-static const int k_debug_label_count = 19;
-static const stDebugLabel k_debug_labels[k_debug_label_count] = 
+enum eDebugIODirection
 {
-    // VDP Ports
-    { 0xBE, "VDP_DATA" },
-    { 0xBF, "VDP_CTRL" },
-    { 0x7E, "VDP_VCOUNTER" },
-    { 0x7F, "VDP_HCOUNTER" },
-    // PSG
-    { 0x7E, "PSG_OUTPUT" },
-    { 0x7F, "PSG_OUTPUT" },
-    // I/O Ports
-    { 0x3F, "IO_CTRL" },
-    { 0xDC, "IO_PORT_A" },
-    { 0xDD, "IO_PORT_B" },
-    { 0xDE, "IO_PORT_A" },
-    { 0xDF, "IO_PORT_B" },
-    // Memory Control
-    { 0x3E, "MEM_CTRL" },
-    // Game Gear specific
-    { 0x00, "GG_START" },
-    { 0x01, "GG_SERIAL_DATA" },
-    { 0x02, "GG_SERIAL_DIR" },
-    { 0x03, "GG_SERIAL_CTRL" },
-    { 0x04, "GG_SERIAL_RECV" },
-    { 0x05, "GG_SERIAL_XMIT" },
-    { 0x06, "GG_STEREO" },
+    IO_IN   = 1,
+    IO_OUT  = 2,
+    IO_BOTH = 3,
+};
+
+struct stDebugIOLabel
+{
+    u16 address;
+    const char* label;
+    int direction;
+};
+
+static const int k_debug_io_label_count = 25;
+static const stDebugIOLabel k_debug_io_labels[k_debug_io_label_count] = 
+{
+    // VDP Ports (0x80-0xBF range, even/odd decoding)
+    { 0xBE, "VDP_DATA", IO_BOTH },
+    { 0xBF, "VDP_STATUS", IO_IN },
+    { 0xBF, "VDP_CTRL", IO_OUT },
+    // V/H Counters (0x40-0x7F range, even/odd decoding, read only)
+    { 0x7E, "VDP_VCOUNTER", IO_IN },
+    { 0x7F, "VDP_HCOUNTER", IO_IN },
+    // PSG (0x40-0x7F range, write only)
+    { 0x7E, "PSG", IO_OUT },
+    { 0x7F, "PSG", IO_OUT },
+    // YM2413 FM Synth (0xF0-0xFF range, SMS only)
+    { 0xF0, "FM_STATUS", IO_IN },
+    { 0xF0, "FM_ADDR", IO_OUT },
+    { 0xF1, "FM_STATUS", IO_IN },
+    { 0xF1, "FM_DATA", IO_OUT },
+    { 0xF2, "FM_DETECT", IO_BOTH },
+    // I/O Control (0x00-0x3F odd, write only)
+    { 0x3F, "IO_CTRL", IO_OUT },
+    // Joypad Ports (0xC0-0xFF range, even/odd decoding, read only)
+    { 0xDC, "JOYPAD_1", IO_IN },
+    { 0xDD, "JOYPAD_2", IO_IN },
+    { 0xC0, "JOYPAD_1", IO_IN },
+    { 0xC1, "JOYPAD_2", IO_IN },
+    // Memory Control (0x00-0x3F even, write only)
+    { 0x3E, "MEM_CTRL", IO_OUT },
+    // Game Gear specific (0x00-0x06)
+    { 0x00, "GG_START", IO_IN },
+    { 0x01, "GG_SERIAL_DATA", IO_BOTH },
+    { 0x02, "GG_SERIAL_DIR", IO_BOTH },
+    { 0x03, "GG_SERIAL_TX", IO_BOTH },
+    { 0x04, "GG_SERIAL_RX", IO_BOTH },
+    { 0x05, "GG_SERIAL_STATUS", IO_BOTH },
+    { 0x06, "GG_STEREO", IO_OUT },
 };
 
 static const int k_debug_symbol_count = 9;

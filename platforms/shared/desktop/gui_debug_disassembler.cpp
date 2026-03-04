@@ -1221,45 +1221,25 @@ bool gui_debug_resolve_symbol(GS_Disassembler_Record* record, std::string& instr
 bool gui_debug_resolve_label(GS_Disassembler_Record* record, std::string& instr, const char* color, const char* original_color, const char** out_name, u16* out_address)
 {
     u8 opcode = record->opcodes[0];
-    bool is_io = (opcode == 0xDB || opcode == 0xD3);
+    bool is_in = (opcode == 0xDB);
+    bool is_out = (opcode == 0xD3);
 
-    if (is_io)
+    if (is_in || is_out)
     {
         u16 port = record->opcodes[1];
+        int dir = is_in ? IO_IN : IO_OUT;
 
-        for (int i = 0; i < k_debug_label_count; i++)
+        for (int i = 0; i < k_debug_io_label_count; i++)
         {
-            if (k_debug_labels[i].address == port)
+            if (k_debug_io_labels[i].address == port && (k_debug_io_labels[i].direction & dir))
             {
                 char label_address[4];
                 snprintf(label_address, 4, "$%02X", port);
-                std::string replacement = std::string(color) + k_debug_labels[i].label + "_" + label_address + original_color;
+                std::string replacement = std::string(color) + k_debug_io_labels[i].label + "_" + label_address + original_color;
                 if (replace_address_in_string(instr, port, true, replacement.c_str()))
                 {
-                    if (out_name) *out_name = k_debug_labels[i].label;
+                    if (out_name) *out_name = k_debug_io_labels[i].label;
                     if (out_address) *out_address = port;
-                    return true;
-                }
-            }
-        }
-    }
-
-    u16 lookup_address = 0;
-    bool is_zp = false;
-
-    if (get_record_operand(record, &lookup_address, &is_zp))
-    {
-        for (int i = 0; i < k_debug_label_count; i++)
-        {
-            if (k_debug_labels[i].address == lookup_address)
-            {
-                char label_address[6];
-                snprintf(label_address, 6, "$%04X", lookup_address);
-                std::string replacement = std::string(color) + k_debug_labels[i].label + "_" + label_address + original_color;
-                if (replace_address_in_string(instr, lookup_address, is_zp, replacement.c_str()))
-                {
-                    if (out_name) *out_name = k_debug_labels[i].label;
-                    if (out_address) *out_address = lookup_address;
                     return true;
                 }
             }
