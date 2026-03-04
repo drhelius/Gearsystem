@@ -65,6 +65,7 @@ EXTERN bool emu_is_media_loading(void);
 EXTERN bool emu_finish_media_loading(void);
 EXTERN void emu_key_pressed(GS_Joypads pad, GS_Keys key);
 EXTERN void emu_key_released(GS_Joypads pad, GS_Keys key);
+EXTERN void emu_set_reset(bool pressed);
 EXTERN void emu_set_phaser(int x, int y);
 EXTERN void emu_set_phaser_offset(int x, int y);
 EXTERN void emu_enable_phaser(bool enable);

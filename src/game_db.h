@@ -43,6 +43,7 @@
 #define GS_DB_JUMBO_DAHJEE_MAPPER 18
 #define GS_DB_KOREAN_MD_FFF0_MAPPER 19
 #define GS_DB_EEPROM_93C46_MAPPER 20
+#define GS_DB_IRATAHACK_MAPPER 21
 
 #define GS_DB_FEATURE_NONE 0x00
 #define GS_DB_FEATURE_PAL 0x01
@@ -431,6 +432,8 @@ const GS_GameDBEntry kGameDatabase[] =
     {0x919B4B6E, GS_DB_KOREAN_MD_FFF0_MAPPER, GS_DB_FEATURE_NONE, "Mega Mode Super Game 30"},
 
     {0xA67F2A5C, GS_DB_MULTI_4PAK_ALL_ACTION_MAPPER, GS_DB_FEATURE_NONE, "4 PAK All Action"},
+
+    {0x49AF30F8, GS_DB_IRATAHACK_MAPPER, GS_DB_FEATURE_NONE, "Wee Knight's Escape Trilogy"},
 
     // Requires vint flag on boot
     {0xD9096263, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_INITIAL_VINT, "Sonic's Edusoft [Proto]"},

@@ -290,7 +290,9 @@ inline void Processor::OPCodes_LDD()
 
 inline void Processor::OPCodes_RST(u16 address)
 {
+#if !defined(GS_DISABLE_DISASSEMBLER)
     u16 pc = PC.GetValue();
+#endif
     StackPush(&PC);
     PC.SetValue(address);
     WZ.SetValue(address);
@@ -302,7 +304,9 @@ inline void Processor::OPCodes_RST(u16 address)
 inline void Processor::OPCodes_CALL_nn()
 {
     u16 address = FetchArg16();
+#if !defined(GS_DISABLE_DISASSEMBLER)
     u16 pc = PC.GetValue();
+#endif
     StackPush(&PC);
     PC.SetValue(address);
     WZ.SetValue(address);
@@ -316,7 +320,9 @@ inline void Processor::OPCodes_CALL_nn_Conditional(bool condition)
     u16 address = FetchArg16();
     if (condition)
     {
+#if !defined(GS_DISABLE_DISASSEMBLER)
         u16 pc = PC.GetValue();
+#endif
         StackPush(&PC);
         PC.SetValue(address);
         m_bBranchTaken = true;
@@ -449,7 +455,7 @@ inline void Processor::OPCodes_IND()
         ClearFlag(FLAG_CARRY);
         ClearFlag(FLAG_HALF);
     }
-    if (((result + ((BC.GetLow() + 1) & 0xFF)) & 0x07) ^ BC.GetHigh())
+    if (((result + ((BC.GetLow() - 1) & 0xFF)) & 0x07) ^ BC.GetHigh())
         ToggleFlag(FLAG_PARITY);
     else
         ClearFlag(FLAG_PARITY);

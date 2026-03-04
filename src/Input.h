@@ -48,6 +48,7 @@ public:
     void Reset(bool bGameGear);
     void KeyPressed(GS_Joypads joypad, GS_Keys key);
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
+    void SetReset(bool pressed);
     void EnablePhaser(bool enable);
     void SetPhaser(int x, int y);
     void SetPhaserOffset(int x, int y);
@@ -76,6 +77,7 @@ private:
     stPhaser m_PhaserOffset;
     bool m_bPaddle;
     stPaddle m_Paddle;
+    bool m_bResetPressed;
 };
 
 #include "Video.h"
@@ -100,19 +102,23 @@ inline u8 Input::GetPortDC()
 
 inline u8 Input::GetPortDD()
 {
+    u8 dd;
     if (m_bPhaser && !m_bGameGear)
     {
-        u8 dd = ((m_Joypad2 >> 2) & 0x0F) | 0xF0;
+        dd = ((m_Joypad2 >> 2) & 0x0F) | 0xF0;
 
         if (m_pVideo->IsPhaserDetected())
             dd = UnsetBit(dd, 6);
-
-        return dd;
     }
     else
     {
-        return ((m_Joypad2 >> 2) & 0x0F) | 0xF0;
+        dd = ((m_Joypad2 >> 2) & 0x0F) | 0xF0;
     }
+
+    if (!m_bGameGear && m_bResetPressed)
+        dd = UnsetBit(dd, 4);
+
+    return dd;
 }
 
 inline u8 Input::GetPort00()

@@ -76,6 +76,7 @@
     <ClCompile Include="..\shared\desktop\gui_debug_disassembler.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_memeditor.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_memory.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug_processor.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_psg.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_trace_logger.cpp" />
     <ClCompile Include="..\shared\desktop\gui_filedialogs.cpp" />
@@ -214,6 +215,7 @@
     <ClInclude Include="..\shared\desktop\gui_debug_disassembler.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_memeditor.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_memory.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_processor.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_psg.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_text.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_trace_logger.h" />

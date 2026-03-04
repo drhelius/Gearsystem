@@ -39,6 +39,7 @@ Input::Input(Processor* pProcessor, Video* pVideo)
     m_Paddle.x = 128.0f;
     m_Paddle.reg = 128;
     m_Paddle.flip = 0;
+    m_bResetPressed = false;
 }
 
 void Input::Init()
@@ -57,6 +58,12 @@ void Input::Reset(bool bGameGear)
     m_Paddle.x = 128.0f;
     m_Paddle.reg = 128;
     m_Paddle.flip = 0;
+    m_bResetPressed = false;
+}
+
+void Input::SetReset(bool pressed)
+{
+    m_bResetPressed = pressed;
 }
 
 void Input::KeyPressed(GS_Joypads joypad, GS_Keys key)

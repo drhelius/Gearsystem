@@ -89,8 +89,8 @@ public:
     ~Processor();
     void Init();
     void Reset();
-    unsigned int RunFor(unsigned int tstates);
-    void InjectTStates(unsigned int tstates);
+    u32 RunFor(u32 tstates);
+    void InjectTStates(u32 tstates);
     void RequestINT(bool assert);
     void RequestNMI();
     void SetIOPOrts(IOPorts* pIOPorts);
@@ -146,8 +146,8 @@ private:
     bool m_bIFF2;
     bool m_bHalt;
     bool m_bBranchTaken;
-    unsigned int m_iTStates;
-    unsigned int m_iInjectedTStates;
+    u32 m_iTStates;
+    u32 m_iInjectedTStates;
     bool m_bAfterEI;
     int m_iInterruptMode;
     IOPorts* m_pIOPorts;

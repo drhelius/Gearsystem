@@ -49,6 +49,7 @@ class MSXMemoryRule;
 class JanggunMemoryRule;
 class Multi4PAKAllActionMemoryRule;
 class JumboDahjeeMemoryRule;
+class IratahackMemoryRule;
 class Eeprom93C46MemoryRule;
 class MemoryRule;
 class SmsIOPorts;
@@ -87,6 +88,7 @@ public:
     bool GetRuntimeInfo(GS_RuntimeInfo& runtime_info);
     void KeyPressed(GS_Joypads joypad, GS_Keys key);
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
+    void SetReset(bool pressed);
     void SetPhaser(int x, int y);
     void SetPhaserOffset(int x, int y);
     void EnablePhaser(bool enable);
@@ -162,6 +164,7 @@ private:
     SmsIOPorts* m_pSmsIOPorts;
     GameGearIOPorts* m_pGameGearIOPorts;
     BootromMemoryRule* m_pBootromMemoryRule;
+    IratahackMemoryRule* m_pIratahackMemoryRule;
     bool m_bPaused;
     RamChangedCallback m_pRamChangedCallback;
     GS_Color_Format m_pixelFormat;

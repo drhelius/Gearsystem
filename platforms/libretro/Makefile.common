@@ -22,6 +22,7 @@ SOURCES_CXX := $(CORE_DIR)/libretro.cpp \
                $(SOURCE_DIR)/KoreanMDFFF5MemoryRule.cpp \
                $(SOURCE_DIR)/KoreanMDFFF0MemoryRule.cpp \
                $(SOURCE_DIR)/Multi4PAKAllActionMemoryRule.cpp \
+               $(SOURCE_DIR)/IratahackMemoryRule.cpp \
                $(SOURCE_DIR)/JumboDahjeeMemoryRule.cpp \
                $(SOURCE_DIR)/Eeprom93C46MemoryRule.cpp \
                $(SOURCE_DIR)/Memory.cpp \

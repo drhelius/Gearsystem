@@ -435,7 +435,7 @@ u8 Eeprom93C46MemoryRule::EEPROM_93c46_Read()
 
 void Eeprom93C46MemoryRule::EEPROM_93c46_DirectWrite(int addr, u8 data)
 {
-    if (addr >= 0 && addr < 64)
+    if (addr >= 0 && addr < EEPROM_93C46_DATA_SIZE)
     {
         if (addr % 2 == 0)
         {
@@ -450,7 +450,7 @@ void Eeprom93C46MemoryRule::EEPROM_93c46_DirectWrite(int addr, u8 data)
 
 u8 Eeprom93C46MemoryRule::EEPROM_93c46_DirectRead(int addr)
 {
-    if (addr >= 0 && addr < 64)
+    if (addr >= 0 && addr < EEPROM_93C46_DATA_SIZE)
     {
         if (addr % 2 == 0)
         {

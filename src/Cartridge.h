@@ -51,6 +51,7 @@ public:
         CartridgeMulti4PAKAllActionMapper,
         CartridgeJumboDahjeeMapper,
         CartridgeEeprom93C46Mapper,
+        CartridgeIratahackMapper,
         CartridgeNotSupported
     };
     

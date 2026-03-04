@@ -44,6 +44,7 @@
 #include "JanggunMemoryRule.h"
 #include "Multi4PAKAllActionMemoryRule.h"
 #include "JumboDahjeeMemoryRule.h"
+#include "IratahackMemoryRule.h"
 #include "Eeprom93C46MemoryRule.h"
 #include "SG1000MemoryRule.h"
 #include "SmsIOPorts.h"
@@ -87,6 +88,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pBootromMemoryRule);
     InitPointer(m_pFrameBuffer);
     InitPointer(m_debug_callback);
+    InitPointer(m_pIratahackMemoryRule);
     m_bPaused = true;
     m_pixelFormat = GS_PIXEL_RGBA8888;
     m_GlassesConfig = GearsystemCore::GlassesBothEyes;
@@ -118,6 +120,7 @@ GearsystemCore::~GearsystemCore()
     SafeDelete(m_pJanggunMemoryRule);
     SafeDelete(m_pMulti4PAKAllActionMemoryRule);
     SafeDelete(m_pJumboDahjeeMemoryRule);
+    SafeDelete(m_pIratahackMemoryRule);
     SafeDelete(m_pEeprom93C46MemoryRule);
     SafeDelete(m_pCartridge);
     SafeDelete(m_pInput);
@@ -421,6 +424,11 @@ void GearsystemCore::KeyPressed(GS_Joypads joypad, GS_Keys key)
 void GearsystemCore::KeyReleased(GS_Joypads joypad, GS_Keys key)
 {
     m_pInput->KeyReleased(joypad, key);
+}
+
+void GearsystemCore::SetReset(bool pressed)
+{
+    m_pInput->SetReset(pressed);
 }
 
 void GearsystemCore::SetPhaser(int x, int y)
@@ -1221,6 +1229,7 @@ void GearsystemCore::InitMemoryRules()
     m_pJumboDahjeeMemoryRule = new JumboDahjeeMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pEeprom93C46MemoryRule = new Eeprom93C46MemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pBootromMemoryRule = new BootromMemoryRule(m_pMemory, m_pCartridge, m_pInput);
+    m_pIratahackMemoryRule = new IratahackMemoryRule(m_pMemory, m_pCartridge, m_pInput);
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
     m_pMemory->SetBootromRule(m_pBootromMemoryRule);
     m_pProcessor->SetIOPOrts(m_pSmsIOPorts);
@@ -1297,6 +1306,9 @@ bool GearsystemCore::AddMemoryRules()
         case Cartridge::CartridgeJumboDahjeeMapper:
             m_pMemory->SetCurrentRule(m_pJumboDahjeeMemoryRule);
             break;
+        case Cartridge::CartridgeIratahackMapper:
+            m_pMemory->SetCurrentRule(m_pIratahackMemoryRule);
+            break;
         case Cartridge::CartridgeEeprom93C46Mapper:
             m_pMemory->SetCurrentRule(m_pEeprom93C46MemoryRule);
             break;
@@ -1347,6 +1359,7 @@ void GearsystemCore::Reset()
     m_pKoreanMDFFF0MemoryRule->Reset();
     m_pMSXMemoryRule->Reset();
     m_pJanggunMemoryRule->Reset();
+    m_pIratahackMemoryRule->Reset();
     m_pMulti4PAKAllActionMemoryRule->Reset();
     m_pJumboDahjeeMemoryRule->Reset();
     m_pEeprom93C46MemoryRule->Reset();

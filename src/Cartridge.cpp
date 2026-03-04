@@ -263,6 +263,10 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             m_Type = config.type;
             Log("Forcing Mapper: EEPROM 93C46");
             break;
+        case Cartridge::CartridgeIratahackMapper:
+            m_Type = config.type;
+            Log("Forcing Mapper: Iratahack");
+            break;
         default:
             Log("Not forcing Mapper: Auto");
             break;
@@ -692,6 +696,9 @@ bool Cartridge::GatherMetadata(u32 crc)
         case Cartridge::CartridgeJumboDahjeeMapper:
             Log("Jumbo Dahjee mapper found");
             break;
+        case Cartridge::CartridgeIratahackMapper:
+            Log("Iratahack mapper found");
+            break;
         case Cartridge::CartridgeEeprom93C46Mapper:
             Log("EEPROM 93C46 mapper found");
             break;
@@ -735,6 +742,9 @@ void Cartridge::GetInfoFromDB(u32 crc)
 
             switch (kGameDatabase[i].mapper)
             {
+                case GS_DB_IRATAHACK_MAPPER:
+                    m_Type = Cartridge::CartridgeIratahackMapper;
+                    break;
                 case GS_DB_CODEMASTERS_MAPPER:
                     m_Type = Cartridge::CartridgeCodemastersMapper;
                     break;

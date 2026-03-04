@@ -69,6 +69,8 @@
 #define InitPointer(pointer) ((pointer) = NULL)
 #define IsValidPointer(pointer) ((pointer) != NULL)
 
+#define UNUSED(expr) (void)(expr)
+
 #if defined(MSB_FIRST) || defined(__BIG_ENDIAN__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
 #define IS_BIG_ENDIAN
 #else

@@ -658,6 +658,10 @@ static Cartridge::CartridgeTypes get_mapper(int index)
             return Cartridge::CartridgeJumboDahjeeMapper;
         case 21:
             return Cartridge::CartridgeEeprom93C46Mapper;
+        case 22:
+            return Cartridge::CartridgeMulti4PAKAllActionMapper;
+        case 23:
+            return Cartridge::CartridgeIratahackMapper;
         default:
             return Cartridge::CartridgeNotSupported;
     }

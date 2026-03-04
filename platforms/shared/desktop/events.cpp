@@ -34,6 +34,7 @@ static Uint16 input_last_state[GS_MAX_GAMEPADS] = { };
 static bool events_check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat);
 static Uint16 input_build_state(int controller);
 static void input_apply_state(int controller, Uint16 before, Uint16 now);
+static bool input_check_reset(int controller);
 
 void events_shortcuts(const SDL_Event* event)
 {
@@ -178,6 +179,8 @@ void events_emu(void)
 
         input_last_state[controller] = now;
 
+        emu_set_reset(input_check_reset(controller));
+
         gamepad_check_shortcuts(controller);
     }
 }
@@ -286,6 +289,20 @@ static void input_apply_state(int controller, Uint16 before, Uint16 now)
         if (pressed & key)  emu_key_pressed((GS_Joypads)controller, (GS_Keys)key);
         if (released & key) emu_key_released((GS_Joypads)controller, (GS_Keys)key);
     }
+}
+
+static bool input_check_reset(int controller)
+{
+    const bool* keyboard_state = SDL_GetKeyboardState(NULL);
+    if (config_input[controller].key_reset != SDL_SCANCODE_UNKNOWN && keyboard_state[config_input[controller].key_reset])
+        return true;
+
+    SDL_Gamepad* sdl_controller = gamepad_controller[controller];
+    if (IsValidPointer(sdl_controller) && config_input[controller].gamepad &&
+        gamepad_get_button(sdl_controller, config_input[controller].gamepad_reset))
+        return true;
+
+    return false;
 }
 
 static bool events_check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat)

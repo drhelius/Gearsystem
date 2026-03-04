@@ -439,6 +439,7 @@ static void set_controller_info(void)
         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,   "Down" },
         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT,  "Right" },
         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,  "Start" },
+        { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "Reset" },
         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,      "1" },
         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,      "2" },
 
@@ -447,6 +448,7 @@ static void set_controller_info(void)
         { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,   "Down" },
         { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT,  "Right" },
         { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,  "Start" },
+        { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "Reset" },
         { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,      "1" },
         { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,      "2" },
 
@@ -520,6 +522,10 @@ static void update_input(void)
                 core->KeyPressed(static_cast<GS_Joypads>(player), Key_Start);
             else
                 core->KeyReleased(static_cast<GS_Joypads>(player), Key_Start);
+            if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
+                core->SetReset(true);
+            else
+                core->SetReset(false);
 
             break;
         }
@@ -597,7 +603,7 @@ static void set_variabless(void)
     struct retro_variable vars[] = {
         { "gearsystem_system", "System (restart); Auto|Master System / Mark III|Game Gear|SG-1000 / Multivision" },
         { "gearsystem_region", "Region (restart); Auto|Master System Japan|Master System Export|Game Gear Japan|Game Gear Export|Game Gear International" },
-        { "gearsystem_mapper", "Mapper (restart); Auto|ROM|SEGA|Codemasters|Korean|MSX|Janggun|SG-1000" },
+        { "gearsystem_mapper", "Mapper (restart); Auto|ROM|SEGA|Codemasters|Korean|SG-1000|MSX|Janggun|Korean 2000 XOR 1F|Korean MSX 32KB 2000|Korean MSX SMS 8000|Korean SMS 32KB 2000|Korean MSX 8KB 0300|Korean 0000 XOR FF|Korean FFFF HiCom|Korean FFFE|Korean BFFC|Korean FFF3 FFFC|Korean MD FFF5|Korean MD FFF0|Jumbo Dahjee|EEPROM 93C46|Multi 4PAK All Action|Iratahack" },
         { "gearsystem_timing", "Refresh Rate (restart); Auto|NTSC (60 Hz)|PAL (50 Hz)" },
         { "gearsystem_aspect_ratio", "Aspect Ratio; 1:1 PAR|4:3 DAR|16:9 DAR|16:10 DAR" },
         { "gearsystem_overscan", "Overscan; Disabled|Top+Bottom|Full (284 width)|Full (320 width)" },
@@ -782,6 +788,38 @@ static void check_variables(void)
             config.type = Cartridge::CartridgeMSXMapper;
         else if (strcmp(var.value, "Janggun") == 0)
             config.type = Cartridge::CartridgeJanggunMapper;
+        else if (strcmp(var.value, "Korean 2000 XOR 1F") == 0)
+            config.type = Cartridge::CartridgeKorean2000XOR1FMapper;
+        else if (strcmp(var.value, "Korean MSX 32KB 2000") == 0)
+            config.type = Cartridge::CartridgeKoreanMSX32KB2000Mapper;
+        else if (strcmp(var.value, "Korean MSX SMS 8000") == 0)
+            config.type = Cartridge::CartridgeKoreanMSXSMS8000Mapper;
+        else if (strcmp(var.value, "Korean SMS 32KB 2000") == 0)
+            config.type = Cartridge::CartridgeKoreanSMS32KB2000Mapper;
+        else if (strcmp(var.value, "Korean MSX 8KB 0300") == 0)
+            config.type = Cartridge::CartridgeKoreanMSX8KB0300Mapper;
+        else if (strcmp(var.value, "Korean 0000 XOR FF") == 0)
+            config.type = Cartridge::CartridgeKorean0000XORFFMapper;
+        else if (strcmp(var.value, "Korean FFFF HiCom") == 0)
+            config.type = Cartridge::CartridgeKoreanFFFFHiComMapper;
+        else if (strcmp(var.value, "Korean FFFE") == 0)
+            config.type = Cartridge::CartridgeKoreanFFFEMapper;
+        else if (strcmp(var.value, "Korean BFFC") == 0)
+            config.type = Cartridge::CartridgeKoreanBFFCMapper;
+        else if (strcmp(var.value, "Korean FFF3 FFFC") == 0)
+            config.type = Cartridge::CartridgeKoreanFFF3FFFCMapper;
+        else if (strcmp(var.value, "Korean MD FFF5") == 0)
+            config.type = Cartridge::CartridgeKoreanMDFFF5Mapper;
+        else if (strcmp(var.value, "Korean MD FFF0") == 0)
+            config.type = Cartridge::CartridgeKoreanMDFFF0Mapper;
+        else if (strcmp(var.value, "Jumbo Dahjee") == 0)
+            config.type = Cartridge::CartridgeJumboDahjeeMapper;
+        else if (strcmp(var.value, "EEPROM 93C46") == 0)
+            config.type = Cartridge::CartridgeEeprom93C46Mapper;
+        else if (strcmp(var.value, "Multi 4PAK All Action") == 0)
+            config.type = Cartridge::CartridgeMulti4PAKAllActionMapper;
+        else if (strcmp(var.value, "Iratahack") == 0)
+            config.type = Cartridge::CartridgeIratahackMapper;
         else
             config.type = Cartridge::CartridgeNotSupported;
     }
