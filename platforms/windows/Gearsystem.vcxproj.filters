@@ -118,6 +118,9 @@
     <ClCompile Include="..\..\src\JumboDahjeeMemoryRule.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\IratahackMemoryRule.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\Korean0000XORFFMemoryRule.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -397,6 +400,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\JumboDahjeeMemoryRule.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\IratahackMemoryRule.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Korean0000XORFFMemoryRule.h">

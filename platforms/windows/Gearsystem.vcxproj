@@ -35,6 +35,7 @@
     <ClCompile Include="..\..\src\Input.cpp" />
     <ClCompile Include="..\..\src\JanggunMemoryRule.cpp" />
     <ClCompile Include="..\..\src\JumboDahjeeMemoryRule.cpp" />
+    <ClCompile Include="..\..\src\IratahackMemoryRule.cpp" />
     <ClCompile Include="..\..\src\Korean0000XORFFMemoryRule.cpp" />
     <ClCompile Include="..\..\src\Korean2000XOR1FMemoryRule.cpp" />
     <ClCompile Include="..\..\src\KoreanBFFCMemoryRule.cpp" />
@@ -143,6 +144,7 @@
     <ClInclude Include="..\..\src\IOPorts.h" />
     <ClInclude Include="..\..\src\JanggunMemoryRule.h" />
     <ClInclude Include="..\..\src\JumboDahjeeMemoryRule.h" />
+    <ClInclude Include="..\..\src\IratahackMemoryRule.h" />
     <ClInclude Include="..\..\src\Korean0000XORFFMemoryRule.h" />
     <ClInclude Include="..\..\src\Korean2000XOR1FMemoryRule.h" />
     <ClInclude Include="..\..\src\KoreanBFFCMemoryRule.h" />
