@@ -114,7 +114,7 @@ inline u8 SmsIOPorts::DoInput(u8 port)
                         ret_dd &= 0xbf;
                         ret_dd |= (m_Port3F & 0x20) << 1;
                     }
-                    if (!(m_Port3F & 0x80))
+                    if (!(m_Port3F & 0x08))
                     {
                         ret_dd &= 0x7F;
                         ret_dd |= (m_Port3F & 0x80);
