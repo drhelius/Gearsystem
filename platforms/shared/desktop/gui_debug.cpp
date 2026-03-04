@@ -25,6 +25,7 @@
 #include "imgui.h"
 #include "gui_debug_disassembler.h"
 #include "gui_debug_memory.h"
+#include "gui_debug_processor.h"
 #include "gui_debug_psg.h"
 #include "gui_debug_trace_logger.h"
 #include "emu.h"
@@ -61,8 +62,8 @@ void gui_debug_windows(void)
 {
     if (config_debug.debug)
     {
-        // if (config_debug.show_processor)
-        //     gui_debug_window_huc6280();
+        if (config_debug.show_processor)
+            gui_debug_window_processor();
         if (config_debug.show_memory)
             gui_debug_window_memory();
         if (config_debug.show_disassembler)
@@ -83,12 +84,11 @@ void gui_debug_windows(void)
     }
 }
 
-static const char* GGDEBUG_MAGIC = "GGDEBUG1";
-static const int GGDEBUG_MAGIC_LEN = 8;
+static const char* GSDEBUG_MAGIC = "GSDEBUG1";
+static const int GSDEBUG_MAGIC_LEN = 8;
 
 void gui_debug_save_settings(const char* file_path)
 {
-/*
     std::ofstream file(file_path, std::ios::binary);
     if (!file.is_open())
     {
@@ -96,17 +96,17 @@ void gui_debug_save_settings(const char* file_path)
         return;
     }
 
-    file.write(GGDEBUG_MAGIC, GGDEBUG_MAGIC_LEN);
+    file.write(GSDEBUG_MAGIC, GSDEBUG_MAGIC_LEN);
 
-    GeargrafxCore* core = emu_get_core();
-    HuC6280* processor = core->GetHuC6280();
+    GearsystemCore* core = emu_get_core();
+    Processor* processor = core->GetProcessor();
 
-    std::vector<HuC6280::GG_Breakpoint>* breakpoints = processor->GetBreakpoints();
+    std::vector<Processor::GS_Breakpoint>* breakpoints = processor->GetBreakpoints();
     int bp_count = (int)breakpoints->size();
     file.write((const char*)&bp_count, sizeof(int));
     for (int i = 0; i < bp_count; i++)
     {
-        HuC6280::GG_Breakpoint& bp = (*breakpoints)[i];
+        Processor::GS_Breakpoint& bp = (*breakpoints)[i];
         file.write((const char*)&bp.enabled, sizeof(bool));
         file.write((const char*)&bp.type, sizeof(int));
         file.write((const char*)&bp.address1, sizeof(u16));
@@ -138,12 +138,10 @@ void gui_debug_save_settings(const char* file_path)
     file.close();
 
     Log("Debug settings saved to: %s", file_path);
-*/
 }
 
 void gui_debug_load_settings(const char* file_path)
 {
-/*
     std::ifstream file(file_path, std::ios::binary);
     if (!file.is_open())
     {
@@ -152,24 +150,24 @@ void gui_debug_load_settings(const char* file_path)
     }
 
     char magic[8];
-    file.read(magic, GGDEBUG_MAGIC_LEN);
-    if (memcmp(magic, GGDEBUG_MAGIC, GGDEBUG_MAGIC_LEN) != 0)
+    file.read(magic, GSDEBUG_MAGIC_LEN);
+    if (memcmp(magic, GSDEBUG_MAGIC, GSDEBUG_MAGIC_LEN) != 0)
     {
         Log("Invalid debug settings file: %s", file_path);
         file.close();
         return;
     }
 
-    GeargrafxCore* core = emu_get_core();
-    HuC6280* processor = core->GetHuC6280();
+    GearsystemCore* core = emu_get_core();
+    Processor* processor = core->GetProcessor();
 
     processor->ResetBreakpoints();
     int bp_count = 0;
     file.read((char*)&bp_count, sizeof(int));
-    std::vector<HuC6280::GG_Breakpoint>* breakpoints = processor->GetBreakpoints();
+    std::vector<Processor::GS_Breakpoint>* breakpoints = processor->GetBreakpoints();
     for (int i = 0; i < bp_count; i++)
     {
-        HuC6280::GG_Breakpoint bp;
+        Processor::GS_Breakpoint bp;
         file.read((char*)&bp.enabled, sizeof(bool));
         file.read((char*)&bp.type, sizeof(int));
         file.read((char*)&bp.address1, sizeof(u16));
@@ -200,7 +198,6 @@ void gui_debug_load_settings(const char* file_path)
     file.close();
 
     Log("Debug settings loaded from: %s", file_path);
-*/
 }
 
 static std::string get_auto_debug_settings_path(void)
@@ -213,7 +210,7 @@ static std::string get_auto_debug_settings_path(void)
     std::string::size_type dot = filename.find_last_of('.');
     if (dot != std::string::npos)
         filename = filename.substr(0, dot);
-    filename += ".ggdebug";
+    filename += ".gsdebug";
 
     std::string path = config_root_path;
     path += filename;

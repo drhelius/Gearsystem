@@ -31,27 +31,6 @@ class Cartridge;
 class Memory
 {
 public:
-    struct stDisassembleRecord
-    {
-        u16 address;
-        char name[32];
-        char bytes[16];
-        int size;
-        int bank;
-        u8 opcodes[4];
-        bool jump;
-        u16 jump_address;
-    };
-
-    struct stMemoryBreakpoint
-    {
-        u16 address1;
-        u16 address2;
-        bool read;
-        bool write;
-        bool range;
-    };
-
     enum MediaSlots
     {
         CartridgeSlot,
@@ -74,17 +53,17 @@ public:
     u8 Read(u16 address);
     void Write(u16 address, u8 value);
     u8 Retrieve(u16 address);
+    u8 DebugRetrieve(u16 address);
     void Load(u16 address, u8 value);
-    stDisassembleRecord** GetDisassembledMemoryMap();
-    stDisassembleRecord** GetDisassembledROMMemoryMap();
+    GS_Disassembler_Record* GetDisassemblerRecord(u16 address);
+    GS_Disassembler_Record* GetDisassemblerRecord(u16 address, u8 bank);
+    GS_Disassembler_Record* GetOrCreateDisassemblerRecord(u16 address);
+    void ResetDisassemblerRecords();
+    GS_Disassembler_Record** GetAllDisassemblerRecords();
     void LoadSlotsFromROM(u8* pTheROM, int size);
     void MemoryDump(const char* szFilePath);
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
-    std::vector<stDisassembleRecord*>* GetBreakpointsCPU();
-    std::vector<stMemoryBreakpoint>* GetBreakpointsMem();
-    stDisassembleRecord* GetRunToBreakpoint();
-    void SetRunToBreakpoint(stDisassembleRecord* pBreakpoint);
     void EnableBootromSMS(bool enable);
     void EnableBootromGG(bool enable);
     void LoadBootromSMS(const char* szFilePath);
@@ -94,14 +73,15 @@ public:
     void SetPort3E(u8 port3E);
     u8* GetBootrom();
     int GetBootromBankCount();
+    int GetBootromSize();
+    MemoryRule* GetBootromRule();
     void SetMediaSlot(MediaSlots slot);
     MediaSlots GetCurrentSlot();
-    void ResetDisassembledMemory();
-    void ResetRomDisassembledMemory();
+    u32 GetPhysicalAddress(u16 address);
+    u8 GetBank(u16 address);
 
 private:
     void LoadBootroom(const char* szFilePath, bool gg);
-    void CheckBreakpoints(u16 address, bool write);
 
 private:
     Processor* m_pProcessor;
@@ -109,11 +89,8 @@ private:
     MemoryRule* m_pCurrentMemoryRule;
     MemoryRule* m_pBootromMemoryRule;
     u8* m_pMap;
-    stDisassembleRecord** m_pDisassembledMap;
-    stDisassembleRecord** m_pDisassembledROMMap;
-    std::vector<stDisassembleRecord*> m_BreakpointsCPU;
-    std::vector<stMemoryBreakpoint> m_BreakpointsMem;
-    stDisassembleRecord* m_pRunToBreakpoint;
+    GS_Disassembler_Record** m_pDisassembledMap;
+    GS_Disassembler_Record** m_pDisassembledROMMap;
     bool m_bBootromSMSEnabled;
     bool m_bBootromGGEnabled;
     bool m_bBootromSMSLoaded;
@@ -126,6 +103,8 @@ private:
     bool m_bGameGear;
     int m_iBootromBankCountSMS;
     int m_iBootromBankCountGG;
+    int m_iBootromSMSSize;
+    int m_iBootromGGSize;
     bool m_bIOEnabled;
 };
 

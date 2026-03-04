@@ -290,17 +290,25 @@ inline void Processor::OPCodes_LDD()
 
 inline void Processor::OPCodes_RST(u16 address)
 {
+    u16 pc = PC.GetValue();
     StackPush(&PC);
     PC.SetValue(address);
     WZ.SetValue(address);
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    PushCallStack(pc - 1, address, pc);
+#endif
 }
 
 inline void Processor::OPCodes_CALL_nn()
 {
     u16 address = FetchArg16();
+    u16 pc = PC.GetValue();
     StackPush(&PC);
     PC.SetValue(address);
     WZ.SetValue(address);
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    PushCallStack(pc - 3, address, pc);
+#endif
 }
 
 inline void Processor::OPCodes_CALL_nn_Conditional(bool condition)
@@ -308,9 +316,13 @@ inline void Processor::OPCodes_CALL_nn_Conditional(bool condition)
     u16 address = FetchArg16();
     if (condition)
     {
+        u16 pc = PC.GetValue();
         StackPush(&PC);
         PC.SetValue(address);
         m_bBranchTaken = true;
+#if !defined(GS_DISABLE_DISASSEMBLER)
+        PushCallStack(pc - 3, address, pc);
+#endif
     }
     WZ.SetValue(address);
 }
@@ -363,6 +375,9 @@ inline void Processor::OPCodes_RET()
 {
     StackPop(&PC);
     WZ.SetValue(PC.GetValue());
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    PopCallStack();
+#endif
 }
 
 inline void Processor::OPCodes_RET_Conditional(bool condition)
@@ -1224,6 +1239,40 @@ inline void Processor::OPCodes_RES_HL(int bit)
     u8 result = m_pMemory->Read(address);
     result &= ~(0x1 << bit);
     m_pMemory->Write(address, result);
+}
+
+inline std::vector<Processor::GS_Breakpoint>* Processor::GetBreakpoints()
+{
+    return &m_breakpoints;
+}
+
+inline std::stack<Processor::GS_CallStackEntry>* Processor::GetDisassemblerCallStack()
+{
+    return &m_disassembler_call_stack;
+}
+
+inline void Processor::PushCallStack(u16 src, u16 dest, u16 back)
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    GS_CallStackEntry entry;
+    entry.src = src;
+    entry.dest = dest;
+    entry.back = back;
+    if (m_disassembler_call_stack.size() < 256)
+        m_disassembler_call_stack.push(entry);
+#else
+    UNUSED(src);
+    UNUSED(dest);
+    UNUSED(back);
+#endif
+}
+
+inline void Processor::PopCallStack()
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    if (!m_disassembler_call_stack.empty())
+        m_disassembler_call_stack.pop();
+#endif
 }
 
 #endif	/* PROCESSOR_INLINE_H */

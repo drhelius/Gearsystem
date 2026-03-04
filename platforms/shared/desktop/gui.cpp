@@ -49,8 +49,7 @@ static bool error_window_active = false;
 static char error_message[4096] = "";
 static bool loading_rom_active = false;
 static char loading_rom_path[4096] = "";
-static char sms_bootrom_path[4096] = "";
-static char gg_bootrom_path[4096] = "";
+
 
 static void main_window(void);
 static void push_recent_rom(std::string path);
@@ -110,13 +109,13 @@ bool gui_init(void)
 
     emu_audio_mute(!config_audio.enable);
 
-    strcpy(sms_bootrom_path, config_emulator.sms_bootrom_path.c_str());
-    strcpy(gg_bootrom_path, config_emulator.gg_bootrom_path.c_str());
+    strcpy(gui_sms_bootrom_path, config_emulator.sms_bootrom_path.c_str());
+    strcpy(gui_gg_bootrom_path, config_emulator.gg_bootrom_path.c_str());
 
-    if (strlen(sms_bootrom_path) > 0)
-        emu_load_bootrom_sms(sms_bootrom_path);
-    if (strlen(gg_bootrom_path) > 0)
-        emu_load_bootrom_gg(gg_bootrom_path);
+    if (strlen(gui_sms_bootrom_path) > 0)
+        emu_load_bootrom_sms(gui_sms_bootrom_path);
+    if (strlen(gui_gg_bootrom_path) > 0)
+        emu_load_bootrom_gg(gui_gg_bootrom_path);
 
     emu_enable_bootrom_sms(config_emulator.sms_bootrom);
     emu_enable_bootrom_gg(config_emulator.gg_bootrom);

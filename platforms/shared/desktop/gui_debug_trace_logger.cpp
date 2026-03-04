@@ -40,7 +40,6 @@ static const int k_line_count[] = { 1000, 5000, 10000, 50000, 100000, 500000, 10
 
 void gui_debug_window_trace_logger(void)
 {
-/*
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(340, 168), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(342, 262), ImGuiCond_FirstUseEver);
@@ -100,12 +99,10 @@ void gui_debug_window_trace_logger(void)
 
     ImGui::End();
     ImGui::PopStyleVar();
-*/
 }
 
 void gui_debug_trace_logger_update(void)
 {
-/*
     if (trace_logger_enabled)
     {
         if ((int)trace_logger_lines.size() >= k_line_count[trace_logger_count])
@@ -114,9 +111,9 @@ void gui_debug_trace_logger_update(void)
         }
 
         Memory* memory = emu_get_core()->GetMemory();
-        HuC6280* huc6280 = emu_get_core()->GetHuC6280();
-        HuC6280::HuC6280_State* state = huc6280->GetState();
-        Memory::stDisassembleRecord* record = memory->GetDisassemblerRecord(state->PC->GetValue());
+        Processor* processor = emu_get_core()->GetProcessor();
+        Processor::ProcessorState* state = processor->GetState();
+        GS_Disassembler_Record* record = memory->GetDisassemblerRecord(state->PC->GetValue());
 
         if (!IsValidPointer(record))
             return;
@@ -124,22 +121,27 @@ void gui_debug_trace_logger_update(void)
         char bank[8];
         snprintf(bank, sizeof(bank), "%02X:", record->bank);
 
-        char registers[40];
-        snprintf(registers, sizeof(registers), "A: %02X  X: %02X  Y: %02X  S: %02X   ",
-            state->A->GetValue(), state->X->GetValue(),
-            state->Y->GetValue(), state->S->GetValue());
+        u16 af = state->AF->GetValue();
+        u16 bc = state->BC->GetValue();
+        u16 de = state->DE->GetValue();
+        u16 hl = state->HL->GetValue();
+        u8 a = (af >> 8) & 0xFF;
+        u8 f = af & 0xFF;
+
+        char registers[80];
+        snprintf(registers, sizeof(registers), "A: %02X  BC: %04X  DE: %04X  HL: %04X  SP: %04X   ",
+            a, bc, de, hl, state->SP->GetValue());
 
         char flags[32];
-        u8 flags_state = state->P->GetValue();
-        snprintf(flags, sizeof(flags), "P: %c%c%c%c%c%c%c%c   ",
-            (flags_state & FLAG_NEGATIVE) ? 'N' : 'n',
-            (flags_state & FLAG_OVERFLOW) ? 'V' : 'v',
-            (flags_state & FLAG_TRANSFER) ? 'T' : 't',
-            (flags_state & FLAG_BREAK) ? 'B' : 'b',
-            (flags_state & FLAG_DECIMAL) ? 'D' : 'd',
-            (flags_state & FLAG_INTERRUPT) ? 'I' : 'i',
-            (flags_state & FLAG_ZERO) ? 'Z' : 'z',
-            (flags_state & FLAG_CARRY) ? 'C' : 'c');
+        snprintf(flags, sizeof(flags), "F: %c%c%c%c%c%c%c%c   ",
+            (f & FLAG_SIGN) ? 'S' : 's',
+            (f & FLAG_ZERO) ? 'Z' : 'z',
+            (f & FLAG_Y) ? 'Y' : 'y',
+            (f & FLAG_HALF) ? 'H' : 'h',
+            (f & FLAG_X) ? 'X' : 'x',
+            (f & FLAG_PARITY) ? 'P' : 'p',
+            (f & FLAG_NEGATIVE) ? 'N' : 'n',
+            (f & FLAG_CARRY) ? 'C' : 'c');
 
         char counter[16];
         snprintf(counter, sizeof(counter), "%d  ", trace_logger_instruction_count);
@@ -160,7 +162,6 @@ void gui_debug_trace_logger_update(void)
         trace_logger_lines.push_back(line);
         trace_logger_instruction_count++;
     }
-*/
 }
 
 void gui_debug_trace_logger_clear(void)

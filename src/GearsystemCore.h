@@ -65,11 +65,21 @@ public:
         GlassesRightEye
     };
 
+    struct GS_Debug_Run
+    {
+        bool step_debugger;
+        bool stop_on_breakpoint;
+        bool stop_on_run_to_breakpoint;
+        bool stop_on_irq;
+    };
+
+    typedef void (*GS_Debug_Callback)(void);
+
 public:
     GearsystemCore();
     ~GearsystemCore();
     void Init(GS_Color_Format pixelFormat = GS_PIXEL_RGBA8888);
-    bool RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool step = false, bool stopOnBreakpoints = false);
+    bool RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, GS_Debug_Run* debug = NULL);
     bool LoadROM(const char* szFilePath, Cartridge::ForceConfiguration* config = NULL);
     bool LoadROMFromBuffer(const u8* buffer, int size, Cartridge::ForceConfiguration* config = NULL, const char* szFilePath = NULL);
     void SaveMemoryDump();
@@ -108,6 +118,7 @@ public:
     Video* GetVideo();
     void SetGlassesConfig(GlassesConfig config);
     u64 GetMasterClockCycles();
+    void SetDebugCallback(GS_Debug_Callback callback);
 
 private:
     void InitMemoryRules();
@@ -156,6 +167,7 @@ private:
     GS_Color_Format m_pixelFormat;
     GlassesConfig m_GlassesConfig;
     u64 m_master_clock_cycles;
+    GS_Debug_Callback m_debug_callback;
     u8* m_pFrameBuffer;
 };
 

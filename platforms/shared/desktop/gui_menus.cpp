@@ -1224,50 +1224,6 @@ static void menu_debug(void)
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem("Step Over", config_hotkeys[config_HotkeyIndex_DebugStepOver].str, (void*)0, config_debug.debug))
-        {
-            emu_debug_step_over();
-        }
-
-        if (ImGui::MenuItem("Step Frame", config_hotkeys[config_HotkeyIndex_DebugStepFrame].str, (void*)0, config_debug.debug))
-        {
-            emu_debug_step_frame();
-            gui_debug_memory_step_frame();
-        }
-
-        if (ImGui::MenuItem("Continue", config_hotkeys[config_HotkeyIndex_DebugContinue].str, (void*)0, config_debug.debug))
-        {
-            emu_debug_continue();
-        }
-
-        if (ImGui::MenuItem("Run To Cursor", config_hotkeys[config_HotkeyIndex_DebugRunToCursor].str, (void*)0, config_debug.debug))
-        {
-            gui_debug_runtocursor();
-        }
-
-        ImGui::Separator();
-
-        if (ImGui::MenuItem("Go Back", config_hotkeys[config_HotkeyIndex_DebugGoBack].str, (void*)0, config_debug.debug))
-        {
-            gui_debug_go_back();
-        }
-
-        ImGui::Separator();
-
-        if (ImGui::MenuItem("Toggle Breakpoint", config_hotkeys[config_HotkeyIndex_DebugBreakpoint].str, (void*)0, config_debug.debug))
-        {
-            gui_debug_toggle_breakpoint();
-        }
-
-        if (ImGui::MenuItem("Clear All Breakpoints", 0, (void*)0, config_debug.debug))
-        {
-            gui_debug_reset_breakpoints();
-        }
-
-        ImGui::MenuItem("Disable All Breakpoints", 0, &emu_debug_disable_breakpoints, config_debug.debug);
-
-        ImGui::Separator();
-
         ImGui::MenuItem("Show Output Screen", "", &config_debug.show_screen, config_debug.debug);
 
         if (ImGui::BeginMenu("Output Scale", config_debug.debug))

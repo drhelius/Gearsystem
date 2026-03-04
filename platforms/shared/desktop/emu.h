@@ -99,7 +99,7 @@ EXTERN void emu_debug_step_out(void);
 EXTERN void emu_debug_step_frame(void);
 EXTERN void emu_debug_break(void);
 EXTERN void emu_debug_continue(void);
-//EXTERN void emu_debug_set_callback(GearsystemCore::GG_Debug_Callback callback);
+EXTERN void emu_debug_set_callback(GearsystemCore::GS_Debug_Callback callback);
 EXTERN void emu_load_bootrom_sms(const char* file_path);
 EXTERN void emu_load_bootrom_gg(const char* file_path);
 EXTERN void emu_enable_bootrom_sms(bool enable);

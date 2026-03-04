@@ -6,8 +6,8 @@ on:
     types: [released]
 
 env:
-  NAME_LOWER: geargrafx
-  NAME_UPPER: Geargrafx
+  NAME_LOWER: gearsystem
+  NAME_UPPER: Gearsystem
 
 jobs:
   publish_mcp:

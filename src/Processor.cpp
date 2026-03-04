@@ -18,11 +18,13 @@
  */
 
 #include <algorithm>
+#include <cassert>
 #include <ctype.h>
 #include "Processor.h"
 #include "opcode_timing.h"
 #include "opcode_names.h"
 #include "IOPorts.h"
+#include "common.h"
 
 Processor::Processor(Memory* pMemory)
 {
@@ -44,8 +46,13 @@ Processor::Processor(Memory* pMemory)
     m_PrefixedCBValue = 0;
     m_bInputLastCycle = false;
     m_ProActionReplayList.clear();
-    m_bBreakpointHit = false;
-    m_bRequestMemBreakpoint = false;
+    m_breakpoints_enabled = false;
+    m_breakpoints_irq_enabled = false;
+    m_cpu_breakpoint_hit = false;
+    m_memory_breakpoint_hit = false;
+    m_run_to_breakpoint_hit = false;
+    m_run_to_breakpoint_requested = false;
+    m_debug_next_irq = 1;
 
     m_ProcessorState.AF = &AF;
     m_ProcessorState.BC = &BC;
@@ -67,6 +74,7 @@ Processor::Processor(Memory* pMemory)
     m_ProcessorState.Halt = &m_bHalt;
     m_ProcessorState.NMI = &m_bNMIRequested;
     m_ProcessorState.INT = &m_bINTRequested;
+    m_ProcessorState.InterruptMode = &m_iInterruptMode;
 }
 
 Processor::~Processor()
@@ -109,8 +117,12 @@ void Processor::Reset()
     m_PrefixedCBValue = 0;
     m_bInputLastCycle = false;
     m_ProActionReplayList.clear();
-    m_bBreakpointHit = false;
-    m_bRequestMemBreakpoint = false;
+    m_cpu_breakpoint_hit = false;
+    m_memory_breakpoint_hit = false;
+    m_run_to_breakpoint_hit = false;
+    m_run_to_breakpoint_requested = false;
+    ClearDisassemblerCallStack();
+    m_debug_next_irq = 1;
 }
 
 void Processor::SetIOPOrts(IOPorts* pIOPorts)
@@ -130,8 +142,11 @@ unsigned int Processor::RunFor(unsigned int tstates)
     while (executed < tstates)
     {
         m_iTStates = 0;
-        m_bBreakpointHit = false;
-        m_bRequestMemBreakpoint = false;
+#if !defined(GS_DISABLE_DISASSEMBLER)
+        m_cpu_breakpoint_hit = false;
+        m_memory_breakpoint_hit = false;
+        m_run_to_breakpoint_hit = false;
+#endif
 
         if (!m_bInputLastCycle)
         {
@@ -140,12 +155,17 @@ unsigned int Processor::RunFor(unsigned int tstates)
                 LeaveHalt();
                 m_bNMIRequested = false;
                 m_bIFF1 = false;
+                u16 pc = PC.GetValue();
                 StackPush(&PC);
                 PC.SetValue(0x0066);
                 m_iTStates += 11;
                 IncreaseR();
                 WZ.SetValue(PC.GetValue());
-                DisassembleNextOpcode();
+#if !defined(GS_DISABLE_DISASSEMBLER)
+                m_debug_next_irq = 2;
+                PushCallStack(pc, 0x0066, pc);
+#endif
+                DisassembleNextOPCode();
                 return m_iTStates;
             }
             else if (m_bIFF1 && m_bINTRequested && !m_bAfterEI)
@@ -153,13 +173,18 @@ unsigned int Processor::RunFor(unsigned int tstates)
                 LeaveHalt();
                 m_bIFF1 = false;
                 m_bIFF2 = false;
+                u16 pc = PC.GetValue();
                 StackPush(&PC);
                 PC.SetValue(0x0038);
                 m_iTStates += 13;
                 IncreaseR();
                 WZ.SetValue(PC.GetValue());
                 UpdateProActionReplay();
-                DisassembleNextOpcode();
+#if !defined(GS_DISABLE_DISASSEMBLER)
+                m_debug_next_irq = 3;
+                PushCallStack(pc, 0x0038, pc);
+#endif
+                DisassembleNextOPCode();
                 return m_iTStates;
             }
 
@@ -167,7 +192,7 @@ unsigned int Processor::RunFor(unsigned int tstates)
         }
 
         ExecuteOPCode();
-        DisassembleNextOpcode();
+        DisassembleNextOPCode();
 
         executed += m_iTStates;
 
@@ -326,244 +351,439 @@ void Processor::UndocumentedOPCode()
 #endif
 }
 
-void Processor::DisassembleNextOpcode()
+void Processor::DisassembleNextOPCode()
 {
 #ifndef GS_DISABLE_DISASSEMBLER
-    if (Disassemble(PC.GetValue()) || m_bRequestMemBreakpoint)
-        m_bBreakpointHit = true;
+
+    CheckBreakpoints();
+
+    u16 address = PC.GetValue();
+    GS_Disassembler_Record* record = m_pMemory->GetOrCreateDisassemblerRecord(address);
+
+    assert(IsValidPointer(record));
+
+    int opcode_size = record->size;
+
+    bool changed = (opcode_size == 0);
+
+    if (!changed)
+    {
+        int maxSize = std::min(opcode_size, 4);
+        for (int i = 0; i < maxSize; i++)
+        {
+            u8 mem_byte = m_pMemory->DebugRetrieve(address + i);
+            if (record->opcodes[i] != mem_byte)
+            {
+                changed = true;
+                break;
+            }
+        }
+    }
+
+    if (!changed && record->size != 0)
+    {
+        if (m_debug_next_irq > 0)
+        {
+            record->irq = m_debug_next_irq;
+            m_debug_next_irq = 0;
+        }
+        return;
+    }
+
+    PopulateDisassemblerRecord(record, address);
 #endif
 }
 
-bool Processor::Disassemble(u16 address)
+void Processor::PopulateDisassemblerRecord(GS_Disassembler_Record* record, u16 address)
 {
-    Memory::stDisassembleRecord** memoryMap = m_pMemory->GetDisassembledMemoryMap();
-    Memory::stDisassembleRecord** romMap = m_pMemory->GetDisassembledROMMemoryMap();
+#ifndef GS_DISABLE_DISASSEMBLER
 
-    Memory::stDisassembleRecord** map = NULL;
+    record->address = m_pMemory->GetPhysicalAddress(address);
+    record->bank = m_pMemory->GetBank(address);
+    record->name[0] = 0;
+    record->bytes[0] = 0;
+    record->segment[0] = 0;
+    record->size = 0;
+    record->jump = false;
+    record->jump_address = 0;
+    record->jump_bank = 0;
+    record->subroutine = false;
+    record->irq = 0;
+    record->has_operand_address = false;
+    record->operand_address = 0;
 
-    int offset = address;
-    int bank = 0;
-    bool rom = false;
-
-    if (m_pMemory->GetCurrentRule()->Has8kBanks())
+    if (m_debug_next_irq > 0)
     {
-        if (address < 0xC000)
+        record->irq = m_debug_next_irq;
+        m_debug_next_irq = 0;
+    }
+
+    std::vector<u8> bytes;
+    u16 opcode_temp_addr = address;
+    u8 opcode_temp = m_pMemory->DebugRetrieve(opcode_temp_addr);
+    u8 ddfd_mod = 0;
+    int first = 0;
+
+    while ((opcode_temp == 0xDD) || (opcode_temp == 0xFD))
+    {
+        ddfd_mod = opcode_temp;
+        bytes.push_back(opcode_temp);
+        opcode_temp_addr++;
+        first++;
+        opcode_temp = m_pMemory->DebugRetrieve(opcode_temp_addr);
+    }
+
+    for (int i = 0; i < 5; i++)
+        bytes.push_back(m_pMemory->DebugRetrieve(opcode_temp_addr + i));
+
+    u8 opcode = bytes[first];
+    stOPCodeInfo info;
+
+    bool prefixed = false;
+
+    if (opcode == 0xCB)
+    {
+        prefixed = true;
+        if (ddfd_mod == 0xDD)
         {
-            int slot = (address >> 13) & 0x07;
-            bank = m_pMemory->GetCurrentRule()->GetBank(slot);
-            offset = (0x2000 * bank) + (address & 0x1FFF);
-            map = romMap;
-            rom = true;
+            opcode = bytes[first + 2];
+            info = kOPCodeDDCBNames[opcode];
+        }
+        else if (ddfd_mod == 0xFD)
+        {
+            opcode = bytes[first + 2];
+            info = kOPCodeFDCBNames[opcode];
         }
         else
         {
-            map = memoryMap;
-            rom = false;
-        }
-    }
-    else
-    {
-        if (address < 0xC000)
-        {
-            int slot = (address >> 14) & 0x03;
-            bank = m_pMemory->GetCurrentRule()->GetBank(slot);
-            offset = (0x4000 * bank) + (address & 0x3FFF);
-            map = romMap;
-            rom = true;
-        }
-        else
-        {
-            map = memoryMap;
-            rom = false;
-        }
-    }
-
-    if (!IsValidPointer(map[offset]))
-    {
-        map[offset] = new Memory::stDisassembleRecord;
-
-        if (rom)
-        {
-            map[offset]->address = offset & 0x3FFF;
-            map[offset]->bank = offset >> 14;
-        }
-        else
-        {
-            map[offset]->address = offset;
-            map[offset]->bank = 0;
-        }
-
-        map[offset]->name[0] = 0;
-        map[offset]->bytes[0] = 0;
-        map[offset]->size = 0;
-        for (int i = 0; i < 4; i++)
-            map[offset]->opcodes[i] = 0;
-        map[offset]->jump = false;
-        map[offset]->jump_address = 0;
-    }
-
-    u8 opcodes[6];
-    bool changed = false;
-    int maxSize = std::min(map[offset]->size, 4);
-
-    for (int i = 0; i < maxSize; i++)
-    {
-        opcodes[i] = m_pMemory->Read(address + i);
-
-        if (opcodes[i] != map[offset]->opcodes[i])
-            changed = true;
-    }
-
-    if ((map[offset]->size == 0) || changed)
-    {
-        map[offset]->bank = bank;
-        map[offset]->address = address;
-
-        std::vector<u8> bytes; 
-        u16 opcode_temp_addr = address;
-        u8 opcode_temp = m_pMemory->Read(opcode_temp_addr);
-        u8 ddfd_mod = 0;
-        int first = 0;
-
-        while ((opcode_temp == 0xDD) || (opcode_temp == 0xFD))
-        {
-            ddfd_mod = opcode_temp;
-            bytes.push_back(opcode_temp);
-            opcode_temp_addr++;
-            first++;
-            opcode_temp = m_pMemory->Read(opcode_temp_addr);
-        }
-
-        for (int i = 0; i < 5; i++)
-            bytes.push_back(m_pMemory->Read(opcode_temp_addr + i));
-
-        u8 opcode = bytes[first];
-        stOPCodeInfo info;
-
-        bool prefixed = false;
-
-        if (opcode == 0xCB)
-        {
-            prefixed = true;
-            if (ddfd_mod == 0xDD)
-            {
-                opcode = bytes[first + 2];
-                info = kOPCodeDDCBNames[opcode];
-            }
-            else if (ddfd_mod == 0xFD)
-            {
-                opcode = bytes[first + 2];
-                info = kOPCodeFDCBNames[opcode];
-            }
-            else
-            {
-                opcode = bytes[first + 1];
-                info = kOPCodeCBNames[opcode];
-            }
-        }
-        else if (opcode == 0xED)
-        {
-            prefixed = true;
             opcode = bytes[first + 1];
-            info = kOPCodeEDNames[opcode];
-        }
-        else
-        {
-            if (ddfd_mod == 0xDD)
-                info = kOPCodeDDNames[opcode];
-            else if (ddfd_mod == 0xFD)
-                info = kOPCodeFDNames[opcode];
-            else
-                info = kOPCodeNames[opcode];
-        }
-
-        map[offset]->size = info.size + (first > 1 ? (first - 1) : 0);
-        map[offset]->bytes[0] = 0;
-
-        for (int i = 0; i < (int)bytes.size(); i++)
-        {
-            if (i < map[offset]->size)
-            {
-                char value[8];
-                snprintf(value, sizeof(value), "%02X", bytes[i]);
-                strcat(map[offset]->bytes, value);
-                strcat(map[offset]->bytes, " ");
-            }
-            else if (i < 4)
-            {
-                strcat(map[offset]->bytes, "   ");
-            }
-
-            if (i < 4)
-                map[offset]->opcodes[i] = bytes[i];
-        }
-
-        first += prefixed ? 1 : 0;
-
-        switch (info.type)
-        {
-            case 0:
-                strcpy(map[offset]->name, info.name);
-                break;
-            case 1:
-                snprintf(map[offset]->name, sizeof(map[offset]->name), info.name, bytes[first]);
-                break;
-            case 2:
-                snprintf(map[offset]->name, sizeof(map[offset]->name), info.name, bytes[first + 1]);
-                break;
-            case 3:
-                map[offset]->jump = true;
-                map[offset]->jump_address = (bytes[first + 2] << 8) | bytes[first + 1];
-                snprintf(map[offset]->name, sizeof(map[offset]->name), info.name, map[offset]->jump_address);
-                break;
-            case 4:
-                snprintf(map[offset]->name, sizeof(map[offset]->name), info.name, (s8)bytes[first + 1]);
-                break;
-            case 5:
-                map[offset]->jump = true;
-                map[offset]->jump_address = address + info.size + (s8)bytes[first + 1];
-                snprintf(map[offset]->name, sizeof(map[offset]->name), info.name, map[offset]->jump_address, (s8)bytes[first + 1]);
-                break;
-            case 6:
-                snprintf(map[offset]->name, sizeof(map[offset]->name), info.name, (s8)bytes[first + 1], bytes[first + 2]);
-                break;
-            default:
-                strcpy(map[offset]->name, "PARSE ERROR");
+            info = kOPCodeCBNames[opcode];
         }
     }
-
-    Memory::stDisassembleRecord* runtobreakpoint = m_pMemory->GetRunToBreakpoint();
-    std::vector<Memory::stDisassembleRecord*>* breakpoints = m_pMemory->GetBreakpointsCPU();
-
-    if (IsValidPointer(runtobreakpoint))
+    else if (opcode == 0xED)
     {
-        if (runtobreakpoint == map[offset])
-        {
-            m_pMemory->SetRunToBreakpoint(NULL);
-            return true;
-        }
-        else
-            return false;
+        prefixed = true;
+        opcode = bytes[first + 1];
+        info = kOPCodeEDNames[opcode];
     }
     else
     {
-        std::size_t size = breakpoints->size();
+        if (ddfd_mod == 0xDD)
+            info = kOPCodeDDNames[opcode];
+        else if (ddfd_mod == 0xFD)
+            info = kOPCodeFDNames[opcode];
+        else
+            info = kOPCodeNames[opcode];
+    }
 
-        for (std::size_t b = 0; b < size; b++)
+    if (first > 0 && bytes[first] == 0xED)
+        record->size = info.size + first;
+    else
+        record->size = info.size + (first > 1 ? (first - 1) : 0);
+
+    int pos = 0;
+    for (int i = 0; i < (int)bytes.size(); i++)
+    {
+        if (i < record->size)
         {
-            if ((*breakpoints)[b] == map[offset])
+            static const char hex_chars[] = "0123456789ABCDEF";
+            u8 byte = bytes[i];
+            record->bytes[pos++] = hex_chars[byte >> 4];
+            record->bytes[pos++] = hex_chars[byte & 0x0F];
+            record->bytes[pos++] = ' ';
+        }
+
+        if (i < 7)
+            record->opcodes[i] = bytes[i];
+    }
+    record->bytes[pos] = 0;
+
+    InvalidateOverlappingRecords(address, (u8)record->size);
+
+    int name_first = first + (prefixed ? 1 : 0);
+
+    switch (info.type)
+    {
+        case 0:
+            strcpy(record->name, info.name);
+            break;
+        case 1:
+            snprintf(record->name, sizeof(record->name), info.name, (s8)bytes[name_first]);
+            break;
+        case 2:
+            snprintf(record->name, sizeof(record->name), info.name, bytes[name_first + 1]);
+            break;
+        case 3:
+        {
+            u16 operand = (bytes[name_first + 2] << 8) | bytes[name_first + 1];
+            record->has_operand_address = true;
+            record->operand_address = operand;
+            if (!prefixed && (opcode == 0xC3 || opcode == 0xCD || (opcode & 0xC7) == 0xC2 || (opcode & 0xC7) == 0xC4))
             {
-                return true;
+                record->jump = true;
+                record->jump_address = operand;
+                record->jump_bank = m_pMemory->GetBank(operand);
+            }
+            snprintf(record->name, sizeof(record->name), info.name, operand);
+            break;
+        }
+        case 4:
+            snprintf(record->name, sizeof(record->name), info.name, (s8)bytes[name_first + 1]);
+            break;
+        case 5:
+        {
+            u16 jump_address = address + record->size + (s8)bytes[name_first + 1];
+            record->has_operand_address = true;
+            record->operand_address = jump_address;
+            record->jump = true;
+            record->jump_address = jump_address;
+            record->jump_bank = m_pMemory->GetBank(jump_address);
+            snprintf(record->name, sizeof(record->name), info.name, jump_address, (s8)bytes[name_first + 1]);
+            break;
+        }
+        case 6:
+            snprintf(record->name, sizeof(record->name), info.name, (s8)bytes[name_first + 1], bytes[name_first + 2]);
+            break;
+        default:
+            strcpy(record->name, "PARSE ERROR");
+    }
+
+    // Subroutine detection: CALL nn, CALL cc,nn, RST xx
+    if (!prefixed)
+    {
+        // CALL nn (0xCD), CALL cc,nn (0xC4,0xCC,0xD4,0xDC,0xE4,0xEC,0xF4,0xFC)
+        if (opcode == 0xCD || (opcode & 0xC7) == 0xC4)
+        {
+            record->subroutine = true;
+        }
+        // RST xx (0xC7,0xCF,0xD7,0xDF,0xE7,0xEF,0xF7,0xFF)
+        if ((opcode & 0xC7) == 0xC7)
+        {
+            u16 rst_address = opcode & 0x38;
+            record->subroutine = true;
+            record->jump = true;
+            record->jump_address = rst_address;
+            record->jump_bank = m_pMemory->GetBank(rst_address);
+        }
+    }
+
+    // Segment detection
+    if (m_pMemory->GetCurrentSlot() == Memory::BiosSlot && address < 0xC000)
+    {
+        strncpy_fit(record->segment, "BIOS ", sizeof(record->segment));
+    }
+    else if (address < 0xC000)
+    {
+        strncpy_fit(record->segment, "ROM  ", sizeof(record->segment));
+    }
+    else
+    {
+        strncpy_fit(record->segment, "RAM  ", sizeof(record->segment));
+    }
+
+#else
+    UNUSED(record);
+    UNUSED(address);
+#endif
+}
+
+void Processor::InvalidateOverlappingRecords(u16 address, u8 opcode_size)
+{
+#ifndef GS_DISABLE_DISASSEMBLER
+    for (int back = 1; back < 7; ++back)
+    {
+        int prev_start = (int)address - back;
+        if (prev_start < 0)
+            continue;
+
+        GS_Disassembler_Record* prev = m_pMemory->GetDisassemblerRecord((u16)prev_start);
+        if (!IsValidPointer(prev) || prev->size == 0)
+            continue;
+
+        int distance = address - prev_start;
+        if (prev->size > distance)
+        {
+            prev->size = 0;
+            prev->name[0] = 0;
+            prev->bytes[0] = 0;
+        }
+    }
+
+    if (opcode_size > 1)
+    {
+        for (int fwd = 1; fwd < opcode_size; ++fwd)
+        {
+            u16 fwd_addr = address + fwd;
+            GS_Disassembler_Record* fwd_record = m_pMemory->GetDisassemblerRecord(fwd_addr);
+            if (!IsValidPointer(fwd_record) || fwd_record->size == 0)
+                continue;
+
+            fwd_record->size = 0;
+            fwd_record->name[0] = 0;
+            fwd_record->bytes[0] = 0;
+        }
+    }
+#else
+    UNUSED(address);
+    UNUSED(opcode_size);
+#endif
+}
+
+void Processor::DisassembleAhead(int count)
+{
+    DisassembleAhead(PC.GetValue(), count, 0);
+}
+
+void Processor::DisassembleAhead(u16 start_address, int count, int depth)
+{
+#ifndef GS_DISABLE_DISASSEMBLER
+    if (depth > 3)
+        return;
+
+    u16 address = start_address;
+    int disassembled = 0;
+
+    while (disassembled < count && address < 0xFFFF)
+    {
+        GS_Disassembler_Record* record = m_pMemory->GetOrCreateDisassemblerRecord(address);
+
+        if (!IsValidPointer(record))
+            break;
+
+        int prev_size = record->size;
+        bool changed = (prev_size == 0);
+
+        if (!changed)
+        {
+            int maxSize = std::min(prev_size, 4);
+            for (int i = 0; i < maxSize; i++)
+            {
+                u8 mem_byte = m_pMemory->DebugRetrieve(address + i);
+                if (record->opcodes[i] != mem_byte)
+                {
+                    changed = true;
+                    break;
+                }
+            }
+        }
+
+        if (changed || record->size == 0)
+        {
+            int saved_irq = m_debug_next_irq;
+            m_debug_next_irq = 0;
+            PopulateDisassemblerRecord(record, address);
+            m_debug_next_irq = saved_irq;
+        }
+
+        if (record->jump && record->jump_address != 0)
+        {
+            u8 jump_bank = m_pMemory->GetBank(record->jump_address);
+            if (jump_bank != 0xFF)
+                DisassembleAhead(record->jump_address, count / 2, depth + 1);
+        }
+
+        if (record->size == 0)
+            break;
+
+        if ((u32)address + record->size > 0xFFFF)
+            break;
+
+        address += record->size;
+        disassembled++;
+
+        // Stop at unconditional control flow (end of block)
+        // RET=0xC9, JP nn=0xC3, JR=0x18, HALT=0x76, JP (HL)=0xE9
+        u8 first_byte = record->opcodes[0];
+        if (first_byte == 0xC9 || first_byte == 0xC3 || first_byte == 0x18 || first_byte == 0x76 || first_byte == 0xE9)
+            break;
+        // DD E9=JP (IX), FD E9=JP (IY)
+        if ((first_byte == 0xDD || first_byte == 0xFD) && record->size >= 2 && record->opcodes[1] == 0xE9)
+            break;
+        // RETI=ED4D, RETN=ED45, undocumented RETN*=ED55/5D/65/6D/75/7D
+        if (first_byte == 0xED && record->size >= 2)
+        {
+            u8 second_byte = record->opcodes[1];
+            if (second_byte == 0x45 || second_byte == 0x4D ||
+                second_byte == 0x55 || second_byte == 0x5D ||
+                second_byte == 0x65 || second_byte == 0x6D ||
+                second_byte == 0x75 || second_byte == 0x7D)
+                break;
+        }
+    }
+#else
+    UNUSED(start_address);
+    UNUSED(count);
+    UNUSED(depth);
+#endif
+}
+
+void Processor::CheckBreakpoints()
+{
+#ifndef GS_DISABLE_DISASSEMBLER
+
+    m_cpu_breakpoint_hit = (m_breakpoints_irq_enabled && m_debug_next_irq > 0);
+    m_run_to_breakpoint_hit = false;
+
+    if (m_run_to_breakpoint_requested)
+    {
+        if (PC.GetValue() == m_run_to_breakpoint.address1)
+        {
+            m_run_to_breakpoint_hit = true;
+            m_run_to_breakpoint_requested = false;
+            return;
+        }
+    }
+
+    if (!m_breakpoints_enabled)
+        return;
+
+    for (int i = 0; i < (int)m_breakpoints.size(); i++)
+    {
+        GS_Breakpoint* brk = &m_breakpoints[i];
+
+        if (!brk->enabled)
+            continue;
+        if (!brk->execute)
+            continue;
+        if (brk->type != GS_BREAKPOINT_TYPE_ROMRAM)
+            continue;
+
+        if (brk->range)
+        {
+            if (PC.GetValue() >= brk->address1 && PC.GetValue() <= brk->address2)
+            {
+                m_cpu_breakpoint_hit = true;
+                m_run_to_breakpoint_requested = false;
+                return;
+            }
+        }
+        else
+        {
+            if (PC.GetValue() == brk->address1)
+            {
+                m_cpu_breakpoint_hit = true;
+                m_run_to_breakpoint_requested = false;
+                return;
             }
         }
     }
 
-    return false;
+#endif
 }
 
 bool Processor::BreakpointHit()
 {
-    return m_bBreakpointHit;
+    return (m_cpu_breakpoint_hit || m_memory_breakpoint_hit);
+}
+
+bool Processor::MemoryBreakpointHit()
+{
+    return m_memory_breakpoint_hit;
+}
+
+bool Processor::RunToBreakpointHit()
+{
+    return m_run_to_breakpoint_hit;
 }
 
 bool Processor::Halted()
@@ -571,9 +791,191 @@ bool Processor::Halted()
     return m_bHalt;
 }
 
-void Processor::RequestMemoryBreakpoint()
+void Processor::EnableBreakpoints(bool enable, bool irqs)
 {
-    m_bRequestMemBreakpoint = true;
+    m_breakpoints_enabled = enable;
+    m_breakpoints_irq_enabled = irqs;
+}
+
+void Processor::ResetBreakpoints()
+{
+    m_breakpoints.clear();
+}
+
+bool Processor::AddBreakpoint(int type, char* text, bool read, bool write, bool execute)
+{
+    int input_len = (int)strlen(text);
+    GS_Breakpoint brk;
+    brk.enabled = true;
+    brk.type = type;
+    brk.address1 = 0;
+    brk.address2 = 0;
+    brk.range = false;
+    brk.read = read;
+    brk.write = write;
+    brk.execute = execute;
+
+    if (!read && !write && !execute)
+        return false;
+
+    if ((input_len == 9) && (text[4] == '-'))
+    {
+        // format: AAAA-BBBB
+        if (parse_hex_string(text, 4, &brk.address1) &&
+            parse_hex_string(text + 5, 4, &brk.address2))
+        {
+            brk.range = true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else if ((input_len > 0) && (input_len <= 4))
+    {
+        // format: AAAA
+        if (!parse_hex_string(text, input_len, &brk.address1))
+        {
+            return false;
+        }
+    }
+    else
+    {
+        return false;
+    }
+
+    bool found = false;
+
+    for (long unsigned int b = 0; b < m_breakpoints.size(); b++)
+    {
+        GS_Breakpoint* item = &m_breakpoints[b];
+
+        if (item->type != brk.type)
+            continue;
+
+        if (brk.range)
+        {
+            if (item->range && (item->address1 == brk.address1) && (item->address2 == brk.address2))
+            {
+                found = true;
+                break;
+            }
+        }
+        else
+        {
+            if (!item->range && (item->address1 == brk.address1))
+            {
+                found = true;
+                break;
+            }
+        }
+    }
+
+    if (!found)
+        m_breakpoints.push_back(brk);
+
+    return true;
+}
+
+bool Processor::AddBreakpoint(u16 address)
+{
+    char text[6];
+    snprintf(text, 6, "%04X", address);
+    return AddBreakpoint(GS_BREAKPOINT_TYPE_ROMRAM, text, false, false, true);
+}
+
+void Processor::AddRunToBreakpoint(u16 address)
+{
+    m_run_to_breakpoint.enabled = true;
+    m_run_to_breakpoint.type = GS_BREAKPOINT_TYPE_ROMRAM;
+    m_run_to_breakpoint.address1 = address;
+    m_run_to_breakpoint.address2 = 0;
+    m_run_to_breakpoint.range = false;
+    m_run_to_breakpoint.read = false;
+    m_run_to_breakpoint.write = false;
+    m_run_to_breakpoint.execute = true;
+    m_run_to_breakpoint_requested = true;
+}
+
+void Processor::RemoveBreakpoint(int type, u16 address)
+{
+    for (long unsigned int b = 0; b < m_breakpoints.size(); b++)
+    {
+        GS_Breakpoint* item = &m_breakpoints[b];
+
+        if (!item->range && (item->address1 == address) && (item->type == type))
+        {
+            m_breakpoints.erase(m_breakpoints.begin() + b);
+            break;
+        }
+    }
+}
+
+bool Processor::IsBreakpoint(int type, u16 address)
+{
+    for (long unsigned int b = 0; b < m_breakpoints.size(); b++)
+    {
+        GS_Breakpoint* item = &m_breakpoints[b];
+
+        if (!item->range && (item->address1 == address) && (item->type == type))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void Processor::ClearDisassemblerCallStack()
+{
+    while(!m_disassembler_call_stack.empty())
+        m_disassembler_call_stack.pop();
+}
+
+void Processor::CheckMemoryBreakpoints(int type, u16 address, bool read)
+{
+#ifndef GS_DISABLE_DISASSEMBLER
+
+    if (!m_breakpoints_enabled)
+        return;
+
+    for (int i = 0; i < (int)m_breakpoints.size(); i++)
+    {
+        GS_Breakpoint* brk = &m_breakpoints[i];
+
+        if (!brk->enabled)
+            continue;
+        if (brk->type != type)
+            continue;
+        if (read && !brk->read)
+            continue;
+        if (!read && !brk->write)
+            continue;
+
+        if (brk->range)
+        {
+            if (address >= brk->address1 && address <= brk->address2)
+            {
+                m_memory_breakpoint_hit = true;
+                m_run_to_breakpoint_requested = false;
+                return;
+            }
+        }
+        else
+        {
+            if (address == brk->address1)
+            {
+                m_memory_breakpoint_hit = true;
+                m_run_to_breakpoint_requested = false;
+                return;
+            }
+        }
+    }
+#else
+    UNUSED(type);
+    UNUSED(address);
+    UNUSED(read);
+#endif
 }
 
 void Processor::SaveState(std::ostream& stream)

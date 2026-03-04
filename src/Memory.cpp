@@ -33,7 +33,6 @@ Memory::Memory(Cartridge* pCartridge)
     InitPointer(m_pCurrentMemoryRule);
     InitPointer(m_pDisassembledMap);
     InitPointer(m_pDisassembledROMMap);
-    InitPointer(m_pRunToBreakpoint);
     InitPointer(m_pBootromSMS);
     InitPointer(m_pBootromGG);
     m_bBootromSMSEnabled = false;
@@ -46,6 +45,8 @@ Memory::Memory(Cartridge* pCartridge)
     m_bGameGear = false;
     m_iBootromBankCountSMS = 1;
     m_iBootromBankCountGG = 1;
+    m_iBootromSMSSize = 0;
+    m_iBootromGGSize = 0;
     m_bIOEnabled = true;
 }
 
@@ -84,21 +85,18 @@ void Memory::Init()
 {
     m_pMap = new u8[0x10000];
 #ifndef GS_DISABLE_DISASSEMBLER
-    m_pDisassembledMap = new stDisassembleRecord*[0x10000];
+    m_pDisassembledMap = new GS_Disassembler_Record*[0x10000];
     for (int i = 0; i < 0x10000; i++)
     {
         InitPointer(m_pDisassembledMap[i]);
     }
 
-    m_pDisassembledROMMap = new stDisassembleRecord*[MAX_ROM_SIZE];
+    m_pDisassembledROMMap = new GS_Disassembler_Record*[MAX_ROM_SIZE];
     for (int i = 0; i < MAX_ROM_SIZE; i++)
     {
         InitPointer(m_pDisassembledROMMap[i]);
     }
 #endif
-    m_BreakpointsCPU.clear();
-    m_BreakpointsMem.clear();
-    InitPointer(m_pRunToBreakpoint);
     Reset(false);
 }
 
@@ -115,7 +113,7 @@ void Memory::Reset(bool bGameGear)
     }
 
     if (IsBootromEnabled())
-        ResetRomDisassembledMemory();
+        ResetDisassemblerRecords();
 }
 
 void Memory::SetCurrentRule(MemoryRule* pRule)
@@ -194,26 +192,6 @@ void Memory::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_bIOEnabled), sizeof (m_bIOEnabled));
 }
 
-std::vector<Memory::stDisassembleRecord*>* Memory::GetBreakpointsCPU()
-{
-    return &m_BreakpointsCPU;
-}
-
-std::vector<Memory::stMemoryBreakpoint>* Memory::GetBreakpointsMem()
-{
-    return &m_BreakpointsMem;
-}
-
-Memory::stDisassembleRecord* Memory::GetRunToBreakpoint()
-{
-    return m_pRunToBreakpoint;
-}
-
-void Memory::SetRunToBreakpoint(Memory::stDisassembleRecord* pBreakpoint)
-{
-    m_pRunToBreakpoint = pBreakpoint;
-}
-
 void Memory::EnableBootromSMS(bool enable)
 {
     m_bBootromSMSEnabled = enable;
@@ -279,12 +257,14 @@ void Memory::LoadBootroom(const char* szFilePath, bool gg)
         {
             m_bBootromGGLoaded = true;
             m_pBootromGG = bootrom;
+            m_iBootromGGSize = size;
             m_iBootromBankCountGG = std::max(Pow2Ceil(size / 0x4000), 1u);
         }
         else
         {
             m_bBootromSMSLoaded = true;
             m_pBootromSMS = bootrom;
+            m_iBootromSMSSize = size;
             m_iBootromBankCountSMS = std::max(Pow2Ceil(size / 0x4000), 1u);
         }
 
@@ -361,7 +341,7 @@ void Memory::SetPort3E(u8 port3E)
 
     if (oldSlot != m_MediaSlot)
     {
-        ResetRomDisassembledMemory();
+        ResetDisassemblerRecords();
     }
 }
 
@@ -375,6 +355,16 @@ int Memory::GetBootromBankCount()
     return m_bGameGear ? m_iBootromBankCountGG : m_iBootromBankCountSMS;
 }
 
+int Memory::GetBootromSize()
+{
+    return m_bGameGear ? m_iBootromGGSize : m_iBootromSMSSize;
+}
+
+MemoryRule* Memory::GetBootromRule()
+{
+    return m_pBootromMemoryRule;
+}
+
 void Memory::SetMediaSlot(MediaSlots slot)
 {
     m_StoredMediaSlot = slot;
@@ -385,47 +375,9 @@ Memory::MediaSlots Memory::GetCurrentSlot()
     return m_MediaSlot;
 }
 
-void Memory::CheckBreakpoints(u16 address, bool write)
+void Memory::ResetDisassemblerRecords()
 {
-    std::size_t size = m_BreakpointsMem.size();
-
-    for (std::size_t b = 0; b < size; b++)
-    {
-        if (write && !m_BreakpointsMem[b].write)
-            continue;
-
-        if (!write && !m_BreakpointsMem[b].read)
-            continue;
-
-        bool proceed = false;
-
-        if (m_BreakpointsMem[b].range)
-        {
-            if ((address >= m_BreakpointsMem[b].address1) && (address <= m_BreakpointsMem[b].address2))
-            {
-                proceed = true;
-            }
-        }
-        else
-        {
-            if (m_BreakpointsMem[b].address1 == address)
-            {
-                proceed = true;
-            }
-        }
-
-        if (proceed)
-        {
-            m_pProcessor->RequestMemoryBreakpoint();
-            break;
-        }
-    }
-}
-
-void Memory::ResetDisassembledMemory()
-{
-    #ifndef GS_DISABLE_DISASSEMBLER
-
+#ifndef GS_DISABLE_DISASSEMBLER
     if (IsValidPointer(m_pDisassembledROMMap))
     {
         for (int i = 0; i < MAX_ROM_SIZE; i++)
@@ -440,30 +392,39 @@ void Memory::ResetDisassembledMemory()
             SafeDelete(m_pDisassembledMap[i]);
         }
     }
-
-    #endif
+#endif
 }
 
-void Memory::ResetRomDisassembledMemory()
+GS_Disassembler_Record* Memory::GetOrCreateDisassemblerRecord(u16 address)
 {
-    #ifndef GS_DISABLE_DISASSEMBLER
+    u32 physical_address = GetPhysicalAddress(address);
+    bool rom = (address < 0xC000);
 
-    m_BreakpointsCPU.clear();
+    GS_Disassembler_Record** map = rom ? m_pDisassembledROMMap : m_pDisassembledMap;
+    u32 offset = rom ? physical_address : (u32)address;
 
-    if (IsValidPointer(m_pDisassembledROMMap))
+    GS_Disassembler_Record* record = map[offset];
+
+    if (!IsValidPointer(record))
     {
-        for (int i = 0; i < MAX_ROM_SIZE; i++)
-        {
-            SafeDelete(m_pDisassembledROMMap[i]);
-        }
-    }
-    if (IsValidPointer(m_pDisassembledMap))
-    {
-        for (int i = 0; i < 0xC000; i++)
-        {
-            SafeDelete(m_pDisassembledMap[i]);
-        }
+        record = new GS_Disassembler_Record();
+        record->address = physical_address;
+        record->bank = GetBank(address);
+        record->segment[0] = 0;
+        record->name[0] = 0;
+        record->bytes[0] = 0;
+        record->size = 0;
+        for (int i = 0; i < 7; i++)
+            record->opcodes[i] = 0;
+        record->jump = false;
+        record->jump_address = 0;
+        record->jump_bank = 0;
+        record->subroutine = false;
+        record->irq = 0;
+        record->has_operand_address = false;
+        record->operand_address = 0;
+        map[offset] = record;
     }
 
-    #endif
+    return record;
 }

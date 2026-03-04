@@ -176,10 +176,9 @@ bool emu_finish_media_loading(void)
     emu_audio_reset();
     load_ram();
 
-/*
     if (config_debug.debug && (config_debug.dis_look_ahead_count > 0))
-        gearsystem->GetHuC6280()->DisassembleAhead(config_debug.dis_look_ahead_count);
-*/
+        gearsystem->GetProcessor()->DisassembleAhead(config_debug.dis_look_ahead_count);
+
     update_savestates_data();
 
     return true;
@@ -199,9 +198,8 @@ void emu_update(void)
 
     if (config_debug.debug)
     {
-        /*
         bool breakpoint_hit = false;
-        GearsystemCore::GG_Debug_Run debug_run;
+        GearsystemCore::GS_Debug_Run debug_run;
         debug_run.step_debugger = (emu_debug_command == Debug_Command_Step);
         debug_run.stop_on_breakpoint = !emu_debug_disable_breakpoints;
         debug_run.stop_on_run_to_breakpoint = true;
@@ -215,7 +213,7 @@ void emu_update(void)
             emu_debug_pc_changed = true;
 
             if (config_debug.dis_look_ahead_count > 0)
-                gearsystem->GetHuC6280()->DisassembleAhead(config_debug.dis_look_ahead_count);
+                gearsystem->GetProcessor()->DisassembleAhead(config_debug.dis_look_ahead_count);
         }
 
         if (breakpoint_hit)
@@ -232,7 +230,6 @@ void emu_update(void)
         else if (emu_debug_command != Debug_Command_Continue)
             emu_debug_command = Debug_Command_None;
 
-        */
         update_debug();
     }
     else
@@ -462,12 +459,11 @@ GearsystemCore* emu_get_core(void)
 
 void emu_debug_step_over(void)
 {
-/*
-    HuC6280* processor = emu_get_core()->GetHuC6280();
-    HuC6280::HuC6280_State* proc_state = processor->GetState();
+    Processor* processor = emu_get_core()->GetProcessor();
+    Processor::ProcessorState* proc_state = processor->GetState();
     Memory* memory = emu_get_core()->GetMemory();
     u16 pc = proc_state->PC->GetValue();
-    Memory::stDisassembleRecord* record = memory->GetDisassemblerRecord(proc_state->PC->GetValue());
+    GS_Disassembler_Record* record = memory->GetDisassemblerRecord(pc);
 
     if (IsValidPointer(record) && record->subroutine)
     {
@@ -479,7 +475,6 @@ void emu_debug_step_over(void)
         emu_debug_command = Debug_Command_Step;
 
     gearsystem->Pause(false);
-*/
 }
 
 void emu_debug_step_into(void)
@@ -490,13 +485,12 @@ void emu_debug_step_into(void)
 
 void emu_debug_step_out(void)
 {
-/*
-    HuC6280* processor = emu_get_core()->GetHuC6280();
-    std::stack<HuC6280::GG_CallStackEntry>* call_stack = processor->GetDisassemblerCallStack();
+    Processor* processor = emu_get_core()->GetProcessor();
+    std::stack<Processor::GS_CallStackEntry>* call_stack = processor->GetDisassemblerCallStack();
 
     if (call_stack->size() > 0)
     {
-        HuC6280::GG_CallStackEntry entry = call_stack->top();
+        Processor::GS_CallStackEntry entry = call_stack->top();
         u16 return_address = entry.back;
         processor->AddRunToBreakpoint(return_address);
         emu_debug_command = Debug_Command_Continue;
@@ -505,7 +499,6 @@ void emu_debug_step_out(void)
         emu_debug_command = Debug_Command_Step;
 
     gearsystem->Pause(false);
-*/
 }
 
 void emu_debug_step_frame(void)
@@ -528,12 +521,10 @@ void emu_debug_continue(void)
     emu_debug_command = Debug_Command_Continue;
 }
 
-/*
-void emu_debug_set_callback(GearsystemCore::GG_Debug_Callback callback)
+void emu_debug_set_callback(GearsystemCore::GS_Debug_Callback callback)
 {
     gearsystem->SetDebugCallback(callback);
 }
-*/
 
 void emu_load_bootrom_sms(const char* file_path)
 {
@@ -875,20 +866,56 @@ static const char* get_zone(Cartridge::CartridgeZones zone)
 
 static void init_debug(void)
 {
-    
+    emu_debug_background_buffer = new u8[256 * 256 * 4];
+    emu_debug_tile_buffer = new u8[32 * 32 * 64 * 4];
+    debug_background_buffer = new u16[256 * 256];
+    debug_tile_buffer = new u16[32 * 32 * 64];
+
+    for (int i=0,j=0; i < (32 * 32 * 64); i++,j+=4)
+    {
+        debug_tile_buffer[i] = 0;
+        emu_debug_tile_buffer[j] = 0;
+        emu_debug_tile_buffer[j+1] = 0;
+        emu_debug_tile_buffer[j+2] = 0;
+        emu_debug_tile_buffer[j+3] = 0;
+    }
+
+    for (int s = 0; s < 64; s++)
+    {
+        emu_debug_sprite_buffers[s] = new u8[16 * 16 * 4];
+        debug_sprite_buffers[s] = new u16[16 * 16];
+
+        for (int i=0,j=0; i < (16 * 16); i++,j+=4)
+        {
+            debug_sprite_buffers[s][i] = 0;
+            emu_debug_sprite_buffers[s][j] = 0;
+            emu_debug_sprite_buffers[s][j+1] = 0;
+            emu_debug_sprite_buffers[s][j+2] = 0;
+            emu_debug_sprite_buffers[s][j+3] = 0;
+        }
+    }
+
+    for (int i=0,j=0; i < (256 * 256); i++,j+=4)
+    {
+        debug_background_buffer[i] = 0;
+        emu_debug_background_buffer[j] = 0;
+        emu_debug_background_buffer[j+1] = 0;
+        emu_debug_background_buffer[j+2] = 0;
+        emu_debug_background_buffer[j+3] = 0;
+    }
 }
 
 static void destroy_debug(void) 
 {
     SafeDeleteArray(emu_debug_background_buffer);
     SafeDeleteArray(emu_debug_tile_buffer);
-    SafeDeleteArray(emu_debug_background_buffer);
-    SafeDeleteArray(emu_debug_tile_buffer);
+    SafeDeleteArray(debug_background_buffer);
+    SafeDeleteArray(debug_tile_buffer);
 
     for (int s = 0; s < 64; s++)
     {
         SafeDeleteArray(emu_debug_sprite_buffers[s]);
-        SafeDeleteArray(emu_debug_sprite_buffers[s]);
+        SafeDeleteArray(debug_sprite_buffers[s]);
     }
 }
 

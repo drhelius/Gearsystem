@@ -44,7 +44,7 @@ static const char* k_mailbox_filename = ".mailbox";
 static const char* k_mailbox_tmp_filename = ".mailbox.tmp";
 
 #if defined(_WIN32)
-static const char* k_event_name_prefix = "Local\\Geargrafx_";
+static const char* k_event_name_prefix = "Local\\Gearsystem_";
 #else
 static const char* k_pid_filename = ".pid";
 #endif

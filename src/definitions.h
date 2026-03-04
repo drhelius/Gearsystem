@@ -218,6 +218,24 @@ struct GS_SaveState_Screenshot
     u8* data;
 };
 
+struct GS_Disassembler_Record
+{
+    u32 address;
+    u8 bank;
+    char name[64];
+    char bytes[25];
+    char segment[8];
+    u8 opcodes[7];
+    int size;
+    bool jump;
+    u16 jump_address;
+    u8 jump_bank;
+    bool subroutine;
+    int irq;
+    bool has_operand_address;
+    u16 operand_address;
+};
+
 inline u8 SetBit(const u8 value, const u8 bit)
 {
     return value | (0x01 << bit);

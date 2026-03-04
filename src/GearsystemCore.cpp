@@ -86,6 +86,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pGameGearIOPorts);
     InitPointer(m_pBootromMemoryRule);
     InitPointer(m_pFrameBuffer);
+    InitPointer(m_debug_callback);
     m_bPaused = true;
     m_pixelFormat = GS_PIXEL_RGBA8888;
     m_GlassesConfig = GearsystemCore::GlassesBothEyes;
@@ -151,45 +152,89 @@ void GearsystemCore::Init(GS_Color_Format pixelFormat)
     InitMemoryRules();
 }
 
-bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, bool step, bool stopOnBreakpoints)
+bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, GS_Debug_Run* debug)
 {
     m_pFrameBuffer = pFrameBuffer;
-    bool breakpoint = false;
 
     if (!m_bPaused && m_pCartridge->IsReady())
     {
+#if !defined(GS_DISABLE_DISASSEMBLER)
+        bool debug_enable = false;
+        bool instruction_completed = false;
+        if (IsValidPointer(debug))
+        {
+            debug_enable = true;
+            m_pProcessor->EnableBreakpoints(debug->stop_on_breakpoint, debug->stop_on_irq);
+        }
+
         bool vblank = false;
         int totalClocks = 0;
-        while (!vblank)
+
+        do
         {
-#ifdef PERFORMANCE
-            unsigned int clockCycles = m_pProcessor->RunFor(75);
-#else
+            if (debug_enable && (IsValidPointer(m_debug_callback)))
+                m_debug_callback();
+
             unsigned int clockCycles = m_pProcessor->RunFor(1);
-#endif
+            instruction_completed = true;
             vblank = m_pVideo->Tick(clockCycles);
             m_pAudio->Tick(clockCycles);
             m_master_clock_cycles += clockCycles;
             totalClocks += clockCycles;
 
-#ifndef GS_DISABLE_DISASSEMBLER
-            if ((step || (stopOnBreakpoints && m_pProcessor->BreakpointHit())))
+            if (debug_enable)
             {
-                vblank = true;
-                if (m_pProcessor->BreakpointHit())
-                    breakpoint = true;
+                if (debug->step_debugger)
+                    vblank = instruction_completed;
+
+                if (m_pProcessor->MemoryBreakpointHit())
+                    vblank = true;
+
+                if (instruction_completed)
+                {
+                    if (m_pProcessor->BreakpointHit())
+                        vblank = true;
+
+                    if (debug->stop_on_run_to_breakpoint && m_pProcessor->RunToBreakpointHit())
+                        vblank = true;
+                }
             }
-#endif
 
             if (totalClocks > 702240)
                 vblank = true;
         }
+        while (!vblank);
 
         m_pAudio->EndFrame(pSampleBuffer, pSampleCount);
         RenderFrameBuffer(pFrameBuffer);
+
+        return m_pProcessor->BreakpointHit() || m_pProcessor->RunToBreakpointHit();
+#else
+        UNUSED(debug);
+        bool vblank = false;
+        int totalClocks = 0;
+
+        do
+        {
+            unsigned int clockCycles = m_pProcessor->RunFor(1);
+            vblank = m_pVideo->Tick(clockCycles);
+            m_pAudio->Tick(clockCycles);
+            m_master_clock_cycles += clockCycles;
+            totalClocks += clockCycles;
+
+            if (totalClocks > 702240)
+                vblank = true;
+        }
+        while (!vblank);
+
+        m_pAudio->EndFrame(pSampleBuffer, pSampleCount);
+        RenderFrameBuffer(pFrameBuffer);
+
+        return false;
+#endif
     }
 
-    return breakpoint;
+    return false;
 }
 
 bool GearsystemCore::LoadROM(const char* szFilePath, Cartridge::ForceConfiguration* config)
@@ -199,11 +244,11 @@ bool GearsystemCore::LoadROM(const char* szFilePath, Cartridge::ForceConfigurati
         if (IsValidPointer(config))
             m_pCartridge->ForceConfig(*config);
         Reset();
-        m_pMemory->ResetDisassembledMemory();
+        m_pMemory->ResetDisassemblerRecords();
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
         bool romTypeOK = AddMemoryRules();
 
-        m_pProcessor->DisassembleNextOpcode();
+        m_pProcessor->DisassembleNextOPCode();
 
         if (!romTypeOK)
         {
@@ -223,11 +268,11 @@ bool GearsystemCore::LoadROMFromBuffer(const u8* buffer, int size, Cartridge::Fo
         if (IsValidPointer(config))
             m_pCartridge->ForceConfig(*config);
         Reset();
-        m_pMemory->ResetDisassembledMemory();
+        m_pMemory->ResetDisassemblerRecords();
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
         bool romTypeOK = AddMemoryRules();
 
-        m_pProcessor->DisassembleNextOpcode();
+        m_pProcessor->DisassembleNextOPCode();
 
         if (!romTypeOK)
         {
@@ -261,7 +306,7 @@ void GearsystemCore::SaveMemoryDump()
 
 void GearsystemCore::SaveDisassembledROM()
 {
-    Memory::stDisassembleRecord** romMap = m_pMemory->GetDisassembledROMMemoryMap();
+    GS_Disassembler_Record** romMap = m_pMemory->GetAllDisassemblerRecords();
 
     if (m_pCartridge->IsReady() && (strlen(m_pCartridge->GetFilePath()) > 0) && IsValidPointer(romMap))
     {
@@ -363,6 +408,11 @@ u64 GearsystemCore::GetMasterClockCycles()
     return m_master_clock_cycles;
 }
 
+void GearsystemCore::SetDebugCallback(GS_Debug_Callback callback)
+{
+    m_debug_callback = callback;
+}
+
 void GearsystemCore::KeyPressed(GS_Joypads joypad, GS_Keys key)
 {
     m_pInput->KeyPressed(joypad, key);
@@ -450,7 +500,7 @@ void GearsystemCore::ResetROM(Cartridge::ForceConfiguration* config)
         Reset();
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
         AddMemoryRules();
-        m_pProcessor->DisassembleNextOpcode();
+        m_pProcessor->DisassembleNextOPCode();
     }
 }
 

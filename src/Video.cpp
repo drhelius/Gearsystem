@@ -385,6 +385,9 @@ u8 Video::GetDataPort()
     m_bFirstByteInSequence = true;
     u8 ret = m_VdpBuffer;
     m_VdpBuffer = m_pVdpVRAM[m_VdpAddress];
+#ifndef GS_DISABLE_DISASSEMBLER
+    m_pProcessor->CheckMemoryBreakpoints(Processor::GS_BREAKPOINT_TYPE_VRAM, m_VdpAddress, true);
+#endif
     m_VdpAddress = (m_VdpAddress + 1) & 0x3FFF;
     return ret;
 }
@@ -418,6 +421,9 @@ void Video::WriteData(u8 data)
     else
         m_pVdpVRAM[m_VdpAddress] = data;
 
+#ifndef GS_DISABLE_DISASSEMBLER
+    m_pProcessor->CheckMemoryBreakpoints(Processor::GS_BREAKPOINT_TYPE_VRAM, m_VdpAddress, false);
+#endif
     m_VdpAddress = (m_VdpAddress + 1) & 0x3FFF;
 }
 
@@ -440,6 +446,9 @@ void Video::WriteControl(u8 data)
             case 0x00:
             {
                 m_VdpBuffer = m_pVdpVRAM[m_VdpAddress];
+#ifndef GS_DISABLE_DISASSEMBLER
+                m_pProcessor->CheckMemoryBreakpoints(Processor::GS_BREAKPOINT_TYPE_VRAM, m_VdpAddress, true);
+#endif
                 m_VdpAddress = (m_VdpAddress + 1) & 0x3FFF;
                 break;
             }
@@ -447,6 +456,9 @@ void Video::WriteControl(u8 data)
             {
                 u8 reg = data & 0x0F;
                 m_VdpRegister[reg] = (m_VdpAddress & 0x00FF);
+#ifndef GS_DISABLE_DISASSEMBLER
+                m_pProcessor->CheckMemoryBreakpoints(Processor::GS_BREAKPOINT_TYPE_VDP_REGISTER, reg, false);
+#endif
 
                 if (reg < 2)
                 {

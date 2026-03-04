@@ -35,7 +35,7 @@ struct DisassemblerLine
 {
     u16 address;
     bool is_breakpoint;
-    Memory::stDisassembleRecord* record;
+    GS_Disassembler_Record* record;
     char name_enhanced[64];
     char tooltip[128];
     int name_real_length;
@@ -66,9 +66,7 @@ static std::vector<DisassemblerLine> disassembler_lines(0x10000);
 static std::vector<DisassemblerBookmark> bookmarks;
 static int selected_address = -1;
 static int selected_bank = -1;
-/*
-static int new_breakpoint_type = HuC6280::HuC6280_BREAKPOINT_TYPE_ROMRAM;
-*/
+static int new_breakpoint_type = Processor::GS_BREAKPOINT_TYPE_ROMRAM;
 static char new_breakpoint_buffer[10] = "";
 static bool new_breakpoint_read = false;
 static bool new_breakpoint_write = false;
@@ -90,12 +88,12 @@ static void draw_breakpoints_content(void);
 static void prepare_drawable_lines(void);
 static void draw_disassembly(void);
 static void draw_context_menu(DisassemblerLine* line);
-static void add_cdrom_symbols();
+static void add_bios_symbols();
 static void add_symbol(const char* line);
-static void add_auto_symbol(Memory::stDisassembleRecord* record, u16 address);
+static void add_auto_symbol(GS_Disassembler_Record* record, u16 address);
 static void add_breakpoint(int type);
 static void request_goto_address(u16 addr);
-static bool is_return_instruction(u8 opcode);
+static bool is_return_instruction(GS_Disassembler_Record* record);
 static void replace_symbols(DisassemblerLine* line, const char* jump_color, const char* operand_color, const char* auto_color, const char* original_color);
 static void replace_labels(DisassemblerLine* line, const char* color, const char* original_color);
 static void draw_instruction_name(DisassemblerLine* line, bool is_pc);
@@ -170,14 +168,14 @@ void gui_debug_reset_symbols(void)
     fixed_symbol_list.clear();
     dynamic_symbol_list.clear();
     symbols_dirty = true;
+
+    add_bios_symbols();
 }
 
 void gui_debug_reset_breakpoints(void)
 {
-/*
     emu_get_core()->GetProcessor()->ResetBreakpoints();
     new_breakpoint_buffer[0] = 0;
-*/
 }
 
 void gui_debug_load_symbols_file(const char* file_path)
@@ -228,15 +226,13 @@ void gui_debug_load_symbols_file(const char* file_path)
 
 void gui_debug_toggle_breakpoint(void)
 {
-    /*
     if (selected_address >= 0)
     {
-        if (emu_get_core()->GetHuC6280()->IsBreakpoint(HuC6280::HuC6280_BREAKPOINT_TYPE_ROMRAM, selected_address))
-            emu_get_core()->GetHuC6280()->RemoveBreakpoint(HuC6280::HuC6280_BREAKPOINT_TYPE_ROMRAM, selected_address);
+        if (emu_get_core()->GetProcessor()->IsBreakpoint(Processor::GS_BREAKPOINT_TYPE_ROMRAM, selected_address))
+            emu_get_core()->GetProcessor()->RemoveBreakpoint(Processor::GS_BREAKPOINT_TYPE_ROMRAM, selected_address);
         else
-            emu_get_core()->GetHuC6280()->AddBreakpoint(selected_address);
+            emu_get_core()->GetProcessor()->AddBreakpoint(selected_address);
     }
-            */
 }
 
 void gui_debug_add_bookmark(void)
@@ -259,10 +255,8 @@ void gui_debug_runtocursor(void)
 
 void gui_debug_runto_address(u16 address)
 {
-/*
-    emu_get_core()->GetHuC6280()->AddRunToBreakpoint(address);
+    emu_get_core()->GetProcessor()->AddRunToBreakpoint(address);
     emu_debug_continue();
-*/
 }
 
 void gui_debug_go_back(void)
@@ -272,6 +266,9 @@ void gui_debug_go_back(void)
 
 void gui_debug_window_disassembler(void)
 {
+    add_bookmark_popup();
+    add_symbol_popup();
+
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(166, 26), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(458, 553), ImGuiCond_FirstUseEver);
@@ -285,9 +282,6 @@ void gui_debug_window_disassembler(void)
 
     draw_breakpoints();
     draw_disassembly();
-
-    add_bookmark_popup();
-    add_symbol_popup();
 
     ImGui::End();
     ImGui::PopStyleVar();
@@ -398,11 +392,17 @@ static void draw_controls(void)
     ImGui::TextColored(emu_is_debug_idle() ? red : green, emu_is_debug_idle() ? "   PAUSED" : "   RUNNING");
 }
 
-static const char* k_breakpoint_types[] = { "ROM/RAM ", "VRAM    ", "PALETTE ", "6270    ", "6260    " };
+static const char* k_breakpoint_types[] = { "ROM/RAM ", "VRAM    ", "VDP Reg " };
+
+static const char* k_vdp_register_names[16] = {
+    "Mode 1", "Mode 2", "Name Table", "Color Table",
+    "Pattern", "Sprite Attr", "Sprite Pat", "Backdrop",
+    "H Scroll", "V Scroll", "Line Count", "???",
+    "???", "???", "???", "???"
+};
 
 static void draw_breakpoints_content(void)
 {
-/*
 
     ImGui::Checkbox("Break On IRQs##irq_break", &emu_debug_irq_breakpoints); ImGui::SameLine();
     ImGui::Checkbox("Disable All##disable_mem", &emu_debug_disable_breakpoints); ImGui::SameLine();
@@ -418,7 +418,7 @@ static void draw_breakpoints_content(void)
     ImGui::Separator();
 
     ImGui::PushItemWidth(120);
-    ImGui::Combo("Type##type", &new_breakpoint_type, "ROM/RAM\0VRAM\0Palette RAM\0HuC6270 Reg\0HuC6260 Reg\0");
+    ImGui::Combo("Type##type", &new_breakpoint_type, "ROM/RAM\0VRAM\0VDP Reg\0");
 
     ImGui::PushItemWidth(85);
     if (ImGui::InputTextWithHint("##add_breakpoint", "XXXX-XXXX", new_breakpoint_buffer, IM_ARRAYSIZE(new_breakpoint_buffer), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue))
@@ -433,7 +433,7 @@ static void draw_breakpoints_content(void)
     ImGui::Checkbox("Read", &new_breakpoint_read);
     ImGui::Checkbox("Write", &new_breakpoint_write);
 
-    if (new_breakpoint_type == HuC6280::HuC6280_BREAKPOINT_TYPE_ROMRAM)
+    if (new_breakpoint_type == Processor::GS_BREAKPOINT_TYPE_ROMRAM)
         ImGui::Checkbox("Execute", &new_breakpoint_execute);
 
     if (ImGui::Button("Add##add", ImVec2(85, 0)))
@@ -447,11 +447,11 @@ static void draw_breakpoints_content(void)
     ImGui::PushFont(gui_default_font);
 
     int remove = -1;
-    std::vector<HuC6280::GG_Breakpoint>* breakpoints = emu_get_core()->GetHuC6280()->GetBreakpoints();
+    std::vector<Processor::GS_Breakpoint>* breakpoints = emu_get_core()->GetProcessor()->GetBreakpoints();
 
     for (long unsigned int b = 0; b < breakpoints->size(); b++)
     {
-        HuC6280::GG_Breakpoint* brk = &(*breakpoints)[b];
+        Processor::GS_Breakpoint* brk = &(*breakpoints)[b];
 
         ImGui::PushID(10000 + b);
         if (ImGui::SmallButton("X"))
@@ -494,16 +494,16 @@ static void draw_breakpoints_content(void)
         ImGui::SameLine(0, 0); ImGui::TextColored(brk->enabled && brk->read ? orange : gray, " R");
         ImGui::SameLine(0, 2); ImGui::TextColored(brk->enabled && brk->write ? orange : gray, "W");
 
-        if (brk->type == HuC6280::HuC6280_BREAKPOINT_TYPE_ROMRAM)
+        if (brk->type == Processor::GS_BREAKPOINT_TYPE_ROMRAM)
         {
             ImGui::SameLine(0, 2); ImGui::TextColored(brk->enabled && brk->execute ? orange : gray, "X");
         }
 
-        Memory::stDisassembleRecord* record = emu_get_core()->GetMemory()->GetDisassemblerRecord(brk->address1);
+        GS_Disassembler_Record* record = emu_get_core()->GetMemory()->GetDisassemblerRecord(brk->address1);
 
         bool symbol_shown = false;
 
-        if (!brk->range && (brk->type == HuC6280::HuC6280_BREAKPOINT_TYPE_ROMRAM) && IsValidPointer(record))
+        if (!brk->range && (brk->type == Processor::GS_BREAKPOINT_TYPE_ROMRAM) && IsValidPointer(record))
         {
             DebugSymbol* symbol = fixed_symbols[record->bank][brk->address1];
             if (!IsValidPointer(symbol))
@@ -523,10 +523,10 @@ static void draw_breakpoints_content(void)
             TextColoredEx(" %s", record->name);
             ImGui::PopStyleColor();
         }
-        else if (!brk->range && (brk->type == HuC6280::HuC6280_BREAKPOINT_TYPE_HUC6270_REGISTER) && (brk->address1 < 20))
+        else if (!brk->range && (brk->type == Processor::GS_BREAKPOINT_TYPE_VDP_REGISTER) && (brk->address1 < 16))
         {
             ImGui::SameLine(0, 0);
-            ImGui::TextColored(brk->enabled ? violet : gray, " %s", k_register_names[brk->address1]);
+            ImGui::TextColored(brk->enabled ? violet : gray, " %s", k_vdp_register_names[brk->address1]);
         }
     }
 
@@ -541,7 +541,6 @@ static void draw_breakpoints_content(void)
     ImGui::Columns(1);
     ImGui::Separator();
 
-*/
 }
 
 static void draw_breakpoints(void)
@@ -568,10 +567,9 @@ void gui_debug_window_breakpoints(void)
 
 static void prepare_drawable_lines(void)
 {
-/*
     Memory* memory = emu_get_core()->GetMemory();
-    HuC6280* processor = emu_get_core()->GetHuC6280();
-    HuC6280::HuC6280_State* proc_state = processor->GetState();
+    Processor* processor = emu_get_core()->GetProcessor();
+    Processor::ProcessorState* proc_state = processor->GetState();
     u16 pc = proc_state->PC->GetValue();
 
     disassembler_lines.clear();
@@ -580,7 +578,7 @@ static void prepare_drawable_lines(void)
 
     for (int i = 0; i < 0x10000; i++)
     {
-        Memory::stDisassembleRecord* record = memory->GetDisassemblerRecord(i);
+        GS_Disassembler_Record* record = memory->GetDisassemblerRecord(i);
 
         if (IsValidPointer(record) && (record->name[0] != 0))
             add_auto_symbol(record, i);
@@ -588,7 +586,7 @@ static void prepare_drawable_lines(void)
 
     for (int i = 0; i < 0x10000; i++)
     {
-        Memory::stDisassembleRecord* record = memory->GetDisassemblerRecord(i);
+        GS_Disassembler_Record* record = memory->GetDisassemblerRecord(i);
 
         if (IsValidPointer(record) && (record->name[0] != 0))
         {
@@ -630,11 +628,11 @@ static void prepare_drawable_lines(void)
             snprintf(line.name_enhanced, 64, "%s", line.record->name);
             line.tooltip[0] = 0;
 
-            std::vector<HuC6280::GG_Breakpoint>* breakpoints = emu_get_core()->GetHuC6280()->GetBreakpoints();
+            std::vector<Processor::GS_Breakpoint>* breakpoints = emu_get_core()->GetProcessor()->GetBreakpoints();
 
             for (long unsigned int b = 0; b < breakpoints->size(); b++)
             {
-                HuC6280::GG_Breakpoint* brk = &(*breakpoints)[b];
+                Processor::GS_Breakpoint* brk = &(*breakpoints)[b];
 
                 if (brk->execute && (brk->address1 == i))
                 {
@@ -656,12 +654,10 @@ static void prepare_drawable_lines(void)
             disassembler_lines.push_back(line);
         }
     }
-*/
 }
 
 static void draw_disassembly(void)
 {
-/*
     ImGui::PushFont(gui_default_font);
     ImGui::PushStyleColor(ImGuiCol_HeaderHovered, mid_gray);
 
@@ -669,8 +665,8 @@ static void draw_disassembly(void)
 
     if (window_visible)
     {
-        HuC6280* processor = emu_get_core()->GetHuC6280();
-        HuC6280::HuC6280_State* proc_state = processor->GetState();
+        Processor* processor = emu_get_core()->GetProcessor();
+        Processor::ProcessorState* proc_state = processor->GetState();
         u16 pc = proc_state->PC->GetValue();
 
         prepare_drawable_lines();
@@ -821,7 +817,7 @@ static void draw_disassembly(void)
                     ImGui::TextColored(color_mem, "%s;%s", spaces, line.record->bytes);
                 }
 
-                bool is_ret = is_return_instruction(line.record->opcodes[0]);
+                bool is_ret = is_return_instruction(line.record);
                 if (is_ret)
                 {
                     ImGui::PushStyleColor(ImGuiCol_Separator, dark_green);
@@ -839,7 +835,6 @@ static void draw_disassembly(void)
     ImGui::PopStyleColor();
     ImGui::PopFont();
 
-*/
 }
 
 static void draw_context_menu(DisassemblerLine* line)
@@ -875,12 +870,12 @@ static void draw_context_menu(DisassemblerLine* line)
     ImGui::PushFont(gui_default_font);
 }
 
-static void add_cdrom_symbols()
+static void add_bios_symbols()
 {
-    for (int i = 0; i < k_cdrom_bios_symbol_count; i++)
+    for (int i = 0; i < k_bios_symbol_count; i++)
     {
         char line[64];
-        snprintf(line, sizeof(line), "%04X %s", k_cdrom_bios_symbols[i].address, k_cdrom_bios_symbols[i].label);
+        snprintf(line, sizeof(line), "%04X %s", k_bios_symbols[i].address, k_bios_symbols[i].label);
         add_symbol(line);
     }
 }
@@ -1007,22 +1002,19 @@ static void add_symbol(const char* line)
     }
 }
 
-static const char* k_irq_symbol_format[6] = {
+static const char* k_irq_symbol_format[4] = {
     "????_%02X_%04X",
     "RESET_%02X_%04X",
     "NMI_%02X_%04X",
-    "TIMER_IRQ_%02X_%04X",
-    "IRQ1_%02X_%04X",
-    "IRQ2_BRK_%02X_%04X"
+    "INT_%02X_%04X"
 };
 
-static void add_auto_symbol(Memory::stDisassembleRecord* record, u16 address)
+static void add_auto_symbol(GS_Disassembler_Record* record, u16 address)
 {
-/*
     DebugSymbol s;
     bool insert = false;
 
-    if (record->irq > 0 && record->irq < 6)
+    if (record->irq > 0 && record->irq < 4)
     {
         s.address = address;
         s.bank = record->bank;
@@ -1070,26 +1062,23 @@ static void add_auto_symbol(Memory::stDisassembleRecord* record, u16 address)
                 symbols_dirty = true;
         }
     }
-        */
 }
 
 static void add_breakpoint(int type)
 {
-/*
     bool read = new_breakpoint_read;
     bool write = new_breakpoint_write;
     bool execute = new_breakpoint_execute;
 
-    if (type != HuC6280::HuC6280_BREAKPOINT_TYPE_ROMRAM)
+    if (type != Processor::GS_BREAKPOINT_TYPE_ROMRAM)
     {
         if (!read && !write)
             return;
         execute = false;
     }
 
-    if (emu_get_core()->GetHuC6280()->AddBreakpoint(type, new_breakpoint_buffer, read, write, execute))
+    if (emu_get_core()->GetProcessor()->AddBreakpoint(type, new_breakpoint_buffer, read, write, execute))
         new_breakpoint_buffer[0] = 0;
-*/
 }
 
 static void request_goto_address(u16 address)
@@ -1098,13 +1087,45 @@ static void request_goto_address(u16 address)
     goto_address_target = address;
 }
 
-static bool is_return_instruction(u8 opcode)
+static bool is_return_instruction(GS_Disassembler_Record* record)
 {
+    if (!IsValidPointer(record) || record->size == 0)
+        return false;
+
+    u8 opcode = record->opcodes[0];
+
     switch (opcode)
     {
-        case 0x60: // RTS
-        case 0x40: // RTI
+        case 0xC9: // RET
+        case 0xC0: // RET NZ
+        case 0xC8: // RET Z
+        case 0xD0: // RET NC
+        case 0xD8: // RET C
+        case 0xE0: // RET PO
+        case 0xE8: // RET PE
+        case 0xF0: // RET P
+        case 0xF8: // RET M
             return true;
+        case 0xED:
+        {
+            if (record->size < 2)
+                return false;
+            u8 second = record->opcodes[1];
+            switch (second)
+            {
+                case 0x45: // RETN
+                case 0x4D: // RETI
+                case 0x55: // RETN*
+                case 0x5D: // RETN*
+                case 0x65: // RETN*
+                case 0x6D: // RETN*
+                case 0x75: // RETN*
+                case 0x7D: // RETN*
+                    return true;
+                default:
+                    return false;
+            }
+        }
         default:
             return false;
     }
@@ -1138,9 +1159,8 @@ static bool replace_address_in_string(std::string& instr, u16 address, bool is_z
     return false;
 }
 
-static bool get_record_operand(Memory::stDisassembleRecord* record, u16* out_address, bool* out_is_zp)
+static bool get_record_operand(GS_Disassembler_Record* record, u16* out_address, bool* out_is_zp)
 {
-    /*
     if (record->jump)
     {
         *out_address = record->jump_address;
@@ -1150,26 +1170,23 @@ static bool get_record_operand(Memory::stDisassembleRecord* record, u16* out_add
     else if (record->has_operand_address)
     {
         *out_address = record->operand_address;
-        *out_is_zp = record->operand_is_zp;
+        *out_is_zp = false;
         return true;
     }
 
-    */
     return false;
 }
 
-bool gui_debug_resolve_symbol(Memory::stDisassembleRecord* record, std::string& instr, const char* color, const char* original_color, const char** out_name, u16* out_address)
+bool gui_debug_resolve_symbol(GS_Disassembler_Record* record, std::string& instr, const char* color, const char* original_color, const char** out_name, u16* out_address)
 {
-    /*
     u16 lookup_address = 0;
     bool is_zp = false;
 
     if (!get_record_operand(record, &lookup_address, &is_zp))
         return false;
 
-    u16 bank_address = is_zp ? (0x2000 | lookup_address) : lookup_address;
-    u8 bank = record->jump ? record->jump_bank : emu_get_core()->GetMemory()->GetBank(bank_address);
-    DebugSymbol* symbol = fixed_symbols[bank][bank_address];
+    u8 bank = record->jump ? record->jump_bank : emu_get_core()->GetMemory()->GetBank(lookup_address);
+    DebugSymbol* symbol = fixed_symbols[bank][lookup_address];
     if (IsValidPointer(symbol))
     {
         std::string replacement = std::string(color) + symbol->text + original_color;
@@ -1181,35 +1198,43 @@ bool gui_debug_resolve_symbol(Memory::stDisassembleRecord* record, std::string& 
         }
     }
 
-    */
-
     return false;
 }
 
-bool gui_debug_resolve_label(Memory::stDisassembleRecord* record, std::string& instr, const char* color, const char* original_color, const char** out_name, u16* out_address)
+bool gui_debug_resolve_label(GS_Disassembler_Record* record, std::string& instr, const char* color, const char* original_color, const char** out_name, u16* out_address)
 {
-/*
+    u8 opcode = record->opcodes[0];
+    bool is_io = (opcode == 0xDB || opcode == 0xD3);
+
+    if (is_io)
+    {
+        u16 port = record->opcodes[1];
+
+        for (int i = 0; i < k_debug_label_count; i++)
+        {
+            if (k_debug_labels[i].address == port)
+            {
+                char label_address[4];
+                snprintf(label_address, 4, "$%02X", port);
+                std::string replacement = std::string(color) + k_debug_labels[i].label + "_" + label_address + original_color;
+                if (replace_address_in_string(instr, port, true, replacement.c_str()))
+                {
+                    if (out_name) *out_name = k_debug_labels[i].label;
+                    if (out_address) *out_address = port;
+                    return true;
+                }
+            }
+        }
+    }
+
     u16 lookup_address = 0;
     bool is_zp = false;
 
     if (get_record_operand(record, &lookup_address, &is_zp))
     {
-        u16 hardware_offset = 0x0000;
-
-        for (int i = 0; i < 8; i++)
-        {
-            if (emu_get_core()->GetMemory()->GetMpr(i) == 0xFF)
-            {
-                hardware_offset = i * 0x2000;
-                break;
-            }
-        }
-
-        u16 label_lookup = is_zp ? (0x2000 | lookup_address) : lookup_address;
-
         for (int i = 0; i < k_debug_label_count; i++)
         {
-            if (k_debug_labels[i].address + hardware_offset == label_lookup)
+            if (k_debug_labels[i].address == lookup_address)
             {
                 char label_address[6];
                 snprintf(label_address, 6, "$%04X", lookup_address);
@@ -1223,13 +1248,12 @@ bool gui_debug_resolve_label(Memory::stDisassembleRecord* record, std::string& i
             }
         }
     }
-*/
+
     return false;
 }
 
 static void replace_symbols(DisassemblerLine* line, const char* jump_color, const char* operand_color, const char* auto_color, const char* original_color)
 {
-/*
     std::string instr = line->record->name;
     const char* color = line->record->jump ? jump_color : operand_color;
     const char* resolved_name = NULL;
@@ -1265,7 +1289,6 @@ static void replace_symbols(DisassemblerLine* line, const char* jump_color, cons
             snprintf(line->tooltip, 128, "%s%s%s = %s$%04X", auto_color, dynamic_symbol->text, c_white, c_cyan, lookup_address);
         }
     }
-*/
 }
 
 static void replace_labels(DisassemblerLine* line, const char* color, const char* original_color)
@@ -1344,7 +1367,6 @@ static void draw_instruction_name(DisassemblerLine* line, bool is_pc)
 
 static void disassembler_menu(void)
 {
-    /*
     ImGui::BeginMenuBar();
 
     if (ImGui::BeginMenu("File"))
@@ -1391,8 +1413,8 @@ static void disassembler_menu(void)
 
         if (ImGui::MenuItem("Go To PC"))
         {
-            HuC6280* processor = emu_get_core()->GetHuC6280();
-            HuC6280::HuC6280_State* proc_state = processor->GetState();
+            Processor* processor = emu_get_core()->GetProcessor();
+            Processor::ProcessorState* proc_state = processor->GetState();
             u16 pc = proc_state->PC->GetValue();
             request_goto_address(pc);
         }
@@ -1466,7 +1488,7 @@ static void disassembler_menu(void)
 
         if (ImGui::MenuItem("Reset", config_hotkeys[config_HotkeyIndex_Reset].str))
         {
-            emu_reset();
+            emu_reset(gui_get_force_configuration());
         }
 
         ImGui::Separator();
@@ -1591,12 +1613,10 @@ static void disassembler_menu(void)
         gui_file_dialog_load_symbols();
 
     ImGui::EndMenuBar();
-    */
 }
 
 static void add_bookmark_popup(void)
 {
-    /*
     if (add_bookmark_open)
     {
         ImGui::OpenPopup("Add Bookmark");
@@ -1634,7 +1654,7 @@ static void add_bookmark_popup(void)
                 if (strlen(name_bookmark) == 0)
                 {
                     Memory* memory = emu_get_core()->GetMemory();
-                    Memory::stDisassembleRecord* record = memory->GetDisassemblerRecord(bookmark_address);
+                    GS_Disassembler_Record* record = memory->GetDisassemblerRecord(bookmark_address);
 
                     if (IsValidPointer(record) && (record->name[0] != 0))
                     {
@@ -1673,7 +1693,6 @@ static void add_bookmark_popup(void)
 
         ImGui::EndPopup();
     }
-        */
 }
 
 static void add_symbol_popup(void)
@@ -1736,17 +1755,16 @@ static void add_symbol_popup(void)
 
 void gui_debug_window_call_stack(void)
 {
-    /*
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(140, 122), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(330, 240), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Call Stack", &config_debug.show_call_stack);
 
-    GeargrafxCore* core = emu_get_core();
+    GearsystemCore* core = emu_get_core();
     Memory* memory = core->GetMemory();
-    HuC6280* processor = core->GetHuC6280();
-    std::stack<HuC6280::GG_CallStackEntry> temp_stack = *processor->GetDisassemblerCallStack();
+    Processor* processor = core->GetProcessor();
+    std::stack<Processor::GS_CallStackEntry> temp_stack = *processor->GetDisassemblerCallStack();
 
     char symbol_text[64] = { };
 
@@ -1767,10 +1785,10 @@ void gui_debug_window_call_stack(void)
         {
             ImGui::TableNextRow();
 
-            HuC6280::GG_CallStackEntry entry = temp_stack.top();
+            Processor::GS_CallStackEntry entry = temp_stack.top();
             temp_stack.pop();
 
-            Memory::stDisassembleRecord* record = memory->GetDisassemblerRecord(entry.dest);
+            GS_Disassembler_Record* record = memory->GetDisassemblerRecord(entry.dest);
 
             if (IsValidPointer(record) && (record->name[0] != 0))
             {
@@ -1802,8 +1820,8 @@ void gui_debug_window_call_stack(void)
             {
                 if (ImGui::Selectable("Add Breakpoint"))
                 {
-                    if (!emu_get_core()->GetHuC6280()->IsBreakpoint(HuC6280::HuC6280_BREAKPOINT_TYPE_ROMRAM, entry.dest))
-                        emu_get_core()->GetHuC6280()->AddBreakpoint(entry.dest);
+                    if (!emu_get_core()->GetProcessor()->IsBreakpoint(Processor::GS_BREAKPOINT_TYPE_ROMRAM, entry.dest))
+                        emu_get_core()->GetProcessor()->AddBreakpoint(entry.dest);
                 }
 
                 ImGui::EndPopup();
@@ -1839,8 +1857,6 @@ void gui_debug_window_call_stack(void)
 
     ImGui::End();
     ImGui::PopStyleVar();
-
-    */
 }
 
 void gui_debug_window_symbols(void)
@@ -1993,10 +2009,8 @@ void gui_debug_window_symbols(void)
                 {
                     if (ImGui::Selectable("Add Breakpoint"))
                     {
-/*
-                        if (!emu_get_core()->GetHuC6280()->IsBreakpoint(HuC6280::HuC6280_BREAKPOINT_TYPE_ROMRAM, symbol->address))
-                            emu_get_core()->GetHuC6280()->AddBreakpoint(symbol->address);
-*/
+                        if (!emu_get_core()->GetProcessor()->IsBreakpoint(Processor::GS_BREAKPOINT_TYPE_ROMRAM, symbol->address))
+                            emu_get_core()->GetProcessor()->AddBreakpoint(symbol->address);
                     }
 
                     if (is_manual)
@@ -2063,7 +2077,6 @@ void gui_debug_remove_symbol(u8 bank, u16 address)
 
 void gui_debug_add_disassembler_bookmark(u16 address, const char* name)
 {
-    /*
     DisassemblerBookmark bookmark;
     bookmark.address = address;
 
@@ -2075,7 +2088,7 @@ void gui_debug_add_disassembler_bookmark(u16 address, const char* name)
     {
         // Auto-generate name from instruction
         Memory* memory = emu_get_core()->GetMemory();
-        Memory::stDisassembleRecord* record = memory->GetDisassemblerRecord(address);
+        GS_Disassembler_Record* record = memory->GetDisassemblerRecord(address);
 
         if (IsValidPointer(record) && (record->name[0] != 0))
         {
@@ -2092,7 +2105,6 @@ void gui_debug_add_disassembler_bookmark(u16 address, const char* name)
     }
 
     bookmarks.push_back(bookmark);
-    */
 }
 
 void gui_debug_remove_disassembler_bookmark(u16 address)
@@ -2126,13 +2138,12 @@ int gui_debug_get_symbols(void** symbols_ptr)
 
 static void save_full_disassembler(FILE* file)
 {
-    /*
     Memory* memory = emu_get_core()->GetMemory();
-    Memory::stDisassembleRecord** records = memory->GetAllDisassemblerRecords();
+    GS_Disassembler_Record** records = memory->GetAllDisassemblerRecords();
 
     for (int i = 0; i < 0x200000; i++)
     {
-        Memory::stDisassembleRecord* record = records[i];
+        GS_Disassembler_Record* record = records[i];
 
         if (IsValidPointer(record) && (record->name[0] != 0))
         {
@@ -2154,16 +2165,14 @@ static void save_full_disassembler(FILE* file)
 
             fprintf(file, "%06X-%02X:    %s%s;%s\n", i, record->bank, name, spaces, record->bytes);
 
-            if (is_return_instruction(record->opcodes[0]))
+            if (is_return_instruction(record))
                 fprintf(file, "\n");
         }
     }
-        */
 }
 
 static void save_current_disassembler(FILE* file)
 {
-    /*
     int total_lines = (int)disassembler_lines.size();
 
     for (int i = 0; i < total_lines; i++)
@@ -2218,12 +2227,11 @@ static void save_current_disassembler(FILE* file)
 
         fprintf(file, "\n");
 
-        if (is_return_instruction(line.record->opcodes[0]))
+        if (is_return_instruction(line.record))
         {
             fprintf(file, "\n\n");
         }
     }
-        */
 }
 
 static bool symbol_sort_address_asc(const SymbolEntry& a, const SymbolEntry& b)

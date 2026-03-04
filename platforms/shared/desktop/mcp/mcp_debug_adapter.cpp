@@ -341,7 +341,7 @@ std::vector<DisasmLine> DebugAdapter::GetDisassembly(u16 start_address, u16 end_
             check_addr = (start_address & 0xE000) | (start_offset - lookback);
         }
 
-        Memory::stDisassembleRecord* record = NULL;
+        GS_Disassembler_Record* record = NULL;
 
         if (use_explicit_bank)
         {
@@ -369,7 +369,7 @@ std::vector<DisasmLine> DebugAdapter::GetDisassembly(u16 start_address, u16 end_
 
     while (addr <= end_address)
     {
-        Memory::stDisassembleRecord* record = NULL;
+        GS_Disassembler_Record* record = NULL;
 
         if (use_explicit_bank)
             record = memory->GetDisassemblerRecord(addr, (u8)bank);
@@ -2296,7 +2296,7 @@ json DebugAdapter::ListCallStack()
         entry_obj["return"] = back_ss.str();
 
         // Try to find symbol for destination address
-        Memory::stDisassembleRecord* record = memory->GetDisassemblerRecord(entry.dest);
+        GS_Disassembler_Record* record = memory->GetDisassemblerRecord(entry.dest);
         if (IsValidPointer(record) && record->name[0] != 0)
         {
             if (fixed_symbols && fixed_symbols[record->bank] && fixed_symbols[record->bank][entry.dest])
