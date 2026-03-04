@@ -123,9 +123,9 @@ IOPorts* Processor::GetIOPOrts()
     return m_pIOPorts;
 }
 
-unsigned int Processor::RunFor(unsigned int tstates)
+u32 Processor::RunFor(u32 tstates)
 {
-    u8 executed = 0;
+    u32 executed = 0;
 
     while (executed < tstates)
     {
@@ -181,7 +181,7 @@ unsigned int Processor::RunFor(unsigned int tstates)
     return executed;
 }
 
-void Processor::InjectTStates(unsigned int tstates)
+void Processor::InjectTStates(u32 tstates)
 {
     m_iInjectedTStates += tstates;
 }

@@ -163,9 +163,9 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
         while (!vblank)
         {
 #ifdef PERFORMANCE
-            unsigned int clockCycles = m_pProcessor->RunFor(75);
+            u32 clockCycles = m_pProcessor->RunFor(75);
 #else
-            unsigned int clockCycles = m_pProcessor->RunFor(1);
+            u32 clockCycles = m_pProcessor->RunFor(1);
 #endif
             vblank = m_pVideo->Tick(clockCycles);
             m_pAudio->Tick(clockCycles);
