@@ -27,6 +27,7 @@
 #include "gui_debug_memory.h"
 #include "gui_debug_processor.h"
 #include "gui_debug_psg.h"
+#include "gui_debug_tms9918.h"
 #include "gui_debug_trace_logger.h"
 #include "emu.h"
 #include "config.h"
@@ -76,6 +77,16 @@ void gui_debug_windows(void)
             gui_debug_window_symbols();
         if (config_debug.show_psg)
             gui_debug_window_psg();
+        if (config_debug.show_video_nametable)
+            gui_debug_window_vram_nametable();
+        if (config_debug.show_video_tiles)
+            gui_debug_window_vram_tiles();
+        if (config_debug.show_video_sprites)
+            gui_debug_window_vram_sprites();
+        if (config_debug.show_video_palettes)
+            gui_debug_window_vram_palettes();
+        if (config_debug.show_video_regs)
+            gui_debug_window_vram_regs();
         if (config_debug.show_trace_logger)
             gui_debug_window_trace_logger();
 

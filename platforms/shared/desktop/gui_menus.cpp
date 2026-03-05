@@ -1248,7 +1248,16 @@ static void menu_debug(void)
 
         ImGui::MenuItem("Show Memory Editor", "", &config_debug.show_memory, config_debug.debug);
 
-        ImGui::MenuItem("Show VRAM Viewer", "", &config_debug.show_video, config_debug.debug);
+        if (ImGui::BeginMenu("Show VRAM Viewer", config_debug.debug))
+        {
+            ImGui::MenuItem("Name Table", "", &config_debug.show_video_nametable);
+            ImGui::MenuItem("Pattern Table", "", &config_debug.show_video_tiles);
+            ImGui::MenuItem("Sprites", "", &config_debug.show_video_sprites);
+            if (!emu_get_core()->GetVideo()->IsSG1000Mode())
+                ImGui::MenuItem("Palettes", "", &config_debug.show_video_palettes);
+            ImGui::MenuItem("VDP Registers", "", &config_debug.show_video_regs);
+            ImGui::EndMenu();
+        }
 
         ImGui::MenuItem("Show PSG", "", &config_debug.show_psg, config_debug.debug);
 

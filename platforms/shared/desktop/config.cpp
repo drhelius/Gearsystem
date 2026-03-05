@@ -199,6 +199,11 @@ void config_read(void)
     config_debug.show_breakpoints = read_bool("Debug", "Breakpoints", false);
     config_debug.show_symbols = read_bool("Debug", "Symbols", false);
     config_debug.show_video = read_bool("Debug", "Video", false);
+    config_debug.show_video_nametable = read_bool("Debug", "VideoNameTable", false);
+    config_debug.show_video_tiles = read_bool("Debug", "VideoTiles", false);
+    config_debug.show_video_sprites = read_bool("Debug", "VideoSprites", false);
+    config_debug.show_video_palettes = read_bool("Debug", "VideoPalettes", false);
+    config_debug.show_video_regs = read_bool("Debug", "VideoRegs", false);
     config_debug.show_psg = read_bool("Debug", "PSG", false);
     config_debug.show_trace_logger = read_bool("Debug", "TraceLogger", false);
     config_debug.trace_counter = read_bool("Debug", "TraceCounter", true);
@@ -409,6 +414,11 @@ void config_write(void)
     write_bool("Debug", "Breakpoints", config_debug.show_breakpoints);
     write_bool("Debug", "Symbols", config_debug.show_symbols);
     write_bool("Debug", "Video", config_debug.show_video);
+    write_bool("Debug", "VideoNameTable", config_debug.show_video_nametable);
+    write_bool("Debug", "VideoTiles", config_debug.show_video_tiles);
+    write_bool("Debug", "VideoSprites", config_debug.show_video_sprites);
+    write_bool("Debug", "VideoPalettes", config_debug.show_video_palettes);
+    write_bool("Debug", "VideoRegs", config_debug.show_video_regs);
     write_bool("Debug", "PSG", config_debug.show_psg);
     write_bool("Debug", "TraceLogger", config_debug.show_trace_logger);
     write_bool("Debug", "TraceCounter", config_debug.trace_counter);
