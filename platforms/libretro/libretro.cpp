@@ -26,6 +26,7 @@
 
 #include "libretro.h"
 #include "../../src/gearsystem.h"
+#include "libretro_core_options.h"
 
 #ifdef _WIN32
 static const char slash = '\\';
@@ -63,6 +64,7 @@ static int paddle_sensitivity = 0;
 static bool bootrom_sms = false;
 static bool bootrom_gg = false;
 static bool libretro_supports_bitmasks;
+static bool categories_supported = false;
 static float aspect_ratio = 0.0f;
 static int current_screen_width = 0;
 static int current_screen_height = 0;
@@ -76,7 +78,6 @@ static GearsystemCore::GlassesConfig glasses_config;
 static void load_bootroms(void);
 static void set_controller_info(void);
 static void update_input(void);
-static void set_variabless(void);
 static void check_variables(void);
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
@@ -122,7 +123,7 @@ void retro_set_environment(retro_environment_t cb)
 {
     environ_cb = cb;
     set_controller_info();
-    set_variabless();
+    libretro_set_core_options(environ_cb, &categories_supported);
 }
 
 void retro_init(void)
@@ -596,35 +597,6 @@ static void update_input(void)
             break;
         }
     }
-}
-
-static void set_variabless(void)
-{
-    struct retro_variable vars[] = {
-        { "gearsystem_system", "System (restart); Auto|Master System / Mark III|Game Gear|SG-1000 / Multivision" },
-        { "gearsystem_region", "Region (restart); Auto|Master System Japan|Master System Export|Game Gear Japan|Game Gear Export|Game Gear International" },
-        { "gearsystem_mapper", "Mapper (restart); Auto|ROM|SEGA|Codemasters|Korean|SG-1000|MSX|Janggun|Korean 2000 XOR 1F|Korean MSX 32KB 2000|Korean MSX SMS 8000|Korean SMS 32KB 2000|Korean MSX 8KB 0300|Korean 0000 XOR FF|Korean FFFF HiCom|Korean FFFE|Korean BFFC|Korean FFF3 FFFC|Korean MD FFF5|Korean MD FFF0|Jumbo Dahjee|EEPROM 93C46|Multi 4PAK All Action|Iratahack" },
-        { "gearsystem_timing", "Refresh Rate (restart); Auto|NTSC (60 Hz)|PAL (50 Hz)" },
-        { "gearsystem_aspect_ratio", "Aspect Ratio; 1:1 PAR|4:3 DAR|16:9 DAR|16:10 DAR" },
-        { "gearsystem_overscan", "Overscan; Disabled|Top+Bottom|Full (284 width)|Full (320 width)" },
-        { "gearsystem_hide_left_bar", "Hide Left Bar (SMS only); No|Auto|Always" },
-        { "gearsystem_bios_sms", "Master System BIOS (restart); Disabled|Enabled" },
-        { "gearsystem_bios_gg", "Game Gear BIOS (restart); Disabled|Enabled" },
-        { "gearsystem_ym2413", "YM2413 (restart); Auto|Disabled"},
-        { "gearsystem_glasses", "3D Glasses; Both Eyes / OFF|Left Eye|Right Eye" },
-        { "gearsystem_up_down_allowed", "Allow Up+Down / Left+Right; Disabled|Enabled" },
-        { "gearsystem_lightgun_input", "Light Gun Input; Light Gun|Touchscreen" },
-        { "gearsystem_lightgun_crosshair", "Light Gun Crosshair; Disabled|Enabled" },
-        { "gearsystem_lightgun_shape", "Light Gun Crosshair Shape; Cross|Square" },
-        { "gearsystem_lightgun_color", "Light Gun Crosshair Color; White|Black|Red|Green|Blue|Yellow|Magenta|Cyan" },
-        { "gearsystem_lightgun_crosshair_offset_x", "Light Gun Crosshair Offset X; 0|-10|-9|-8|-7|-6|-5|-4|-3|-2|-1|0|1|2|3|4|5|6|7|8|9|10" },
-        { "gearsystem_lightgun_crosshair_offset_y", "Light Gun Crosshair Offset Y; 0|-10|-9|-8|-7|-6|-5|-4|-3|-2|-1|0|1|2|3|4|5|6|7|8|9|10" },
-        { "gearsystem_paddle_sensitivity", "Paddle Sensitivity; 1|2|3|4|5|6|7|8|9|10|11|12|13|14|15" },
-        
-        { NULL }
-    };
-
-    environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void *)vars);
 }
 
 static void check_variables(void)
