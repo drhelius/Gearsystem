@@ -1551,7 +1551,7 @@ static void draw_savestate_slot_info(int slot)
         {
             float width = (float)emu_savestates_screenshots[slot].width;
             float height = (float)emu_savestates_screenshots[slot].height;
-            ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_savestates, ImVec2((height / 3.0f) * 4.0f, height), ImVec2(0, 0), ImVec2(width / 2048.0f, height / 256.0f));
+            ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_savestates, ImVec2((height / 3.0f) * 4.0f, height), ImVec2(0, 0), ImVec2(width / (float)SYSTEM_TEXTURE_WIDTH, height / (float)SYSTEM_TEXTURE_HEIGHT));
         }
     }
     else

@@ -232,7 +232,7 @@ static void init_ogl_savestates(void)
 {
     glGenTextures(1, &ogl_renderer_emu_savestates);
     glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_savestates);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 2048, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, SYSTEM_TEXTURE_WIDTH, SYSTEM_TEXTURE_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 }
