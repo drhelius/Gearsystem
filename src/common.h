@@ -182,10 +182,13 @@ inline bool parse_hex_with_prefix(const std::string& hex_str, T* result)
 
 inline char* strncpy_fit(char* dest, const char* src, size_t dest_size)
 {
-    if (dest_size != 0)
-        dest_size -= 1;
+    if (dest_size == 0)
+        return dest;
 
-    return strncpy(dest, src, dest_size);
+    strncpy(dest, src, dest_size - 1);
+    dest[dest_size - 1] = '\0';
+
+    return dest;
 }
 
 inline char* strncat_fit(char* dest, const char* src, size_t dest_size)
