@@ -90,6 +90,11 @@ void Video::Init()
         m_SG1000_palette_555_rgb_normal,
         m_SG1000_palette_565_bgr_normal,
         m_SG1000_palette_555_bgr_normal);
+    InitPalettes(kSG1000_palette_888_sg1000ii,
+        m_SG1000_palette_565_rgb_sg1000ii,
+        m_SG1000_palette_555_rgb_sg1000ii,
+        m_SG1000_palette_565_bgr_sg1000ii,
+        m_SG1000_palette_555_bgr_sg1000ii);
     InitPalettes(kSG1000_palette_888_sms,
         m_SG1000_palette_565_rgb_sms,
         m_SG1000_palette_555_rgb_sms,
@@ -455,7 +460,37 @@ void Video::WriteControl(u8 data)
             case 0x80:
             {
                 u8 reg = data & 0x0F;
-                m_VdpRegister[reg] = (m_VdpAddress & 0x00FF);
+                u8 value = (m_VdpAddress & 0x00FF);
+
+                if (reg == 1 && m_pCartridge->IsSG1000() && !m_pCartridge->IsSG1000II())
+                {
+                    u8 old_bit7 = m_VdpRegister[1] & 0x80;
+                    u8 new_bit7 = value & 0x80;
+
+                    if (old_bit7 != new_bit7)
+                    {
+                        u8 temp[0x4000];
+                        memcpy(temp, m_pVdpVRAM, 0x4000);
+
+                        for (int i = 0; i < 0x4000; i += 2)
+                        {
+                            int new_addr;
+                            if (new_bit7)
+                            {
+                                // 4K -> 16K
+                                new_addr = (i & 0x3F) | ((i & 0x3F80) >> 1) | ((i & 0x40) << 7);
+                            }
+                            else
+                            {
+                                // 16K -> 4K
+                                new_addr = (i & 0x3F) | ((i & 0x1FC0) << 1) | ((i & 0x2000) >> 7);
+                            }
+                            *(u16 *)(m_pVdpVRAM + new_addr) = *(u16 *)(temp + i);
+                        }
+                    }
+                }
+
+                m_VdpRegister[reg] = value;
 #ifndef GS_DISABLE_DISASSEMBLER
                 m_pProcessor->CheckMemoryBreakpoints(Processor::GS_BREAKPOINT_TYPE_VDP_REGISTER, reg, false);
 #endif
@@ -1027,7 +1062,7 @@ void Video::Render32bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
     int mask = m_bGameGear ? 0x0F : 0x03;
     bool bgr = (pixelFormat == GS_PIXEL_BGRA8888);
     const u8* lut = m_bGameGear ? k4bitTo8bit : k2bitTo8bit;
-    const u8* sg1000_palette = m_pCartridge->IsSG1000() ? kSG1000_palette_888_normal : kSG1000_palette_888_sms;
+    const u8* sg1000_palette = m_pCartridge->IsSG1000II() ? kSG1000_palette_888_sg1000ii : (m_pCartridge->IsSG1000() ? kSG1000_palette_888_normal : kSG1000_palette_888_sms);
 
     if (m_bGameGear)
         overscan = false;
@@ -1120,7 +1155,14 @@ void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
     int shift = green_6bit ? 11 : 10;
     const u16* pal;
 
-    if (m_pCartridge->IsSG1000())
+    if (m_pCartridge->IsSG1000II())
+    {
+        if (bgr)
+            pal = green_6bit ? m_SG1000_palette_565_bgr_sg1000ii : m_SG1000_palette_555_bgr_sg1000ii;
+        else
+            pal = green_6bit ? m_SG1000_palette_565_rgb_sg1000ii : m_SG1000_palette_555_rgb_sg1000ii;
+    }
+    else if (m_pCartridge->IsSG1000())
     {
         if (bgr)
             pal = green_6bit ? m_SG1000_palette_565_bgr_normal : m_SG1000_palette_555_bgr_normal;

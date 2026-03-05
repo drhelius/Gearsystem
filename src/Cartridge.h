@@ -77,6 +77,7 @@ public:
         CartridgeSMS,
         CartridgeGG,
         CartridgeSG1000,
+        CartridgeSG1000II,
         CartridgeUnknownSystem
     };
 
@@ -97,6 +98,7 @@ public:
     bool IsGameGear() const;
     bool IsGameGearInSMSMode() const;
     bool IsSG1000() const;
+    bool IsSG1000II() const;
     bool IsPAL() const;
     bool IsValidROM() const;
     bool IsReady() const;
@@ -140,6 +142,7 @@ private:
     bool m_bGameGear;
     bool m_bGameGearInSMSMode;
     bool m_bSG1000;
+    bool m_bSG1000II;
     bool m_bPAL;
     bool m_bRAMWithoutBattery;
     u32 m_iCRC;

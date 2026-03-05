@@ -482,7 +482,7 @@ static void main_menu(void)
             if (ImGui::BeginMenu("System"))
             {
                 ImGui::PushItemWidth(200.0f);
-                ImGui::Combo("##emu_system", &config_emulator.system, "Auto\0Master System / Mark III\0Game Gear\0SG-1000 / Multivision\0\0");
+                ImGui::Combo("##emu_system", &config_emulator.system, "Auto\0Master System / Mark III\0Game Gear\0SG-1000 / Multivision\0SG-1000 II\0\0");
                 ImGui::PopItemWidth();
                 ImGui::EndMenu();
             }
@@ -2553,6 +2553,8 @@ static Cartridge::CartridgeSystem get_system(int index)
             return Cartridge::CartridgeGG;
         case 3:
             return Cartridge::CartridgeSG1000;
+        case 4:
+            return Cartridge::CartridgeSG1000II;
         default:
             return Cartridge::CartridgeUnknownSystem;
     }

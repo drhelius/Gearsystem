@@ -714,6 +714,8 @@ static void check_variables(void)
             config.system = Cartridge::CartridgeGG;
         else if (strcmp(var.value, "SG-1000 / Multivision") == 0)
             config.system = Cartridge::CartridgeSG1000;
+        else if (strcmp(var.value, "SG-1000 II") == 0)
+            config.system = Cartridge::CartridgeSG1000II;
         else 
             config.system = Cartridge::CartridgeUnknownSystem;
     }

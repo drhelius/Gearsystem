@@ -74,7 +74,7 @@ void Audio::Reset(bool bPAL)
     m_bYM2413Enabled = false;
     m_pYM2413->Enable(false);
     m_bPSGEnabled = true;
-    m_pApu->reset(m_pCartridge->IsSG1000());
+    m_pApu->reset(m_pCartridge->IsSG1000() && !m_pCartridge->IsSG1000II());
     m_pApu->volume(1.0);
     m_pBuffer->clear();
     m_pBuffer->clock_rate(m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC);
@@ -152,7 +152,7 @@ void Audio::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (m_pYM2413Buffer), sizeof(s16) * GS_AUDIO_BUFFER_SIZE);
     m_pYM2413->LoadState(stream);
 
-    m_pApu->reset(m_pCartridge->IsSG1000());
+    m_pApu->reset(m_pCartridge->IsSG1000() && !m_pCartridge->IsSG1000II());
     m_pApu->volume(1.0);
     m_pBuffer->clear();
 }

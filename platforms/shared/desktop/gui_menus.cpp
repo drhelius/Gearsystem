@@ -459,7 +459,7 @@ static void menu_emulator(void)
         if (ImGui::BeginMenu("System"))
         {
             ImGui::PushItemWidth(200.0f);
-            ImGui::Combo("##emu_system", &config_emulator.system, "Auto\0Master System / Mark III\0Game Gear\0SG-1000 / Multivision\0\0");
+            ImGui::Combo("##emu_system", &config_emulator.system, "Auto\0Master System / Mark III\0Game Gear\0SG-1000 / Multivision\0SG-1000 II\0\0");
             ImGui::PopItemWidth();
             ImGui::EndMenu();
         }

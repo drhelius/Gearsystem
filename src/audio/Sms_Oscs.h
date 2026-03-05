@@ -24,11 +24,12 @@ struct Sms_Square : Sms_Osc
 {
 	int period;
 	int phase;
+	bool ti;
 	
 	typedef Blip_Synth<blip_good_quality,1> Synth;
 	const Synth* synth;
 	
-	void reset();
+	void reset(bool ti_chip);
 	void run( blip_time_t, blip_time_t );
 };
 

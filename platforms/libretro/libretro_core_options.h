@@ -75,6 +75,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
             { "Master System / Mark III", NULL },
             { "Game Gear",                NULL },
             { "SG-1000 / Multivision",   NULL },
+            { "SG-1000 II",              NULL },
             { NULL, NULL },
         },
         "Auto"

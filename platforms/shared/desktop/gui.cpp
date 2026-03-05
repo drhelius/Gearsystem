@@ -700,6 +700,8 @@ static Cartridge::CartridgeSystem get_system(int index)
             return Cartridge::CartridgeGG;
         case 3:
             return Cartridge::CartridgeSG1000;
+        case 4:
+            return Cartridge::CartridgeSG1000II;
         default:
             return Cartridge::CartridgeUnknownSystem;
     }

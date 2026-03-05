@@ -38,8 +38,9 @@ void Sms_Osc::reset()
 
 // Sms_Square
 
-inline void Sms_Square::reset()
+inline void Sms_Square::reset(bool ti_chip)
 {
+	ti = ti_chip;
 	period = 0;
 	phase = 0;
 	Sms_Osc::reset();
@@ -47,8 +48,9 @@ inline void Sms_Square::reset()
 
 void Sms_Square::run( blip_time_t time, blip_time_t end_time )
 {
+    int effective_period = period ? period : (ti ? 0x400 : 0);
     int amp = volume;
-    if ( period > 128 )
+    if ( effective_period > 128 )
         amp = amp << 1 & -phase;
 
     {
@@ -62,16 +64,16 @@ void Sms_Square::run( blip_time_t time, blip_time_t end_time )
 
     time += delay;
     delay = 0;
-    if ( period )
+    if ( effective_period )
     {
         if ( time < end_time )
         {
-            if ( !volume || period <= 128 ) // ignore 16kHz and higher
+            if ( !volume || effective_period <= 128 ) // ignore 16kHz and higher
             {
                 // keep calculating phase
-                int count = (end_time - time + period - 1) / period;
+                int count = (end_time - time + effective_period - 1) / effective_period;
                 phase = (phase + count) & 1;
-                time += count * period;
+                time += count * effective_period;
             }
             else
             {
@@ -81,7 +83,7 @@ void Sms_Square::run( blip_time_t time, blip_time_t end_time )
                 {
                     delta = -delta;
                     synth->offset_inline( time, delta, output_ );
-                    time += period;
+                    time += effective_period;
                 }
                 while ( time < end_time );
 
@@ -225,9 +227,9 @@ void Sms_Apu::reset(bool ti_chip )
 		feedback >>= 1;
 	}
 	
-	squares [0].reset();
-	squares [1].reset();
-	squares [2].reset();
+	squares [0].reset(ti_chip);
+	squares [1].reset(ti_chip);
+	squares [2].reset(ti_chip);
 	noise.reset(ti_chip);
 }
 

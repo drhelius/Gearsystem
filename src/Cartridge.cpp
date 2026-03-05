@@ -42,6 +42,7 @@ Cartridge::Cartridge()
     m_bGameGear = false;
     m_bGameGearInSMSMode = false;
     m_bSG1000 = false;
+    m_bSG1000II = false;
     m_bPAL = false;
     m_bRAMWithoutBattery = false;
     m_iCRC = 0;
@@ -75,6 +76,7 @@ void Cartridge::Reset()
     m_bGameGear = false;
     m_bGameGearInSMSMode = false;
     m_bSG1000 = false;
+    m_bSG1000II = false;
     m_bPAL = false;
     m_bRAMWithoutBattery = false;
     m_GameGenieList.clear();
@@ -100,6 +102,11 @@ bool Cartridge::IsGameGearInSMSMode() const
 bool Cartridge::IsSG1000() const
 {
     return m_bSG1000;
+}
+
+bool Cartridge::IsSG1000II() const
+{
+    return m_bSG1000II;
 }
 
 bool Cartridge::IsPAL() const
@@ -157,19 +164,29 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             Log("Forcing System: Master System");
             m_bGameGear = false;
             m_bSG1000 = false;
+            m_bSG1000II = false;
             break;
         case CartridgeGG:
             Log("Forcing System: Game Gear");
             m_bGameGear = true;
             m_bSG1000 = false;
+            m_bSG1000II = false;
             break;
         case CartridgeSG1000:
             Log("Forcing System: SG-1000");
             m_bGameGear = false;
             m_bSG1000 = true;
+            m_bSG1000II = false;
+            break;
+        case CartridgeSG1000II:
+            Log("Forcing System: SG-1000 II");
+            m_bGameGear = false;
+            m_bSG1000 = true;
+            m_bSG1000II = true;
             break;
         default:
             Log("Not forcing System: Auto");
+            m_bSG1000II = false;
             break;
     }
 
