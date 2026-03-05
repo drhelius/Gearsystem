@@ -120,110 +120,111 @@ void gui_debug_window_psg(void)
 
                 ImGui::Columns(2, "channels", false);
 
-                ImGui::BeginTable("##table", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoPadOuterX);
-
-                ImGui::TableNextColumn();
-
-                ImGui::PushStyleColor(ImGuiCol_Text, psg_state->CHANNELS[channel].mute ? mid_gray : white);
-                ImGui::PushFont(gui_material_icons_font);
-
-                char label[32];
-                snprintf(label, 32, "%s##mute%d", psg_state->CHANNELS[channel].mute ? ICON_MD_MUSIC_OFF : ICON_MD_MUSIC_NOTE, channel);
-                if (ImGui::Button(label))
+                if (ImGui::BeginTable("##table", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoPadOuterX))
                 {
-                    for (int i = 0; i < 6; i++)
-                        exclusive_channel[i] = false;
-                    psg_state->CHANNELS[channel].mute = !psg_state->CHANNELS[channel].mute;
-                }
-                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                    ImGui::SetTooltip("Mute Channel");
+                    ImGui::TableNextColumn();
 
-                snprintf(label, 32, "%s##exc%d", ICON_MD_STAR, channel);
+                    ImGui::PushStyleColor(ImGuiCol_Text, psg_state->CHANNELS[channel].mute ? mid_gray : white);
+                    ImGui::PushFont(gui_material_icons_font);
 
-                ImGui::PushStyleColor(ImGuiCol_Text, exclusive_channel[channel] ? yellow : white);
-                if (ImGui::Button(label))
-                {
-                    exclusive_channel[channel] = !exclusive_channel[channel];
-                    psg_state->CHANNELS[channel].mute = false;
-                    for (int i = 0; i < 6; i++)
+                    char label[32];
+                    snprintf(label, 32, "%s##mute%d", psg_state->CHANNELS[channel].mute ? ICON_MD_MUSIC_OFF : ICON_MD_MUSIC_NOTE, channel);
+                    if (ImGui::Button(label))
                     {
-                        if (i != channel)
-                        {
+                        for (int i = 0; i < 6; i++)
                             exclusive_channel[i] = false;
-                            psg_state->CHANNELS[i].mute = exclusive_channel[channel] ? true : false;
+                        psg_state->CHANNELS[channel].mute = !psg_state->CHANNELS[channel].mute;
+                    }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip("Mute Channel");
+
+                    snprintf(label, 32, "%s##exc%d", ICON_MD_STAR, channel);
+
+                    ImGui::PushStyleColor(ImGuiCol_Text, exclusive_channel[channel] ? yellow : white);
+                    if (ImGui::Button(label))
+                    {
+                        exclusive_channel[channel] = !exclusive_channel[channel];
+                        psg_state->CHANNELS[channel].mute = false;
+                        for (int i = 0; i < 6; i++)
+                        {
+                            if (i != channel)
+                            {
+                                exclusive_channel[i] = false;
+                                psg_state->CHANNELS[i].mute = exclusive_channel[channel] ? true : false;
+                            }
                         }
                     }
-                }
-                ImGui::PopStyleColor();
-                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                {
-                    ImGui::SetTooltip("Solo Channel");
-                }
-                ImGui::PopFont();
-                ImGui::PopStyleColor();
-
-                ImGui::TableNextColumn();
-
-                ImPlot::PushStyleVar(ImPlotStyleVar_PlotPadding, ImVec2(1, 1));
-
-                int trigger_left = 0;
-                int trigger_right = 0;
-                int data_size = (*psg_state->FRAME_SAMPLES) / 2;
-
-                for (int i = 0; i < data_size; i++)
-                {
-                    wave_buffer_left[i] = (float)(psg_channel->output[i * 2]) / 32768.0f * 8.0f;
-                    wave_buffer_right[i] = (float)(psg_channel->output[(i * 2) + 1]) / 32768.0f * 8.0f;
-                }
-
-                for (int i = 100; i < data_size; ++i)
-                {
-                    if (wave_buffer_left[i - 1] < 0.0f && wave_buffer_left[i] >= 0.0f)
+                    ImGui::PopStyleColor();
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                     {
-                        trigger_left = i;
-                        break;
+                        ImGui::SetTooltip("Solo Channel");
                     }
-                }
+                    ImGui::PopFont();
+                    ImGui::PopStyleColor();
 
-                for (int i = 100; i < data_size; ++i)
-                {
-                    if (wave_buffer_right[i - 1] < 0.0f && wave_buffer_right[i] >= 0.0f)
+                    ImGui::TableNextColumn();
+
+                    ImPlot::PushStyleVar(ImPlotStyleVar_PlotPadding, ImVec2(1, 1));
+
+                    int trigger_left = 0;
+                    int trigger_right = 0;
+                    int data_size = (*psg_state->FRAME_SAMPLES) / 2;
+
+                    for (int i = 0; i < data_size; i++)
                     {
-                        trigger_right = i;
-                        break;
+                        wave_buffer_left[i] = (float)(psg_channel->output[i * 2]) / 32768.0f * 8.0f;
+                        wave_buffer_right[i] = (float)(psg_channel->output[(i * 2) + 1]) / 32768.0f * 8.0f;
                     }
+
+                    for (int i = 100; i < data_size; ++i)
+                    {
+                        if (wave_buffer_left[i - 1] < 0.0f && wave_buffer_left[i] >= 0.0f)
+                        {
+                            trigger_left = i;
+                            break;
+                        }
+                    }
+
+                    for (int i = 100; i < data_size; ++i)
+                    {
+                        if (wave_buffer_right[i - 1] < 0.0f && wave_buffer_right[i] >= 0.0f)
+                        {
+                            trigger_right = i;
+                            break;
+                        }
+                    }
+
+                    int half_window_size = 100;
+                    int x_min_left = MAX(0, trigger_left - half_window_size);
+                    int x_max_left = MIN(data_size, trigger_left + half_window_size);
+
+                    ImPlotAxisFlags flags = ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickLabels | ImPlotAxisFlags_NoLabel | ImPlotAxisFlags_NoHighlight | ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoTickMarks;
+
+                    if (ImPlot::BeginPlot("Left wave", ImVec2(80, 50), ImPlotFlags_CanvasOnly))
+                    {
+                        ImPlot::SetupAxes("x", "y", flags, flags);
+                        ImPlot::SetupAxesLimits(x_min_left, x_max_left, -1.0f, 1.0f, ImPlotCond_Always);
+                        ImPlot::SetNextLineStyle(white, 1.0f);
+                        ImPlot::PlotLine("Wave", wave_buffer_left, data_size);
+                        ImPlot::EndPlot();
+                    }
+
+                    ImGui::SameLine();
+
+                    int x_min_right = MAX(0, trigger_right - half_window_size);
+                    int x_max_right = MIN(data_size, trigger_right + half_window_size);
+
+                    if (ImPlot::BeginPlot("Right wave", ImVec2(80, 50), ImPlotFlags_CanvasOnly))
+                    {
+                        ImPlot::SetupAxes("x", "y", flags, flags);
+                        ImPlot::SetupAxesLimits(x_min_right, x_max_right, -1.0f, 1.0f, ImPlotCond_Always);
+                        ImPlot::SetNextLineStyle(white, 1.0f);
+                        ImPlot::PlotLine("Wave", wave_buffer_right, data_size);
+                        ImPlot::EndPlot();
+                    }
+
+                    ImGui::EndTable();
                 }
-
-                int half_window_size = 100;
-                int x_min_left = MAX(0, trigger_left - half_window_size);
-                int x_max_left = MIN(data_size, trigger_left + half_window_size);
-
-                ImPlotAxisFlags flags = ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickLabels | ImPlotAxisFlags_NoLabel | ImPlotAxisFlags_NoHighlight | ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoTickMarks;
-
-                if (ImPlot::BeginPlot("Left wave", ImVec2(80, 50), ImPlotFlags_CanvasOnly))
-                {
-                    ImPlot::SetupAxes("x", "y", flags, flags);
-                    ImPlot::SetupAxesLimits(x_min_left, x_max_left, -1.0f, 1.0f, ImPlotCond_Always);
-                    ImPlot::SetNextLineStyle(white, 1.0f);
-                    ImPlot::PlotLine("Wave", wave_buffer_left, data_size);
-                    ImPlot::EndPlot();
-                }
-
-                ImGui::SameLine();
-
-                int x_min_right = MAX(0, trigger_right - half_window_size);
-                int x_max_right = MIN(data_size, trigger_right + half_window_size);
-
-                if (ImPlot::BeginPlot("Right wave", ImVec2(80, 50), ImPlotFlags_CanvasOnly))
-                {
-                    ImPlot::SetupAxes("x", "y", flags, flags);
-                    ImPlot::SetupAxesLimits(x_min_right, x_max_right, -1.0f, 1.0f, ImPlotCond_Always);
-                    ImPlot::SetNextLineStyle(white, 1.0f);
-                    ImPlot::PlotLine("Wave", wave_buffer_right, data_size);
-                    ImPlot::EndPlot();
-                }
-
-                ImGui::EndTable();
 
                 ImGui::NewLine();
 
