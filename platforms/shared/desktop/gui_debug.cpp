@@ -27,6 +27,7 @@
 #include "gui_debug_memory.h"
 #include "gui_debug_processor.h"
 #include "gui_debug_psg.h"
+#include "gui_debug_ym2413.h"
 #include "gui_debug_tms9918.h"
 #include "gui_debug_trace_logger.h"
 #include "emu.h"
@@ -37,6 +38,7 @@ void gui_debug_init(void)
 {
     gui_debug_disassembler_init();
     gui_debug_psg_init();
+    gui_debug_ym2413_init();
     gui_debug_memory_reset();
 }
 
@@ -61,6 +63,8 @@ void gui_debug_callback(void)
 
 void gui_debug_windows(void)
 {
+    emu_get_core()->GetAudio()->EnablePSGDebug(config_debug.debug && config_debug.show_psg);
+
     if (config_debug.debug)
     {
         if (config_debug.show_processor)
@@ -77,6 +81,8 @@ void gui_debug_windows(void)
             gui_debug_window_symbols();
         if (config_debug.show_psg)
             gui_debug_window_psg();
+        if (config_debug.show_ym2413)
+            gui_debug_window_ym2413();
         if (config_debug.show_video_nametable)
             gui_debug_window_vram_nametable();
         if (config_debug.show_video_tiles)

@@ -25,6 +25,10 @@ Sms_Osc::Sms_Osc()
 	outputs [1] = 0;
 	outputs [2] = 0;
 	outputs [3] = 0;
+	volume_reg = 0;
+	mute = false;
+	debug_buf = 0;
+	debug_last_amp = 0;
 }
 
 void Sms_Osc::reset()
@@ -32,8 +36,10 @@ void Sms_Osc::reset()
 	delay = 0;
 	last_amp = 0;
 	volume = 0;
+	volume_reg = 15;
 	output_select = 3;
 	output = outputs [3];
+	debug_last_amp = 0;
 }
 
 // Sms_Square
@@ -60,6 +66,15 @@ void Sms_Square::run( blip_time_t time, blip_time_t end_time )
             last_amp = amp;
             synth->offset( time, delta, output );
         }
+        if ( debug_buf )
+        {
+            int dbg_delta = amp - debug_last_amp;
+            if ( dbg_delta )
+            {
+                debug_last_amp = amp;
+                synth->offset( time, dbg_delta, debug_buf );
+            }
+        }
     }
 
     time += delay;
@@ -78,16 +93,20 @@ void Sms_Square::run( blip_time_t time, blip_time_t end_time )
             else
             {
                 Blip_Buffer* const output_ = this->output;
+                Blip_Buffer* const dbg_buf = this->debug_buf;
                 int delta = amp * 2 - volume * 2;
                 do
                 {
                     delta = -delta;
                     synth->offset_inline( time, delta, output_ );
+                    if ( dbg_buf )
+                        synth->offset_inline( time, delta, dbg_buf );
                     time += effective_period;
                 }
                 while ( time < end_time );
 
                 last_amp = (delta >> 1) + volume;
+                debug_last_amp = last_amp;
                 phase = (delta >= 0);
             }
         }
@@ -124,6 +143,15 @@ void Sms_Noise::run( blip_time_t time, blip_time_t end_time )
 			last_amp = amp;
 			synth.offset( time, delta, output );
 		}
+		if ( debug_buf )
+		{
+			int dbg_delta = amp - debug_last_amp;
+			if ( dbg_delta )
+			{
+				debug_last_amp = amp;
+				synth.offset( time, dbg_delta, debug_buf );
+			}
+		}
 	}
 	
 	time += delay;
@@ -133,6 +161,7 @@ void Sms_Noise::run( blip_time_t time, blip_time_t end_time )
 	if ( time < end_time )
 	{
 		Blip_Buffer* const output_ = this->output;
+		Blip_Buffer* const dbg_buf = this->debug_buf;
 		unsigned shifter_ = this->shifter;
 		int delta = (shifter_ & 1) ? (-volume * 2) : (volume * 2);
 		int period_ = *this->period * 2;
@@ -148,14 +177,18 @@ void Sms_Noise::run( blip_time_t time, blip_time_t end_time )
 				amp = (shifter_ & 1) ? 0 : volume * 2;
 				delta = -delta;
 				synth.offset_inline( time, delta, output_ );
+				if ( dbg_buf )
+					synth.offset_inline( time, delta, dbg_buf );
 				last_amp = amp;
+				debug_last_amp = amp;
 			}
 			time += period_;
 		}
 		while ( time < end_time );
 		
 		this->shifter = shifter_;
-		this->last_amp = (shifter_ & 1) ? 0 : volume * 2; //delta >> 1;
+		this->last_amp = (shifter_ & 1) ? 0 : volume * 2;
+		this->debug_last_amp = this->last_amp;
 	}
 	delay = time - end_time;
 }
@@ -170,6 +203,8 @@ Sms_Apu::Sms_Apu()
 		oscs [i] = &squares [i];
 	}
 	oscs [3] = &noise;
+	debug_enabled = false;
+	ti_chip_mode = false;
 	
 	volume( 1.0 );
 	reset(false);
@@ -214,6 +249,7 @@ void Sms_Apu::reset(bool ti_chip )
 	last_time = 0;
 	latch = 0;
 	ggstereo_save = 0xFF;
+	ti_chip_mode = ti_chip;
 	
 	unsigned feedback = ti_chip ? 0x0003 : 0x0009;
 	int noise_width = ti_chip ? 15 : 16;
@@ -243,7 +279,7 @@ void Sms_Apu::run_until( blip_time_t end_time )
 		for ( int i = 0; i < osc_count; ++i )
 		{
 			Sms_Osc& osc = *oscs [i];
-			if ( osc.output )
+			if ( osc.output && !osc.mute )
 			{
 				if ( i < 3 )
 					squares [i].run( last_time, end_time );
@@ -263,6 +299,12 @@ void Sms_Apu::end_frame( blip_time_t end_time )
 	
 	assert( last_time >= end_time );
 	last_time -= end_time;
+
+	if ( debug_enabled )
+	{
+		for ( int i = 0; i < osc_count; i++ )
+			debug_bufs [i].end_frame( end_time );
+	}
 }
 
 void Sms_Apu::write_ggstereo( blip_time_t time, int data )
@@ -309,6 +351,7 @@ void Sms_Apu::write_data( blip_time_t time, int data )
 	if ( latch & 0x10 )
 	{
 		oscs [index]->volume = volumes [data & 15];
+		oscs [index]->volume_reg = data & 15;
 	}
 	else if ( index < 3 )
 	{
@@ -329,4 +372,89 @@ void Sms_Apu::write_data( blip_time_t time, int data )
 		noise.feedback = (data & 0x04) ? noise_feedback : looped_feedback;
 		noise.shifter = 0x8000;
 	}
+}
+
+Sms_Apu_State Sms_Apu::GetState()
+{
+	Sms_Apu_State state;
+
+	for ( int i = 0; i < 3; i++ )
+	{
+		state.channels [i].volume = squares [i].volume;
+		state.channels [i].volume_reg = squares [i].volume_reg;
+		state.channels [i].period = squares [i].period;
+		state.channels [i].phase = squares [i].phase;
+		state.channels [i].output_select = squares [i].output_select;
+		state.channels [i].mute = &squares [i].mute;
+	}
+
+	state.channels [3].volume = noise.volume;
+	state.channels [3].volume_reg = noise.volume_reg;
+	state.channels [3].period = noise.period ? *noise.period : 0;
+	state.channels [3].phase = 0;
+	state.channels [3].output_select = noise.output_select;
+	state.channels [3].mute = &noise.mute;
+
+	state.latch = latch;
+	state.ggstereo = ggstereo_save;
+	state.noise_shifter = noise.shifter;
+	state.noise_feedback = noise.feedback;
+	state.noise_white = (noise.feedback == noise_feedback);
+	state.ti_chip = ti_chip_mode;
+
+	if ( noise.period == &squares [2].period )
+		state.noise_rate = 3;
+	else if ( noise.period == &noise_periods [0] )
+		state.noise_rate = 0;
+	else if ( noise.period == &noise_periods [1] )
+		state.noise_rate = 1;
+	else
+		state.noise_rate = 2;
+
+	return state;
+}
+
+void Sms_Apu::init_debug_buffers( long sample_rate, long clock_rate )
+{
+	debug_enabled = true;
+	double vol = 0.85 / (osc_count * 64 * 2);
+	debug_synth.volume( vol );
+
+	for ( int i = 0; i < osc_count; i++ )
+	{
+		debug_bufs [i].set_sample_rate( sample_rate );
+		debug_bufs [i].clock_rate( clock_rate );
+		debug_bufs [i].clear();
+		oscs [i]->debug_buf = &debug_bufs [i];
+	}
+}
+
+void Sms_Apu::disable_debug_buffers()
+{
+	debug_enabled = false;
+	for ( int i = 0; i < osc_count; i++ )
+		oscs [i]->debug_buf = 0;
+}
+
+bool Sms_Apu::is_debug_enabled() const
+{
+	return debug_enabled;
+}
+
+void Sms_Apu::read_debug_samples( blip_sample_t* out, int channel, long max_samples, long* count )
+{
+	if ( !debug_enabled || channel < 0 || channel >= osc_count )
+	{
+		*count = 0;
+		return;
+	}
+
+	long avail = debug_bufs [channel].samples_avail();
+	if ( avail > max_samples )
+		avail = max_samples;
+
+	if ( avail > 0 )
+		debug_bufs [channel].read_samples( out, avail );
+
+	*count = avail;
 }

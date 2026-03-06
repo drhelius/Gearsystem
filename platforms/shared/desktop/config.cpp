@@ -205,6 +205,7 @@ void config_read(void)
     config_debug.show_video_palettes = read_bool("Debug", "VideoPalettes", false);
     config_debug.show_video_regs = read_bool("Debug", "VideoRegs", false);
     config_debug.show_psg = read_bool("Debug", "PSG", false);
+    config_debug.show_ym2413 = read_bool("Debug", "YM2413", false);
     config_debug.show_trace_logger = read_bool("Debug", "TraceLogger", false);
     config_debug.trace_counter = read_bool("Debug", "TraceCounter", true);
     config_debug.trace_bank = read_bool("Debug", "TraceBank", true);
@@ -420,6 +421,7 @@ void config_write(void)
     write_bool("Debug", "VideoPalettes", config_debug.show_video_palettes);
     write_bool("Debug", "VideoRegs", config_debug.show_video_regs);
     write_bool("Debug", "PSG", config_debug.show_psg);
+    write_bool("Debug", "YM2413", config_debug.show_ym2413);
     write_bool("Debug", "TraceLogger", config_debug.show_trace_logger);
     write_bool("Debug", "TraceCounter", config_debug.trace_counter);
     write_bool("Debug", "TraceBank", config_debug.trace_bank);

@@ -15,6 +15,10 @@ struct Sms_Osc
 	int delay;
 	int last_amp;
 	int volume;
+	int volume_reg;
+	bool mute;
+	Blip_Buffer* debug_buf;
+	int debug_last_amp;
 	
 	Sms_Osc();
 	void reset();

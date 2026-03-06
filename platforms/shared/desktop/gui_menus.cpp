@@ -1261,6 +1261,8 @@ static void menu_debug(void)
 
         ImGui::MenuItem("Show PSG", "", &config_debug.show_psg, config_debug.debug);
 
+        ImGui::MenuItem("Show YM2413 FM", "", &config_debug.show_ym2413, config_debug.debug);
+
         ImGui::MenuItem("Show Call Stack", "", &config_debug.show_call_stack, config_debug.debug);
 
         ImGui::MenuItem("Show Breakpoints", "", &config_debug.show_breakpoints, config_debug.debug);

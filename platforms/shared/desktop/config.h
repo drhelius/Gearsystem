@@ -191,6 +191,7 @@ struct config_Debug
     bool show_video_palettes = false;
     bool show_video_regs = false;
     bool show_psg = false;
+    bool show_ym2413 = false;
     bool show_trace_logger = false;
     bool trace_counter = true;
     bool trace_bank = true;

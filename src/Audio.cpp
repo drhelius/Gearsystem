@@ -38,6 +38,11 @@ Audio::Audio(Cartridge * pCartridge)
     m_bYM2413CartridgeNotSupported = false;
     m_bMute = false;
     m_bVgmRecordingEnabled = false;
+    for (int i = 0; i < 4; i++)
+    {
+        InitPointer(m_pDebugChannelBuffer[i]);
+        m_iDebugChannelSamples[i] = 0;
+    }
 }
 
 Audio::~Audio()
@@ -47,6 +52,8 @@ Audio::~Audio()
     SafeDelete(m_pBuffer);
     SafeDeleteArray(m_pSampleBuffer);
     SafeDeleteArray(m_pYM2413Buffer);
+    for (int i = 0; i < 4; i++)
+        SafeDeleteArray(m_pDebugChannelBuffer[i]);
 }
 
 void Audio::Init()
@@ -66,6 +73,9 @@ void Audio::Init()
 
     m_pYM2413 = new YM2413();
     m_pYM2413->Init(m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC);
+
+    for (int i = 0; i < 4; i++)
+        m_pDebugChannelBuffer[i] = new blip_sample_t[GS_AUDIO_BUFFER_SIZE];
 }
 
 void Audio::Reset(bool bPAL)
@@ -81,6 +91,11 @@ void Audio::Reset(bool bPAL)
     m_pYM2413->Reset(m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC);
     m_ElapsedCycles = 0;
     m_bYM2413CartridgeNotSupported = (m_pCartridge->GetFeatures() & GS_DB_FEATURE_DISABLE_YM2413);
+    if (m_pApu->is_debug_enabled())
+    {
+        long clock = m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC;
+        m_pApu->init_debug_buffers(m_iSampleRate, clock);
+    }
 }
 
 void Audio::Mute(bool bMute)
@@ -94,6 +109,12 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
     m_pBuffer->end_frame(m_ElapsedCycles);
 
     int psg_count = static_cast<int>(m_pBuffer->read_samples(m_pSampleBuffer, GS_AUDIO_BUFFER_SIZE));
+
+    if (m_pApu->is_debug_enabled())
+    {
+        for (int i = 0; i < 4; i++)
+            m_pApu->read_debug_samples(m_pDebugChannelBuffer[i], i, GS_AUDIO_BUFFER_SIZE, &m_iDebugChannelSamples[i]);
+    }
 
     int fm_count = m_pYM2413->EndFrame(m_pYM2413Buffer);
 
@@ -155,6 +176,11 @@ void Audio::LoadState(std::istream& stream)
     m_pApu->reset(m_pCartridge->IsSG1000() && !m_pCartridge->IsSG1000II());
     m_pApu->volume(1.0);
     m_pBuffer->clear();
+    if (m_pApu->is_debug_enabled())
+    {
+        long clock = m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC;
+        m_pApu->init_debug_buffers(m_iSampleRate, clock);
+    }
 }
 
 bool Audio::StartVgmRecording(const char* file_path, int clock_rate, bool is_pal, bool has_ym2413)

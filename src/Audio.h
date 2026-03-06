@@ -43,6 +43,11 @@ public:
     void Tick(unsigned int clockCycles);
     void EndFrame(s16* pSampleBuffer, int* pSampleCount);
     void DisableYM2413(bool bDisable);
+    Sms_Apu* GetPSG();
+    void EnablePSGDebug(bool enable);
+    bool IsPSGDebugEnabled();
+    blip_sample_t* GetDebugChannelBuffer(int channel);
+    int GetDebugChannelSamples(int channel);
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
     bool StartVgmRecording(const char* file_path, int clock_rate, bool is_pal, bool has_ym2413);
@@ -66,6 +71,8 @@ private:
     bool m_bMute;
     VgmRecorder m_VgmRecorder;
     bool m_bVgmRecordingEnabled;
+    blip_sample_t* m_pDebugChannelBuffer[4];
+    long m_iDebugChannelSamples[4];
 };
 
 #include "Cartridge.h"
@@ -135,6 +142,43 @@ inline u8 Audio::YM2413Read()
         return 0xFF;
     else
         return m_pYM2413->Read();
+}
+
+inline Sms_Apu* Audio::GetPSG()
+{
+    return m_pApu;
+}
+
+inline void Audio::EnablePSGDebug(bool enable)
+{
+    if (enable && !m_pApu->is_debug_enabled())
+    {
+        long clock = m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC;
+        m_pApu->init_debug_buffers(m_iSampleRate, clock);
+    }
+    else if (!enable && m_pApu->is_debug_enabled())
+    {
+        m_pApu->disable_debug_buffers();
+    }
+}
+
+inline bool Audio::IsPSGDebugEnabled()
+{
+    return m_pApu->is_debug_enabled();
+}
+
+inline blip_sample_t* Audio::GetDebugChannelBuffer(int channel)
+{
+    if (channel < 0 || channel >= 4)
+        return NULL;
+    return m_pDebugChannelBuffer[channel];
+}
+
+inline int Audio::GetDebugChannelSamples(int channel)
+{
+    if (channel < 0 || channel >= 4)
+        return 0;
+    return (int)m_iDebugChannelSamples[channel];
 }
 
 #endif	/* AUDIO_H */

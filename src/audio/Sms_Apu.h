@@ -6,6 +6,27 @@
 
 #include "Sms_Oscs.h"
 
+struct Sms_Apu_State
+{
+	struct Channel
+	{
+		int volume;
+		int volume_reg;
+		int period;
+		int phase;
+		int output_select;
+		bool* mute;
+	};
+	Channel channels [4];
+	int latch;
+	unsigned ggstereo;
+	unsigned noise_shifter;
+	unsigned noise_feedback;
+	bool noise_white;
+	int noise_rate;
+	bool ti_chip;
+};
+
 class Sms_Apu {
 public:
 	// Set overall volume of all oscillators, where 1.0 is full volume
@@ -42,6 +63,15 @@ public:
 	// start a new frame at time 0.
 	void end_frame( blip_time_t );
 
+	// Get current state for debugger
+	Sms_Apu_State GetState();
+
+	// Debug per-channel buffers for oscilloscope
+	void init_debug_buffers( long sample_rate, long clock_rate );
+	void disable_debug_buffers();
+	bool is_debug_enabled() const;
+	void read_debug_samples( blip_sample_t* out, int channel, long max_samples, long* count );
+
 public:
 	Sms_Apu();
 	~Sms_Apu();
@@ -59,6 +89,10 @@ private:
 	unsigned    noise_feedback;
 	unsigned    looped_feedback;
 	unsigned int ggstereo_save;
+	bool        ti_chip_mode;
+	Blip_Buffer debug_bufs [osc_count];
+	Blip_Synth<blip_med_quality,1> debug_synth;
+	bool        debug_enabled;
 	
 	void run_until( blip_time_t );
 };
