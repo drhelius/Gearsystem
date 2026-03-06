@@ -166,7 +166,8 @@ void gui_file_dialog_load_symbols(void)
     if (!begin_dialog())
         return;
 
-    SDL_ShowOpenFileDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_LoadSymbols, application_sdl_window, NULL, 0, NULL, false);
+    SDL_DialogFileFilter filters[] = { { "Symbol Files", "sym;noi" }, { "All Files", "*" } };
+    SDL_ShowOpenFileDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_LoadSymbols, application_sdl_window, filters, 2, NULL, false);
 }
 
 void gui_file_dialog_save_screenshot(void)

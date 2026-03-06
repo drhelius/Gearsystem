@@ -41,7 +41,7 @@ EXTERN void gui_debug_disassembler_destroy(void);
 EXTERN void gui_debug_disassembler_reset(void);
 EXTERN void gui_debug_reset_symbols(void);
 EXTERN void gui_debug_reset_breakpoints(void);
-EXTERN void gui_debug_load_symbols_file(const char* file_path);
+EXTERN bool gui_debug_load_symbols_file(const char* file_path);
 EXTERN void gui_debug_toggle_breakpoint(void);
 EXTERN void gui_debug_add_bookmark(void);
 EXTERN void gui_debug_add_symbol(void);

@@ -178,50 +178,50 @@ void gui_debug_reset_breakpoints(void)
     new_breakpoint_buffer[0] = 0;
 }
 
-void gui_debug_load_symbols_file(const char* file_path)
+bool gui_debug_load_symbols_file(const char* file_path)
 {
     std::ifstream file;
     open_ifstream_utf8(file, file_path, std::ios::in);
 
-    if (file.is_open())
-    {
-        Log("Loading symbol file %s", file_path);
-
-        std::string line;
-        bool valid_section = true;
-
-        while (std::getline(file, line))
-        {
-            size_t comment = line.find_first_of(';');
-            if (comment != std::string::npos)
-                line = line.substr(0, comment);
-            line = line.erase(0, line.find_first_not_of(" \t\r\n"));
-            line = line.erase(line.find_last_not_of(" \t\r\n") + 1);
-
-            if (line.empty())
-                continue;
-
-            if (line.find("[") != std::string::npos)
-            {
-                valid_section = false;
-                if (line.find("[symbols]") != std::string::npos)
-                    valid_section = true;
-                else if (line.find("[labels]") != std::string::npos)
-                    valid_section = true;
-
-                continue;
-            }
-
-            if (valid_section)
-                add_symbol(line.c_str());
-        }
-
-        file.close();
-    }
-    else
+    if (!file.is_open())
     {
         Debug("Symbol file %s not found", file_path);
+        return false;
     }
+
+    Log("Loading symbol file %s", file_path);
+
+    std::string line;
+    bool valid_section = true;
+
+    while (std::getline(file, line))
+    {
+        size_t comment = line.find_first_of(';');
+        if (comment != std::string::npos)
+            line = line.substr(0, comment);
+        line = line.erase(0, line.find_first_not_of(" \t\r\n"));
+        line = line.erase(line.find_last_not_of(" \t\r\n") + 1);
+
+        if (line.empty())
+            continue;
+
+        if (line.find("[") != std::string::npos)
+        {
+            valid_section = false;
+            if (line.find("[symbols]") != std::string::npos)
+                valid_section = true;
+            else if (line.find("[labels]") != std::string::npos)
+                valid_section = true;
+
+            continue;
+        }
+
+        if (valid_section)
+            add_symbol(line.c_str());
+    }
+
+    file.close();
+    return true;
 }
 
 void gui_debug_toggle_breakpoint(void)
@@ -932,89 +932,136 @@ static void add_symbol(const char* line)
         tokens.push_back(token);
     }
 
-    // Need at least 2 tokens (bank/address and symbol) for valid format
-    if (tokens.size() >= 2)
+    if (tokens.size() < 2)
+        return;
+
+    std::string bank_str = "0";
+    std::string addr_str;
+    std::string symbol;
+    bool parsed = false;
+
+    // sjasmplus/Pasmo format: <symbol>[:]  EQU  <value>
+    // e.g. "label: EQU 0x00004000" or "label EQU 1234h"
+    if (!parsed && tokens.size() >= 3)
     {
-        std::string bank_str = "0";
-        std::string addr_str;
-        std::string symbol;
+        std::string equ_upper = tokens[1];
+        for (size_t c = 0; c < equ_upper.size(); c++) equ_upper[c] = toupper(equ_upper[c]);
 
-        // Handle different formats
-        if (tokens.size() >= 4 && tokens[2].find(':') != std::string::npos) {
-            // PCEAS new format: <bank:address> <size> <filenumber:linenumber:columnnumber> <symbolname>
-            std::string addr_part = tokens[0];
-            symbol = tokens[3];
-
-            std::size_t separator = addr_part.find(":");
-            if (separator != std::string::npos) {
-                bank_str = addr_part.substr(0, separator);
-                addr_str = addr_part.substr(separator + 1);
-            } else {
-                addr_str = addr_part;
-            }
-        }
-        else if (tokens[0].find(':') != std::string::npos) {
-            // WLA format: <bank:address> <symbolname>
-            std::string addr_part = tokens[0];
-            std::size_t separator = addr_part.find(":");
-
-            bank_str = addr_part.substr(0, separator);
-            addr_str = addr_part.substr(separator + 1);
-            symbol = tokens[1];
-        }
-        else if (tokens.size() >= 3 && tokens[0].length() <= 2) {
-            // PCEAS old format: <bank> <address> <symbolname>
-            bank_str = tokens[0];
-            addr_str = tokens[1];
-            symbol = tokens[2];
-        }
-        else
+        if (equ_upper == "EQU")
         {
-            // VASM format: <address> <symbolname>
-            addr_str = tokens[0];
-            symbol = tokens[1];
-        }
+            std::string sym_name = tokens[0];
+            if (!sym_name.empty() && sym_name.back() == ':')
+                sym_name = sym_name.substr(0, sym_name.length() - 1);
 
-        // Parse the bank and address values
-        u16 bank_value = 0;
-        if (parse_hex_string(bank_str.c_str(), bank_str.length(), &bank_value))
-        {
-            u16 address_value = 0;
-            if (parse_hex_string(addr_str.c_str(), addr_str.length(), &address_value))
+            if (!sym_name.empty())
             {
-                s.bank = bank_value;
-                s.address = address_value;
-                snprintf(s.text, 64, "%s", symbol.c_str());
+                std::string value = tokens[2];
+                if (value.length() > 2 && value[0] == '0' && (value[1] == 'x' || value[1] == 'X'))
+                    value = value.substr(2);
+                if (!value.empty() && (value.back() == 'h' || value.back() == 'H'))
+                    value = value.substr(0, value.length() - 1);
 
-                // Store the symbol
-                DebugSymbol* existing = fixed_symbols[s.bank][s.address];
-                if (IsValidPointer(existing))
+                if (value.length() > 4)
                 {
-                    for (size_t i = 0; i < fixed_symbol_list.size(); i++)
-                    {
-                        if (fixed_symbol_list[i].symbol == existing)
-                        {
-                            fixed_symbol_list.erase(fixed_symbol_list.begin() + i);
-                            break;
-                        }
-                    }
-                    SafeDelete(fixed_symbols[s.bank][s.address]);
+                    bank_str = value.substr(0, value.length() - 4);
+                    addr_str = value.substr(value.length() - 4);
+                }
+                else
+                {
+                    addr_str = value;
                 }
 
-                DebugSymbol* new_symbol = new DebugSymbol;
-                new_symbol->address = s.address;
-                new_symbol->bank = s.bank;
-                snprintf(new_symbol->text, 64, "%s", s.text);
-
-                fixed_symbols[s.bank][s.address] = new_symbol;
-
-                SymbolEntry entry;
-                entry.symbol = new_symbol;
-                entry.is_manual = true;
-                entry.bank = s.bank;
-                fixed_symbol_list.push_back(entry);
-                symbols_dirty = true;
+                symbol = sym_name;
+                parsed = true;
             }
+        }
+    }
+
+    // SDCC/NoICE (.noi) format: DEF <symbol> <address>
+    // e.g. "DEF _main 0100" or "def bar 234h"
+    if (!parsed && tokens.size() >= 3)
+    {
+        std::string keyword_upper = tokens[0];
+        for (size_t c = 0; c < keyword_upper.size(); c++) keyword_upper[c] = toupper(keyword_upper[c]);
+
+        if (keyword_upper == "DEF")
+        {
+            std::string value = tokens[2];
+            if (value.length() > 2 && value[0] == '0' && (value[1] == 'x' || value[1] == 'X'))
+                value = value.substr(2);
+            if (!value.empty() && (value.back() == 'h' || value.back() == 'H'))
+                value = value.substr(0, value.length() - 1);
+
+            addr_str = value;
+            symbol = tokens[1];
+            parsed = true;
+        }
+    }
+
+    // WLA-DX format: <bank:address> <symbol>
+    // e.g. "00:C000 Start" or "02:8123 UpdateLogic"
+    if (!parsed && tokens.size() >= 2 && tokens[0].find(':') != std::string::npos)
+    {
+        std::string addr_part = tokens[0];
+        std::size_t separator = addr_part.find(":");
+
+        bank_str = addr_part.substr(0, separator);
+        addr_str = addr_part.substr(separator + 1);
+        symbol = tokens[1];
+        parsed = true;
+    }
+
+    // Generic/VASM format: <address> <symbol>
+    // e.g. "C000 Start"
+    if (!parsed && tokens.size() >= 2)
+    {
+        addr_str = tokens[0];
+        symbol = tokens[1];
+        parsed = true;
+    }
+
+    if (!parsed)
+        return;
+
+    // Parse the bank and address values
+    u16 bank_value = 0;
+    if (parse_hex_string(bank_str.c_str(), bank_str.length(), &bank_value))
+    {
+        u16 address_value = 0;
+        if (parse_hex_string(addr_str.c_str(), addr_str.length(), &address_value))
+        {
+            s.bank = bank_value;
+            s.address = address_value;
+            snprintf(s.text, 64, "%s", symbol.c_str());
+
+            // Store the symbol
+            DebugSymbol* existing = fixed_symbols[s.bank][s.address];
+            if (IsValidPointer(existing))
+            {
+                for (size_t i = 0; i < fixed_symbol_list.size(); i++)
+                {
+                    if (fixed_symbol_list[i].symbol == existing)
+                    {
+                        fixed_symbol_list.erase(fixed_symbol_list.begin() + i);
+                        break;
+                    }
+                }
+                SafeDelete(fixed_symbols[s.bank][s.address]);
+            }
+
+            DebugSymbol* new_symbol = new DebugSymbol;
+            new_symbol->address = s.address;
+            new_symbol->bank = s.bank;
+            snprintf(new_symbol->text, 64, "%s", s.text);
+
+            fixed_symbols[s.bank][s.address] = new_symbol;
+
+            SymbolEntry entry;
+            entry.symbol = new_symbol;
+            entry.is_manual = true;
+            entry.bank = s.bank;
+            fixed_symbol_list.push_back(entry);
+            symbols_dirty = true;
         }
     }
 }
