@@ -1,2 +1,0 @@
-#Ignore any files created during the build of the Flatpak application
-.flatpak-builder/
