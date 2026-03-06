@@ -66,6 +66,9 @@ static const char* get_configurated_dir(int option, const char* path);
 static void init_debug(void);
 static void destroy_debug(void);
 static void update_debug(void);
+static void update_debug_background(void);
+static void update_debug_tiles(void);
+static void update_debug_sprites(void);
 static void update_debug_background_buffer_smsgg(void);
 static void update_debug_tile_buffer_smsgg(void);
 static void update_debug_sprite_buffers_smsgg(void);
@@ -666,67 +669,93 @@ int emu_get_screenshot_png(unsigned char** out_buffer)
     return len;
 }
 
-int emu_get_sprite_png(int vdc, int sprite_index, unsigned char** out_buffer)
+static void get_sprite_size(int* width, int* height)
 {
-/*
+    Video* video = gearsystem->GetVideo();
+    u8* regs = video->GetRegisters();
+    bool sprites_16 = IsSetBit(regs[1], 1);
+    bool isSG1000 = video->IsSG1000Mode();
+
+    if (isSG1000)
+    {
+        *width = sprites_16 ? 16 : 8;
+        *height = sprites_16 ? 16 : 8;
+    }
+    else
+    {
+        *width = 8;
+        *height = sprites_16 ? 16 : 8;
+    }
+}
+
+int emu_get_sprite_png(int sprite_index, unsigned char** out_buffer)
+{
     if (!gearsystem->GetCartridge()->IsReady())
         return 0;
 
-    if (vdc < 0 || vdc > 1 || sprite_index < 0 || sprite_index > 63)
+    if (sprite_index < 0 || sprite_index > 63)
         return 0;
 
-    update_debug_sprites();
+    update_debug();
 
-    int width = emu_debug_sprite_widths[vdc][sprite_index];
-    int height = emu_debug_sprite_heights[vdc][sprite_index];
-    u8* buffer = emu_debug_sprite_buffers[vdc][sprite_index];
+    int width, height;
+    get_sprite_size(&width, &height);
 
-    if (!buffer || width == 0 || height == 0)
+    u8* buffer = emu_debug_sprite_buffers[sprite_index];
+
+    if (!buffer)
         return 0;
 
     int len = 0;
-    *out_buffer = stbi_write_png_to_mem(buffer, width * 4, width, height, 4, &len);
+    *out_buffer = stbi_write_png_to_mem(buffer, 16 * 4, width, height, 4, &len);
 
     return len;
-*/
-    return 0;
 }
 
-void emu_save_sprite(const char* file_path, int vdc, int index)
+void emu_save_sprite(const char* file_path, int index)
 {
-/*
     if (!gearsystem->GetCartridge()->IsReady())
         return;
 
     update_debug_sprites();
 
-    int width = emu_debug_sprite_widths[vdc][index];
-    int height = emu_debug_sprite_heights[vdc][index];
-    u8* buffer = emu_debug_sprite_buffers[vdc][index];
+    int width, height;
+    get_sprite_size(&width, &height);
 
-    stbi_write_png(file_path, width, height, 4, buffer, width * 4);
+    u8* buffer = emu_debug_sprite_buffers[index];
+
+    stbi_write_png(file_path, width, height, 4, buffer, 16 * 4);
 
     Log("Sprite saved to %s", file_path);
-
-*/
 }
 
-void emu_save_background(const char* file_path, int vdc)
+void emu_save_background(const char* file_path)
 {
-/*
     if (!gearsystem->GetCartridge()->IsReady())
         return;
 
     update_debug_background();
 
-    int width = emu_debug_background_buffer_width[vdc];
-    int height = emu_debug_background_buffer_height[vdc];
-    u8* buffer = emu_debug_background_buffer[vdc];
-
-    stbi_write_png(file_path, width, height, 4, buffer, width * 4);
+    stbi_write_png(file_path, 256, 256, 4, emu_debug_background_buffer, 256 * 4);
 
     Log("Background saved to %s", file_path);
-*/
+}
+
+void emu_save_tiles(const char* file_path)
+{
+    if (!gearsystem->GetCartridge()->IsReady())
+        return;
+
+    update_debug_tiles();
+
+    bool isSG1000 = gearsystem->GetVideo()->IsSG1000Mode();
+    int lines = isSG1000 ? 32 : 16;
+    int width = 32 * 8;
+    int height = lines * 8;
+
+    stbi_write_png(file_path, width, height, 4, emu_debug_tile_buffer, width * 4);
+
+    Log("Pattern table saved to %s", file_path);
 }
 
 static void save_ram(void)
@@ -924,30 +953,50 @@ static void destroy_debug(void)
     }
 }
 
-static void update_debug(void)
+static void update_debug_background(void)
 {
     if (gearsystem->GetVideo()->IsSG1000Mode())
-    {
         update_debug_background_buffer_sg1000();
-        update_debug_tile_buffer_sg1000();
-        update_debug_sprite_buffers_sg1000();
-    }
     else
-    {
         update_debug_background_buffer_smsgg();
-        update_debug_tile_buffer_smsgg();
-        update_debug_sprite_buffers_smsgg();
-    }
 
     Video* video = gearsystem->GetVideo();
-
     video->Render32bit(debug_background_buffer, emu_debug_background_buffer, GS_PIXEL_RGBA8888, 256 * 256);
-    video->Render32bit(debug_tile_buffer, emu_debug_tile_buffer, GS_PIXEL_RGBA8888, 32 * 32 * 64);
+}
 
+static void update_debug_tiles(void)
+{
+    if (gearsystem->GetVideo()->IsSG1000Mode())
+        update_debug_tile_buffer_sg1000();
+    else
+        update_debug_tile_buffer_smsgg();
+
+    Video* video = gearsystem->GetVideo();
+    video->Render32bit(debug_tile_buffer, emu_debug_tile_buffer, GS_PIXEL_RGBA8888, 32 * 32 * 64);
+}
+
+static void update_debug_sprites(void)
+{
+    if (gearsystem->GetVideo()->IsSG1000Mode())
+        update_debug_sprite_buffers_sg1000();
+    else
+        update_debug_sprite_buffers_smsgg();
+
+    Video* video = gearsystem->GetVideo();
     for (int s = 0; s < 64; s++)
     {
         video->Render32bit(debug_sprite_buffers[s], emu_debug_sprite_buffers[s], GS_PIXEL_RGBA8888, 16 * 16);
     }
+}
+
+static void update_debug(void)
+{
+    if (config_debug.show_video_nametable)
+        update_debug_background();
+    if (config_debug.show_video_tiles)
+        update_debug_tiles();
+    if (config_debug.show_video_sprites)
+        update_debug_sprites();
 }
 
 static void update_debug_background_buffer_smsgg(void)

@@ -52,6 +52,7 @@ enum FileDialogID
     FileDialog_SaveSprite,
     FileDialog_SaveAllSprites,
     FileDialog_SaveBackground,
+    FileDialog_SaveTiles,
     FileDialog_SaveMemoryDumpBinary,
     FileDialog_SaveMemoryDumpText,
     FileDialog_SaveDisassemblerFull,
@@ -68,7 +69,6 @@ static std::string pending_dialog_path;
 static bool dialog_active = false;
 static bool pending_refocus_window = false;
 static int pending_dialog_int_param1 = 0;
-static int pending_dialog_int_param2 = 0;
 #if !defined(__APPLE__)
 static bool was_exclusive_fullscreen = false;
 #endif
@@ -187,34 +187,40 @@ void gui_file_dialog_save_vgm(void)
     SDL_ShowSaveFileDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_SaveVGM, application_sdl_window, filters, 1, NULL);
 }
 
-void gui_file_dialog_save_sprite(int vdc, int index)
+void gui_file_dialog_save_sprite(int index)
 {
     if (!begin_dialog())
         return;
 
-    pending_dialog_int_param1 = vdc;
-    pending_dialog_int_param2 = index;
+    pending_dialog_int_param1 = index;
     SDL_DialogFileFilter filters[] = { { "PNG Files", "png" } };
     SDL_ShowSaveFileDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_SaveSprite, application_sdl_window, filters, 1, NULL);
 }
 
-void gui_file_dialog_save_all_sprites(int vdc)
+void gui_file_dialog_save_all_sprites(void)
 {
     if (!begin_dialog())
         return;
 
-    pending_dialog_int_param1 = vdc;
     SDL_ShowOpenFolderDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_SaveAllSprites, application_sdl_window, NULL, false);
 }
 
-void gui_file_dialog_save_background(int vdc)
+void gui_file_dialog_save_background(void)
 {
     if (!begin_dialog())
         return;
 
-    pending_dialog_int_param1 = vdc;
     SDL_DialogFileFilter filters[] = { { "PNG Files", "png" } };
     SDL_ShowSaveFileDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_SaveBackground, application_sdl_window, filters, 1, NULL);
+}
+
+void gui_file_dialog_save_tiles(void)
+{
+    if (!begin_dialog())
+        return;
+
+    SDL_DialogFileFilter filters[] = { { "PNG Files", "png" } };
+    SDL_ShowSaveFileDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_SaveTiles, application_sdl_window, filters, 1, NULL);
 }
 
 void gui_file_dialog_save_memory_dump(bool binary)
@@ -413,17 +419,22 @@ static void process_dialog_result(FileDialogID id, const char* path)
         }
         case FileDialog_SaveSprite:
         {
-            gui_action_save_sprite(path, pending_dialog_int_param1, pending_dialog_int_param2);
+            gui_action_save_sprite(path, pending_dialog_int_param1);
             break;
         }
         case FileDialog_SaveAllSprites:
         {
-            gui_action_save_all_sprites(path, pending_dialog_int_param1);
+            gui_action_save_all_sprites(path);
             break;
         }
         case FileDialog_SaveBackground:
         {
-            gui_action_save_background(path, pending_dialog_int_param1);
+            gui_action_save_background(path);
+            break;
+        }
+        case FileDialog_SaveTiles:
+        {
+            gui_action_save_tiles(path);
             break;
         }
         case FileDialog_SaveMemoryDumpBinary:

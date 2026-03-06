@@ -136,20 +136,20 @@ void gui_action_save_screenshot(const char* path)
     gui_set_status_message(message.c_str(), 3000);
 }
 
-void gui_action_save_sprite(const char* path, int vdc, int index)
+void gui_action_save_sprite(const char* path, int index)
 {
     using namespace std;
 
     if (!emu_get_core()->GetCartridge()->IsReady())
         return;
 
-    emu_save_sprite(path, vdc, index);
+    emu_save_sprite(path, index);
 
     string message = "Sprite saved to " + string(path);
     gui_set_status_message(message.c_str(), 3000);
 }
 
-void gui_action_save_all_sprites(const char* folder_path, int vdc)
+void gui_action_save_all_sprites(const char* folder_path)
 {
     using namespace std;
 
@@ -159,23 +159,36 @@ void gui_action_save_all_sprites(const char* folder_path, int vdc)
     for (int i = 0; i < 64; i++)
     {
         char file_path[512];
-        snprintf(file_path, sizeof(file_path), "%s/sprite_vdc%d_id%02d.png", folder_path, vdc, i);
-        emu_save_sprite(file_path, vdc, i);
+        snprintf(file_path, sizeof(file_path), "%s/sprite_id%02d.png", folder_path, i);
+        emu_save_sprite(file_path, i);
     }
 
     string message = "All sprites saved to " + string(folder_path);
     gui_set_status_message(message.c_str(), 3000);
 }
 
-void gui_action_save_background(const char* path, int vdc)
+void gui_action_save_background(const char* path)
 {
     using namespace std;
 
     if (!emu_get_core()->GetCartridge()->IsReady())
         return;
 
-    emu_save_background(path, vdc);
+    emu_save_background(path);
 
     string message = "Background saved to " + string(path);
+    gui_set_status_message(message.c_str(), 3000);
+}
+
+void gui_action_save_tiles(const char* path)
+{
+    using namespace std;
+
+    if (!emu_get_core()->GetCartridge()->IsReady())
+        return;
+
+    emu_save_tiles(path);
+
+    string message = "Pattern table saved to " + string(path);
     gui_set_status_message(message.c_str(), 3000);
 }

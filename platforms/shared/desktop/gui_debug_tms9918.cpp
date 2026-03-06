@@ -29,9 +29,13 @@
 #include "emu.h"
 #include "ogl_renderer.h"
 #include "utils.h"
+#include "gui_filedialogs.h"
 
 static ImVec4 color_444_to_float(u16 color);
 static ImVec4 color_222_to_float(u8 color);
+static void draw_context_menu_sprites(int index);
+static void draw_context_menu_background(void);
+static void draw_context_menu_tiles(void);
 
 void gui_debug_window_vram_nametable(void)
 {
@@ -77,6 +81,8 @@ void gui_debug_window_vram_nametable(void)
     ImGuiIO& io = ImGui::GetIO();
 
     ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_background, ImVec2(size_h, size_v), ImVec2(0.0f, 0.0f), ImVec2(1.0f, (1.0f / 32.0f) * lines));
+
+    draw_context_menu_background();
 
     if (show_grid)
     {
@@ -297,6 +303,8 @@ void gui_debug_window_vram_tiles(void)
 
     ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_tiles, ImVec2(width, height), ImVec2(0.0f, 0.0f), ImVec2(1.0f, (1.0f / 32.0f) * lines));
 
+    draw_context_menu_tiles();
+
     if (show_grid)
     {
         float x = p.x;
@@ -417,6 +425,8 @@ void gui_debug_window_vram_sprites(void)
         spr_pos[s] = ImGui::GetCursorScreenPos();
 
         ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_sprites[s], ImVec2(width, height), ImVec2(0.0f, 0.0f), ImVec2((1.0f / 16.0f) * (width / scale), (1.0f / 16.0f) * (height / scale)));
+
+        draw_context_menu_sprites(s);
 
         float mx = io.MousePos.x - spr_pos[s].x;
         float my = io.MousePos.y - spr_pos[s].y;
@@ -678,4 +688,50 @@ static ImVec4 color_222_to_float(u8 color)
     ret.y = (1.0f / 3.0f) * ((color >> 2) & 0x3);
     ret.z = (1.0f / 3.0f) * ((color >> 4) & 0x3);
     return ret;
+}
+
+static void draw_context_menu_sprites(int index)
+{
+    ImGui::PopFont();
+
+    char ctx_id[16];
+    snprintf(ctx_id, sizeof(ctx_id), "##spr_ctx_%02d", index);
+
+    if (ImGui::BeginPopupContextItem(ctx_id))
+    {
+        if (ImGui::Selectable("Save Sprite As..."))
+            gui_file_dialog_save_sprite(index);
+        if (ImGui::Selectable("Save All Sprites To Folder..."))
+            gui_file_dialog_save_all_sprites();
+
+        ImGui::EndPopup();
+    }
+
+    ImGui::PushFont(gui_default_font);
+}
+
+static void draw_context_menu_background(void)
+{
+    ImGui::PopFont();
+
+    if (ImGui::BeginPopupContextItem("##bg_ctx"))
+    {
+        if (ImGui::Selectable("Save Background As..."))
+            gui_file_dialog_save_background();
+
+        ImGui::EndPopup();
+    }
+
+    ImGui::PushFont(gui_default_font);
+}
+
+static void draw_context_menu_tiles(void)
+{
+    if (ImGui::BeginPopupContextItem("##tiles_ctx"))
+    {
+        if (ImGui::Selectable("Save Pattern Table As..."))
+            gui_file_dialog_save_tiles();
+
+        ImGui::EndPopup();
+    }
 }

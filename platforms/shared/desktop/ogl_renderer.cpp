@@ -327,20 +327,29 @@ static void update_system_texture(void)
 
 static void update_debug_textures(void)
 {
-    glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_debug_vram_background);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256,
-            GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) emu_debug_background_buffer);
-
-    for (int s = 0; s < 64; s++)
+    if (config_debug.show_video_nametable)
     {
-        glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_debug_vram_sprites[s]);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 16, 16,
-                GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) emu_debug_sprite_buffers[s]);
+        glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_debug_vram_background);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256,
+                GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) emu_debug_background_buffer);
     }
 
-    glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_debug_vram_tiles);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 32 * 8, 32 * 8,
-            GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) emu_debug_tile_buffer);
+    if (config_debug.show_video_sprites)
+    {
+        for (int s = 0; s < 64; s++)
+        {
+            glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_debug_vram_sprites[s]);
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 16, 16,
+                    GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) emu_debug_sprite_buffers[s]);
+        }
+    }
+
+    if (config_debug.show_video_tiles)
+    {
+        glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_debug_vram_tiles);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 32 * 8, 32 * 8,
+                GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) emu_debug_tile_buffer);
+    }
 }
 
 static void update_savestates_texture(void)
