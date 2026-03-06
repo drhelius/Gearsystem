@@ -49,7 +49,7 @@ void gui_debug_window_psg(void)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(180, 45), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(280, 486), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(296, 316), ImGuiCond_FirstUseEver);
     ImGui::Begin("PSG", &config_debug.show_psg);
 
     GearsystemCore* core = emu_get_core();

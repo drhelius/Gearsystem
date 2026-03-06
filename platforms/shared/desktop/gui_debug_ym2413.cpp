@@ -82,7 +82,7 @@ void gui_debug_window_ym2413(void)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(500, 45), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(360, 486), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(266, 616), ImGuiCond_FirstUseEver);
     ImGui::Begin("YM2413 FM", &config_debug.show_ym2413);
 
     GearsystemCore* core = emu_get_core();

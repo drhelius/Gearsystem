@@ -37,7 +37,7 @@ void gui_debug_window_vram_nametable(void)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(648, 254), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(604, 534), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(546, 412), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Name Table", &config_debug.show_video_nametable);
 
@@ -260,7 +260,7 @@ void gui_debug_window_vram_tiles(void)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(648, 30), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(580, 450), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(540, 260), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Pattern Table", &config_debug.show_video_tiles);
 
@@ -367,7 +367,7 @@ void gui_debug_window_vram_sprites(void)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(100, 254), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(580, 500), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(480, 336), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Sprites", &config_debug.show_video_sprites);
 
@@ -554,7 +554,7 @@ void gui_debug_window_vram_palettes(void)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(648, 30), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(520, 180), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(502, 174), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Palettes", &config_debug.show_video_palettes);
 
@@ -633,7 +633,7 @@ void gui_debug_window_vram_regs(void)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(648, 500), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(420, 300), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(306, 240), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("VDP Registers", &config_debug.show_video_regs);
 
@@ -650,7 +650,8 @@ void gui_debug_window_vram_regs(void)
     {
         ImGui::TextColored(cyan, " REG $%01X ", i); ImGui::SameLine();
         ImGui::TextColored(violet, "%s ", reg_desc[i]); ImGui::SameLine();
-        ImGui::Text("$%02X  (" BYTE_TO_BINARY_PATTERN_SPACED ")", regs[i], BYTE_TO_BINARY(regs[i]));
+        ImGui::Text("$%02X  ", regs[i]); ImGui::SameLine(0, 0);
+        ImGui::TextColored(gray, "(" BYTE_TO_BINARY_PATTERN_SPACED ")", BYTE_TO_BINARY(regs[i]));
     }
 
     ImGui::PopFont();
