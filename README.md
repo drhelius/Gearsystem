@@ -120,7 +120,7 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 ### Debugging Features
 - **Docking Windows**: In debug mode, you can dock windows together by pressing SHIFT and dragging a window onto another.
 - **Multi-viewport**: In Windows or macOS, you can enable "multi-viewport" in the debug menu. You must restart the emulator for the change to take effect. Once enabled, you can drag debugger windows outside the main window.
-- **Debug Symbols**: The emulator automatically tries to load a symbol file when loading a ROM. For example, for ```path_to_rom_file.sms``` it tries to load ```path_to_rom_file.sym```. You can also load a symbol file using the GUI or the CLI.
+- **Debug Symbols**: The emulator automatically tries to load a symbol file when loading a ROM (.sym, .noi). For example, for ```path_to_rom_file.sms``` it tries to load ```path_to_rom_file.sym```. You can also load a symbol file using the GUI or the CLI.
 
 ### Command Line Usage
 ```
