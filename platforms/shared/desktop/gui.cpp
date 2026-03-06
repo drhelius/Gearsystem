@@ -442,6 +442,17 @@ static void main_window(void)
     float tex_h = (float)runtime.screen_width / (float)(SYSTEM_TEXTURE_WIDTH);
     float tex_v = (float)runtime.screen_height / (float)(SYSTEM_TEXTURE_HEIGHT);
 
+    if (config_emulator.light_phaser)
+    {
+        ImVec2 p = ImGui::GetCursorScreenPos();
+        ImGuiIO& io = ImGui::GetIO();
+        float mouse_x = (io.MousePos.x - p.x) / scale_multiplier;
+        float mouse_y = (io.MousePos.y - p.y) / scale_multiplier;
+        mouse_x *= (float)runtime.screen_width / (float)w_corrected;
+        mouse_y *= (float)runtime.screen_height / (float)h_corrected;
+        emu_set_phaser((int)mouse_x, (int)mouse_y);
+    }
+
     ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_texture, ImVec2((float)gui_main_window_width, (float)gui_main_window_height), ImVec2(0, 0), ImVec2(tex_h, tex_v));
 
     if (config_video.fps)

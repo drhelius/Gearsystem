@@ -133,11 +133,6 @@ void events_handle_emu_event(const SDL_Event* event)
                 emu_set_paddle(relx);
             }
 
-            if (config_emulator.light_phaser)
-            {
-                emu_set_phaser((int)event->motion.x, (int)event->motion.y);
-            }
-
             break;
         }
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
