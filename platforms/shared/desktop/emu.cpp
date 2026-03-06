@@ -338,6 +338,16 @@ void emu_audio_reset(void)
     sound_queue_start(GS_AUDIO_SAMPLE_RATE, 2, GS_AUDIO_QUEUE_SIZE, config_audio.buffer_count);
 }
 
+void emu_audio_psg_volume(float volume)
+{
+    gearsystem->GetAudio()->SetPSGVolume(volume);
+}
+
+void emu_audio_fm_volume(float volume)
+{
+    gearsystem->GetAudio()->SetFMVolume(volume);
+}
+
 bool emu_is_audio_enabled(void)
 {
     return audio_enabled;

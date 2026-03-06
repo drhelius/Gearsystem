@@ -104,6 +104,8 @@ struct config_Audio
 {
     bool enable = true;
     bool sync = true;
+    float psg_volume = 1.0f;
+    float fm_volume = 1.0f;
     int buffer_count = 3;
     int ym2413 = 0;
 };

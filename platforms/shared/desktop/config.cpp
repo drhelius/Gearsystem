@@ -311,6 +311,8 @@ void config_read(void)
 
     config_audio.enable = read_bool("Audio", "Enable", true);
     config_audio.sync = read_bool("Audio", "Sync", true);
+    config_audio.psg_volume = read_float("Audio", "PSGVolume", 1.0f);
+    config_audio.fm_volume = read_float("Audio", "FMVolume", 1.0f);
     config_audio.ym2413 = read_int("Audio", "YM2413", 0);
     config_audio.buffer_count = read_int("Audio", "BufferCount", 3);
 
@@ -509,6 +511,8 @@ void config_write(void)
 
     write_bool("Audio", "Enable", config_audio.enable);
     write_bool("Audio", "Sync", config_audio.sync);
+    write_float("Audio", "PSGVolume", config_audio.psg_volume);
+    write_float("Audio", "FMVolume", config_audio.fm_volume);
     write_int("Audio", "YM2413", config_audio.ym2413);
     write_int("Audio", "BufferCount", config_audio.buffer_count);
 

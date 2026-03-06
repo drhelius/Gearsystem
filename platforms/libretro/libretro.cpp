@@ -897,6 +897,30 @@ static void check_variables(void)
             core->GetAudio()->DisableYM2413(false);
     }
 
+    var.key = "gearsystem_psg_volume";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        int volume = atoi(var.value);
+        if (volume < 0 || volume > 200)
+            volume = 100;
+        float volume_f = (float)volume / 100.0f;
+        core->GetAudio()->SetPSGVolume(volume_f);
+    }
+
+    var.key = "gearsystem_fm_volume";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        int volume = atoi(var.value);
+        if (volume < 0 || volume > 200)
+            volume = 100;
+        float volume_f = (float)volume / 100.0f;
+        core->GetAudio()->SetFMVolume(volume_f);
+    }
+
     var.key = "gearsystem_glasses";
     var.value = NULL;
 

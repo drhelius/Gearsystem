@@ -109,6 +109,12 @@ bool gui_init(void)
 
     emu_audio_mute(!config_audio.enable);
 
+    gui_audio_mute_psg = false;
+    gui_audio_mute_fm = false;
+
+    emu_audio_psg_volume(config_audio.psg_volume);
+    emu_audio_fm_volume(config_audio.fm_volume);
+
     strcpy(gui_sms_bootrom_path, config_emulator.sms_bootrom_path.c_str());
     strcpy(gui_gg_bootrom_path, config_emulator.gg_bootrom_path.c_str());
 

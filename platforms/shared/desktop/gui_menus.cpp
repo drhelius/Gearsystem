@@ -1102,6 +1102,54 @@ static void menu_audio(void)
 
         ImGui::Separator();
 
+        if (ImGui::MenuItem("Mute PSG", "", &gui_audio_mute_psg, config_audio.enable))
+        {
+            emu_audio_psg_volume(gui_audio_mute_psg ? 0 : config_audio.psg_volume);
+        }
+
+        if (ImGui::MenuItem("Mute YM2413 FM", "", &gui_audio_mute_fm, config_audio.enable))
+        {
+            emu_audio_fm_volume(gui_audio_mute_fm ? 0 : config_audio.fm_volume);
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::BeginMenu("PSG SN76489 Volume", config_audio.enable))
+        {
+            ImGui::PushItemWidth(200.0f);
+            if (ImGui::SliderFloat("##psg_volume", &config_audio.psg_volume, 0.0f, 2.0f, "Volume = %.2f"))
+            {
+                emu_audio_psg_volume(config_audio.psg_volume);
+            }
+            ImGui::PopItemWidth();
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::Text("Anything above 1.00 may cause clipping.");
+                ImGui::EndTooltip();
+            }
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("FM YM2413 Volume", config_audio.enable))
+        {
+            ImGui::PushItemWidth(200.0f);
+            if (ImGui::SliderFloat("##fm_volume", &config_audio.fm_volume, 0.0f, 2.0f, "Volume = %.2f"))
+            {
+                emu_audio_fm_volume(config_audio.fm_volume);
+            }
+            ImGui::PopItemWidth();
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::Text("Anything above 1.00 may cause clipping.");
+                ImGui::EndTooltip();
+            }
+            ImGui::EndMenu();
+        }
+
+        ImGui::Separator();
+
         if (ImGui::BeginMenu("Buffer Size", config_audio.enable))
         {
             ImGui::PushItemWidth(150.0f);

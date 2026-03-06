@@ -36,6 +36,8 @@ public:
     void Init();
     void Reset(bool bPAL);
     void Mute(bool bMute);
+    void SetPSGVolume(float volume);
+    void SetFMVolume(float volume);
     void WriteAudioRegister(u8 value);
     void WriteGGStereoRegister(u8 value);
     void YM2413Write(u8 port, u8 value);
@@ -69,6 +71,8 @@ private:
     Cartridge* m_pCartridge;
     s16* m_pYM2413Buffer;
     bool m_bMute;
+    float m_psg_volume;
+    float m_fm_volume;
     VgmRecorder m_VgmRecorder;
     bool m_bVgmRecordingEnabled;
     blip_sample_t* m_pDebugChannelBuffer[4];
@@ -179,6 +183,16 @@ inline int Audio::GetDebugChannelSamples(int channel)
     if (channel < 0 || channel >= 4)
         return 0;
     return (int)m_iDebugChannelSamples[channel];
+}
+
+inline void Audio::SetPSGVolume(float volume)
+{
+    m_psg_volume = CLAMP(volume, 0.0f, 2.0f);
+}
+
+inline void Audio::SetFMVolume(float volume)
+{
+    m_fm_volume = CLAMP(volume, 0.0f, 2.0f);
 }
 
 #endif	/* AUDIO_H */

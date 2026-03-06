@@ -104,6 +104,8 @@ EXTERN config_Hotkey* gui_configured_hotkey;
 EXTERN bool gui_dialog_in_use;
 EXTERN bool gui_shortcut_open_rom;
 EXTERN std::list<std::string> gui_cheat_list;
+EXTERN bool gui_audio_mute_psg;
+EXTERN bool gui_audio_mute_fm;
 
 EXTERN bool gui_init(void);
 EXTERN void gui_destroy(void);

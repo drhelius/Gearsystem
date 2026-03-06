@@ -37,6 +37,8 @@ Audio::Audio(Cartridge * pCartridge)
     m_bYM2413ForceDisabled = false;
     m_bYM2413CartridgeNotSupported = false;
     m_bMute = false;
+    m_psg_volume = 1.0f;
+    m_fm_volume = 1.0f;
     m_bVgmRecordingEnabled = false;
     for (int i = 0; i < 4; i++)
     {
@@ -124,14 +126,25 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
 
         *pSampleCount = count;
 
-        for (int i=0; i<count; i++)
+        if (m_bMute)
         {
-            pSampleBuffer[i] = 0;
-
-            if (!m_bMute)
+            memset(pSampleBuffer, 0, sizeof(s16) * count);
+        }
+        else
+        {
+            for (int i=0; i<count; i++)
             {
-                pSampleBuffer[i] += m_bPSGEnabled ? m_pSampleBuffer[(i >= psg_count) ? psg_count-1 : i] : 0;
-                pSampleBuffer[i] += (m_bYM2413Enabled && !m_bYM2413ForceDisabled && !m_bYM2413CartridgeNotSupported) ? m_pYM2413Buffer[i] : 0;
+                s32 mix = 0;
+
+                mix += m_bPSGEnabled ? (s32)(m_pSampleBuffer[(i >= psg_count) ? psg_count-1 : i] * m_psg_volume) : 0;
+                mix += (m_bYM2413Enabled && !m_bYM2413ForceDisabled && !m_bYM2413CartridgeNotSupported) ? (s32)(m_pYM2413Buffer[i] * m_fm_volume) : 0;
+
+                if (mix > 32767)
+                    mix = 32767;
+                else if (mix < -32768)
+                    mix = -32768;
+
+                pSampleBuffer[i] = (s16)mix;
             }
         }
 
