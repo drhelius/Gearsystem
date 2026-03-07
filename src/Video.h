@@ -182,6 +182,7 @@ private:
     int m_NextLineSprites[8];
     bool m_bDisplayEnabled;
     bool m_bSpriteOvrRequest;
+    bool m_bLineInterruptPending;
 
     u16 m_SG1000_palette_565_rgb_normal[16];
     u16 m_SG1000_palette_555_rgb_normal[16];

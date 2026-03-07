@@ -63,6 +63,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor, Cartridge* pCartridge)
     m_iTMS9918Mode = 0;
     m_bDisplayEnabled = false;
     m_bSpriteOvrRequest = false;
+    m_bLineInterruptPending = false;
     m_Overscan = OverscanDisabled;
     m_HideLeftBar = HideLeftBarNo;
     m_iHideLeftBarOffset = 0;
@@ -142,6 +143,7 @@ void Video::Reset(bool bGameGear, bool bPAL)
 
     m_bDisplayEnabled = false;
     m_bSpriteOvrRequest = false;
+    m_bLineInterruptPending = false;
 
     for (int i = 11; i < 16; i++)
         m_VdpRegister[i] = 0;
@@ -242,8 +244,12 @@ bool Video::Tick(unsigned int clockCycles)
             if (m_iVdpRegister10Counter == 0)
             {
                 m_iVdpRegister10Counter = m_VdpRegister[10];
-                if (!m_bTMS9918 && IsSetBit(m_VdpRegister[0], 4))
-                    m_pProcessor->RequestINT(true);
+                if (!m_bTMS9918)
+                {
+                    m_bLineInterruptPending = true;
+                    if (IsSetBit(m_VdpRegister[0], 4))
+                        m_pProcessor->RequestINT(true);
+                }
             }
             else
             {
@@ -402,6 +408,7 @@ u8 Video::GetStatusFlags()
     u8 ret = m_VdpStatus | (m_bTMS9918 ? 0 : 0x1F);
     m_bFirstByteInSequence = true;
     m_VdpStatus = 0x00;
+    m_bLineInterruptPending = false;
     m_pProcessor->RequestINT(false);
     return ret;
 }
@@ -507,6 +514,10 @@ void Video::WriteControl(u8 data)
                     m_bExtendedMode224 = ((m_VdpRegister[0] & 0x06) == 0x06) && ((m_VdpRegister[1] & 0x18) == 0x10);
                     m_iTMS9918Mode = CalculateVideoMode();
                     m_bTMS9918 = !m_bGameGear && (m_iTMS9918Mode != 4);
+
+                    bool vint_irq = IsSetBit(m_VdpStatus, 7) && IsSetBit(m_VdpRegister[1], 5);
+                    bool hint_irq = !m_bTMS9918 && m_bLineInterruptPending && IsSetBit(m_VdpRegister[0], 4);
+                    m_pProcessor->RequestINT(vint_irq || hint_irq);
                 }
                 else if (reg > 10)
                 {
@@ -1488,6 +1499,7 @@ void Video::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_bDisplayEnabled), sizeof(m_bDisplayEnabled));
     stream.write(reinterpret_cast<const char*> (&m_bSpriteOvrRequest), sizeof(m_bSpriteOvrRequest));
     stream.write(reinterpret_cast<const char*> (&m_Phaser), sizeof(m_Phaser));
+    stream.write(reinterpret_cast<const char*> (&m_bLineInterruptPending), sizeof(m_bLineInterruptPending));
 }
 
 void Video::LoadState(std::istream& stream)
@@ -1526,4 +1538,9 @@ void Video::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_bDisplayEnabled), sizeof(m_bDisplayEnabled));
     stream.read(reinterpret_cast<char*> (&m_bSpriteOvrRequest), sizeof(m_bSpriteOvrRequest));
     stream.read(reinterpret_cast<char*> (&m_Phaser), sizeof(m_Phaser));
+
+    if (!stream.eof())
+        stream.read(reinterpret_cast<char*> (&m_bLineInterruptPending), sizeof(m_bLineInterruptPending));
+    else
+        m_bLineInterruptPending = false;
 }
