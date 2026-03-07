@@ -168,12 +168,14 @@ static void menu_gearsystem(void)
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem("Save BRAM As..."))
+        bool has_ram = !emu_is_empty() && IsValidPointer(emu_get_core()->GetMemory()->GetCurrentRule()) && emu_get_core()->GetMemory()->GetCurrentRule()->PersistedRAM();
+
+        if (ImGui::MenuItem("Save RAM As...", NULL, false, has_ram))
         {
             save_ram = true;
         }
 
-        if (ImGui::MenuItem("Load BRAM From..."))
+        if (ImGui::MenuItem("Load RAM From...", NULL, false, has_ram))
         {
             open_ram = true;
         }
