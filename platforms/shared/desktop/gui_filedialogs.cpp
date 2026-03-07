@@ -358,7 +358,7 @@ static void process_dialog_result(FileDialogID id, const char* path)
         {
             std::string str_path = path;
             std::string::size_type pos = str_path.find_last_of("\\/");
-            config_emulator.last_open_path.assign(str_path.substr(0, pos));
+            config_emulator.last_open_path.assign(str_path.substr(0, pos + 1));
             gui_load_rom(path);
             break;
         }
