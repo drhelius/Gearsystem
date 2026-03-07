@@ -22,7 +22,9 @@
 #include <ctype.h>
 #include "Processor.h"
 #include "opcode_timing.h"
+#if !defined(GS_DISABLE_DISASSEMBLER) || defined(GS_DEBUG)
 #include "opcode_names.h"
+#endif
 #include "IOPorts.h"
 #include "common.h"
 
@@ -155,7 +157,9 @@ u32 Processor::RunFor(u32 tstates)
                 LeaveHalt();
                 m_bNMIRequested = false;
                 m_bIFF1 = false;
+#if !defined(GS_DISABLE_DISASSEMBLER)
                 u16 pc = PC.GetValue();
+#endif
                 StackPush(&PC);
                 PC.SetValue(0x0066);
                 m_iTStates += 11;
@@ -173,7 +177,9 @@ u32 Processor::RunFor(u32 tstates)
                 LeaveHalt();
                 m_bIFF1 = false;
                 m_bIFF2 = false;
+#if !defined(GS_DISABLE_DISASSEMBLER)
                 u16 pc = PC.GetValue();
+#endif
                 StackPush(&PC);
                 PC.SetValue(0x0038);
                 m_iTStates += 13;

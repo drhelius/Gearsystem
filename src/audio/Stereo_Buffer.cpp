@@ -113,8 +113,8 @@ void Stereo_Buffer::mix_stereo( blip_sample_t* out, long count )
 	while ( count-- )
 	{
 		int c = l_center.read();
-		out [0] = c + l_left.read();
-		out [1] = c + l_right.read();
+		out [0] = (blip_sample_t) (c + l_left.read());
+		out [1] = (blip_sample_t) (c + l_right.read());
 		out += 2;
 		
 		l_center.next( bass );
