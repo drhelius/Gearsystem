@@ -201,9 +201,9 @@ void McpServer::HandleInitialize(const json& request)
             {"resources", json::object()}
         }},
         {"serverInfo", {
-            {"name", "geargrafx-mcp-server"},
-            {"title", "Geargrafx MCP Server"},
-            {"description", "Debug and control Geargrafx PC Engine / TurboGrafx-16 emulator. Provides tools for: execution control (pause, continue, step, reset), breakpoints (exec/read/write), memory inspection and modification, CPU/VDC/VCE/PSG register access, disassembly, save states, controller input, screenshots, and CD-ROM/Arcade Card support."},
+            {"name", "gearsystem-mcp-server"},
+            {"title", "Gearsystem MCP Server"},
+            {"description", "Debug and control Gearsystem Sega Master System / Game Gear / SG-1000 emulator. Provides tools for: execution control (pause, continue, step, reset), breakpoints (exec/read/write), memory inspection and modification, Z80 CPU register access, VDP status, PSG status, YM2413 FM synthesis status, disassembly, save states, controller input, sprites, and screenshots."},
             {"version", GS_VERSION}
         }}
     };
@@ -228,7 +228,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "debug_pause"},
         {"title", "Debug Pause"},
-        {"description", "Pause Geargrafx emulator execution (break at current instruction)"},
+        {"description", "Pause Gearsystem emulator execution (break at current instruction)"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -239,7 +239,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "debug_continue"},
         {"title", "Debug Continue"},
-        {"description", "Resume Geargrafx emulator execution"},
+        {"description", "Resume Gearsystem emulator execution"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -250,7 +250,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "debug_step_into"},
         {"title", "Debug Step Into"},
-        {"description", "Step into next HuC6280 instruction (enters subroutines)"},
+        {"description", "Step into next Z80 instruction (enters subroutines)"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -261,7 +261,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "debug_step_over"},
         {"title", "Debug Step Over"},
-        {"description", "Step over next HuC6280 instruction (skips subroutines like JSR)"},
+        {"description", "Step over next Z80 instruction (skips CALL subroutines)"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -272,7 +272,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "debug_step_out"},
         {"title", "Debug Step Out"},
-        {"description", "Step out of current subroutine (continues until RTS/RTI)"},
+        {"description", "Step out of current subroutine (continues until RET)"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -283,7 +283,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "debug_step_frame"},
         {"title", "Debug Step Frame"},
-        {"description", "Step one video frame (executes until next VBLANK on PC Engine)"},
+        {"description", "Step one video frame (executes until next VBLANK)"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -294,7 +294,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "debug_reset"},
         {"title", "Debug Reset"},
-        {"description", "Reset the PC Engine / TurboGrafx-16 emulated system"},
+        {"description", "Reset the Sega Master System / Game Gear / SG-1000 emulated system"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -317,7 +317,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "set_breakpoint"},
         {"title", "Set Breakpoint"},
-        {"description", "Set a breakpoint at specified logical address in PC Engine memory (ROM/RAM, VRAM, Palette, or hardware registers)"},
+        {"description", "Set a breakpoint at specified logical address in SMS/GG memory (ROM/RAM, VRAM, or VDP registers)"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
@@ -327,8 +327,8 @@ void McpServer::HandleToolsList(const json& request)
                 }},
                 {"memory_area", {
                     {"type", "string"},
-                    {"description", "Memory area: rom_ram (default), vram, palette, huc6270_reg, huc6260_reg"},
-                    {"enum", json::array({"rom_ram", "vram", "palette", "huc6270_reg", "huc6260_reg"})}
+                    {"description", "Memory area: rom_ram (default), vram, vdp_reg"},
+                    {"enum", json::array({"rom_ram", "vram", "vdp_reg"})}
                 }},
                 {"read", {
                     {"type", "boolean"},
@@ -364,8 +364,8 @@ void McpServer::HandleToolsList(const json& request)
                 }},
                 {"memory_area", {
                     {"type", "string"},
-                    {"description", "Memory area: rom_ram, vram, palette, huc6270_reg, huc6260_reg"},
-                    {"enum", json::array({"rom_ram", "vram", "palette", "huc6270_reg", "huc6260_reg"})}
+                    {"description", "Memory area: rom_ram, vram, vdp_reg"},
+                    {"enum", json::array({"rom_ram", "vram", "vdp_reg"})}
                 }},
                 {"read", {
                     {"type", "boolean"},
@@ -401,8 +401,8 @@ void McpServer::HandleToolsList(const json& request)
                 }},
                 {"memory_area", {
                     {"type", "string"},
-                    {"description", "Memory area: rom_ram (default), vram, palette, huc6270_reg, huc6260_reg"},
-                    {"enum", json::array({"rom_ram", "vram", "palette", "huc6270_reg", "huc6260_reg"})}
+                    {"description", "Memory area: rom_ram (default), vram, vdp_reg"},
+                    {"enum", json::array({"rom_ram", "vram", "vdp_reg"})}
                 }}
             }},
             {"required", json::array({"address"})}
@@ -482,15 +482,15 @@ void McpServer::HandleToolsList(const json& request)
 
     // Register tools
     tools.push_back({
-        {"name", "write_huc6280_register"},
-        {"title", "Write HuC6280 Register"},
-        {"description", "Write to a HuC6280 CPU register"},
+        {"name", "write_z80_register"},
+        {"title", "Write Z80 Register"},
+        {"description", "Write to a Z80 CPU register"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
                 {"name", {
                     {"type", "string"},
-                    {"description", "Register name (PC, A, X, Y, S, P)"}
+                    {"description", "Register name (AF, BC, DE, HL, AF', BC', DE', HL', IX, IY, SP, PC, WZ, A, F, B, C, D, E, H, L, I, R)"}
                 }},
                 {"value", {
                     {"type", "string"},
@@ -505,9 +505,10 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "get_disassembly"},
         {"title", "Get Disassembly"},
-        {"description", "Get disassembled HuC6280 assembly code for a logical address range. "
+        {"description", "Get disassembled Z80 assembly code for a logical address range. "
                         "Returns: logical address, bank, segment, mnemonic, and raw bytes. "
-                        "NOTE: Disassembled records only exist for code that has been executed during emulation."},
+                        "NOTE: Disassembled records only exist for code that has been executed during emulation. "
+                        "Recommended max range is 0x2000. Use multiple calls for larger areas."},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
@@ -521,13 +522,16 @@ void McpServer::HandleToolsList(const json& request)
                 }},
                 {"bank", {
                     {"type", "string"},
-                    {"description", "Optional bank in hex (00-FF). When provided, overrides the current MPR mapping for address translation. "
-                                    "The physical address is constructed as: (bank << 13) | (logical_address & 0x1FFF). "
-                                    "Use this when you want to inspect a specific ROM/RAM bank regardless of current CPU memory mapping."}
+                    {"description", "Optional ROM bank in hex (00-FF). When provided, reads disassembly records from the specified bank instead of the currently mapped one. "
+                                    "Useful for inspecting code in a bank that is not currently paged in."}
                 }},
                 {"resolve_symbols", {
                     {"type", "boolean"},
-                    {"description", "When true, replace addresses in instruction mnemonics with user-defined symbol names and hardware register labels (e.g. 'LDA MY_VAR,X' instead of 'LDA $2C00,X'). Symbol resolution for non-jump operands depends on the current MPR mapping. Default: false"}
+                    {"description", "When true, replace addresses in instruction mnemonics with user-defined symbol names. Default: false"}
+                }},
+                {"detailed", {
+                    {"type", "boolean"},
+                    {"description", "Default false. Do NOT set to true unless you specifically need opcode bytes, jump targets, or IRQ metadata. The compact format is sufficient for analyzing code."}
                 }}
             }},
             {"required", json::array({"start_address", "end_address"})}
@@ -538,7 +542,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "get_media_info"},
         {"title", "Get Media Info"},
-        {"description", "Get information about the loaded PC Engine ROM or CD-ROM (file path, type, size, console type, mapper, BIOS paths, etc.)"},
+        {"description", "Get information about the loaded SMS/GG ROM (file path, type, size, mapper, zone, etc.)"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -548,9 +552,9 @@ void McpServer::HandleToolsList(const json& request)
 
     // Chip status tools
     tools.push_back({
-        {"name", "get_huc6280_status"},
-        {"title", "Get HuC6280 Status"},
-        {"description", "Get HuC6280 CPU status (registers, MPR, timer, interrupts, I/O, speed)"},
+        {"name", "get_z80_status"},
+        {"title", "Get Z80 Status"},
+        {"description", "Get Z80 CPU status (all registers, flags, interrupts, halt, interrupt mode)"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -559,65 +563,9 @@ void McpServer::HandleToolsList(const json& request)
     });
 
     tools.push_back({
-        {"name", "get_huc6270_registers"},
-        {"title", "Get HuC6270 Registers"},
-        {"description", "Get all 20 HuC6270 VDC registers (0x00-0x13), Address Register, and Status Register. Use vdc parameter (1 or 2) for SuperGrafx"},
-        {"inputSchema", {
-            {"type", "object"},
-            {"properties", {
-                {"vdc", {
-                    {"type", "integer"},
-                    {"description", "VDC number (1 or 2 for SuperGrafx, default 1)"}
-                }}
-            }}
-        }}
-    });
-
-    tools.push_back({
-        {"name", "write_huc6270_register"},
-        {"title", "Write HuC6270 Register"},
-        {"description", "Write to a HuC6270 VDC register (0-19) or Address Register (20). Use vdc parameter (1 or 2) for SuperGrafx. Status Register is read-only."},
-        {"inputSchema", {
-            {"type", "object"},
-            {"properties", {
-                {"register", {
-                    {"type", "integer"},
-                    {"description", "Register number (0-19 for data registers, 20 for Address Register)"},
-                    {"minimum", 0},
-                    {"maximum", 20}
-                }},
-                {"value", {
-                    {"type", "string"},
-                    {"description", "16-bit hex value (e.g., '1234', '0x1234', '$1234')"}
-                }},
-                {"vdc", {
-                    {"type", "integer"},
-                    {"description", "VDC number (1 or 2 for SuperGrafx, default 1)"}
-                }}
-            }},
-            {"required", json::array({"register", "value"})}
-        }}
-    });
-
-    tools.push_back({
-        {"name", "get_huc6270_status"},
-        {"title", "Get HuC6270 Status"},
-        {"description", "Get HuC6270 VDC status (position, state, control, interrupts). Use vdc parameter (1 or 2) for SuperGrafx"},
-        {"inputSchema", {
-            {"type", "object"},
-            {"properties", {
-                {"vdc", {
-                    {"type", "integer"},
-                    {"description", "VDC number (1 or 2 for SuperGrafx, default 1)"}
-                }}
-            }}
-        }}
-    });
-
-    tools.push_back({
-        {"name", "get_huc6260_status"},
-        {"title", "Get HuC6260 Status"},
-        {"description", "Get HuC6260 VCE status (position, sync signals, control register, CTA, blur, B&W)"},
+        {"name", "get_vdp_registers"},
+        {"title", "Get VDP Registers"},
+        {"description", "Get all 11 VDP registers (R0-R10) with hex values and descriptions"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -626,9 +574,9 @@ void McpServer::HandleToolsList(const json& request)
     });
 
     tools.push_back({
-        {"name", "get_huc6202_status"},
-        {"title", "Get HuC6202 Status"},
-        {"description", "Get HuC6202 VPC status (only for SuperGrafx games - window priority, selected VDC, IRQ status)"},
+        {"name", "get_vdp_status"},
+        {"title", "Get VDP Status"},
+        {"description", "Get VDP status (flags, counters, mode, SG-1000 mode, extended mode 224)"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -639,7 +587,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "get_psg_status"},
         {"title", "Get PSG Status"},
-        {"description", "Get PSG (Programmable Sound Generator) status for all 6 channels (frequency, amplitude, waveform, noise, DDA)"},
+        {"description", "Get SN76489 PSG status for all 4 channels (3 tone + 1 noise): volume, period, frequency, GG stereo"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -648,42 +596,9 @@ void McpServer::HandleToolsList(const json& request)
     });
 
     tools.push_back({
-        {"name", "get_cdrom_status"},
-        {"title", "Get CD-ROM Status"},
-        {"description", "Get CD-ROM drive status (only for CD-ROM games)"},
-        {"inputSchema", {
-            {"type", "object"},
-            {"properties", json::object()},
-            {"additionalProperties", false}
-        }}
-    });
-
-    tools.push_back({
-        {"name", "get_arcade_card_status"},
-        {"title", "Get Arcade Card Status"},
-        {"description", "Get Arcade Card status (only for Arcade Card games)"},
-        {"inputSchema", {
-            {"type", "object"},
-            {"properties", json::object()},
-            {"additionalProperties", false}
-        }}
-    });
-
-    tools.push_back({
-        {"name", "get_cdrom_audio_status"},
-        {"title", "Get CD-ROM Audio Status"},
-        {"description", "Get CD-ROM audio playback status (only for CD-ROM games)"},
-        {"inputSchema", {
-            {"type", "object"},
-            {"properties", json::object()},
-            {"additionalProperties", false}
-        }}
-    });
-
-    tools.push_back({
-        {"name", "get_adpcm_status"},
-        {"title", "Get ADPCM Status"},
-        {"description", "Get ADPCM audio status (only for CD-ROM games)"},
+        {"name", "get_ym2413_status"},
+        {"title", "Get YM2413 Status"},
+        {"description", "Get YM2413 FM synth status: 9 channels, instruments, key-on, f-number, block, envelope, rhythm mode, user instrument"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -694,7 +609,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "get_screenshot"},
         {"title", "Get Screenshot"},
-        {"description", "Capture current PC Engine / TurboGrafx-16 screen frame as base64-encoded PNG image"},
+        {"description", "Capture current Sega Master System / Game Gear / SG-1000 screen frame as base64-encoded PNG image"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
@@ -706,13 +621,13 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "load_media"},
         {"title", "Load Media"},
-        {"description", "Load a ROM file or CD-ROM image (.pce, .sgx, .hes, .cue, .zip). Automatically loads .sym symbol file if present. Resets emulator on successful load"},
+        {"description", "Load a ROM file (.sms, .gg, .sg, .zip). Automatically loads .sym symbol file if present. Resets emulator on successful load"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
                 {"file_path", {
                     {"type", "string"},
-                    {"description", "Absolute path to ROM or CD-ROM file"}
+                    {"description", "Absolute path to ROM file"}
                 }}
             }},
             {"required", json::array({"file_path"})}
@@ -824,20 +739,20 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "controller_button"},
         {"title", "Controller Button"},
-        {"description", "Control a button on a controller (player 1-5). Use action 'press' to hold the button down, 'release' to let it go, or 'press_and_release' to simulate a quick button tap (presses and automatically releases after a few frames). Buttons: up, down, left, right, select, run, I, II, III, IV, V, VI"},
+        {"description", "Control a button on a controller (player 1-2). Use action 'press' to hold the button down, 'release' to let it go, or 'press_and_release' to simulate a quick button tap. Buttons: up, down, left, right, 1, 2, start"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
                 {"player", {
                     {"type", "integer"},
-                    {"description", "Player number (1-5)"},
+                    {"description", "Player number (1-2)"},
                     {"minimum", 1},
-                    {"maximum", 5}
+                    {"maximum", 2}
                 }},
                 {"button", {
                     {"type", "string"},
-                    {"description", "Button name: up, down, left, right, select, run, I, II, III, IV, V, VI"},
-                    {"enum", json::array({"up", "down", "left", "right", "select", "run", "I", "II", "III", "IV", "V", "VI"})}
+                    {"description", "Button name: up, down, left, right, 1, 2, start"},
+                    {"enum", json::array({"up", "down", "left", "right", "1", "2", "start"})}
                 }},
                 {"action", {
                     {"type", "string"},
@@ -850,91 +765,26 @@ void McpServer::HandleToolsList(const json& request)
     });
 
     tools.push_back({
-        {"name", "controller_set_type"},
-        {"title", "Controller Set Type"},
-        {"description", "Set controller type for a player (1-5). Types: standard (2 buttons), avenue_pad_3 (3 buttons), avenue_pad_6 (6 buttons)"},
-        {"inputSchema", {
-            {"type", "object"},
-            {"properties", {
-                {"player", {
-                    {"type", "integer"},
-                    {"description", "Player number (1-5)"},
-                    {"minimum", 1},
-                    {"maximum", 5}
-                }},
-                {"type", {
-                    {"type", "string"},
-                    {"description", "Controller type"},
-                    {"enum", json::array({"standard", "avenue_pad_3", "avenue_pad_6"})}
-                }}
-            }},
-            {"required", json::array({"player", "type"})}
-        }}
-    });
-
-    tools.push_back({
-        {"name", "controller_set_turbo_tap"},
-        {"title", "Controller Set Turbo Tap"},
-        {"description", "Enable or disable Turbo Tap (multitap) to allow 5 players. Disable for single player only"},
-        {"inputSchema", {
-            {"type", "object"},
-            {"properties", {
-                {"enabled", {
-                    {"type", "boolean"},
-                    {"description", "true to enable Turbo Tap (5 players), false for single player"}
-                }}
-            }},
-            {"required", json::array({"enabled"})}
-        }}
-    });
-
-    tools.push_back({
-        {"name", "controller_get_type"},
-        {"title", "Controller Get Type"},
-        {"description", "Get the current controller type for a player (1-5). Returns: standard, avenue_pad_3, or avenue_pad_6"},
-        {"inputSchema", {
-            {"type", "object"},
-            {"properties", {
-                {"player", {
-                    {"type", "integer"},
-                    {"description", "Player number (1-5)"},
-                    {"minimum", 1},
-                    {"maximum", 5}
-                }}
-            }},
-            {"required", json::array({"player"})}
-        }}
-    });
-
-    tools.push_back({
         {"name", "list_sprites"},
         {"title", "List Sprites"},
-        {"description", "List information for all 64 hardware sprites (position, size, pattern index, palette, flags). Use vdc parameter (1 or 2) for SuperGrafx dual VDC"},
+        {"description", "List information for all hardware sprites (position, size, pattern index)"},
         {"inputSchema", {
             {"type", "object"},
-            {"properties", {
-                {"vdc", {
-                    {"type", "integer"},
-                    {"description", "VDC number (1 or 2 for SuperGrafx, default 1)"}
-                }}
-            }}
+            {"properties", json::object()},
+            {"additionalProperties", false}
         }}
     });
 
     tools.push_back({
         {"name", "get_sprite_image"},
         {"title", "Get Sprite Image"},
-        {"description", "Get the image of a specific sprite as base64-encoded PNG. Use vdc parameter (1 or 2) for SuperGrafx"},
+        {"description", "Get the image of a specific sprite as base64-encoded PNG"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
                 {"sprite_index", {
                     {"type", "integer"},
                     {"description", "Sprite index (0-63)"}
-                }},
-                {"vdc", {
-                    {"type", "integer"},
-                    {"description", "VDC number (1 or 2 for SuperGrafx, default 1)"}
                 }}
             }},
             {"required", json::array({"sprite_index"})}
@@ -1347,20 +1197,10 @@ void McpServer::HandleToolsCall(const json& request)
 
 static int GetBreakpointTypeFromString(const std::string& memory_area)
 {
-/*
-    if (memory_area == "rom_ram") return HuC6280::HuC6280_BREAKPOINT_TYPE_ROMRAM;
-    if (memory_area == "vram") return HuC6280::HuC6280_BREAKPOINT_TYPE_VRAM;
-    if (memory_area == "palette") return HuC6280::HuC6280_BREAKPOINT_TYPE_PALETTE_RAM;
-    if (memory_area == "huc6270_reg") return HuC6280::HuC6280_BREAKPOINT_TYPE_HUC6270_REGISTER;
-    if (memory_area == "huc6260_reg") return HuC6280::HuC6280_BREAKPOINT_TYPE_HUC6260_REGISTER;
-    return HuC6280::HuC6280_BREAKPOINT_TYPE_ROMRAM; // default
-*/
-    if (memory_area == "rom_ram") return 0;
-    if (memory_area == "vram") return 1;
-    if (memory_area == "palette") return 2;
-    if (memory_area == "huc6270_reg") return 3;
-    if (memory_area == "huc6260_reg") return 4;
-    return 0; // default rom_ram
+    if (memory_area == "rom_ram") return Processor::GS_BREAKPOINT_TYPE_ROMRAM;
+    if (memory_area == "vram") return Processor::GS_BREAKPOINT_TYPE_VRAM;
+    if (memory_area == "vdp_reg") return Processor::GS_BREAKPOINT_TYPE_VDP_REGISTER;
+    return Processor::GS_BREAKPOINT_TYPE_ROMRAM; // default
 }
 
 json McpServer::ExecuteCommand(const std::string& toolName, const json& arguments)
@@ -1579,7 +1419,7 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
         return {{"success", true}, {"area", area}, {"offset", offsetStr}, {"bytes_written", data.size()}};
     }
     // Registers
-    else if (normalizedTool == "write_huc6280_register")
+    else if (normalizedTool == "write_z80_register")
     {
         std::string name = arguments["name"];
         std::string valueStr = arguments["value"];
@@ -1609,7 +1449,11 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
         if (start_address > end_address)
             return {{"error", "start_address must be <= end_address"}};
 
-        // Optional bank parameter (-1 means use current MPR mappings)
+        u32 range_size = (u32)end_address - (u32)start_address + 1;
+        if (range_size > 0x2000)
+            return {{"error", "Address range too large. Maximum range is 0x2000 (8KB). Use smaller ranges for disassembly."}};
+
+        // Optional bank parameter (-1 means use current mapper mappings)
         int bank = -1;
         if (arguments.contains("bank"))
         {
@@ -1624,42 +1468,66 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
         if (arguments.contains("resolve_symbols") && arguments["resolve_symbols"].is_boolean())
             resolve_symbols = arguments["resolve_symbols"].get<bool>();
 
+        bool detailed = false;
+        if (arguments.contains("detailed") && arguments["detailed"].is_boolean())
+            detailed = arguments["detailed"].get<bool>();
+
         std::vector<DisasmLine> lines = m_debugAdapter.GetDisassembly(start_address, end_address, bank, resolve_symbols);
 
         json result;
-        json instructions = json::array();
 
-        for (const DisasmLine& line : lines)
+        if (detailed)
         {
-            json instr;
-            std::ostringstream addr_ss, bank_ss, jump_ss;
+            json instructions = json::array();
 
-            addr_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << line.address;
-            bank_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << (int)line.bank;
-
-            instr["address"] = addr_ss.str();
-            instr["bank"] = bank_ss.str();
-            instr["segment"] = line.segment;
-            instr["instruction"] = line.name;
-            instr["bytes"] = line.bytes;
-            instr["size"] = line.size;
-
-            if (line.jump)
+            for (const DisasmLine& line : lines)
             {
-                jump_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << line.jump_address;
-                instr["jump_target"] = jump_ss.str();
-                instr["is_subroutine"] = line.subroutine;
+                json instr;
+                std::ostringstream addr_ss, bank_ss, jump_ss;
+
+                addr_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << line.address;
+                bank_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << (int)line.bank;
+
+                instr["address"] = addr_ss.str();
+                instr["bank"] = bank_ss.str();
+                instr["segment"] = line.segment;
+                instr["instruction"] = line.name;
+                instr["bytes"] = line.bytes;
+                instr["size"] = line.size;
+
+                if (line.jump)
+                {
+                    jump_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << line.jump_address;
+                    instr["jump_target"] = jump_ss.str();
+                    instr["is_subroutine"] = line.subroutine;
+                }
+
+                if (line.irq > 0)
+                {
+                    instr["irq"] = line.irq;
+                }
+
+                instructions.push_back(instr);
             }
 
-            if (line.irq > 0)
+            result["instructions"] = instructions;
+        }
+        else
+        {
+            json instructions = json::array();
+
+            for (const DisasmLine& line : lines)
             {
-                instr["irq"] = line.irq;
+                std::ostringstream ss;
+                ss << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << (int)line.bank;
+                ss << ":" << std::setw(4) << line.address;
+                ss << "  " << line.name;
+                instructions.push_back(ss.str());
             }
 
-            instructions.push_back(instr);
+            result["instructions"] = instructions;
         }
 
-        result["instructions"] = instructions;
         result["count"] = lines.size();
         result["start_address"] = startAddrStr;
         result["end_address"] = endAddrStr;
@@ -1683,59 +1551,25 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
         return m_debugAdapter.GetMediaInfo();
     }
     // Chip status
-    else if (normalizedTool == "get_huc6280_status")
+    else if (normalizedTool == "get_z80_status")
     {
-        return m_debugAdapter.GetHuC6280Status();
+        return m_debugAdapter.GetZ80Status();
     }
-    else if (normalizedTool == "get_huc6270_registers")
+    else if (normalizedTool == "get_vdp_registers")
     {
-        int vdc = arguments.value("vdc", 1);
-        return m_debugAdapter.GetHuC6270Registers(vdc);
+        return m_debugAdapter.GetVDPRegisters();
     }
-    else if (normalizedTool == "write_huc6270_register")
+    else if (normalizedTool == "get_vdp_status")
     {
-        int reg = arguments["register"];
-        std::string valueStr = arguments["value"];
-        int vdc = arguments.value("vdc", 1);
-
-        u16 value;
-        if (!parse_hex_with_prefix(valueStr, &value))
-            return {{"error", "Invalid value format"}};
-        
-        return m_debugAdapter.WriteHuC6270Register(vdc, reg, value);
-    }
-    else if (normalizedTool == "get_huc6270_status")
-    {
-        int vdc = arguments.value("vdc", 1);
-        return m_debugAdapter.GetHuC6270Status(vdc);
-    }
-    else if (normalizedTool == "get_huc6260_status")
-    {
-        return m_debugAdapter.GetHuC6260Status();
-    }
-    else if (normalizedTool == "get_huc6202_status")
-    {
-        return m_debugAdapter.GetHuC6202Status();
+        return m_debugAdapter.GetVDPStatus();
     }
     else if (normalizedTool == "get_psg_status")
     {
         return m_debugAdapter.GetPSGStatus();
     }
-    else if (normalizedTool == "get_cdrom_status")
+    else if (normalizedTool == "get_ym2413_status")
     {
-        return m_debugAdapter.GetCDROMStatus();
-    }
-    else if (normalizedTool == "get_arcade_card_status")
-    {
-        return m_debugAdapter.GetArcadeCardStatus();
-    }
-    else if (normalizedTool == "get_cdrom_audio_status")
-    {
-        return m_debugAdapter.GetCDROMAudioStatus();
-    }
-    else if (normalizedTool == "get_adpcm_status")
-    {
-        return m_debugAdapter.GetADPCMStatus();
+        return m_debugAdapter.GetYM2413Status();
     }
     else if (normalizedTool == "get_screenshot")
     {
@@ -1786,32 +1620,14 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
         std::string action = arguments["action"];
         return m_debugAdapter.ControllerButton(player, button, action);
     }
-    else if (normalizedTool == "controller_set_type")
-    {
-        int player = arguments["player"];
-        std::string type = arguments["type"];
-        return m_debugAdapter.ControllerSetType(player, type);
-    }
-    else if (normalizedTool == "controller_set_turbo_tap")
-    {
-        bool enabled = arguments["enabled"];
-        return m_debugAdapter.ControllerSetTurboTap(enabled);
-    }
-    else if (normalizedTool == "controller_get_type")
-    {
-        int player = arguments["player"];
-        return m_debugAdapter.ControllerGetType(player);
-    }
     else if (normalizedTool == "list_sprites")
     {
-        int vdc = arguments.value("vdc", 1);
-        return m_debugAdapter.ListSprites(vdc);
+        return m_debugAdapter.ListSprites();
     }
     else if (normalizedTool == "get_sprite_image")
     {
         int sprite_index = arguments.value("sprite_index", 0);
-        int vdc = arguments.value("vdc", 1);
-        return m_debugAdapter.GetSpriteImage(sprite_index, vdc);
+        return m_debugAdapter.GetSpriteImage(sprite_index);
     }
     // Disassembler operations
     else if (normalizedTool == "debug_run_to_cursor")
@@ -2051,7 +1867,7 @@ void McpServer::LoadResourcesFromCategory(const std::string& category, const std
             continue;
 
         ResourceInfo resource;
-        resource.uri = "geargrafx://" + category + "/" + item["uri"].get<std::string>();
+        resource.uri = "gearsystem://" + category + "/" + item["uri"].get<std::string>();
         resource.title = item["title"].get<std::string>();
         resource.description = item.contains("description") ? item["description"].get<std::string>() : "";
         resource.mimeType = item.contains("mimeType") ? item["mimeType"].get<std::string>() : "text/plain";

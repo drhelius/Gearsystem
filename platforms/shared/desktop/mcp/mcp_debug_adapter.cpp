@@ -113,18 +113,12 @@ json DebugAdapter::GetDebugStatus()
 
 void DebugAdapter::SetBreakpoint(u16 address, int type, bool read, bool write, bool execute)
 {
-    (void)address;
-    (void)type;
-    (void)read;
-    (void)write;
-    (void)execute;
-/*
     Processor* cpu = m_core->GetProcessor();
 
     char buffer[16];
     snprintf(buffer, sizeof(buffer), "%04X", address);
 
-    if (type == HuC6280::HuC6280_BREAKPOINT_TYPE_ROMRAM && execute && !read && !write)
+    if (type == Processor::GS_BREAKPOINT_TYPE_ROMRAM && execute && !read && !write)
     {
         cpu->AddBreakpoint(address);
     }
@@ -132,39 +126,26 @@ void DebugAdapter::SetBreakpoint(u16 address, int type, bool read, bool write, b
     {
         cpu->AddBreakpoint(type, buffer, read, write, execute);
     }
-*/
 }
 
 void DebugAdapter::SetBreakpointRange(u16 start_address, u16 end_address, int type, bool read, bool write, bool execute)
 {
-    (void)start_address;
-    (void)end_address;
-    (void)type;
-    (void)read;
-    (void)write;
-    (void)execute;
-/*
     Processor* cpu = m_core->GetProcessor();
 
     char buffer[16];
     snprintf(buffer, sizeof(buffer), "%04X-%04X", start_address, end_address);
 
     cpu->AddBreakpoint(type, buffer, read, write, execute);
-*/
 }
 
 void DebugAdapter::ClearBreakpointByAddress(u16 address, int type, u16 end_address)
 {
-    (void)address;
-    (void)type;
-    (void)end_address;
-/*
     Processor* cpu = m_core->GetProcessor();
-    std::vector<HuC6280::GG_Breakpoint>* breakpoints = cpu->GetBreakpoints();
+    std::vector<Processor::GS_Breakpoint>* breakpoints = cpu->GetBreakpoints();
 
     for (int i = (int)breakpoints->size() - 1; i >= 0; i--)
     {
-        HuC6280::GG_Breakpoint& bp = (*breakpoints)[i];
+        Processor::GS_Breakpoint& bp = (*breakpoints)[i];
 
         if (bp.type != type)
             continue;
@@ -180,16 +161,15 @@ void DebugAdapter::ClearBreakpointByAddress(u16 address, int type, u16 end_addre
                 breakpoints->erase(breakpoints->begin() + i);
         }
     }
-*/
 }
 
 std::vector<BreakpointInfo> DebugAdapter::ListBreakpoints()
 {
     std::vector<BreakpointInfo> result;
-/*    Processor* cpu = m_core->GetProcessor();
-    std::vector<HuC6280::GG_Breakpoint>* breakpoints = cpu->GetBreakpoints();
+    Processor* cpu = m_core->GetProcessor();
+    std::vector<Processor::GS_Breakpoint>* breakpoints = cpu->GetBreakpoints();
 
-    for (const HuC6280::GG_Breakpoint& brk : *breakpoints)
+    for (const Processor::GS_Breakpoint& brk : *breakpoints)
     {
         BreakpointInfo info;
         info.enabled = brk.enabled;
@@ -203,67 +183,95 @@ std::vector<BreakpointInfo> DebugAdapter::ListBreakpoints()
         info.type_name = GetBreakpointTypeName(brk.type);
         result.push_back(info);
     }
-*/
+
     return result;
 }
 
 RegistersSnapshot DebugAdapter::GetRegisters()
 {
-/*
     Debug("[MCP] GetRegisters: start");
 
-    Debug("[MCP] GetRegisters: m_core = %p", (void*)m_core);
-
     Processor* cpu = m_core->GetProcessor();
-    Debug("[MCP] GetRegisters: cpu = %p", (void*)cpu);
+    Processor::ProcessorState* state = cpu->GetState();
 
-    HuC6280::HuC6280_State* state = cpu->GetState();
-    Debug("[MCP] GetRegisters: state = %p", (void*)state);
-*/
     Debug("[MCP] GetRegisters: creating snapshot");
     RegistersSnapshot snapshot;
-/*
-    Debug("[MCP] GetRegisters: reading PC (ptr=%p)", (void*)state->PC);
-    snapshot.PC = state->PC->GetValue();
 
-    Debug("[MCP] GetRegisters: reading A (ptr=%p)", (void*)state->A);
-    snapshot.A = state->A->GetValue();
-    snapshot.X = state->X->GetValue();
-    snapshot.Y = state->Y->GetValue();
-    snapshot.S = state->S->GetValue();
-    snapshot.P = state->P->GetValue();
-    snapshot.SPEED = *state->SPEED;
-    snapshot.TIMER = *state->TIMER;
-    snapshot.TIMER_COUNTER = *state->TIMER_COUNTER;
-    snapshot.TIMER_RELOAD = *state->TIMER_RELOAD;
-    snapshot.IDR = *state->IDR;
-    snapshot.IRR = *state->IRR;
-*/
+    snapshot.AF = state->AF->GetValue();
+    snapshot.BC = state->BC->GetValue();
+    snapshot.DE = state->DE->GetValue();
+    snapshot.HL = state->HL->GetValue();
+    snapshot.AF2 = state->AF2->GetValue();
+    snapshot.BC2 = state->BC2->GetValue();
+    snapshot.DE2 = state->DE2->GetValue();
+    snapshot.HL2 = state->HL2->GetValue();
+    snapshot.IX = state->IX->GetValue();
+    snapshot.IY = state->IY->GetValue();
+    snapshot.SP = state->SP->GetValue();
+    snapshot.PC = state->PC->GetValue();
+    snapshot.WZ = state->WZ->GetValue();
+    snapshot.I = *state->I;
+    snapshot.R = *state->R;
+    snapshot.IFF1 = *state->IFF1;
+    snapshot.IFF2 = *state->IFF2;
+    snapshot.Halt = *state->Halt;
+    snapshot.InterruptMode = *state->InterruptMode;
+
     Debug("[MCP] GetRegisters: done (PC=%04X)", snapshot.PC);
     return snapshot;
 }
 
 void DebugAdapter::SetRegister(const std::string& name, u32 value)
 {
-    (void)name;
-    (void)value;
-/*
     Processor* cpu = m_core->GetProcessor();
-    HuC6280::HuC6280_State* state = cpu->GetState();
+    Processor::ProcessorState* state = cpu->GetState();
 
-    if (name == "PC")
+    if (name == "AF")
+        state->AF->SetValue((u16)value);
+    else if (name == "BC")
+        state->BC->SetValue((u16)value);
+    else if (name == "DE")
+        state->DE->SetValue((u16)value);
+    else if (name == "HL")
+        state->HL->SetValue((u16)value);
+    else if (name == "AF'" || name == "AF2")
+        state->AF2->SetValue((u16)value);
+    else if (name == "BC'" || name == "BC2")
+        state->BC2->SetValue((u16)value);
+    else if (name == "DE'" || name == "DE2")
+        state->DE2->SetValue((u16)value);
+    else if (name == "HL'" || name == "HL2")
+        state->HL2->SetValue((u16)value);
+    else if (name == "IX")
+        state->IX->SetValue((u16)value);
+    else if (name == "IY")
+        state->IY->SetValue((u16)value);
+    else if (name == "SP")
+        state->SP->SetValue((u16)value);
+    else if (name == "PC")
         state->PC->SetValue((u16)value);
+    else if (name == "WZ")
+        state->WZ->SetValue((u16)value);
     else if (name == "A")
-        state->A->SetValue((u8)value);
-    else if (name == "X")
-        state->X->SetValue((u8)value);
-    else if (name == "Y")
-        state->Y->SetValue((u8)value);
-    else if (name == "S")
-        state->S->SetValue((u8)value);
-    else if (name == "P")
-        state->P->SetValue((u8)value);
-*/
+        state->AF->SetHigh((u8)value);
+    else if (name == "F")
+        state->AF->SetLow((u8)value);
+    else if (name == "B")
+        state->BC->SetHigh((u8)value);
+    else if (name == "C")
+        state->BC->SetLow((u8)value);
+    else if (name == "D")
+        state->DE->SetHigh((u8)value);
+    else if (name == "E")
+        state->DE->SetLow((u8)value);
+    else if (name == "H")
+        state->HL->SetHigh((u8)value);
+    else if (name == "L")
+        state->HL->SetLow((u8)value);
+    else if (name == "I")
+        *state->I = (u8)value;
+    else if (name == "R")
+        *state->R = (u8)value;
 }
 
 std::vector<MemoryAreaInfo> DebugAdapter::ListMemoryAreas()
@@ -318,14 +326,11 @@ void DebugAdapter::WriteMemoryArea(int area, u32 offset, const std::vector<u8>& 
 std::vector<DisasmLine> DebugAdapter::GetDisassembly(u16 start_address, u16 end_address, int bank, bool resolve_symbols)
 {
     std::vector<DisasmLine> result;
-    (void)start_address;
-    (void)end_address;
-    (void)bank;
-    (void)resolve_symbols;
-/*
+    Memory* memory = m_core->GetMemory();
+
     bool use_explicit_bank = (bank >= 0 && bank <= 0xFF);
 
-    // Scan backwards from to find any instruction that might span into our range
+    // Scan backwards to find any instruction that might span into our range
     u16 scan_start = start_address;
     const int MAX_INSTRUCTION_SIZE = 7;
 
@@ -337,7 +342,7 @@ std::vector<DisasmLine> DebugAdapter::GetDisassembly(u16 start_address, u16 end_
         {
             u16 start_offset = start_address & 0x1FFF;
             if (lookback > start_offset)
-                break;  // Would go past bank boundary
+                break;
             check_addr = (start_address & 0xE000) | (start_offset - lookback);
         }
 
@@ -354,32 +359,30 @@ std::vector<DisasmLine> DebugAdapter::GetDisassembly(u16 start_address, u16 end_
 
         if (IsValidPointer(record) && record->name[0] != 0)
         {
-            // Check if this instruction spans into our range
             u16 instr_end = check_addr + record->size - 1;
             if (instr_end >= start_address)
             {
-                // This instruction overlaps with our range, start from here
                 scan_start = check_addr;
                 break;
             }
         }
     }
 
-    u16 addr = scan_start;
+    u32 addr = scan_start;
 
-    while (addr <= end_address)
+    while (addr <= (u32)end_address)
     {
         GS_Disassembler_Record* record = NULL;
 
         if (use_explicit_bank)
-            record = memory->GetDisassemblerRecord(addr, (u8)bank);
+            record = memory->GetDisassemblerRecord((u16)addr, (u8)bank);
         else
-            record = memory->GetDisassemblerRecord(addr);
+            record = memory->GetDisassemblerRecord((u16)addr);
 
         if (IsValidPointer(record) && record->name[0] != 0)
         {
             DisasmLine line;
-            line.address = addr;
+            line.address = (u16)addr;
             line.bank = record->bank;
             line.name = record->name;
             strip_color_tags(line.name);
@@ -391,7 +394,6 @@ std::vector<DisasmLine> DebugAdapter::GetDisassembly(u16 start_address, u16 end_
             line.jump_bank = record->jump_bank;
             line.has_operand_address = record->has_operand_address;
             line.operand_address = record->operand_address;
-            line.operand_is_zp = record->operand_is_zp;
             line.subroutine = record->subroutine;
             line.irq = record->irq;
 
@@ -405,22 +407,19 @@ std::vector<DisasmLine> DebugAdapter::GetDisassembly(u16 start_address, u16 end_
 
             result.push_back(line);
 
-            // Move to next instruction
-            // Handle wrap-around within the bank when explicit bank is used
             if (use_explicit_bank)
             {
-                u16 offset_in_bank = addr & 0x1FFF;
+                u16 offset_in_bank = (u16)addr & 0x1FFF;
                 offset_in_bank += (u16)record->size;
                 if (offset_in_bank >= 0x2000)
                 {
-                    // Reached end of bank
                     break;
                 }
                 addr = (start_address & 0xE000) | offset_in_bank;
             }
             else
             {
-                addr = addr + (u16)record->size;
+                addr = addr + (u32)record->size;
             }
 
             if (record->size == 0)
@@ -428,38 +427,26 @@ std::vector<DisasmLine> DebugAdapter::GetDisassembly(u16 start_address, u16 end_
         }
         else
         {
-            // No record at this address, try next byte
             addr++;
         }
-
-        if (addr < start_address && !use_explicit_bank)
-            break;
     }
-*/
+
     return result;
 }
 
 const char* DebugAdapter::GetBreakpointTypeName(int type)
 {
-/*
     switch (type)
     {
-        case HuC6280::HuC6280_BREAKPOINT_TYPE_ROMRAM:
+        case Processor::GS_BREAKPOINT_TYPE_ROMRAM:
             return "ROM/RAM";
-        case HuC6280::HuC6280_BREAKPOINT_TYPE_VRAM:
+        case Processor::GS_BREAKPOINT_TYPE_VRAM:
             return "VRAM";
-        case HuC6280::HuC6280_BREAKPOINT_TYPE_PALETTE_RAM:
-            return "PALETTE";
-        case HuC6280::HuC6280_BREAKPOINT_TYPE_HUC6270_REGISTER:
-            return "6270 REG";
-        case HuC6280::HuC6280_BREAKPOINT_TYPE_HUC6260_REGISTER:
-            return "6260 REG";
+        case Processor::GS_BREAKPOINT_TYPE_VDP_REGISTER:
+            return "VDP REG";
         default:
             return "UNKNOWN";
     }
-*/
-    (void)type;
-    return "UNKNOWN";
 }
 
 MemoryAreaInfo DebugAdapter::GetMemoryAreaInfo(int area)
@@ -468,848 +455,603 @@ MemoryAreaInfo DebugAdapter::GetMemoryAreaInfo(int area)
     info.id = area;
     info.data = NULL;
     info.size = 0;
-/*
+
     Memory* memory = m_core->GetMemory();
-    Media* media = m_core->GetCartridge();
-    HuC6260* huc6260 = m_core->GetHuC6260();
-    HuC6270* huc6270_1 = m_core->GetHuC6270_1();
-    HuC6270* huc6270_2 = m_core->GetHuC6270_2();
-    Adpcm* adpcm = m_core->GetAdpcm();
-    bool is_sgx = media->IsSGX();
+    Cartridge* cart = m_core->GetCartridge();
+    Video* video = m_core->GetVideo();
+    MemoryRule* rule = memory->GetCurrentRule();
 
     switch (area)
     {
+        case MEMORY_EDITOR_FIXED_1K:
+            info.name = "FIXED 1KB";
+            info.data = memory->GetMemoryMap();
+            info.size = 0x400;
+            break;
+        case MEMORY_EDITOR_ROM0_SEGA:
+            info.name = "ROM0";
+            if (IsValidPointer(rule->GetPage(0)))
+            {
+                info.data = rule->GetPage(0) + 0x400;
+                info.size = 0x4000 - 0x400;
+            }
+            break;
+        case MEMORY_EDITOR_ROM0:
+            info.name = "ROM0";
+            info.data = rule->GetPage(0);
+            info.size = rule->Has8kBanks() ? 0x2000 : 0x4000;
+            break;
+        case MEMORY_EDITOR_ROM1:
+            info.name = "ROM1";
+            info.data = rule->GetPage(1);
+            info.size = rule->Has8kBanks() ? 0x2000 : 0x4000;
+            break;
+        case MEMORY_EDITOR_ROM2_CODEMASTERS:
+            info.name = "ROM2";
+            info.data = rule->GetPage(2);
+            info.size = 0x2000;
+            break;
+        case MEMORY_EDITOR_EXT_RAM:
+            info.name = "EXT RAM";
+            info.data = rule->GetRamBanks();
+            info.size = IsValidPointer(rule->GetRamBanks()) ? 0x2000 : 0;
+            break;
+        case MEMORY_EDITOR_ROM2:
+            info.name = "ROM2";
+            info.data = rule->GetPage(2);
+            info.size = rule->Has8kBanks() ? 0x2000 : 0x4000;
+            break;
         case MEMORY_EDITOR_RAM:
-            info.name = "WRAM";
-            info.data = memory->GetWorkingRAM();
-            info.size = 0x2000 * (is_sgx ? 4 : 1);
+            info.name = "RAM";
+            info.data = memory->GetMemoryMap() + 0xC000;
+            info.size = 0x4000;
             break;
-        case MEMORY_EDITOR_ZERO_PAGE:
-            info.name = "ZP";
-            info.data = memory->GetWorkingRAM();
-            info.size = 0x100;
+        case MEMORY_EDITOR_VRAM:
+            info.name = "VRAM";
+            info.data = video->GetVRAM();
+            info.size = 0x4000;
             break;
+        case MEMORY_EDITOR_CRAM:
+            info.name = "CRAM";
+            info.data = video->GetCRAM();
+            info.size = 0x40;
+            break;
+        case MEMORY_EDITOR_ROM0_8K:
+        case MEMORY_EDITOR_ROM1_8K:
+        case MEMORY_EDITOR_ROM2_8K:
+        case MEMORY_EDITOR_ROM3_8K:
+        case MEMORY_EDITOR_ROM4_8K:
+        case MEMORY_EDITOR_ROM5_8K:
+        {
+            int page = area - MEMORY_EDITOR_ROM0_8K;
+            char label[16];
+            snprintf(label, 16, "ROM%d", page);
+            info.name = label;
+            info.data = rule->GetPage(page);
+            info.size = 0x2000;
+            break;
+        }
         case MEMORY_EDITOR_ROM:
-            info.name = "ROM";
-            info.data = media->GetROM();
-            info.size = media->GetROMSize();
+            info.name = "FULL ROM";
+            info.data = cart->GetROM();
+            info.size = cart->GetROMSize();
             break;
-        case MEMORY_EDITOR_CARD_RAM:
-            info.name = "CARD RAM";
-            info.data = memory->GetCardRAM();
-            info.size = memory->GetCardRAMSize();
-            break;
-        case MEMORY_EDITOR_BACKUP_RAM:
-            info.name = "BRAM";
-            info.data = memory->GetBackupRAM();
-            info.size = memory->IsBackupRamEnabled() ? 0x800 : 0;
-            break;
-        case MEMORY_EDITOR_PALETTES:
-            info.name = "PALETTES";
-            info.data = (u8*)huc6260->GetColorTable();
-            info.size = 512;
-            break;
-        case MEMORY_EDITOR_VRAM_1:
-            info.name = is_sgx ? "VRAM 1" : "VRAM";
-            info.data = (u8*)huc6270_1->GetVRAM();
-            info.size = HUC6270_VRAM_SIZE;
-            break;
-        case MEMORY_EDITOR_VRAM_2:
-            if (is_sgx)
+        case MEMORY_EDITOR_BIOS:
+            if (IsValidPointer(memory->GetBootrom()))
             {
-                info.name = "VRAM 2";
-                info.data = (u8*)huc6270_2->GetVRAM();
-                info.size = HUC6270_VRAM_SIZE;
-            }
-            break;
-        case MEMORY_EDITOR_SAT_1:
-            info.name = is_sgx ? "SAT 1" : "SAT";
-            info.data = (u8*)huc6270_1->GetSAT();
-            info.size = HUC6270_SAT_SIZE;
-            break;
-        case MEMORY_EDITOR_SAT_2:
-            if (is_sgx)
-            {
-                info.name = "SAT 2";
-                info.data = (u8*)huc6270_2->GetSAT();
-                info.size = HUC6270_SAT_SIZE;
-            }
-            break;
-        case MEMORY_EDITOR_CDROM_RAM:
-            if (media->IsCDROM())
-            {
-                info.name = "CDROM RAM";
-                info.data = memory->GetCDROMRAM();
-                info.size = memory->GetCDROMRAMSize();
-            }
-            break;
-        case MEMORY_EDITOR_ADPCM_RAM:
-            if (media->IsCDROM())
-            {
-                info.name = "ADPCM";
-                info.data = adpcm->GetRAM();
-                info.size = 0x10000;
-            }
-            break;
-        case MEMORY_EDITOR_ARCADE_RAM:
-            if (media->IsArcadeCard())
-            {
-                info.name = "ARCADE";
-                info.data = memory->GetArcadeRAM();
-                info.size = memory->GetArcadeCardRAMSize();
-            }
-            break;
-        case MEMORY_EDITOR_MB128:
-            if (m_core->GetInput()->GetMB128()->IsConnected())
-            {
-                info.name = "MB128";
-                info.data = m_core->GetInput()->GetMB128()->GetRAM();
-                info.size = 0x20000;
+                info.name = "BIOS";
+                info.data = memory->GetBootrom();
+                info.size = memory->GetBootromSize();
             }
             break;
         default:
             break;
     }
-*/
+
     return info;
 }
 
 json DebugAdapter::GetMediaInfo()
 {
     json info;
-/*
-    Media* media = m_core->GetCartridge();
+    Cartridge* cart = m_core->GetCartridge();
 
-    info["ready"] = media->IsReady();
-    info["file_path"] = media->GetFilePath();
-    info["file_name"] = media->GetFileName();
-    info["file_directory"] = media->GetFileDirectory();
-    info["file_extension"] = media->GetFileExtension();
+    info["ready"] = cart->IsReady();
+    info["file_path"] = cart->GetFilePath();
+    info["file_name"] = cart->GetFileName();
+    info["file_directory"] = cart->GetFileDirectory();
 
     std::ostringstream crc_ss;
-    crc_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(8) << media->GetCRC();
+    crc_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(8) << cart->GetCRC();
     info["crc"] = crc_ss.str();
 
-    info["is_hes"] = media->IsHES();
-    info["is_sgx"] = media->IsSGX();
-    info["is_cdrom"] = media->IsCDROM();
-    info["is_gameexpress"] = media->IsGameExpress();
-    info["is_arcade_card"] = media->IsArcadeCard();
-    info["is_mb128"] = media->IsMB128();
+    info["is_game_gear"] = cart->IsGameGear();
+    info["is_sg1000"] = cart->IsSG1000();
+    info["is_pal"] = cart->IsPAL();
 
-    info["rom_size"] = media->GetROMSize();
-    info["card_ram_size"] = media->GetCardRAMSize();
+    info["rom_size"] = cart->GetROMSize();
+    info["rom_bank_count"] = cart->GetROMBankCount();
+    info["rom_bank_count_8k"] = cart->GetROMBankCount8k();
 
-    GG_Console_Type console_type = media->GetConsoleType();
-    switch (console_type)
-    {
-        case GG_CONSOLE_PCE:
-            info["console_type"] = "PC Engine";
-            break;
-        case GG_CONSOLE_TG16:
-            info["console_type"] = "TurboGrafx-16";
-            break;
-        case GG_CONSOLE_SGX:
-            info["console_type"] = "SuperGrafx";
-            break;
-        default:
-            info["console_type"] = "Unknown";
-            break;
-    }
+    Cartridge::CartridgeTypes type = cart->GetType();
+    const char* type_names[] = {
+        "ROM Only", "Sega", "Codemasters", "SG-1000",
+        "Korean", "Korean MSX SMS 8000", "Korean SMS 32KB 2000",
+        "Korean MSX 32KB 2000", "Korean 2000 XOR 1F", "Korean MSX 8KB 0300",
+        "Korean 0000 XOR FF", "Korean FFFF HiCom", "Korean FFFE",
+        "Korean BFFC", "Korean FFF3 FFFC", "Korean MD FFF5",
+        "Korean MD FFF0", "MSX", "Janggun", "Multi 4PAK All Action",
+        "Jumbo Dahjee", "EEPROM 93C46", "Iratahack", "Not Supported"
+    };
+    int type_idx = (int)type;
+    if (type_idx >= 0 && type_idx < (int)(sizeof(type_names) / sizeof(type_names[0])))
+        info["cartridge_type"] = type_names[type_idx];
+    else
+        info["cartridge_type"] = "Unknown";
 
-    if (media->IsCDROM())
-    {
-        GG_CDROM_Type cdrom_type = media->GetCDROMType();
-        switch (cdrom_type)
-        {
-            case GG_CDROM_STANDARD:
-                info["cdrom_type"] = "CD-ROM²";
-                break;
-            case GG_CDROM_SUPER_CDROM:
-                info["cdrom_type"] = "Super CD-ROM²";
-                break;
-            case GG_CDROM_ARCADE_CARD:
-                info["cdrom_type"] = "Arcade CD-ROM²";
-                break;
-            default:
-                info["cdrom_type"] = "Unknown";
-                break;
-        }
-    }
+    Cartridge::CartridgeZones zone = cart->GetZone();
+    const char* zone_names[] = { "Japan SMS", "Export SMS", "Japan GG", "Export GG", "International GG", "Unknown" };
+    int zone_idx = (int)zone;
+    if (zone_idx >= 0 && zone_idx < 6)
+        info["cartridge_zone"] = zone_names[zone_idx];
+    else
+        info["cartridge_zone"] = "Unknown";
 
-    Media::HuCardMapper mapper = media->GetMapper();
-    switch (mapper)
-    {
-        case Media::STANDARD_MAPPER:
-            info["mapper"] = "Standard";
-            break;
-        case Media::SF2_MAPPER:
-            info["mapper"] = "Street Fighter II";
-            break;
-        case Media::ARCADE_CARD_MAPPER:
-            info["mapper"] = "Arcade Card";
-            break;
-        default:
-            info["mapper"] = "Unknown";
-            break;
-    }
+    if (cart->IsGameGear())
+        info["cartridge_system"] = "Game Gear";
+    else if (cart->IsSG1000())
+        info["cartridge_system"] = "SG-1000";
+    else
+        info["cartridge_system"] = "Sega Master System";
 
-    info["loaded_bios"] = media->IsLoadedBios();
-    if (media->IsLoadedBios())
-    {
-        info["bios_name"] = media->GetBiosName(true);
-        info["valid_bios"] = media->IsValidBios(true);
-    }
-
-    info["backup_ram_forced"] = media->IsBackupRAMForced();
-    info["preload_cdrom"] = media->IsPreloadCdRomEnabled();
-*/
     return info;
 }
 
-json DebugAdapter::GetHuC6280Status()
+json DebugAdapter::GetZ80Status()
 {
     json status;
-/*
-    HuC6280* processor = m_core->GetHuC6280();
-    HuC6280::HuC6280_State* proc_state = processor->GetState();
+    Processor* cpu = m_core->GetProcessor();
+    Processor::ProcessorState* state = cpu->GetState();
     Memory* memory = m_core->GetMemory();
-    Input* input = m_core->GetInput();
 
     std::ostringstream ss;
     ss << std::hex << std::uppercase << std::setfill('0');
 
-    // Status register (P)
-    ss << std::setw(2) << (int)proc_state->P->GetValue();
-    status["P"] = ss.str();
-    ss.str("");
+    // Main register pairs
+    ss << std::setw(4) << state->AF->GetValue();
+    status["AF"] = ss.str(); ss.str("");
 
-    // Program Counter
-    ss << std::setw(4) << proc_state->PC->GetValue();
-    status["PC"] = ss.str();
-    ss.str("");
+    ss << std::setw(4) << state->BC->GetValue();
+    status["BC"] = ss.str(); ss.str("");
 
-    // Physical PC
-    ss << std::setw(6) << memory->GetPhysicalAddress(proc_state->PC->GetValue());
-    status["physical_PC"] = ss.str();
-    ss.str("");
+    ss << std::setw(4) << state->DE->GetValue();
+    status["DE"] = ss.str(); ss.str("");
 
-    // Stack Pointer
-    ss << std::setw(4) << (0x2100 | proc_state->S->GetValue());
-    status["SP"] = ss.str();
-    ss.str("");
+    ss << std::setw(4) << state->HL->GetValue();
+    status["HL"] = ss.str(); ss.str("");
 
-    // Registers
-    ss << std::setw(2) << (int)proc_state->A->GetValue();
-    status["A"] = ss.str();
-    ss.str("");
+    // Shadow register pairs
+    ss << std::setw(4) << state->AF2->GetValue();
+    status["AF'"] = ss.str(); ss.str("");
 
-    ss << std::setw(2) << (int)proc_state->X->GetValue();
-    status["X"] = ss.str();
-    ss.str("");
+    ss << std::setw(4) << state->BC2->GetValue();
+    status["BC'"] = ss.str(); ss.str("");
 
-    ss << std::setw(2) << (int)proc_state->Y->GetValue();
-    status["Y"] = ss.str();
-    ss.str("");
+    ss << std::setw(4) << state->DE2->GetValue();
+    status["DE'"] = ss.str(); ss.str("");
 
-    ss << std::setw(2) << (int)proc_state->S->GetValue();
-    status["S"] = ss.str();
-    ss.str("");
+    ss << std::setw(4) << state->HL2->GetValue();
+    status["HL'"] = ss.str(); ss.str("");
 
-    // MPR registers
-    json mpr_array = json::array();
-    for (int i = 0; i < 8; i++)
-    {
-        json mpr_info;
-        ss << std::setw(2) << (int)memory->GetMpr(i);
-        mpr_info["value"] = ss.str();
-        ss.str("");
-        mpr_info["index"] = i;
-        mpr_array.push_back(mpr_info);
-    }
-    status["MPR"] = mpr_array;
+    // Index, stack, PC
+    ss << std::setw(4) << state->IX->GetValue();
+    status["IX"] = ss.str(); ss.str("");
 
-    // I/O register
-    ss << std::setw(2) << (int)input->GetIORegister();
-    status["IO"] = ss.str();
-    ss.str("");
+    ss << std::setw(4) << state->IY->GetValue();
+    status["IY"] = ss.str(); ss.str("");
 
-    // Timer
-    status["TIMER"] = (*proc_state->TIMER) ? true : false;
-    ss << std::setw(2) << (int)*proc_state->TIMER_COUNTER;
-    status["TIMER_COUNTER"] = ss.str();
-    ss.str("");
-    ss << std::setw(2) << (int)*proc_state->TIMER_RELOAD;
-    status["TIMER_RELOAD"] = ss.str();
-    ss.str("");
+    ss << std::setw(4) << state->SP->GetValue();
+    status["SP"] = ss.str(); ss.str("");
 
-    // Interrupt registers
-    ss << std::setw(2) << (int)*proc_state->IDR;
-    status["IDR"] = ss.str();
-    ss.str("");
-    ss << std::setw(2) << (int)*proc_state->IRR;
-    status["IRR"] = ss.str();
-    ss.str("");
+    ss << std::setw(4) << state->PC->GetValue();
+    status["PC"] = ss.str(); ss.str("");
 
-    // IRQ status
-    status["IRQ1_enabled"] = (*proc_state->IDR & 0x02) == 0;
-    status["IRQ1_asserted"] = (*proc_state->IRR & 0x02) != 0;
-    status["IRQ2_enabled"] = (*proc_state->IDR & 0x01) == 0;
-    status["IRQ2_asserted"] = (*proc_state->IRR & 0x01) != 0;
-    status["TIQ_enabled"] = (*proc_state->IDR & 0x04) == 0;
-    status["TIQ_asserted"] = (*proc_state->IRR & 0x04) != 0;
+    ss << std::setw(4) << state->WZ->GetValue();
+    status["WZ"] = ss.str(); ss.str("");
 
-    // I/O status
-    status["IO_SEL"] = input->GetSel();
-    status["IO_CLR"] = input->GetClr();
+    // Individual 8-bit registers
+    u8 a = state->AF->GetHigh();
+    u8 f = state->AF->GetLow();
 
-    // Speed
-    status["SPEED"] = *proc_state->SPEED ? "7.16 MHz" : "1.79 MHz";
-*/
+    ss << std::setw(2) << (int)a;
+    status["A"] = ss.str(); ss.str("");
+
+    ss << std::setw(2) << (int)f;
+    status["F"] = ss.str(); ss.str("");
+
+    ss << std::setw(2) << (int)state->BC->GetHigh();
+    status["B"] = ss.str(); ss.str("");
+
+    ss << std::setw(2) << (int)state->BC->GetLow();
+    status["C"] = ss.str(); ss.str("");
+
+    ss << std::setw(2) << (int)state->DE->GetHigh();
+    status["D"] = ss.str(); ss.str("");
+
+    ss << std::setw(2) << (int)state->DE->GetLow();
+    status["E"] = ss.str(); ss.str("");
+
+    ss << std::setw(2) << (int)state->HL->GetHigh();
+    status["H"] = ss.str(); ss.str("");
+
+    ss << std::setw(2) << (int)state->HL->GetLow();
+    status["L"] = ss.str(); ss.str("");
+
+    ss << std::setw(2) << (int)*state->I;
+    status["I"] = ss.str(); ss.str("");
+
+    ss << std::setw(2) << (int)*state->R;
+    status["R"] = ss.str(); ss.str("");
+
+    // Flags decoded from F register
+    status["flag_S"] = (f & 0x80) != 0;
+    status["flag_Z"] = (f & 0x40) != 0;
+    status["flag_Y"] = (f & 0x20) != 0;
+    status["flag_H"] = (f & 0x10) != 0;
+    status["flag_X"] = (f & 0x08) != 0;
+    status["flag_PV"] = (f & 0x04) != 0;
+    status["flag_N"] = (f & 0x02) != 0;
+    status["flag_C"] = (f & 0x01) != 0;
+
+    // Physical PC and bank
+    ss << std::setw(6) << memory->GetPhysicalAddress(state->PC->GetValue());
+    status["physical_PC"] = ss.str(); ss.str("");
+
+    ss << std::setw(2) << (int)memory->GetBank(state->PC->GetValue());
+    status["bank"] = ss.str(); ss.str("");
+
+    // Interrupt state
+    status["IFF1"] = *state->IFF1;
+    status["IFF2"] = *state->IFF2;
+    status["IM"] = *state->InterruptMode;
+    status["Halt"] = *state->Halt;
+    status["INT"] = *state->INT;
+    status["NMI"] = *state->NMI;
+
     return status;
 }
 
-json DebugAdapter::GetHuC6270Registers(int vdc)
+json DebugAdapter::GetVDPRegisters()
 {
-    (void)vdc;
-/*
-    if (vdc < 1 || vdc > 2)
-        return json::object();
-
-    HuC6270* huc6270 = (vdc == 1) ? m_core->GetHuC6270_1() : m_core->GetHuC6270_2();
-    HuC6270::HuC6270_State* huc6270_state = huc6270->GetState();
-*/
     json registers = json::array();
-/*
-    // HuC6270 has 20 valid registers (0x00-0x13), although the array has 32 slots
-    for (int i = 0; i < 20; i++)
+    Video* video = m_core->GetVideo();
+    u8* regs = video->GetRegisters();
+
+    const char* reg_names[] = {
+        "CONTROL 1", "CONTROL 2", "NAME TABLE",
+        "COLOR TABLE", "PATTERN TABLE", "SPRITE ATTR",
+        "SPRITE PAT", "BACKDROP COLOR", "H SCROLL",
+        "V SCROLL", "V INTERRUPT"
+    };
+
+    for (int i = 0; i < 11; i++)
     {
         json reg;
         reg["index"] = i;
 
         std::ostringstream ss;
-        ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << huc6270_state->R[i];
+        ss << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << (int)regs[i];
         reg["value"] = ss.str();
+        reg["description"] = reg_names[i];
 
         registers.push_back(reg);
     }
 
-    // Add address register
-    json ar;
-    ar["index"] = "AR";
-    std::ostringstream ar_ss;
-    ar_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << *huc6270_state->AR;
-    ar["value"] = ar_ss.str();
-    registers.push_back(ar);
+    // Decode some key bit fields
+    json decoded;
+    decoded["screen_enabled"] = (regs[1] & 0x40) != 0;
+    decoded["vblank_irq_enabled"] = (regs[1] & 0x20) != 0;
+    decoded["sprite_size_8x16"] = (regs[1] & 0x02) != 0;
+    decoded["sprite_zoom"] = (regs[1] & 0x01) != 0;
+    decoded["line_irq_enabled"] = (regs[0] & 0x10) != 0;
+    decoded["shift_sprites_left_8"] = (regs[0] & 0x08) != 0;
+    decoded["mask_left_column"] = (regs[0] & 0x20) != 0;
+    decoded["h_scroll_lock_top"] = (regs[0] & 0x40) != 0;
+    decoded["v_scroll_lock_right"] = (regs[0] & 0x80) != 0;
 
-    // Add status register (read-only)
-    json sr;
-    sr["index"] = "SR";
-    std::ostringstream sr_ss;
-    sr_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << *huc6270_state->SR;
-    sr["value"] = sr_ss.str();
-    registers.push_back(sr);
-*/
-    return registers;
-}
-
-json DebugAdapter::WriteHuC6270Register(int vdc, int reg, u16 value)
-{
     json result;
-    (void)vdc;
-    (void)reg;
-    (void)value;
-/*
-    if (vdc < 1 || vdc > 2)
-    {
-        result["error"] = "Invalid VDC number (must be 1 or 2)";
-        return result;
-    }
+    result["registers"] = registers;
+    result["decoded"] = decoded;
 
-    if (reg < 0 || reg > 20)
-    {
-        result["error"] = "Invalid register number (must be 0-19 or 20 for AR)";
-        return result;
-    }
-
-    HuC6270* huc6270 = (vdc == 1) ? m_core->GetHuC6270_1() : m_core->GetHuC6270_2();
-
-    if (!huc6270)
-    {
-        result["error"] = "VDC not available";
-        return result;
-    }
-
-    HuC6270::HuC6270_State* huc6270_state = huc6270->GetState();
-
-    if (reg == 20)
-    {
-        // Write to Address Register
-        *huc6270_state->AR = value;
-        result["register"] = "AR";
-    }
-    else
-    {
-        // Write to data registers (0-19)
-        huc6270_state->R[reg] = value;
-        result["register"] = reg;
-    }
-
-    result["success"] = true;
-    result["vdc"] = vdc;
-
-    std::ostringstream ss;
-    ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << value;
-    result["value"] = ss.str();
-*/
     return result;
 }
 
-json DebugAdapter::GetHuC6270Status(int vdc)
-{
-    if (vdc < 1 || vdc > 2)
-        return json::object();
-
-    json status;
-/*
-    HuC6260* huc6260 = m_core->GetHuC6260();
-    HuC6270* huc6270 = (vdc == 1) ? m_core->GetHuC6270_1() : m_core->GetHuC6270_2();
-    HuC6270::HuC6270_State* huc6270_state = huc6270->GetState();
-
-    std::ostringstream ss;
-
-    // Speed
-    const char* speed_names[] = { "5.36 MHz", "7.16 MHz", "10.8 MHz" };
-    status["speed"] = speed_names[huc6260->GetSpeed()];
-
-    // Position
-    status["x"] = *huc6270_state->HPOS;
-    status["y"] = *huc6270_state->VPOS;
-
-    // States
-    const char* h_states[] = { "HDS", "HDW", "HDE", "HSW" };
-    const char* v_states[] = { "VDS", "VDW", "VCR", "VSW" };
-    status["h_state"] = h_states[*huc6270_state->H_STATE];
-    status["v_state"] = v_states[*huc6270_state->V_STATE];
-
-    // Control register
-    status["background_enabled"] = (huc6270_state->R[HUC6270_REG_CR] & 0x0080) != 0;
-    status["sprites_enabled"] = (huc6270_state->R[HUC6270_REG_CR] & 0x0040) != 0;
-
-    const char* disp_output[] = { "DISP", "~BURST", "~INTHSYNC", "INVALID" };
-    status["display_output"] = disp_output[(huc6270_state->R[HUC6270_REG_CR] >> 8) & 0x03];
-
-    ss << std::hex << std::uppercase << std::setfill('0') << std::setw(2) 
-       << (int)k_huc6270_read_write_increment[(huc6270_state->R[HUC6270_REG_CR] >> 11) & 0x03];
-    status["rw_increment"] = ss.str();
-    ss.str("");
-
-    // Interrupt requests
-    status["int_collision"] = (huc6270_state->R[HUC6270_REG_CR] & HUC6270_CONTROL_COLLISION) != 0;
-    status["int_overflow"] = (huc6270_state->R[HUC6270_REG_CR] & HUC6270_CONTROL_OVERFLOW) != 0;
-    status["int_scanline"] = (huc6270_state->R[HUC6270_REG_CR] & HUC6270_CONTROL_SCANLINE) != 0;
-    status["int_vblank"] = (huc6270_state->R[HUC6270_REG_CR] & HUC6270_CONTROL_VBLANK) != 0;
-
-    // Status register
-    status["collision_detected"] = (*huc6270_state->SR & HUC6270_STATUS_COLLISION) != 0;
-    status["overflow_detected"] = (*huc6270_state->SR & HUC6270_STATUS_OVERFLOW) != 0;
-    status["scanline_interrupt"] = (*huc6270_state->SR & HUC6270_STATUS_SCANLINE) != 0;
-    status["vblank_active"] = (*huc6270_state->SR & HUC6270_STATUS_VBLANK) != 0;
-    status["vram_dma_end"] = (*huc6270_state->SR & HUC6270_STATUS_VRAM_END) != 0;
-    status["sat_dma_end"] = (*huc6270_state->SR & HUC6270_STATUS_SAT_END) != 0;
-    status["busy"] = (*huc6270_state->SR & HUC6270_STATUS_BUSY) != 0;
-*/
-    return status;
-}
-
-json DebugAdapter::GetHuC6260Status()
+json DebugAdapter::GetVDPStatus()
 {
     json status;
-/*
-    HuC6260* huc6260 = m_core->GetHuC6260();
-    HuC6260::HuC6260_State* huc6260_state = huc6260->GetState();
+    Video* video = m_core->GetVideo();
 
-    // Speed
-    const char* speed_names[] = { "5.36 MHz", "7.16 MHz", "10.8 MHz" };
-    status["speed"] = speed_names[huc6260->GetSpeed()];
+    u8 flags = video->GetStatusFlags();
 
-    // Position
-    status["x"] = *huc6260_state->HPOS;
-    status["y"] = *huc6260_state->VPOS;
+    status["status_flags"] = flags;
+    status["frame_interrupt"] = (flags & 0x80) != 0;
+    status["sprite_overflow"] = (flags & 0x40) != 0;
+    status["sprite_collision"] = (flags & 0x20) != 0;
+    status["fifth_sprite"] = flags & 0x1F;
 
-    // Lines
-    status["lines"] = (*huc6260_state->CR & 0x04) ? HUC6270_LINES : (HUC6270_LINES - 1);
+    status["v_counter"] = video->GetVCounter();
+    status["h_counter"] = video->GetHCounter();
+    status["extended_mode_224"] = video->IsExtendedMode224();
+    status["sg1000_mode"] = video->IsSG1000Mode();
+    status["tms9918_mode"] = video->GetTMS9918Mode();
 
-    // Sync signals
-    status["hsync"] = *huc6260_state->HSYNC ? "HIGH" : "LOW";
-    status["vsync"] = *huc6260_state->VSYNC ? "HIGH" : "LOW";
+    Cartridge* cart = m_core->GetCartridge();
+    status["is_game_gear"] = cart->IsGameGear();
+    status["is_pal"] = cart->IsPAL();
 
-    // Control register
-    std::ostringstream ss;
-    ss << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << (int)*huc6260_state->CR;
-    status["control_reg"] = ss.str();
-    ss.str("");
-
-    // CTA register
-    ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << *huc6260_state->CTA;
-    status["cta"] = ss.str();
-    ss.str("");
-
-    // Blur and B&W
-    status["blur"] = (*huc6260_state->CR & 0x04) != 0;
-    status["black_white"] = (*huc6260_state->CR & 0x80) != 0;
-*/
-    return status;
-}
-
-json DebugAdapter::GetHuC6202Status()
-{
-/*
-    if (!m_core->GetCartridge()->IsSGX())
-        return json::object();
-*/
-
-    json status;
-/*
-    HuC6202* huc6202 = m_core->GetHuC6202();
-    HuC6202::HuC6202_State* huc6202_state = huc6202->GetState();
-
-    status["selected_vdc"] = *huc6202_state->VDC2_SELECTED ? 2 : 1;
-    status["window_1"] = *huc6202_state->WINDOW_1;
-    status["window_2"] = *huc6202_state->WINDOW_2;
-
-    std::ostringstream ss;
-    ss << std::hex << std::uppercase << std::setfill('0');
-
-    ss << std::setw(2) << (int)*huc6202_state->PRIORITY_1;
-    status["priority_1"] = ss.str();
-    ss.str("");
-
-    ss << std::setw(2) << (int)*huc6202_state->PRIORITY_2;
-    status["priority_2"] = ss.str();
-    ss.str("");
-
-    status["irq_vdc1"] = *huc6202_state->IRQ1_1;
-    status["irq_vdc2"] = *huc6202_state->IRQ1_2;
-
-    // Window priority regions
-    const char* window_names[] = { "none", "window_1", "window_2", "both" };
-    json window_priority = json::array();
-    for (int i = 0; i < 4; i++)
-    {
-        json region;
-        region["region"] = window_names[i];
-        region["vdc1_enabled"] = huc6202_state->WINDOW_PRIORITY[i].vdc_1_enabled;
-        region["vdc2_enabled"] = huc6202_state->WINDOW_PRIORITY[i].vdc_2_enabled;
-        region["priority_mode"] = huc6202_state->WINDOW_PRIORITY[i].priority_mode;
-        window_priority.push_back(region);
-    }
-    status["window_priority"] = window_priority;
-*/
     return status;
 }
 
 json DebugAdapter::GetPSGStatus()
 {
     json status;
-/*
-    HuC6280PSG* psg = m_core->GetAudio()->GetPSG();
-    HuC6280PSG::HuC6280PSG_State* psg_state = psg->GetState();
+    Audio* audio = m_core->GetAudio();
+    Sms_Apu* psg = audio->GetPSG();
+    Sms_Apu_State psg_state = psg->GetState();
+
+    GS_RuntimeInfo runtime;
+    m_core->GetRuntimeInfo(runtime);
+    int master_clock = (runtime.region == Region_PAL) ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC;
 
     std::ostringstream ss;
     ss << std::hex << std::uppercase << std::setfill('0');
 
-    status["channel_select"] = *psg_state->CHANNEL_SELECT;
-
-    ss << std::setw(2) << (int)*psg_state->MAIN_AMPLITUDE;
-    status["main_amplitude"] = ss.str();
-    ss.str("");
-
-    ss << std::setw(2) << (int)*psg_state->LFO_FREQUENCY;
-    status["lfo_frequency"] = ss.str();
-    ss.str("");
-
-    ss << std::setw(2) << (int)*psg_state->LFO_CONTROL;
-    status["lfo_control"] = ss.str();
-    ss.str("");
-
-    // Channel info
     json channels = json::array();
-    for (int i = 0; i < 6; i++)
+    for (int c = 0; c < 4; c++)
     {
+        Sms_Apu_State::Channel* ch = &psg_state.channels[c];
         json channel;
-        HuC6280PSG::HuC6280PSG_Channel* psg_channel = &psg_state->CHANNELS[i];
 
-        channel["index"] = i;
-        channel["mute"] = psg_channel->mute;
-        channel["enabled"] = psg_channel->enabled;
-        channel["frequency"] = psg_channel->frequency;
-        channel["dda"] = psg_channel->dda_enabled;
-        channel["noise"] = psg_channel->noise_enabled;
+        channel["index"] = c;
+        channel["type"] = (c < 3) ? "tone" : "noise";
+        channel["volume_reg"] = ch->volume_reg;
+        channel["mute"] = *ch->mute;
 
-        ss << std::setw(2) << (int)psg_channel->vol_left;
-        channel["vol_left"] = ss.str();
-        ss.str("");
+        if (ch->volume_reg == 15)
+            channel["volume_info"] = "OFF";
+        else if (ch->volume_reg == 0)
+            channel["volume_info"] = "MAX";
+        else
+        {
+            char buf[32];
+            snprintf(buf, sizeof(buf), "-%.1f dB", ch->volume_reg * 2.0f);
+            channel["volume_info"] = buf;
+        }
 
-        ss << std::setw(2) << (int)psg_channel->vol_right;
-        channel["vol_right"] = ss.str();
-        ss.str("");
+        if (c < 3)
+        {
+            int raw_period = ch->period >> 4;
+            channel["period"] = raw_period;
+            channel["phase"] = ch->phase;
 
-        ss << std::setw(2) << (int)psg_channel->amplitude;
-        channel["amplitude"] = ss.str();
-        ss.str("");
+            if (raw_period > 0)
+            {
+                float freq_hz = (float)master_clock / (32.0f * raw_period);
+                channel["frequency_hz"] = freq_hz;
+            }
+            else
+            {
+                channel["frequency_hz"] = 0.0f;
+            }
+        }
+        else
+        {
+            static const char* noise_rate_names[4] = { "N/512", "N/1024", "N/2048", "Tone 3" };
+            channel["noise_white"] = psg_state.noise_white;
+            channel["noise_rate"] = psg_state.noise_rate;
+            channel["noise_rate_name"] = noise_rate_names[psg_state.noise_rate];
+            channel["noise_shifter"] = psg_state.noise_shifter;
 
-        channel["wave_index"] = psg_channel->wave_index;
+            if (psg_state.noise_rate < 3)
+            {
+                static const int noise_dividers[3] = { 512, 1024, 2048 };
+                float freq_hz = (float)master_clock / (float)noise_dividers[psg_state.noise_rate];
+                channel["frequency_hz"] = freq_hz;
+            }
+            else
+            {
+                int ch3_raw = psg_state.channels[2].period >> 4;
+                if (ch3_raw > 0)
+                {
+                    float freq_hz = (float)master_clock / (32.0f * ch3_raw);
+                    channel["frequency_hz"] = freq_hz;
+                }
+            }
+        }
+
+        channels.push_back(channel);
+    }
+
+    status["channels"] = channels;
+    status["latch"] = psg_state.latch;
+
+    ss << std::setw(2) << psg_state.ggstereo;
+    status["gg_stereo"] = ss.str(); ss.str("");
+
+    status["noise_feedback"] = psg_state.noise_feedback;
+
+    return status;
+}
+
+json DebugAdapter::GetYM2413Status()
+{
+    json status;
+    YM2413_OPLL* opll = (YM2413_OPLL*)YM2413GetContextPtr();
+
+    if (opll == NULL)
+    {
+        status["error"] = "YM2413 not available";
+        return status;
+    }
+
+    GS_RuntimeInfo runtime;
+    m_core->GetRuntimeInfo(runtime);
+    int master_clock = (runtime.region == Region_PAL) ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC;
+
+    bool rhythm_mode = (opll->rhythm & 0x20) != 0;
+
+    static const char* instrument_names[16] = {
+        "User", "Violin", "Guitar", "Piano", "Flute", "Clarinet", "Oboe", "Trumpet",
+        "Organ", "Horn", "Synthesizer", "Harpsichord", "Vibraphone", "Synth Bass", "Acoustic Bass", "Electric Guitar"
+    };
+
+    static const char* eg_state_names[6] = { "OFF", "REL", "SUS", "DEC", "ATT", "DMP" };
+    static const uint8_t mul_tab[] = {1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 20, 24, 24, 30, 30};
+
+    json channels = json::array();
+    for (int c = 0; c < 9; c++)
+    {
+        YM2413_OPLL_CH* ch = &opll->P_CH[c];
+        u8 instvol = opll->instvol_r[c];
+        int inst = (instvol >> 4) & 0x0F;
+        int vol = instvol & 0x0F;
+
+        int fnum = ch->block_fnum & 0x1FF;
+        int block = (ch->block_fnum >> 9) & 0x07;
+        bool key_on = (ch->SLOT[1].key != 0);
+        bool sustain = (ch->sus != 0);
+
+        bool is_rhythm_ch = rhythm_mode && (c >= 6);
+
+        json channel;
+        channel["index"] = c;
+        channel["instrument"] = inst;
+        channel["instrument_name"] = is_rhythm_ch ? "N/A" : instrument_names[inst];
+        channel["volume"] = vol;
+        channel["key_on"] = key_on;
+        channel["sustain"] = sustain;
+        channel["f_number"] = fnum;
+        channel["block"] = block;
+        channel["is_rhythm"] = is_rhythm_ch;
+
+        if (is_rhythm_ch)
+        {
+            if (c == 6) channel["rhythm_name"] = "Bass Drum";
+            else if (c == 7) channel["rhythm_name"] = "HH / Snare";
+            else channel["rhythm_name"] = "Tom / Cymbal";
+        }
+
+        float freq_hz = 0.0f;
+        if (fnum > 0)
+        {
+            freq_hz = ((float)master_clock / 72.0f) * (float)fnum / (float)(1 << (19 - block));
+        }
+        channel["frequency_hz"] = freq_hz;
+
+        // Per-slot info
+        json slots = json::array();
+        for (int s = 0; s < 2; s++)
+        {
+            YM2413_OPLL_SLOT* slot = &ch->SLOT[s];
+            json slot_info;
+
+            slot_info["type"] = (s == 0) ? "modulator" : "carrier";
+
+            int eg_state = slot->state;
+            if (eg_state < 0 || eg_state > 5) eg_state = 0;
+            slot_info["eg_state"] = eg_state_names[eg_state];
+            slot_info["eg_level"] = (int)(slot->volume >> 2);
+            slot_info["TL"] = (int)(slot->TL >> 2);
+            slot_info["ar"] = (int)(slot->ar >> 2);
+            slot_info["dr"] = (int)(slot->dr >> 2);
+            slot_info["rr"] = (int)(slot->rr >> 2);
+
+            int sl_display = 0;
+            for (int i = 0; i < 16; i++)
+            {
+                if (slot->sl == (unsigned int)(i * 0x20))
+                {
+                    sl_display = i;
+                    break;
+                }
+            }
+            slot_info["sl"] = sl_display;
+
+            int mul_idx = 0;
+            for (int i = 0; i < 16; i++)
+            {
+                if (slot->mul == mul_tab[i])
+                {
+                    mul_idx = i;
+                    break;
+                }
+            }
+            slot_info["mul"] = mul_idx;
+            slot_info["KSR"] = slot->KSR ? true : false;
+            slot_info["AM"] = (slot->AMmask != 0);
+            slot_info["VIB"] = slot->vib ? true : false;
+            slot_info["waveform"] = slot->wavetable ? "Half-Sine" : "Sine";
+            slot_info["eg_type"] = slot->eg_type ? "Sustained" : "Percussive";
+            slot_info["fb_shift"] = (s == 0) ? (int)slot->fb_shift : 0;
+
+            slots.push_back(slot_info);
+        }
+        channel["slots"] = slots;
 
         channels.push_back(channel);
     }
     status["channels"] = channels;
-*/
-    return status;
-}
 
-json DebugAdapter::GetCDROMStatus()
-{
-/*
-    if (!m_core->GetCartridge()->IsCDROM())
-        return json::object();
-*/
-    json status;
-/*
-    CdRom* cdrom = m_core->GetCDROM();
-    CdRomMedia* cdrom_media = m_core->GetCDROMMedia();
-    ScsiController* scsi_controller = m_core->GetScsiController();
-    CdRom::CdRom_State* cdrom_state = cdrom->GetState();
-    ScsiController::Scsi_State* scsi_state = scsi_controller->GetState();
+    // Global info
+    status["rhythm_mode"] = rhythm_mode;
 
     std::ostringstream ss;
     ss << std::hex << std::uppercase << std::setfill('0');
 
-    // CD-ROM state
-    status["reset"] = *cdrom_state->RESET;
-    status["bram_enabled"] = *cdrom_state->BRAM_ENABLED;
+    ss << std::setw(2) << (int)opll->rhythm;
+    status["rhythm_reg"] = ss.str(); ss.str("");
 
-    // IRQs
-    ss << std::setw(2) << (int)*cdrom_state->ENABLED_IRQS;
-    status["enabled_irqs"] = ss.str();
-    ss.str("");
-
-    ss << std::setw(2) << (int)*cdrom_state->ACTIVE_IRQS;
-    status["active_irqs"] = ss.str();
-    ss.str("");
-
-    status["irq_adpcm_half"] = (*cdrom_state->ACTIVE_IRQS & CDROM_IRQ_ADPCM_HALF) != 0;
-    status["irq_adpcm_end"] = (*cdrom_state->ACTIVE_IRQS & CDROM_IRQ_ADPCM_END) != 0;
-    status["irq_status"] = (*cdrom_state->ACTIVE_IRQS & CDROM_IRQ_STATUS_AND_MSG_IN) != 0;
-    status["irq_data"] = (*cdrom_state->ACTIVE_IRQS & CDROM_IRQ_DATA_IN) != 0;
-
-    // SCSI
-    status["scsi_phase"] = k_scsi_phase_names[*scsi_state->PHASE];
-
-    ss << std::setw(2) << (int)*scsi_state->DB;
-    status["scsi_data_bus"] = ss.str();
-    ss.str("");
-
-    // SCSI signals
-    status["scsi_bsy"] = (*scsi_state->SIGNALS & ScsiController::SCSI_SIGNAL_BSY) != 0;
-    status["scsi_sel"] = (*scsi_state->SIGNALS & ScsiController::SCSI_SIGNAL_SEL) != 0;
-    status["scsi_cd"] = (*scsi_state->SIGNALS & ScsiController::SCSI_SIGNAL_CD) != 0;
-    status["scsi_io"] = (*scsi_state->SIGNALS & ScsiController::SCSI_SIGNAL_IO) != 0;
-    status["scsi_msg"] = (*scsi_state->SIGNALS & ScsiController::SCSI_SIGNAL_MSG) != 0;
-    status["scsi_req"] = (*scsi_state->SIGNALS & ScsiController::SCSI_SIGNAL_REQ) != 0;
-    status["scsi_ack"] = (*scsi_state->SIGNALS & ScsiController::SCSI_SIGNAL_ACK) != 0;
-    status["scsi_atn"] = (*scsi_state->SIGNALS & ScsiController::SCSI_SIGNAL_ATN) != 0;
-    status["scsi_rst"] = (*scsi_state->SIGNALS & ScsiController::SCSI_SIGNAL_RST) != 0;
-
-    // Events
-    status["next_event"] = k_scsi_event_names[*scsi_state->NEXT_EVENT];
-    status["cycles_to_event"] = *scsi_state->NEXT_EVENT_CYCLES;
-    status["next_sector_load"] = *scsi_state->LOAD_SECTOR;
-    status["cycles_to_load"] = *scsi_state->NEXT_LOAD_CYCLES;
-    status["sectors_left"] = *scsi_state->LOAD_SECTOR_COUNT;
-
-    ss << std::setw(2) << (int)*cdrom_state->FADER;
-    status["fader"] = ss.str();
-    ss.str("");
-
-    // Media info
-    status["media_type"] = cdrom_media->GetFileExtension();
-    status["tracks"] = cdrom_media->GetTrackCount();
-
-    GG_CdRomMSF length = cdrom_media->GetCdRomLength();
-    char time_str[16];
-    snprintf(time_str, sizeof(time_str), "%02d:%02d:%02d", length.minutes, length.seconds, length.frames);
-    status["length"] = time_str;
-    status["sector_count"] = cdrom_media->GetSectorCount();
-*/
-    return status;
-}
-
-json DebugAdapter::GetArcadeCardStatus()
-{
-/*
-    if (!m_core->GetCartridge()->IsArcadeCard())
-        return json::object();
-
-    json status;
-    Memory* memory = m_core->GetMemory();
-    ArcadeCardMapper* arcade_card_mapper = memory->GetArcadeCardMapper();
-    ArcadeCardMapper::ArcadeCard_State* arcade_card_state = arcade_card_mapper->GetState();
-
-    std::ostringstream ss;
-    ss << std::hex << std::uppercase << std::setfill('0');
-
-    // Main registers
-    ss << std::setw(8) << *arcade_card_state->REGISTER;
-    status["register"] = ss.str();
-    ss.str("");
-
-    ss << std::setw(2) << (int)*arcade_card_state->SHIFT_AMOUNT;
-    status["shift_amount"] = ss.str();
-    ss.str("");
-
-    ss << std::setw(2) << (int)*arcade_card_state->ROTATE_AMOUNT;
-    status["rotate_amount"] = ss.str();
-    ss.str("");
-
-    // Ports
-    json ports = json::array();
-    for (int i = 0; i < 4; i++)
+    if (rhythm_mode)
     {
-        json port;
-        ArcadeCardMapper::ArcadeCard_Port* port_data = &arcade_card_state->PORTS[i];
+        static const char* rhythm_names[5] = { "Bass Drum", "Snare Drum", "Tom-Tom", "Top Cymbal", "High Hat" };
+        json drums = json::array();
+        for (int d = 0; d < 5; d++)
+        {
+            json drum;
+            drum["name"] = rhythm_names[d];
+            drum["key_on"] = (opll->rhythm & (0x10 >> d)) != 0;
+            drums.push_back(drum);
+        }
+        status["drums"] = drums;
 
-        port["index"] = i;
-
-        ss << std::setw(8) << port_data->base;
-        port["base_address"] = ss.str();
-        ss.str("");
-
-        ss << std::setw(4) << port_data->offset;
-        port["offset"] = ss.str();
-        ss.str("");
-
-        ss << std::setw(4) << port_data->increment;
-        port["increment"] = ss.str();
-        ss.str("");
-
-        ss << std::setw(2) << (int)port_data->control;
-        port["control"] = ss.str();
-        ss.str("");
-
-        port["add_offset"] = port_data->add_offset;
-        port["auto_increment"] = port_data->auto_increment;
-        port["signed_offset"] = port_data->signed_offset;
-        port["increment_base"] = port_data->increment_base;
-
-        const char* trigger_names[] = { "NONE", "LOW_BYTE", "HIGH_BYTE", "REG_0A" };
-        port["offset_trigger"] = trigger_names[port_data->offset_trigger];
-
-        ports.push_back(port);
+        json drum_volumes;
+        drum_volumes["bass_drum"] = (int)(opll->instvol_r[6] & 0x0F);
+        drum_volumes["high_hat"] = (int)((opll->instvol_r[7] >> 4) & 0x0F);
+        drum_volumes["snare_drum"] = (int)(opll->instvol_r[7] & 0x0F);
+        drum_volumes["tom_tom"] = (int)((opll->instvol_r[8] >> 4) & 0x0F);
+        drum_volumes["top_cymbal"] = (int)(opll->instvol_r[8] & 0x0F);
+        status["drum_volumes"] = drum_volumes;
     }
-    status["ports"] = ports;
 
-    return status;
-*/
-    json status;
-    return status;
-}
+    // User instrument
+    json user_inst = json::array();
+    for (int i = 0; i < 8; i++)
+    {
+        ss << std::setw(2) << (int)opll->inst_tab[0][i];
+        user_inst.push_back(ss.str());
+        ss.str("");
+    }
+    status["user_instrument"] = user_inst;
 
-json DebugAdapter::GetCDROMAudioStatus()
-{
-/*
-    if (!m_core->GetCartridge()->IsCDROM())
-        return json::object();
+    ss << std::setw(2) << (int)opll->address;
+    status["address_reg"] = ss.str(); ss.str("");
 
-    json status;
-    CdRomAudio* cdrom_audio = m_core->GetCDROMAudio();
-    CdRomAudio::CdRomAudio_State* cdrom_audio_state = cdrom_audio->GetState();
+    ss << std::setw(2) << (int)opll->status;
+    status["status_reg"] = ss.str(); ss.str("");
 
-    // State
-    const char* state_names[] = { "PLAYING", "IDLE", "PAUSED", "STOPPED" };
-    status["state"] = state_names[*cdrom_audio_state->CURRENT_STATE];
+    ss << std::setw(6) << (opll->noise_rng & 0x7FFFFF);
+    status["noise_rng"] = ss.str(); ss.str("");
 
-    // Stop event
-    const char* stop_event_names[] = { "STOP", "LOOP", "IRQ" };
-    status["stop_event"] = stop_event_names[*cdrom_audio_state->STOP_EVENT];
-
-    // LBA positions
-    status["start_lba"] = *cdrom_audio_state->START_LBA;
-    status["stop_lba"] = *cdrom_audio_state->STOP_LBA;
-    status["current_lba"] = *cdrom_audio_state->CURRENT_LBA;
-
-    // Convert current LBA to MSF for display
-    GG_CdRomMSF current_msf;
-    LbaToMsf(*cdrom_audio_state->CURRENT_LBA, &current_msf);
-    char pos_str[16];
-    snprintf(pos_str, sizeof(pos_str), "%02d:%02d:%02d", current_msf.minutes, current_msf.seconds, current_msf.frames);
-    status["current_position_msf"] = pos_str;
-
-    // Seek info
-    status["seek_cycles"] = *cdrom_audio_state->SEEK_CYCLES;
-
-    // Sample info
-    status["frame_samples"] = *cdrom_audio_state->FRAME_SAMPLES;
-
-    return status;
-*/
-    json status;
-    return status;
-}
-
-json DebugAdapter::GetADPCMStatus()
-{
-/*
-    if (!m_core->GetCartridge()->IsCDROM())
-        return json::object();
-
-    json status;
-    Adpcm* adpcm = m_core->GetAdpcm();
-    Adpcm::Adpcm_State* adpcm_state = adpcm->GetState();
-
-    std::ostringstream ss;
-    ss << std::hex << std::uppercase << std::setfill('0');
-
-    // State
-    status["playing"] = *adpcm_state->PLAYING;
-
-    ss << std::setw(4) << *adpcm_state->READ_ADDRESS;
-    status["read_address"] = ss.str();
-    ss.str("");
-
-    ss << std::setw(4) << *adpcm_state->WRITE_ADDRESS;
-    status["write_address"] = ss.str();
-    ss.str("");
-
-    status["length"] = *adpcm_state->LENGTH;
-
-    float frequency = (32000.0f / (16.0f - (float)*adpcm_state->SAMPLE_RATE)) / 1000.0f;
-    status["frequency_khz"] = frequency;
-
-    // Registers
-    u8 status_reg = adpcm->Read(0x0C);
-    ss << std::setw(2) << (int)status_reg;
-    status["status_register"] = ss.str();
-    ss.str("");
-
-    ss << std::setw(2) << (int)*adpcm_state->CONTROL;
-    status["control"] = ss.str();
-    ss.str("");
-
-    ss << std::setw(2) << (int)*adpcm_state->DMA;
-    status["dma"] = ss.str();
-    ss.str("");
-
-    ss << std::setw(4) << *adpcm_state->ADDRESS;
-    status["address"] = ss.str();
-    ss.str("");
-
-    // Sample info
-    status["frame_samples"] = *adpcm_state->FRAME_SAMPLES;
-
-    return status;
-*/
-    json status;
     return status;
 }
 
@@ -1347,11 +1089,9 @@ json DebugAdapter::GetScreenshot()
         return result;
     }
 
-    // Get runtime info for screen dimensions
     GS_RuntimeInfo runtime;
     m_core->GetRuntimeInfo(runtime);
 
-    // Get PNG screenshot from emu
     unsigned char* png_buffer = NULL;
     int png_size = emu_get_screenshot_png(&png_buffer);
 
@@ -1361,10 +1101,7 @@ json DebugAdapter::GetScreenshot()
         return result;
     }
 
-    // Encode PNG data to base64
     std::string base64_png = base64_encode(png_buffer, png_size);
-
-    // Free the buffer allocated by stbi_write_png_to_mem (uses malloc internally)
     free(png_buffer);
 
     result["__mcp_image"] = true;
@@ -1414,10 +1151,8 @@ json DebugAdapter::LoadMedia(const std::string& file_path)
     result["success"] = true;
     result["file_path"] = file_path;
     result["rom_name"] = m_core->GetCartridge()->GetFileName();
-/*
-    result["is_cdrom"] = m_core->GetCartridge()->IsCDROM();
-    result["is_sgx"] = m_core->GetCartridge()->IsSGX();
-*/
+    result["is_game_gear"] = m_core->GetCartridge()->IsGameGear();
+    result["is_sg1000"] = m_core->GetCartridge()->IsSG1000();
 
     return result;
 }
@@ -1452,7 +1187,6 @@ json DebugAdapter::ListSaveStateSlots()
         slot["slot"] = i + 1;
         slot["selected"] = (config_emulator.save_slot == i);
 
-/*
         if (emu_savestates[i].rom_name[0] != 0)
         {
             slot["rom_name"] = emu_savestates[i].rom_name;
@@ -1468,8 +1202,6 @@ json DebugAdapter::ListSaveStateSlots()
         {
             slot["empty"] = true;
         }
-*/
-        slot["empty"] = true;
 
         slots.push_back(slot);
     }
@@ -1533,14 +1265,12 @@ json DebugAdapter::LoadState()
 
     int slot = config_emulator.save_slot + 1;
 
-/*
     if (emu_savestates[config_emulator.save_slot].rom_name[0] == 0)
     {
         result["error"] = "Save state slot is empty";
         Log("[MCP] LoadState failed: Slot %d is empty", slot);
         return result;
     }
-*/
 
     emu_load_state_slot(slot);
 
@@ -1565,7 +1295,7 @@ json DebugAdapter::SetFastForwardSpeed(int speed)
 
     result["success"] = true;
     result["speed"] = speed;
-    
+
     const char* speed_names[] = {"1.5x", "2x", "2.5x", "3x", "Unlimited"};
     result["speed_name"] = speed_names[speed];
 
@@ -1588,40 +1318,32 @@ json DebugAdapter::ToggleFastForward(bool enabled)
 
 json DebugAdapter::ControllerButton(int player, const std::string& button, const std::string& action)
 {
-/*
     json result;
 
-    // Validate action
     if (action != "press" && action != "release" && action != "press_and_release")
     {
         result["error"] = "Invalid action (must be: press, release, press_and_release)";
         return result;
     }
 
-    // Convert player 1-5 to GG_Controllers enum (0-4)
-    if (player < 1 || player > 5)
+    if (player < 1 || player > 2)
     {
-        result["error"] = "Invalid player number (must be 1-5)";
+        result["error"] = "Invalid player number (must be 1-2)";
         return result;
     }
-    GG_Controllers controller = static_cast<GG_Controllers>(player - 1);
+    GS_Joypads joypad = static_cast<GS_Joypads>(player - 1);
 
     std::string button_lower = button;
     std::transform(button_lower.begin(), button_lower.end(), button_lower.begin(), ::tolower);
 
-    GG_Keys key = GG_KEY_NONE;
-    if (button_lower == "i") key = GG_KEY_I;
-    else if (button_lower == "ii") key = GG_KEY_II;
-    else if (button_lower == "select") key = GG_KEY_SELECT;
-    else if (button_lower == "run") key = GG_KEY_RUN;
-    else if (button_lower == "up") key = GG_KEY_UP;
-    else if (button_lower == "right") key = GG_KEY_RIGHT;
-    else if (button_lower == "down") key = GG_KEY_DOWN;
-    else if (button_lower == "left") key = GG_KEY_LEFT;
-    else if (button_lower == "iii") key = GG_KEY_III;
-    else if (button_lower == "iv") key = GG_KEY_IV;
-    else if (button_lower == "v") key = GG_KEY_V;
-    else if (button_lower == "vi") key = GG_KEY_VI;
+    GS_Keys key = Key_None;
+    if (button_lower == "up") key = Key_Up;
+    else if (button_lower == "down") key = Key_Down;
+    else if (button_lower == "left") key = Key_Left;
+    else if (button_lower == "right") key = Key_Right;
+    else if (button_lower == "1") key = Key_1;
+    else if (button_lower == "2") key = Key_2;
+    else if (button_lower == "start") key = Key_Start;
     else
     {
         result["error"] = "Invalid button name";
@@ -1630,16 +1352,15 @@ json DebugAdapter::ControllerButton(int player, const std::string& button, const
 
     if (action == "press")
     {
-        emu_key_pressed(controller, key);
+        emu_key_pressed(joypad, key);
     }
     else if (action == "release")
     {
-        emu_key_released(controller, key);
+        emu_key_released(joypad, key);
     }
     else if (action == "press_and_release")
     {
-        emu_key_pressed(controller, key);
-        // Mark for delayed release - McpManager will handle releasing after some frames
+        emu_key_pressed(joypad, key);
         result["__delayed_release"] = true;
     }
 
@@ -1649,122 +1370,10 @@ json DebugAdapter::ControllerButton(int player, const std::string& button, const
     result["action"] = action;
 
     return result;
-*/
-    json result;
-    (void)player;
-    (void)button;
-    (void)action;
-    result["error"] = "Not available during Gearlynx migration";
-    return result;
 }
 
-json DebugAdapter::ControllerSetType(int player, const std::string& type)
+json DebugAdapter::ListSprites()
 {
-/*
-    json result;
-
-    // Convert player 1-5 to GG_Controllers enum (0-4)
-    if (player < 1 || player > 5)
-    {
-        result["error"] = "Invalid player number (must be 1-5)";
-        return result;
-    }
-    GG_Controllers controller = static_cast<GG_Controllers>(player - 1);
-
-    // Convert type string to GG_Controller_Type enum
-    GG_Controller_Type controller_type;
-    if (type == "standard")
-        controller_type = GG_CONTROLLER_STANDARD;
-    else if (type == "avenue_pad_3")
-        controller_type = GG_CONTROLLER_AVENUE_PAD_3;
-    else if (type == "avenue_pad_6")
-        controller_type = GG_CONTROLLER_AVENUE_PAD_6;
-    else
-    {
-        result["error"] = "Invalid controller type (must be: standard, avenue_pad_3, avenue_pad_6)";
-        return result;
-    }
-
-    emu_set_pad_type(controller, controller_type);
-
-    result["success"] = true;
-    result["player"] = player;
-    result["type"] = type;
-
-    return result;
-*/
-    json result;
-    (void)player;
-    (void)type;
-    result["error"] = "Not available during Gearlynx migration";
-    return result;
-}
-
-json DebugAdapter::ControllerSetTurboTap(bool enabled)
-{
-/*
-    json result;
-
-    emu_set_turbo_tap(enabled);
-
-    result["success"] = true;
-    result["enabled"] = enabled;
-
-    return result;
-*/
-    json result;
-    (void)enabled;
-    result["error"] = "Not available during Gearlynx migration";
-    return result;
-}
-
-json DebugAdapter::ControllerGetType(int player)
-{
-/*
-    json result;
-
-    // Convert player 1-5 to GG_Controllers enum (0-4)
-    if (player < 1 || player > 5)
-    {
-        result["error"] = "Invalid player number (must be 1-5)";
-        return result;
-    }
-    GG_Controllers controller = static_cast<GG_Controllers>(player - 1);
-
-    GG_Controller_Type controller_type = emu_get_pad_type(controller);
-
-    std::string type_name;
-    switch (controller_type)
-    {
-        case GG_CONTROLLER_STANDARD:
-            type_name = "standard";
-            break;
-        case GG_CONTROLLER_AVENUE_PAD_3:
-            type_name = "avenue_pad_3";
-            break;
-        case GG_CONTROLLER_AVENUE_PAD_6:
-            type_name = "avenue_pad_6";
-            break;
-        default:
-            type_name = "unknown";
-            break;
-    }
-
-    result["success"] = true;
-    result["player"] = player;
-    result["type"] = type_name;
-
-    return result;
-*/
-    json result;
-    (void)player;
-    result["error"] = "Not available during Gearlynx migration";
-    return result;
-}
-
-json DebugAdapter::ListSprites(int vdc)
-{
-/*
     json result;
 
     if (!m_core || !m_core->GetCartridge()->IsReady())
@@ -1773,100 +1382,75 @@ json DebugAdapter::ListSprites(int vdc)
         return result;
     }
 
-    if (vdc < 1 || vdc > 2)
-    {
-        result["error"] = "Invalid VDC number (must be 1 or 2)";
-        return result;
-    }
+    Video* video = m_core->GetVideo();
+    u8* vram = video->GetVRAM();
+    u8* regs = video->GetRegisters();
 
-    HuC6270* huc6270 = (vdc == 1) ? m_core->GetHuC6270_1() : m_core->GetHuC6270_2();
-    u16* sat = huc6270->GetSAT();
+    bool isSG1000 = video->IsSG1000Mode();
+    bool sprite_8x16 = (regs[1] & 0x02) != 0;
+    int sprite_height = sprite_8x16 ? 16 : 8;
 
     json sprites = json::array();
 
-    for (int s = 0; s < 64; s++)
+    if (isSG1000)
     {
-        u16 sprite_y_raw = sat[s * 4] & 0x03FF;
-        u16 sprite_x = sat[(s * 4) + 1] & 0x03FF;
-        u16 pattern = (sat[(s * 4) + 2] >> 1) & 0x03FF;
-        u16 sprite_flags = sat[(s * 4) + 3] & 0xB98F;
+        u16 sat_addr = (regs[5] & 0x7F) << 7;
 
-        int width_index = (sprite_flags >> 8) & 0x01;
-        int height_index = (sprite_flags >> 12) & 0x03;
-        int width = k_huc6270_sprite_width[width_index];
-        int height = k_huc6270_sprite_height[height_index];
+        for (int s = 0; s < 32; s++)
+        {
+            u8 y = vram[sat_addr + s * 4];
+            if (y == 0xD0) break;
+            u8 x = vram[sat_addr + s * 4 + 1];
+            u8 pattern = vram[sat_addr + s * 4 + 2];
+            u8 color_ec = vram[sat_addr + s * 4 + 3];
 
-        bool h_flip = (sprite_flags & 0x0800) != 0;
-        bool v_flip = (sprite_flags & 0x8000) != 0;
-        int palette = sprite_flags & 0x0F;
-        bool priority = (sprite_flags & 0x0080) != 0;
+            json sprite_info;
+            sprite_info["index"] = s;
+            sprite_info["x"] = (int)x;
+            sprite_info["y"] = (int)y;
+            sprite_info["pattern"] = (int)pattern;
+            sprite_info["color"] = (int)(color_ec & 0x0F);
+            sprite_info["early_clock"] = (color_ec & 0x80) != 0;
+            sprite_info["size"] = std::string("8x") + std::to_string(sprite_height);
 
-        // Apply same Y adjustment as GUI (+3 for screen positioning)
-        int sprite_y = sprite_y_raw + 3;
+            sprites.push_back(sprite_info);
+        }
+    }
+    else
+    {
+        u16 sat_addr = (regs[5] & 0x7E) << 7;
 
-        // Format values to match GUI display
-        std::ostringstream ss;
-        ss << std::hex << std::uppercase << std::setfill('0');
+        for (int s = 0; s < 64; s++)
+        {
+            u8 y = vram[sat_addr + s];
+            if (y == 0xD0 && !video->IsExtendedMode224()) break;
 
-        ss << std::setw(3) << sprite_x;
-        std::string x_hex = ss.str();
-        ss.str("");
+            u8 x = vram[sat_addr + 0x80 + s * 2];
+            u8 pattern = vram[sat_addr + 0x80 + s * 2 + 1];
 
-        ss << std::setw(3) << sprite_y;
-        std::string y_hex = ss.str();
-        ss.str("");
+            json sprite_info;
+            sprite_info["index"] = s;
+            sprite_info["x"] = (int)x;
+            sprite_info["y"] = (int)y + 1;
+            sprite_info["pattern"] = (int)pattern;
+            sprite_info["size"] = std::string("8x") + std::to_string(sprite_height);
 
-        ss << std::setw(3) << pattern;
-        std::string pattern_hex = ss.str();
-        ss.str("");
-
-        ss << std::setw(4) << (pattern << 6);
-        std::string vram_hex = ss.str();
-        ss.str("");
-
-        ss << std::setw(1) << palette;
-        std::string palette_hex = ss.str();
-
-        json sprite_info;
-        sprite_info["sat_entry"] = s;
-        sprite_info["sprite_x"] = x_hex + " (" + std::to_string(sprite_x) + ")";
-        sprite_info["sprite_y"] = y_hex + " (" + std::to_string(sprite_y) + ")";
-        sprite_info["size"] = std::to_string(width) + "x" + std::to_string(height);
-        sprite_info["pattern"] = pattern_hex + " (" + std::to_string(pattern) + ")";
-        sprite_info["vram_address"] = "$" + vram_hex;
-        sprite_info["palette"] = palette_hex + " (" + std::to_string(palette) + ")";
-        sprite_info["h_flip"] = h_flip ? "YES" : "NO";
-        sprite_info["v_flip"] = v_flip ? "YES" : "NO";
-        sprite_info["priority"] = priority ? "YES" : "NO";
-
-        sprites.push_back(sprite_info);
+            sprites.push_back(sprite_info);
+        }
     }
 
     result["sprites"] = sprites;
-    result["vdc"] = vdc;
 
-    return result;
-*/
-    json result;
-    (void)vdc;
-    result["error"] = "Not available during Gearlynx migration";
     return result;
 }
 
-json DebugAdapter::GetSpriteImage(int sprite_index, int vdc)
+json DebugAdapter::GetSpriteImage(int sprite_index)
 {
-/*
     json result;
 
     if (!m_core || !m_core->GetCartridge()->IsReady())
     {
         result["error"] = "No media loaded";
-        return result;
-    }
-
-    if (vdc < 1 || vdc > 2)
-    {
-        result["error"] = "Invalid VDC number (must be 1 or 2)";
         return result;
     }
 
@@ -1876,11 +1460,8 @@ json DebugAdapter::GetSpriteImage(int sprite_index, int vdc)
         return result;
     }
 
-    int vdc_idx = vdc - 1;
-
-    // Get PNG sprite from emu
     unsigned char* png_buffer = NULL;
-    int png_size = emu_get_sprite_png(vdc_idx, sprite_index, &png_buffer);
+    int png_size = emu_get_sprite_png(sprite_index, &png_buffer);
 
     if (png_size == 0 || !png_buffer)
     {
@@ -1888,13 +1469,13 @@ json DebugAdapter::GetSpriteImage(int sprite_index, int vdc)
         return result;
     }
 
-    int width = emu_debug_sprite_widths[vdc_idx][sprite_index];
-    int height = emu_debug_sprite_heights[vdc_idx][sprite_index];
+    Video* video = m_core->GetVideo();
+    u8* regs = video->GetRegisters();
+    bool sprite_8x16 = (regs[1] & 0x02) != 0;
+    int width = 8;
+    int height = sprite_8x16 ? 16 : 8;
 
-    // Encode PNG data to base64
     std::string base64_png = base64_encode(png_buffer, png_size);
-
-    // Free the buffer allocated by stbi_write_png_to_mem
     free(png_buffer);
 
     result["__mcp_image"] = true;
@@ -1903,14 +1484,7 @@ json DebugAdapter::GetSpriteImage(int sprite_index, int vdc)
     result["width"] = width;
     result["height"] = height;
     result["sprite_index"] = sprite_index;
-    result["vdc"] = vdc;
 
-    return result;
-*/
-    json result;
-    (void)sprite_index;
-    (void)vdc;
-    result["error"] = "Not available during Gearlynx migration";
     return result;
 }
 
@@ -2027,7 +1601,7 @@ json DebugAdapter::SelectMemoryRange(int editor, int start_address, int end_addr
 
     if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
     {
-        result["error"] = "Invalid editor number (must be 0-13)";
+        result["error"] = "Invalid editor number";
         return result;
     }
 
@@ -2053,7 +1627,7 @@ json DebugAdapter::SetMemorySelectionValue(int editor, u8 value)
 
     if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
     {
-        result["error"] = "Invalid editor number (must be 0-13)";
+        result["error"] = "Invalid editor number";
         return result;
     }
 
@@ -2078,7 +1652,7 @@ json DebugAdapter::AddMemoryBookmark(int editor, int address, const std::string&
 
     if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
     {
-        result["error"] = "Invalid editor number (must be 0-13)";
+        result["error"] = "Invalid editor number";
         return result;
     }
 
@@ -2104,7 +1678,7 @@ json DebugAdapter::RemoveMemoryBookmark(int editor, int address)
 
     if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
     {
-        result["error"] = "Invalid editor number (must be 0-13)";
+        result["error"] = "Invalid editor number";
         return result;
     }
 
@@ -2129,7 +1703,7 @@ json DebugAdapter::AddMemoryWatch(int editor, int address, const std::string& no
 
     if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
     {
-        result["error"] = "Invalid editor number (must be 0-13)";
+        result["error"] = "Invalid editor number";
         return result;
     }
 
@@ -2156,7 +1730,7 @@ json DebugAdapter::RemoveMemoryWatch(int editor, int address)
 
     if (editor < 0 || editor >= MEMORY_EDITOR_MAX)
     {
-        result["error"] = "Invalid editor number (must be 0-13)";
+        result["error"] = "Invalid editor number";
         return result;
     }
 
@@ -2259,7 +1833,6 @@ json DebugAdapter::ListSymbols()
 
 json DebugAdapter::ListCallStack()
 {
-/*
     json result;
 
     if (!m_core || !m_core->GetCartridge()->IsReady())
@@ -2269,8 +1842,8 @@ json DebugAdapter::ListCallStack()
     }
 
     Memory* memory = m_core->GetMemory();
-    HuC6280* processor = m_core->GetHuC6280();
-    std::stack<HuC6280::GG_CallStackEntry> temp_stack = *processor->GetDisassemblerCallStack();
+    Processor* processor = m_core->GetProcessor();
+    std::stack<Processor::GS_CallStackEntry> temp_stack = *processor->GetDisassemblerCallStack();
 
     void* symbols_ptr = NULL;
     gui_debug_get_symbols(&symbols_ptr);
@@ -2280,12 +1853,11 @@ json DebugAdapter::ListCallStack()
 
     while (!temp_stack.empty())
     {
-        HuC6280::GG_CallStackEntry entry = temp_stack.top();
+        Processor::GS_CallStackEntry entry = temp_stack.top();
         temp_stack.pop();
 
         json entry_obj;
 
-        // Format addresses as hex strings
         std::ostringstream dest_ss, src_ss, back_ss;
         dest_ss << "$" << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << entry.dest;
         src_ss << "$" << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << entry.src;
@@ -2295,7 +1867,6 @@ json DebugAdapter::ListCallStack()
         entry_obj["source"] = src_ss.str();
         entry_obj["return"] = back_ss.str();
 
-        // Try to find symbol for destination address
         GS_Disassembler_Record* record = memory->GetDisassemblerRecord(entry.dest);
         if (IsValidPointer(record) && record->name[0] != 0)
         {
@@ -2311,11 +1882,6 @@ json DebugAdapter::ListCallStack()
     result["stack"] = stack_array;
     result["depth"] = stack_array.size();
 
-    return result;
-*/
-    json result;
-    result["stack"] = json::array();
-    result["depth"] = 0;
     return result;
 }
 
@@ -2472,7 +2038,7 @@ json DebugAdapter::MemorySearchCapture(int area)
 
     if (area < 0 || area >= MEMORY_EDITOR_MAX)
     {
-        result["error"] = "Invalid area number (must be 0-13)";
+        result["error"] = "Invalid area number";
         return result;
     }
 
@@ -2497,7 +2063,7 @@ json DebugAdapter::MemorySearch(int area, const std::string& op, const std::stri
 
     if (area < 0 || area >= MEMORY_EDITOR_MAX)
     {
-        result["error"] = "Invalid area number (must be 0-13)";
+        result["error"] = "Invalid area number";
         return result;
     }
 

@@ -38,18 +38,13 @@ struct MemoryAreaInfo
 
 struct RegistersSnapshot
 {
-    u16 PC;
-    u8 A;
-    u8 X;
-    u8 Y;
-    u8 S;
-    u8 P;
-    s32 SPEED;
-    bool TIMER;
-    u8 TIMER_COUNTER;
-    u8 TIMER_RELOAD;
-    u8 IDR;
-    u8 IRR;
+    u16 AF, BC, DE, HL;
+    u16 AF2, BC2, DE2, HL2;
+    u16 IX, IY, SP, PC, WZ;
+    u8 I, R;
+    bool IFF1, IFF2;
+    bool Halt;
+    int InterruptMode;
 };
 
 struct BreakpointInfo
@@ -78,7 +73,6 @@ struct DisasmLine
     u8 jump_bank;
     bool has_operand_address;
     u16 operand_address;
-    bool operand_is_zp;
     bool subroutine;
     int irq;
 };
@@ -121,20 +115,14 @@ public:
     std::vector<DisasmLine> GetDisassembly(u16 start_address, u16 end_address, int bank = -1, bool resolve_symbols = false);
 
     // Chip status info
-    json GetHuC6280Status();
-    json GetHuC6270Registers(int vdc);
-    json WriteHuC6270Register(int vdc, int reg, u16 value);
-    json GetHuC6270Status(int vdc);
-    json GetHuC6260Status();
-    json GetHuC6202Status();
+    json GetZ80Status();
+    json GetVDPRegisters();
+    json GetVDPStatus();
     json GetPSGStatus();
-    json GetCDROMStatus();
-    json GetArcadeCardStatus();
-    json GetCDROMAudioStatus();
-    json GetADPCMStatus();
+    json GetYM2413Status();
     json GetScreenshot();
-    json ListSprites(int vdc);
-    json GetSpriteImage(int sprite_index, int vdc);
+    json ListSprites();
+    json GetSpriteImage(int sprite_index);
 
     // Media and state management
     json GetMediaInfo();
@@ -148,9 +136,6 @@ public:
 
     // Controller input
     json ControllerButton(int player, const std::string& button, const std::string& action);
-    json ControllerSetType(int player, const std::string& type);
-    json ControllerSetTurboTap(bool enabled);
-    json ControllerGetType(int player);
 
     // Disassembler operations
     json AddDisassemblerBookmark(u16 address, const std::string& name);
