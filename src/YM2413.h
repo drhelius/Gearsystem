@@ -21,6 +21,7 @@ public:
     void Enable(bool bEnabled);
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
+    void LoadStateV1(std::istream& stream);
 
 private:
     void Sync();

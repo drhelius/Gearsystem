@@ -189,4 +189,23 @@ void YM2413::LoadState(std::istream& stream)
     unsigned char* context = YM2413GetContextPtr();
     unsigned int context_size = YM2413GetContextSize();
     stream.read(reinterpret_cast<char*>(context), context_size);
- }
+}
+
+void YM2413::LoadStateV1(std::istream& stream)
+{
+    stream.read(reinterpret_cast<char*>(&m_iCycleCounter), sizeof(int));
+    stream.read(reinterpret_cast<char*>(&m_iSampleCounter), sizeof(int));
+    stream.read(reinterpret_cast<char*>(&m_iBufferIndex), sizeof(int));
+    stream.read(reinterpret_cast<char*>(&m_ElapsedCycles), sizeof(int));
+    stream.read(reinterpret_cast<char*>(&m_iClockRate), sizeof(int));
+    stream.read(reinterpret_cast<char*>(&m_RegisterF2), sizeof(u8));
+    stream.read(reinterpret_cast<char*>(&m_CurrentSample), sizeof(s16));
+    stream.read(reinterpret_cast<char*>(&m_bEnabled), sizeof(bool));
+    stream.read(reinterpret_cast<char*>(&m_iCyclesPerSample), sizeof(int));
+    stream.seekg(sizeof(s16) * GS_AUDIO_BUFFER_SIZE_V1, std::ios::cur);
+    memset(m_pBuffer, 0, sizeof(s16) * GS_AUDIO_BUFFER_SIZE);
+
+    unsigned char* context = YM2413GetContextPtr();
+    unsigned int context_size = YM2413GetContextSize();
+    stream.read(reinterpret_cast<char*>(context), context_size);
+}

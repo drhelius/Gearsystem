@@ -196,6 +196,29 @@ void Audio::LoadState(std::istream& stream)
     }
 }
 
+void Audio::LoadStateV1(std::istream& stream)
+{
+    using namespace std;
+
+    stream.read(reinterpret_cast<char*> (&m_ElapsedCycles), sizeof(m_ElapsedCycles));
+    stream.seekg(sizeof(blip_sample_t) * GS_AUDIO_BUFFER_SIZE_V1, ios::cur);
+    memset(m_pSampleBuffer, 0, sizeof(blip_sample_t) * GS_AUDIO_BUFFER_SIZE);
+    stream.read(reinterpret_cast<char*> (&m_bYM2413Enabled), sizeof(m_bYM2413Enabled));
+    stream.read(reinterpret_cast<char*> (&m_bPSGEnabled), sizeof(m_bPSGEnabled));
+    stream.seekg(sizeof(s16) * GS_AUDIO_BUFFER_SIZE_V1, ios::cur);
+    memset(m_pYM2413Buffer, 0, sizeof(s16) * GS_AUDIO_BUFFER_SIZE);
+    m_pYM2413->LoadStateV1(stream);
+
+    m_pApu->reset(m_pCartridge->IsSG1000() && !m_pCartridge->IsSG1000II());
+    m_pApu->volume(1.0);
+    m_pBuffer->clear();
+    if (m_pApu->is_debug_enabled())
+    {
+        long clock = m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC;
+        m_pApu->init_debug_buffers(m_iSampleRate, clock);
+    }
+}
+
 bool Audio::StartVgmRecording(const char* file_path, int clock_rate, bool is_pal, bool has_ym2413)
 {
     if (m_bVgmRecordingEnabled)

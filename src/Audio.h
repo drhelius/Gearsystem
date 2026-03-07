@@ -52,6 +52,7 @@ public:
     int GetDebugChannelSamples(int channel);
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
+    void LoadStateV1(std::istream& stream);
     bool StartVgmRecording(const char* file_path, int clock_rate, bool is_pal, bool has_ym2413);
     void StopVgmRecording();
     bool IsVgmRecording() const;
