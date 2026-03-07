@@ -2248,16 +2248,15 @@ static void save_current_disassembler(FILE* file)
             replace_labels(&line, "", "");
         }
 
-        std::string instr = line.name_enhanced;
-        size_t pos = instr.find("{}");
-        if (pos != std::string::npos)
-            instr.replace(pos, 2, "");
+        char instr[64];
+        snprintf(instr, sizeof(instr), "%s", line.name_enhanced);
+        RemoveColorFromString(instr);
 
-        fprintf(file, "   %s ", instr.c_str());
+        fprintf(file, "   %s ", instr);
 
         if (config_debug.dis_show_mem)
         {
-            int len = (int)instr.length();
+            int len = (int)strlen(instr);
             char spaces[39];
             int offset = 38 - len;
             if (offset < 0)
