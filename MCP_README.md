@@ -245,10 +245,11 @@ The server exposes tools organized in the following categories:
 - `get_call_stack` - View function call hierarchy
 
 ### Breakpoints
-- `set_breakpoint` - Set execution, read, or write breakpoint (supports 3 memory areas: rom_ram, vram, vdp_reg)
-- `set_breakpoint_range` - Set breakpoint for an address range (supports 3 memory areas)
+- `set_breakpoint` - Set execution, read, or write breakpoint (supports 4 memory areas: rom_ram, vram, cram, vdp_reg)
+- `set_breakpoint_range` - Set breakpoint for an address range (supports 4 memory areas)
 - `remove_breakpoint` - Remove breakpoint
 - `list_breakpoints` - List all breakpoints
+- `toggle_irq_breakpoints` - Enable or disable breaking on IRQs (RESET, NMI, INT)
 
 ### Hardware Status
 - `get_vdp_registers` - Get all 11 VDP registers (R0-R10) with hex values and descriptions

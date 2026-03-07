@@ -444,6 +444,8 @@ const char* DebugAdapter::GetBreakpointTypeName(int type)
             return "VRAM";
         case Processor::GS_BREAKPOINT_TYPE_VDP_REGISTER:
             return "VDP REG";
+        case Processor::GS_BREAKPOINT_TYPE_CRAM:
+            return "CRAM";
         default:
             return "UNKNOWN";
     }

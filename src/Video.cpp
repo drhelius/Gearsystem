@@ -422,13 +422,20 @@ void Video::WriteData(u8 data)
     m_VdpBuffer = data;
 
     if (m_VdpCode == 0x03)
-        m_pVdpCRAM[m_VdpAddress & (m_bGameGear ? 0x3F : 0x1F)] = data;
-    else
-        m_pVdpVRAM[m_VdpAddress] = data;
-
+    {
+        u16 cram_addr = m_VdpAddress & (m_bGameGear ? 0x3F : 0x1F);
+        m_pVdpCRAM[cram_addr] = data;
 #ifndef GS_DISABLE_DISASSEMBLER
-    m_pProcessor->CheckMemoryBreakpoints(Processor::GS_BREAKPOINT_TYPE_VRAM, m_VdpAddress, false);
+        m_pProcessor->CheckMemoryBreakpoints(Processor::GS_BREAKPOINT_TYPE_CRAM, cram_addr, false);
 #endif
+    }
+    else
+    {
+        m_pVdpVRAM[m_VdpAddress] = data;
+#ifndef GS_DISABLE_DISASSEMBLER
+        m_pProcessor->CheckMemoryBreakpoints(Processor::GS_BREAKPOINT_TYPE_VRAM, m_VdpAddress, false);
+#endif
+    }
     m_VdpAddress = (m_VdpAddress + 1) & 0x3FFF;
 }
 

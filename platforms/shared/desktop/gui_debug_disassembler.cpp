@@ -392,7 +392,7 @@ static void draw_controls(void)
     ImGui::TextColored(emu_is_debug_idle() ? red : green, emu_is_debug_idle() ? "   PAUSED" : "   RUNNING");
 }
 
-static const char* k_breakpoint_types[] = { "ROM/RAM ", "VRAM    ", "VDP Reg " };
+static const char* k_breakpoint_types[] = { "ROM/RAM ", "VRAM    ", "VDP Reg ", "CRAM    " };
 
 static const char* k_vdp_register_names[16] = {
     "Mode 1", "Mode 2", "Name Table", "Color Table",
@@ -418,7 +418,7 @@ static void draw_breakpoints_content(void)
     ImGui::Separator();
 
     ImGui::PushItemWidth(120);
-    ImGui::Combo("Type##type", &new_breakpoint_type, "ROM/RAM\0VRAM\0VDP Reg\0");
+    ImGui::Combo("Type##type", &new_breakpoint_type, "ROM/RAM\0VRAM\0VDP Reg\0CRAM\0");
 
     ImGui::PushItemWidth(85);
     if (ImGui::InputTextWithHint("##add_breakpoint", "XXXX-XXXX", new_breakpoint_buffer, IM_ARRAYSIZE(new_breakpoint_buffer), ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_EnterReturnsTrue))

@@ -19,6 +19,7 @@
 
 #include "mcp_server.h"
 #include "../utils.h"
+#include "../emu.h"
 #include <sstream>
 #include <iomanip>
 #include <fstream>
@@ -317,18 +318,18 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "set_breakpoint"},
         {"title", "Set Breakpoint"},
-        {"description", "Set a breakpoint at specified logical address in SMS/GG memory (ROM/RAM, VRAM, or VDP registers)"},
+        {"description", "Set a breakpoint at specified logical address in SMS/GG memory (ROM/RAM, VRAM, CRAM, or VDP registers)"},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
                 {"address", {
                     {"type", "string"},
-                    {"description", "Logical address in hex (e.g., '8000', '0x8000', '$8000')"}
+                    {"description", "Logical address in hex (e.g., '8000', '0x8000', '$8000'). Valid ranges: rom_ram 0000-FFFF, vram 0000-3FFF, cram 00-3F, vdp_reg 00-0A"}
                 }},
                 {"memory_area", {
                     {"type", "string"},
-                    {"description", "Memory area: rom_ram (default), vram, vdp_reg"},
-                    {"enum", json::array({"rom_ram", "vram", "vdp_reg"})}
+                    {"description", "Memory area: rom_ram (default, 0000-FFFF), vram (0000-3FFF), cram (00-3F, 64 bytes), vdp_reg (00-0A, 11 registers)"},
+                    {"enum", json::array({"rom_ram", "vram", "vdp_reg", "cram"})}
                 }},
                 {"read", {
                     {"type", "boolean"},
@@ -356,16 +357,16 @@ void McpServer::HandleToolsList(const json& request)
             {"properties", {
                 {"start_address", {
                     {"type", "string"},
-                    {"description", "Start logical address in hex (e.g., '8000')"}
+                    {"description", "Start logical address in hex (e.g., '8000'). Valid ranges: rom_ram 0000-FFFF, vram 0000-3FFF, cram 00-3F, vdp_reg 00-0A"}
                 }},
                 {"end_address", {
                     {"type", "string"},
-                    {"description", "End logical address in hex (e.g., '8FFF')"}
+                    {"description", "End logical address in hex (e.g., '8FFF'). Valid ranges: rom_ram 0000-FFFF, vram 0000-3FFF, cram 00-3F, vdp_reg 00-0A"}
                 }},
                 {"memory_area", {
                     {"type", "string"},
-                    {"description", "Memory area: rom_ram, vram, vdp_reg"},
-                    {"enum", json::array({"rom_ram", "vram", "vdp_reg"})}
+                    {"description", "Memory area: rom_ram (0000-FFFF), vram (0000-3FFF), cram (00-3F, 64 bytes), vdp_reg (00-0A, 11 registers)"},
+                    {"enum", json::array({"rom_ram", "vram", "vdp_reg", "cram"})}
                 }},
                 {"read", {
                     {"type", "boolean"},
@@ -401,8 +402,8 @@ void McpServer::HandleToolsList(const json& request)
                 }},
                 {"memory_area", {
                     {"type", "string"},
-                    {"description", "Memory area: rom_ram (default), vram, vdp_reg"},
-                    {"enum", json::array({"rom_ram", "vram", "vdp_reg"})}
+                    {"description", "Memory area: rom_ram (default), vram, cram, vdp_reg"},
+                    {"enum", json::array({"rom_ram", "vram", "vdp_reg", "cram"})}
                 }}
             }},
             {"required", json::array({"address"})}
@@ -417,6 +418,22 @@ void McpServer::HandleToolsList(const json& request)
             {"type", "object"},
             {"properties", json::object()},
             {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "toggle_irq_breakpoints"},
+        {"title", "Toggle IRQ Breakpoints"},
+        {"description", "Enable or disable breaking on IRQs (RESET, NMI, INT). When enabled, the emulator pauses whenever an interrupt is triggered."},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"enabled", {
+                    {"type", "boolean"},
+                    {"description", "true to break on IRQs, false to disable"}
+                }}
+            }},
+            {"required", json::array({"enabled"})}
         }}
     });
 
@@ -1200,6 +1217,7 @@ static int GetBreakpointTypeFromString(const std::string& memory_area)
     if (memory_area == "rom_ram") return Processor::GS_BREAKPOINT_TYPE_ROMRAM;
     if (memory_area == "vram") return Processor::GS_BREAKPOINT_TYPE_VRAM;
     if (memory_area == "vdp_reg") return Processor::GS_BREAKPOINT_TYPE_VDP_REGISTER;
+    if (memory_area == "cram") return Processor::GS_BREAKPOINT_TYPE_CRAM;
     return Processor::GS_BREAKPOINT_TYPE_ROMRAM; // default
 }
 
@@ -1274,6 +1292,21 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
         if (!read && !write && !execute)
             return {{"error", "At least one of read, write, or execute must be true"}};
 
+        u16 max_address = 0xFFFF;
+        if (breakpoint_type == Processor::GS_BREAKPOINT_TYPE_VRAM)
+            max_address = 0x3FFF;
+        else if (breakpoint_type == Processor::GS_BREAKPOINT_TYPE_VDP_REGISTER)
+            max_address = 0x000A;
+        else if (breakpoint_type == Processor::GS_BREAKPOINT_TYPE_CRAM)
+            max_address = 0x003F;
+
+        if (address > max_address)
+        {
+            char msg[128];
+            snprintf(msg, sizeof(msg), "Address 0x%04X out of range for %s (max: 0x%04X)", address, memory_area.c_str(), max_address);
+            return {{"error", msg}};
+        }
+
         m_debugAdapter.SetBreakpoint(address, breakpoint_type, read, write, execute);
         return {{"success", true}, {"address", addrStr}, {"memory_area", memory_area}};
     }
@@ -1302,6 +1335,21 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
 
         if (!read && !write && !execute)
             return {{"error", "At least one of read, write, or execute must be true"}};
+
+        u16 max_address = 0xFFFF;
+        if (breakpoint_type == Processor::GS_BREAKPOINT_TYPE_VRAM)
+            max_address = 0x3FFF;
+        else if (breakpoint_type == Processor::GS_BREAKPOINT_TYPE_VDP_REGISTER)
+            max_address = 0x000A;
+        else if (breakpoint_type == Processor::GS_BREAKPOINT_TYPE_CRAM)
+            max_address = 0x003F;
+
+        if (start_address > max_address || end_address > max_address)
+        {
+            char msg[128];
+            snprintf(msg, sizeof(msg), "Address out of range for %s (max: 0x%04X)", memory_area.c_str(), max_address);
+            return {{"error", msg}};
+        }
 
         m_debugAdapter.SetBreakpointRange(start_address, end_address, breakpoint_type,
                                          read, write, execute);
@@ -1355,7 +1403,13 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
             bpObj["execute"] = bp.execute;
             bpArray.push_back(bpObj);
         }
-        return {{"breakpoints", bpArray}};
+        return {{"breakpoints", bpArray}, {"irq_breakpoints_enabled", (bool)emu_debug_irq_breakpoints}};
+    }
+    else if (normalizedTool == "toggle_irq_breakpoints")
+    {
+        bool enabled = arguments["enabled"];
+        emu_debug_irq_breakpoints = enabled;
+        return {{"success", true}, {"irq_breakpoints_enabled", enabled}};
     }
     // Memory
     else if (normalizedTool == "list_memory_areas")

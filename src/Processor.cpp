@@ -850,6 +850,19 @@ bool Processor::AddBreakpoint(int type, char* text, bool read, bool write, bool 
         return false;
     }
 
+    u16 max_address = 0xFFFF;
+    if (type == GS_BREAKPOINT_TYPE_VRAM)
+        max_address = 0x3FFF;
+    else if (type == GS_BREAKPOINT_TYPE_VDP_REGISTER)
+        max_address = 0x000A;
+    else if (type == GS_BREAKPOINT_TYPE_CRAM)
+        max_address = 0x003F;
+
+    if (brk.address1 > max_address)
+        return false;
+    if (brk.range && (brk.address2 > max_address))
+        return false;
+
     bool found = false;
 
     for (long unsigned int b = 0; b < m_breakpoints.size(); b++)
