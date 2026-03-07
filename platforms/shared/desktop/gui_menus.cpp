@@ -116,7 +116,7 @@ static void menu_gearsystem(void)
     {
         gui_in_use = true;
 
-        if (ImGui::MenuItem("Open ROM/CD...", config_hotkeys[config_HotkeyIndex_OpenROM].str))
+        if (ImGui::MenuItem("Open ROM...", config_hotkeys[config_HotkeyIndex_OpenROM].str))
         {
             open_rom = true;
         }
