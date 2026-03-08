@@ -72,6 +72,7 @@ public:
     u8 GetHCounter();
     u8 GetDataPort();
     u8 GetStatusFlags();
+    u8 GetStatusFlagsDebug();
     bool IsExtendedMode224();
     bool IsSG1000Mode();
     void WriteData(u8 data);
@@ -183,6 +184,8 @@ private:
     bool m_bDisplayEnabled;
     bool m_bSpriteOvrRequest;
     bool m_bLineInterruptPending;
+    bool m_bSpriteCollisionRequest;
+    int m_iSpriteCollisionX;
 
     u16 m_SG1000_palette_565_rgb_normal[16];
     u16 m_SG1000_palette_555_rgb_normal[16];

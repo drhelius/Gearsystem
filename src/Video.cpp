@@ -64,6 +64,8 @@ Video::Video(Memory* pMemory, Processor* pProcessor, Cartridge* pCartridge)
     m_bDisplayEnabled = false;
     m_bSpriteOvrRequest = false;
     m_bLineInterruptPending = false;
+    m_bSpriteCollisionRequest = false;
+    m_iSpriteCollisionX = 0;
     m_Overscan = OverscanDisabled;
     m_HideLeftBar = HideLeftBarNo;
     m_iHideLeftBarOffset = 0;
@@ -144,6 +146,8 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_bDisplayEnabled = false;
     m_bSpriteOvrRequest = false;
     m_bLineInterruptPending = false;
+    m_bSpriteCollisionRequest = false;
+    m_iSpriteCollisionX = 0;
 
     for (int i = 11; i < 16; i++)
         m_VdpRegister[i] = 0;
@@ -280,6 +284,18 @@ bool Video::Tick(unsigned int clockCycles)
             m_VdpStatus = SetBit(m_VdpStatus, 7);
     }
 
+    ///// SPRITE COLLISION /////
+    if (m_bSpriteCollisionRequest && !m_LineEvents.render)
+    {
+        int col_cycle = 20 + ((m_iSpriteCollisionX * 228) / 256);
+
+        if (m_iCycleCounter >= col_cycle)
+        {
+            m_bSpriteCollisionRequest = false;
+            m_VdpStatus = SetBit(m_VdpStatus, 5);
+        }
+    }
+
     ///// SPRITE OVR /////
     if (!m_LineEvents.spriteovr && (m_iCycleCounter >= m_Timing[TIMING_SPRITEOVR]) && !m_bTMS9918)
     {
@@ -413,6 +429,11 @@ u8 Video::GetStatusFlags()
         m_LineEvents.vint = true;
     m_pProcessor->RequestINT(false);
     return ret;
+}
+
+u8 Video::GetStatusFlagsDebug()
+{
+    return m_VdpStatus | (m_bTMS9918 ? 0 : 0x1F);
 }
 
 bool Video::IsExtendedMode224()
@@ -745,6 +766,7 @@ void Video::RenderSpritesSMSGG(int line)
     u16 sprite_table_address = (m_VdpRegister[5] << 7) & 0x3F00;
     u16 sprite_table_address_2 = sprite_table_address + 0x80;
     int sprite_collision = false;
+    int sprite_collision_x = 0;
     int scy_adjust = m_bGameGear ? y_offset : 0;
     int line_width_info = line * (m_iScreenWidth - m_iHideLeftBarOffset);
     int line_width_screen = (line - scy_adjust) * (m_iScreenWidth - m_iHideLeftBarOffset);
@@ -829,14 +851,23 @@ void Video::RenderSpritesSMSGG(int line)
             }
 
             if ((m_pInfoBuffer[pixel_info] & 0x01) != 0)
-                sprite_collision = true;
+            {
+                if (!sprite_collision)
+                {
+                    sprite_collision = true;
+                    sprite_collision_x = sprite_pixel_x;
+                }
+            }
 
             m_pInfoBuffer[pixel_info] |= 0x01;
         }
     }
 
     if (sprite_collision)
-        m_VdpStatus = SetBit(m_VdpStatus, 5);
+    {
+        m_bSpriteCollisionRequest = true;
+        m_iSpriteCollisionX = sprite_collision_x;
+    }
 }
 
 void Video::RenderBackgroundTMS9918(int line)

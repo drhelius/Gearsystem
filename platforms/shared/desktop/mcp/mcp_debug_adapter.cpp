@@ -773,7 +773,7 @@ json DebugAdapter::GetVDPStatus()
     json status;
     Video* video = m_core->GetVideo();
 
-    u8 flags = video->GetStatusFlags();
+    u8 flags = video->GetStatusFlagsDebug();
 
     status["status_flags"] = flags;
     status["frame_interrupt"] = (flags & 0x80) != 0;
