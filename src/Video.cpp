@@ -214,7 +214,7 @@ bool Video::Tick(unsigned int clockCycles)
     }
 
     ///// VINT /////
-    if (!m_LineEvents.vint && (m_iCycleCounter >= m_Timing[TIMING_VINT]))
+    if (!m_LineEvents.vint && (m_iCycleCounter > m_Timing[TIMING_VINT]))
     {
         m_LineEvents.vint = true;
         if ((m_iRenderLine == (max_height + 1)) && (IsSetBit(m_VdpRegister[1], 5)))
@@ -409,6 +409,8 @@ u8 Video::GetStatusFlags()
     m_bFirstByteInSequence = true;
     m_VdpStatus = 0x00;
     m_bLineInterruptPending = false;
+    if (IsSetBit(ret, 7))
+        m_LineEvents.vint = true;
     m_pProcessor->RequestINT(false);
     return ret;
 }
