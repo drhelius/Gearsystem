@@ -269,8 +269,6 @@ make
 
 Zexall Z80 instruction exerciser ([from SMS Power!](http://www.smspower.org/Homebrew/ZEXALL-SMS))
 
-Gearsystem passes all tests in Zexall, including undocumented instructions and behaviors.
-
 <img src="http://www.geardome.com/files/gearsystem/zexall.png" alt="zexall.png" width="256"/>
 
 SMS VDP Test  ([from SMS Power!](http://www.smspower.org/Homebrew/SMSVDPTest-SMS))
