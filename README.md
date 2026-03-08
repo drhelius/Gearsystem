@@ -275,8 +275,7 @@ Gearsystem passes all tests in Zexall, including undocumented instructions and b
 
 SMS VDP Test  ([from SMS Power!](http://www.smspower.org/Homebrew/SMSVDPTest-SMS))
 
-![vdptest.sms](http://www.geardome.com/files/gearsystem/vdptest5.png)![vdptest.sms](http://www.geardome.com/files/gearsystem/vdptest4.png)
-<img src="http://www.geardome.com/files/gearsystem/vdptest7.png" alt="vdptest.sms" width="368"/>
+<img src="http://www.geardome.com/files/gearsystem/vdptest10.png" alt="vdptest1.sms" width="256"/><img src="http://www.geardome.com/files/gearsystem/vdptest11.png" alt="vdptest2.sms" width="256"/><img src="http://www.geardome.com/files/gearsystem/vdptest12.png" alt="vdptest3.sms" width="256"/>
 
 ## Screenshots
 
