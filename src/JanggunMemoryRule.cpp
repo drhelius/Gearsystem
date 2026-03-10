@@ -202,7 +202,10 @@ bool JanggunMemoryRule::Has8kBanks()
 
 void JanggunMemoryRule::SaveState(std::ostream& stream)
 {
-    stream.write(reinterpret_cast<const char*> (m_iMapperSlot), sizeof(m_iMapperSlot));
+    int slotsWithFlags[4];
+    for (int i = 0; i < 4; i++)
+        slotsWithFlags[i] = m_iMapperSlot[i] | (m_bReverseFlags[i] ? 0x80 : 0);
+    stream.write(reinterpret_cast<const char*> (slotsWithFlags), sizeof(slotsWithFlags));
     stream.write(reinterpret_cast<const char*> (m_iMapperSlotAddress), sizeof(m_iMapperSlotAddress));
 }
 
@@ -210,4 +213,9 @@ void JanggunMemoryRule::LoadState(std::istream& stream)
 {
     stream.read(reinterpret_cast<char*> (m_iMapperSlot), sizeof(m_iMapperSlot));
     stream.read(reinterpret_cast<char*> (m_iMapperSlotAddress), sizeof(m_iMapperSlotAddress));
+    for (int i = 0; i < 4; i++)
+    {
+        m_bReverseFlags[i] = (m_iMapperSlot[i] & 0x80) != 0;
+        m_iMapperSlot[i] &= 0x3F;
+    }
 }
