@@ -52,6 +52,8 @@ static bool loading_thread_active;
 static bool loading_result;
 static char loading_file_path[4096];
 static Cartridge::ForceConfiguration loading_config;
+static int emu_debug_halt_step_frames_pending;
+static const int kDebugHaltStepMaxFrames = 4;
 
 u16* debug_background_buffer;
 u16* debug_tile_buffer;
@@ -75,6 +77,7 @@ static void update_debug_sprite_buffers_smsgg(void);
 static void update_debug_background_buffer_sg1000(void);
 static void update_debug_tile_buffer_sg1000(void);
 static void update_debug_sprite_buffers_sg1000(void);
+static void debug_step_instruction(void);
 
 bool emu_init(void)
 {
@@ -97,6 +100,7 @@ bool emu_init(void)
     emu_debug_disable_breakpoints = false;
     emu_debug_irq_breakpoints = false;
     emu_debug_command = Debug_Command_None;
+    emu_debug_halt_step_frames_pending = 0;
     emu_debug_pc_changed = false;
     emu_debug_step_frames_pending = 0;
     emu_debug_tile_palette = 0;
@@ -204,9 +208,9 @@ void emu_update(void)
         bool breakpoint_hit = false;
         GearsystemCore::GS_Debug_Run debug_run;
         debug_run.step_debugger = (emu_debug_command == Debug_Command_Step);
-        debug_run.stop_on_breakpoint = !emu_debug_disable_breakpoints;
+        debug_run.stop_on_breakpoint = !emu_debug_disable_breakpoints && (emu_debug_halt_step_frames_pending == 0);
         debug_run.stop_on_run_to_breakpoint = true;
-        debug_run.stop_on_irq = emu_debug_irq_breakpoints;
+        debug_run.stop_on_irq = emu_debug_irq_breakpoints && (emu_debug_halt_step_frames_pending == 0);
 
         if (emu_debug_command != Debug_Command_None)
             breakpoint_hit = gearsystem->RunToVBlank(emu_frame_buffer, audio_buffer, &sampleCount, &debug_run);
@@ -217,6 +221,25 @@ void emu_update(void)
 
             if (config_debug.dis_look_ahead_count > 0)
                 gearsystem->GetProcessor()->DisassembleAhead(config_debug.dis_look_ahead_count);
+        }
+
+        if (emu_debug_halt_step_frames_pending > 0)
+        {
+            if (breakpoint_hit)
+                emu_debug_halt_step_frames_pending = 0;
+            else if (emu_debug_command == Debug_Command_Continue)
+            {
+                emu_debug_halt_step_frames_pending--;
+
+                if (emu_debug_halt_step_frames_pending == 0)
+                {
+                    emu_debug_command = Debug_Command_None;
+                    emu_debug_pc_changed = true;
+
+                    if (config_debug.dis_look_ahead_count > 0)
+                        gearsystem->GetProcessor()->DisassembleAhead(config_debug.dis_look_ahead_count);
+                }
+            }
         }
 
         if (breakpoint_hit)
@@ -501,15 +524,17 @@ void emu_debug_step_over(void)
         emu_debug_command = Debug_Command_Continue;
     }
     else
-        emu_debug_command = Debug_Command_Step;
+    {
+        debug_step_instruction();
+        return;
+    }
 
     gearsystem->Pause(false);
 }
 
 void emu_debug_step_into(void)
 {
-    gearsystem->Pause(false);
-    emu_debug_command = Debug_Command_Step;
+    debug_step_instruction();
 }
 
 void emu_debug_step_out(void)
@@ -525,7 +550,10 @@ void emu_debug_step_out(void)
         emu_debug_command = Debug_Command_Continue;
     }
     else
-        emu_debug_command = Debug_Command_Step;
+    {
+        debug_step_instruction();
+        return;
+    }
 
     gearsystem->Pause(false);
 }
@@ -547,12 +575,18 @@ void emu_debug_break(void)
 void emu_debug_continue(void)
 {
     gearsystem->Pause(false);
+    emu_debug_halt_step_frames_pending = 0;
     emu_debug_command = Debug_Command_Continue;
 }
 
 void emu_debug_set_callback(GearsystemCore::GS_Debug_Callback callback)
 {
     gearsystem->SetDebugCallback(callback);
+}
+
+bool emu_debug_halt_step_active(void)
+{
+    return emu_debug_halt_step_frames_pending > 0;
 }
 
 void emu_load_bootrom_sms(const char* file_path)
@@ -1018,6 +1052,25 @@ static void update_debug(void)
         update_debug_tiles();
     if (config_debug.show_video_sprites)
         update_debug_sprites();
+}
+
+static void debug_step_instruction(void)
+{
+    Processor* processor = emu_get_core()->GetProcessor();
+    u16 pc = processor->GetState()->PC->GetValue();
+
+    emu_debug_halt_step_frames_pending = 0;
+
+    if (processor->Halted() || (emu_get_core()->GetMemory()->Read(pc) == 0x76))
+    {
+        processor->AddRunToBreakpoint(pc + 1);
+        emu_debug_halt_step_frames_pending = kDebugHaltStepMaxFrames;
+        emu_debug_command = Debug_Command_Continue;
+    }
+    else
+        emu_debug_command = Debug_Command_Step;
+
+    gearsystem->Pause(false);
 }
 
 static void update_debug_background_buffer_smsgg(void)

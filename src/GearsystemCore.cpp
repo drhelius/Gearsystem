@@ -178,7 +178,7 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
             if (debug_enable && (IsValidPointer(m_debug_callback)))
                 m_debug_callback();
 
-            unsigned int clockCycles = m_pProcessor->RunFor(1);
+            unsigned int clockCycles = debug_enable && debug->step_debugger ? m_pProcessor->RunInstruction() : m_pProcessor->RunFor(1);
             instruction_completed = true;
             vblank = m_pVideo->Tick(clockCycles);
             m_pAudio->Tick(clockCycles);

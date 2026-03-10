@@ -91,6 +91,7 @@ public:
     void Init();
     void Reset(bool cycleAccurateHalt = false);
     u32 RunFor(u32 tstates);
+    u32 RunInstruction();
     void InjectTStates(u32 tstates);
     void RequestINT(bool assert);
     void RequestNMI();

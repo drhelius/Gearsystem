@@ -33,6 +33,9 @@ static bool trace_logger_enabled = false;
 static int trace_logger_count = 0;
 static unsigned int trace_logger_instruction_count = 0;
 static std::deque<std::string> trace_logger_lines;
+static bool trace_logger_last_valid = false;
+static u16 trace_logger_last_pc = 0;
+static u8 trace_logger_last_bank = 0;
 
 static void trace_logger_menu(void);
 
@@ -67,6 +70,7 @@ void gui_debug_window_trace_logger(void)
     if (ImGui::Button(trace_logger_enabled ? "Stop" : "Start"))
     {
         trace_logger_enabled = !trace_logger_enabled;
+        trace_logger_last_valid = false;
         emu_debug_set_callback(trace_logger_enabled ? gui_debug_callback : NULL);
     }
 
@@ -118,6 +122,13 @@ void gui_debug_trace_logger_update(void)
         if (!IsValidPointer(record))
             return;
 
+        if (emu_debug_halt_step_active() && trace_logger_last_valid &&
+            trace_logger_last_pc == state->PC->GetValue() &&
+            trace_logger_last_bank == record->bank)
+        {
+            return;
+        }
+
         char bank[8];
         snprintf(bank, sizeof(bank), "%02X:", record->bank);
 
@@ -161,6 +172,9 @@ void gui_debug_trace_logger_update(void)
 
         trace_logger_lines.push_back(line);
         trace_logger_instruction_count++;
+        trace_logger_last_valid = true;
+        trace_logger_last_pc = state->PC->GetValue();
+        trace_logger_last_bank = record->bank;
     }
 }
 
@@ -168,6 +182,7 @@ void gui_debug_trace_logger_clear(void)
 {
     trace_logger_lines.clear();
     trace_logger_instruction_count = 0;
+    trace_logger_last_valid = false;
 }
 
 void gui_debug_save_log(const char* file_path)

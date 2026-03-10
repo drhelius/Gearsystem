@@ -226,6 +226,19 @@ u32 Processor::RunFor(u32 tstates)
     return executed;
 }
 
+u32 Processor::RunInstruction()
+{
+    u32 executed = 0;
+
+    do
+    {
+        executed += RunFor(1);
+    }
+    while (m_bInputLastCycle);
+
+    return executed;
+}
+
 void Processor::InjectTStates(u32 tstates)
 {
     m_iInjectedTStates += tstates;
