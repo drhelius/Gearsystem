@@ -714,10 +714,16 @@ static Cartridge::CartridgeSystem get_system(int index)
         case 1:
             return Cartridge::CartridgeSMS;
         case 2:
-            return Cartridge::CartridgeGG;
+            return Cartridge::CartridgeGG2ASIC;
         case 3:
-            return Cartridge::CartridgeSG1000;
+            return Cartridge::CartridgeGG2ASICSMSMode;
         case 4:
+            return Cartridge::CartridgeGG1ASIC;
+        case 5:
+            return Cartridge::CartridgeGG1ASICSMSMode;
+        case 6:
+            return Cartridge::CartridgeSG1000;
+        case 7:
             return Cartridge::CartridgeSG1000II;
         default:
             return Cartridge::CartridgeUnknownSystem;

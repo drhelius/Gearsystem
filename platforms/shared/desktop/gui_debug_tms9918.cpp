@@ -51,7 +51,7 @@ void gui_debug_window_vram_nametable(void)
     u8* regs = video->GetRegisters();
     u8* vram = video->GetVRAM();
     bool isMode224 = video->IsExtendedMode224();
-    bool isGG = emu_get_core()->GetCartridge()->IsGameGear();
+    bool isGG = emu_get_core()->GetCartridge()->IsGameGear() && !emu_get_core()->GetCartridge()->IsGameGearInSMSMode();
     bool isSG1000 = video->IsSG1000Mode();
     int TMS9918mode = video->GetTMS9918Mode();
 
@@ -389,7 +389,7 @@ void gui_debug_window_vram_sprites(void)
     u8* vram = video->GetVRAM();
     GS_RuntimeInfo runtime;
     emu_get_runtime(runtime);
-    bool isGG = core->GetCartridge()->IsGameGear();
+    bool isGG = core->GetCartridge()->IsGameGear() && !core->GetCartridge()->IsGameGearInSMSMode();
     bool isSG1000 = video->IsSG1000Mode();
     bool sprites_16 = IsSetBit(regs[1], 1);
 

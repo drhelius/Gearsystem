@@ -600,7 +600,12 @@ json DebugAdapter::GetMediaInfo()
         info["cartridge_zone"] = "Unknown";
 
     if (cart->IsGameGear())
-        info["cartridge_system"] = "Game Gear";
+    {
+        if (cart->GetGameGearASIC() == 1)
+            info["cartridge_system"] = cart->IsGameGearInSMSMode() ? "Game Gear (1 ASIC) SMS Mode" : "Game Gear (1 ASIC)";
+        else
+            info["cartridge_system"] = cart->IsGameGearInSMSMode() ? "Game Gear (2 ASIC) SMS Mode" : "Game Gear (2 ASIC)";
+    }
     else if (cart->IsSG1000())
         info["cartridge_system"] = "SG-1000";
     else

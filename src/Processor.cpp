@@ -47,6 +47,8 @@ Processor::Processor(Memory* pMemory)
     m_bPrefixedCBOpcode = false;
     m_PrefixedCBValue = 0;
     m_bInputLastCycle = false;
+    m_iHaltCycle = 0;
+    m_bCycleAccurateHalt = false;
     m_ProActionReplayList.clear();
     m_breakpoints_enabled = false;
     m_breakpoints_irq_enabled = false;
@@ -88,7 +90,7 @@ void Processor::Init()
     Reset();
 }
 
-void Processor::Reset()
+void Processor::Reset(bool cycleAccurateHalt)
 {
     m_bIFF1 = false;
     m_bIFF2 = false;
@@ -118,6 +120,8 @@ void Processor::Reset()
     m_bPrefixedCBOpcode = false;
     m_PrefixedCBValue = 0;
     m_bInputLastCycle = false;
+    m_iHaltCycle = 0;
+    m_bCycleAccurateHalt = cycleAccurateHalt;
     m_ProActionReplayList.clear();
     m_cpu_breakpoint_hit = false;
     m_memory_breakpoint_hit = false;
@@ -195,6 +199,16 @@ u32 Processor::RunFor(u32 tstates)
             }
 
             m_bAfterEI = false;
+        }
+
+        if (m_bHalt && m_bCycleAccurateHalt)
+        {
+            m_iHaltCycle = (m_iHaltCycle + 1) & 3;
+            if (m_iHaltCycle == 0)
+                IncreaseR();
+            m_iTStates = 1;
+            executed += 1;
+            return 1;
         }
 
         ExecuteOPCode();

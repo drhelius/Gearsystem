@@ -45,6 +45,8 @@ Video::Video(Memory* pMemory, Processor* pProcessor, Cartridge* pCartridge)
     m_ScrollX = 0;
     m_ScrollY = 0;
     m_bGameGear = false;
+    m_bGameGearSMSMode = false;
+    m_iGameGearASIC = 0;
     m_iLinesPerFrame = 0;
     m_bPAL = false;
     m_Phaser.x = 0;
@@ -106,9 +108,11 @@ void Video::Init()
     Reset(false, false);
 }
 
-void Video::Reset(bool bGameGear, bool bPAL)
+void Video::Reset(bool bGameGear, bool bPAL, int iGGASIC, bool bGameGearSMSMode)
 {
     m_bGameGear = bGameGear;
+    m_bGameGearSMSMode = bGameGearSMSMode;
+    m_iGameGearASIC = iGGASIC;
     m_bPAL = bPAL;
     m_iLinesPerFrame = bPAL ? GS_LINES_PER_FRAME_PAL : GS_LINES_PER_FRAME_NTSC;
     m_bFirstByteInSequence = true;
@@ -170,21 +174,35 @@ void Video::Reset(bool bGameGear, bool bPAL)
     m_iVdpRegister10Counter = m_VdpRegister[10];
     m_iRenderLine = 0;
 
-    m_iScreenWidth = m_bGameGear ? GS_RESOLUTION_GG_WIDTH : GS_RESOLUTION_SMS_WIDTH;
+    m_iScreenWidth = (m_bGameGear && !m_bGameGearSMSMode) ? GS_RESOLUTION_GG_WIDTH : GS_RESOLUTION_SMS_WIDTH;
 
     m_bTMS9918 = false;
     m_iTMS9918Mode = 0;
 
     if (m_bGameGear)
     {
-        m_Timing[TIMING_VINT] = 27;
-        m_Timing[TIMING_XSCROLL] = 16;
-        m_Timing[TIMING_HINT] = 30;
-        m_Timing[TIMING_VCOUNT] = 28;
-        m_Timing[TIMING_FLAG_VINT] = 27;
-        m_Timing[TIMING_RENDER] = 186;
-        m_Timing[TIMING_DISPLAY] = 20;
-        m_Timing[TIMING_SPRITEOVR] = 27;
+        if (m_iGameGearASIC == 1)
+        {
+            m_Timing[TIMING_VINT] = 26;
+            m_Timing[TIMING_XSCROLL] = 16;
+            m_Timing[TIMING_HINT] = 28;
+            m_Timing[TIMING_VCOUNT] = 27;
+            m_Timing[TIMING_FLAG_VINT] = 27;
+            m_Timing[TIMING_RENDER] = 186;
+            m_Timing[TIMING_DISPLAY] = 20;
+            m_Timing[TIMING_SPRITEOVR] = 27;
+        }
+        else
+        {
+            m_Timing[TIMING_VINT] = 26;
+            m_Timing[TIMING_XSCROLL] = 16;
+            m_Timing[TIMING_HINT] = 30;
+            m_Timing[TIMING_VCOUNT] = 28;
+            m_Timing[TIMING_FLAG_VINT] = 27;
+            m_Timing[TIMING_RENDER] = 186;
+            m_Timing[TIMING_DISPLAY] = 20;
+            m_Timing[TIMING_SPRITEOVR] = 27;
+        }
     }
     else
     {
@@ -287,7 +305,8 @@ bool Video::Tick(unsigned int clockCycles)
     ///// SPRITE COLLISION /////
     if (m_bSpriteCollisionRequest && !m_LineEvents.render)
     {
-        int col_cycle = 20 + ((m_iSpriteCollisionX * 228) / 256);
+        int col_offset = m_bGameGear ? 22 : 20;
+        int col_cycle = col_offset + ((m_iSpriteCollisionX * 228) / 256);
 
         if (m_iCycleCounter >= col_cycle)
         {
@@ -453,7 +472,7 @@ void Video::WriteData(u8 data)
 
     if (m_VdpCode == 0x03)
     {
-        u16 cram_addr = m_VdpAddress & (m_bGameGear ? 0x3F : 0x1F);
+        u16 cram_addr = m_VdpAddress & ((m_bGameGear && !m_bGameGearSMSMode) ? 0x3F : 0x1F);
         m_pVdpCRAM[cram_addr] = data;
 #ifndef GS_DISABLE_DISASSEMBLER
         m_pProcessor->CheckMemoryBreakpoints(Processor::GS_BREAKPOINT_TYPE_CRAM, cram_addr, false);
@@ -606,7 +625,7 @@ void Video::ScanLine(int line)
 void Video::RenderBackgroundSMSGG(int line)
 {
     int y_offset = m_bExtendedMode224 ? GS_RESOLUTION_GG_Y_OFFSET_EXTENDED : GS_RESOLUTION_GG_Y_OFFSET;
-    int scy_adjust = m_bGameGear ? y_offset : 0;
+    int scy_adjust = (m_bGameGear && !m_bGameGearSMSMode) ? y_offset : 0;
     int scy = line;
     int line_width_info = line * (m_iScreenWidth - m_iHideLeftBarOffset);
     int line_width_screen = (line - scy_adjust) * (m_iScreenWidth - m_iHideLeftBarOffset);
@@ -631,7 +650,7 @@ void Video::RenderBackgroundSMSGG(int line)
 
     int palette_color = 0;
 
-    int scx_begin = m_bGameGear ? GS_RESOLUTION_GG_X_OFFSET : m_iHideLeftBarOffset;
+    int scx_begin = (m_bGameGear && !m_bGameGearSMSMode) ? GS_RESOLUTION_GG_X_OFFSET : m_iHideLeftBarOffset;
     int scx_end = scx_begin + m_iScreenWidth - m_iHideLeftBarOffset;
 
     int max_height = m_bExtendedMode224 ? 224 : 192;
@@ -694,7 +713,7 @@ void Video::RenderBackgroundSMSGG(int line)
                 }
             }
 
-            if (m_bGameGear)
+            if (m_bGameGear && !m_bGameGearSMSMode)
             {
                 if ((line >= y_offset) && (line < (y_offset + GS_RESOLUTION_GG_HEIGHT)))
                     m_pFrameBuffer[pixel_screen] = ColorFromPalette(palette_color);
@@ -767,7 +786,7 @@ void Video::RenderSpritesSMSGG(int line)
     u16 sprite_table_address_2 = sprite_table_address + 0x80;
     int sprite_collision = false;
     int sprite_collision_x = 0;
-    int scy_adjust = m_bGameGear ? y_offset : 0;
+    int scy_adjust = (m_bGameGear && !m_bGameGearSMSMode) ? y_offset : 0;
     int line_width_info = line * (m_iScreenWidth - m_iHideLeftBarOffset);
     int line_width_screen = (line - scy_adjust) * (m_iScreenWidth - m_iHideLeftBarOffset);
     int sprite_width = 8;
@@ -780,7 +799,7 @@ void Video::RenderSpritesSMSGG(int line)
     int sprite_shift = IsSetBit(m_VdpRegister[0], 3) ? 8 : 0;
     u16 sprite_tiles_address = (m_VdpRegister[6] << 11) & 0x2000;
 
-    int scx_begin = m_bGameGear ? GS_RESOLUTION_GG_X_OFFSET : m_iHideLeftBarOffset;
+    int scx_begin = (m_bGameGear && !m_bGameGearSMSMode) ? GS_RESOLUTION_GG_X_OFFSET : m_iHideLeftBarOffset;
     int scx_end = scx_begin + (m_iScreenWidth - m_iHideLeftBarOffset);
 
     for (int i = 7; i >= 0; i--)
@@ -839,7 +858,7 @@ void Video::RenderSpritesSMSGG(int line)
 
             palette_color += 16;
 
-            if (m_bGameGear)
+            if (m_bGameGear && !m_bGameGearSMSMode)
             {
                 if ((line >= y_offset) && (line < (y_offset + GS_RESOLUTION_GG_HEIGHT)))
                     m_pFrameBuffer[pixel_screen] = ColorFromPalette(palette_color);
@@ -1108,11 +1127,12 @@ void Video::Render32bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
     bool overscan_enabled = false;
     int overscan_color = m_bTMS9918 ? m_VdpRegister[7] & 0x0F : ColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
     int buffer_size = size * 4;    
-    int shift_g = m_bGameGear ? 4 : 2;
-    int shift_b = m_bGameGear ? 8 : 4;
-    int mask = m_bGameGear ? 0x0F : 0x03;
+    bool use_gg_palette = m_bGameGear && !m_bGameGearSMSMode;
+    int shift_g = use_gg_palette ? 4 : 2;
+    int shift_b = use_gg_palette ? 8 : 4;
+    int mask = use_gg_palette ? 0x0F : 0x03;
     bool bgr = (pixelFormat == GS_PIXEL_BGRA8888);
-    const u8* lut = m_bGameGear ? k4bitTo8bit : k2bitTo8bit;
+    const u8* lut = use_gg_palette ? k4bitTo8bit : k2bitTo8bit;
     const u8* sg1000_palette = m_pCartridge->IsSG1000II() ? kSG1000_palette_888_sg1000ii : (m_pCartridge->IsSG1000() ? kSG1000_palette_888_normal : kSG1000_palette_888_sms);
 
     if (m_bGameGear)
@@ -1196,13 +1216,14 @@ void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
     bool overscan_enabled = false;
     int overscan_color = m_bTMS9918 ? m_VdpRegister[7] & 0x0F : ColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
     int buffer_size = size * 2;    
-    int shift_g = m_bGameGear ? 4 : 2;
-    int shift_b = m_bGameGear ? 8 : 4;
-    int mask = m_bGameGear ? 0x0F : 0x03;
+    bool use_gg_palette = m_bGameGear && !m_bGameGearSMSMode;
+    int shift_g = use_gg_palette ? 4 : 2;
+    int shift_b = use_gg_palette ? 8 : 4;
+    int mask = use_gg_palette ? 0x0F : 0x03;
     bool bgr = ((pixelFormat == GS_PIXEL_BGR555) || (pixelFormat == GS_PIXEL_BGR565));
     bool green_6bit = (pixelFormat == GS_PIXEL_RGB565) || (pixelFormat == GS_PIXEL_BGR565);
-    const u8* lut = m_bGameGear ? k4bitTo5bit : k2bitTo5bit;
-    const u8* lut_g = m_bGameGear ? (green_6bit ? k4bitTo6bit : k4bitTo5bit) : (green_6bit ? k2bitTo6bit : k2bitTo5bit);
+    const u8* lut = use_gg_palette ? k4bitTo5bit : k2bitTo5bit;
+    const u8* lut_g = use_gg_palette ? (green_6bit ? k4bitTo6bit : k4bitTo5bit) : (green_6bit ? k2bitTo6bit : k2bitTo5bit);
     int shift = green_6bit ? 11 : 10;
     const u16* pal;
 

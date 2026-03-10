@@ -807,6 +807,12 @@ void Processor::OPCode0x76()
     // HALT
     m_bHalt = true;
     PC.Decrement();
+
+    if (m_bCycleAccurateHalt)
+    {
+        m_iHaltCycle = 1;
+        m_iTStates -= 3;
+    }
 }
 
 void Processor::OPCode0x77()

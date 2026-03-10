@@ -315,7 +315,17 @@ bool retro_load_game(const struct retro_game_info *info)
     Cartridge* cart = core->GetCartridge();
 
     log_cb(RETRO_LOG_INFO, "CRC: %08X\n", cart->GetCRC());
-    log_cb(RETRO_LOG_INFO, "System: %s\n", cart->IsGameGear() ? "Game Gear" : (cart->IsSG1000() ? "SG-1000" : "Master System"));
+    const char* system_name = "Master System";
+    if (cart->IsGameGear())
+    {
+        if (cart->GetGameGearASIC() == 1)
+            system_name = cart->IsGameGearInSMSMode() ? "Game Gear (1 ASIC) SMS Mode" : "Game Gear (1 ASIC)";
+        else
+            system_name = cart->IsGameGearInSMSMode() ? "Game Gear (2 ASIC) SMS Mode" : "Game Gear (2 ASIC)";
+    }
+    else if (cart->IsSG1000())
+        system_name = "SG-1000";
+    log_cb(RETRO_LOG_INFO, "System: %s\n", system_name);
     log_cb(RETRO_LOG_INFO, "Refresh Rate: %s\n", cart->IsPAL() ? "PAL" : "NTSC");
     log_cb(RETRO_LOG_INFO, "Cartridge Header: %s\n", cart->IsValidROM() ? "VALID" : "FAILED");
     log_cb(RETRO_LOG_INFO, "Battery: %s\n", core->GetMemory()->GetCurrentRule()->PersistedRAM() ? "YES" : "NO");
@@ -710,8 +720,14 @@ static void check_variables(void)
             config.system = Cartridge::CartridgeUnknownSystem;
         else if (strcmp(var.value, "Master System / Mark III") == 0)
             config.system = Cartridge::CartridgeSMS;
-        else if (strcmp(var.value, "Game Gear") == 0)
-            config.system = Cartridge::CartridgeGG;
+        else if (strcmp(var.value, "Game Gear (2 ASIC)") == 0)
+            config.system = Cartridge::CartridgeGG2ASIC;
+        else if (strcmp(var.value, "Game Gear (2 ASIC) SMS Mode") == 0)
+            config.system = Cartridge::CartridgeGG2ASICSMSMode;
+        else if (strcmp(var.value, "Game Gear (1 ASIC)") == 0)
+            config.system = Cartridge::CartridgeGG1ASIC;
+        else if (strcmp(var.value, "Game Gear (1 ASIC) SMS Mode") == 0)
+            config.system = Cartridge::CartridgeGG1ASICSMSMode;
         else if (strcmp(var.value, "SG-1000 / Multivision") == 0)
             config.system = Cartridge::CartridgeSG1000;
         else if (strcmp(var.value, "SG-1000 II") == 0)

@@ -75,7 +75,10 @@ public:
     enum CartridgeSystem
     {
         CartridgeSMS,
-        CartridgeGG,
+        CartridgeGG2ASIC,
+        CartridgeGG2ASICSMSMode,
+        CartridgeGG1ASIC,
+        CartridgeGG1ASICSMSMode,
         CartridgeSG1000,
         CartridgeSG1000II,
         CartridgeUnknownSystem
@@ -97,6 +100,7 @@ public:
     u32 GetCRC() const;
     bool IsGameGear() const;
     bool IsGameGearInSMSMode() const;
+    int GetGameGearASIC() const;
     bool IsSG1000() const;
     bool IsSG1000II() const;
     bool IsPAL() const;
@@ -141,6 +145,7 @@ private:
     int m_iROMBankCount8k;
     bool m_bGameGear;
     bool m_bGameGearInSMSMode;
+    int m_iGameGearASIC;
     bool m_bSG1000;
     bool m_bSG1000II;
     bool m_bPAL;

@@ -41,6 +41,7 @@ Cartridge::Cartridge()
     m_iROMBankCount8k = 0;
     m_bGameGear = false;
     m_bGameGearInSMSMode = false;
+    m_iGameGearASIC = 0;
     m_bSG1000 = false;
     m_bSG1000II = false;
     m_bPAL = false;
@@ -75,6 +76,7 @@ void Cartridge::Reset()
     m_iROMBankCount8k = 0;
     m_bGameGear = false;
     m_bGameGearInSMSMode = false;
+    m_iGameGearASIC = 0;
     m_bSG1000 = false;
     m_bSG1000II = false;
     m_bPAL = false;
@@ -97,6 +99,11 @@ bool Cartridge::IsGameGear() const
 bool Cartridge::IsGameGearInSMSMode() const
 {
     return m_bGameGearInSMSMode;
+}
+
+int Cartridge::GetGameGearASIC() const
+{
+    return m_iGameGearASIC;
 }
 
 bool Cartridge::IsSG1000() const
@@ -163,24 +170,56 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
         case CartridgeSMS:
             Log("Forcing System: Master System");
             m_bGameGear = false;
+            m_bGameGearInSMSMode = false;
+            m_iGameGearASIC = 0;
             m_bSG1000 = false;
             m_bSG1000II = false;
             break;
-        case CartridgeGG:
-            Log("Forcing System: Game Gear");
+        case CartridgeGG2ASIC:
+            Log("Forcing System: Game Gear (2 ASIC)");
             m_bGameGear = true;
+            m_bGameGearInSMSMode = false;
+            m_iGameGearASIC = 2;
+            m_bSG1000 = false;
+            m_bSG1000II = false;
+            break;
+        case CartridgeGG2ASICSMSMode:
+            Log("Forcing System: Game Gear (2 ASIC) SMS Mode");
+            m_bGameGear = true;
+            m_bGameGearInSMSMode = true;
+            m_iGameGearASIC = 2;
+            m_bSG1000 = false;
+            m_bSG1000II = false;
+            break;
+        case CartridgeGG1ASIC:
+            Log("Forcing System: Game Gear (1 ASIC)");
+            m_bGameGear = true;
+            m_bGameGearInSMSMode = false;
+            m_iGameGearASIC = 1;
+            m_bSG1000 = false;
+            m_bSG1000II = false;
+            break;
+        case CartridgeGG1ASICSMSMode:
+            Log("Forcing System: Game Gear (1 ASIC) SMS Mode");
+            m_bGameGear = true;
+            m_bGameGearInSMSMode = true;
+            m_iGameGearASIC = 1;
             m_bSG1000 = false;
             m_bSG1000II = false;
             break;
         case CartridgeSG1000:
             Log("Forcing System: SG-1000");
             m_bGameGear = false;
+            m_bGameGearInSMSMode = false;
+            m_iGameGearASIC = 0;
             m_bSG1000 = true;
             m_bSG1000II = false;
             break;
         case CartridgeSG1000II:
             Log("Forcing System: SG-1000 II");
             m_bGameGear = false;
+            m_bGameGearInSMSMode = false;
+            m_iGameGearASIC = 0;
             m_bSG1000 = true;
             m_bSG1000II = true;
             break;
@@ -561,6 +600,7 @@ bool Cartridge::GatherMetadata(u32 crc)
     std::string extension = fn.substr(fn.find_last_of(".") + 1);
 
     m_bGameGear = (extension == "gg");
+    m_iGameGearASIC = m_bGameGear ? 2 : 0;
     m_bSG1000 = (extension == "sg" || extension == "mv");
 
     m_bPAL = false;
@@ -609,16 +649,19 @@ bool Cartridge::GatherMetadata(u32 crc)
         case 5:
             m_Zone = CartridgeJapanGG;
             m_bGameGear = true;
+            m_iGameGearASIC = 2;
             Log("Cartridge zone is GG Japan");
             break;
         case 6:
             m_Zone = CartridgeExportGG;
             m_bGameGear = true;
+            m_iGameGearASIC = 2;
             Log("Cartridge zone is GG Export");
             break;
         case 7:
             m_Zone = CartridgeInternationalGG;
             m_bGameGear = true;
+            m_iGameGearASIC = 2;
             Log("Cartridge zone is GG International");
             break;
         default:
@@ -827,8 +870,9 @@ void Cartridge::GetInfoFromDB(u32 crc)
 
             if (kGameDatabase[i].features & GS_DB_FEATURE_SMS_MODE)
             {
-                Log("Forcing Master System mode");
-                m_bGameGear = false;
+                Log("Game Gear in SMS compatibility mode");
+                m_bGameGear = true;
+                m_iGameGearASIC = 2;
                 m_bGameGearInSMSMode = true;
             }
 

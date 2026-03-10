@@ -89,7 +89,7 @@ public:
     Processor(Memory* pMemory);
     ~Processor();
     void Init();
-    void Reset();
+    void Reset(bool cycleAccurateHalt = false);
     u32 RunFor(u32 tstates);
     void InjectTStates(u32 tstates);
     void RequestINT(bool assert);
@@ -158,6 +158,8 @@ private:
     bool m_bPrefixedCBOpcode;
     u8 m_PrefixedCBValue;
     bool m_bInputLastCycle;
+    int m_iHaltCycle;
+    bool m_bCycleAccurateHalt;
     bool m_breakpoints_enabled;
     bool m_breakpoints_irq_enabled;
     bool m_cpu_breakpoint_hit;

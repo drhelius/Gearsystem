@@ -66,7 +66,7 @@ public:
     Video(Memory* pMemory, Processor* pProcessor, Cartridge* pCartridge);
     ~Video();
     void Init();
-    void Reset(bool bGameGear, bool bPAL);
+    void Reset(bool bGameGear, bool bPAL, int iGGASIC = 0, bool bGameGearSMSMode = false);
     bool Tick(unsigned int clockCycles);
     u8 GetVCounter();
     u8 GetHCounter();
@@ -130,6 +130,8 @@ private:
     u8 m_ScrollX;
     u8 m_ScrollY;
     bool m_bGameGear;
+    bool m_bGameGearSMSMode;
+    int m_iGameGearASIC;
     int m_iLinesPerFrame;
     bool m_bPAL;
     bool m_bExtendedMode224;
@@ -223,7 +225,7 @@ inline int Video::GetTMS9918Mode()
 
 inline u16 Video::ColorFromPalette(int palette_color)
 {
-    if (m_bGameGear)
+    if (m_bGameGear && !m_bGameGearSMSMode)
     {
         int palette_color_2 = palette_color << 1;
         return m_pVdpCRAM[palette_color_2] | ((m_pVdpCRAM[palette_color_2 + 1] & 0x0F) << 8);

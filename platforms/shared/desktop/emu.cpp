@@ -454,7 +454,18 @@ void emu_get_info(char* info, int buffer_size)
 
         const char* filename = cart->GetFileName();
         int crc = cart->GetCRC();
-        const char* system = cart->IsGameGear() ? "Game Gear" : (cart->IsSG1000II() ? "SG-1000 II" : (cart->IsSG1000() ? "SG-1000" : "Master System"));
+        const char* system = "Master System";
+        if (cart->IsGameGear())
+        {
+            if (cart->GetGameGearASIC() == 1)
+                system = cart->IsGameGearInSMSMode() ? "Game Gear (1 ASIC) SMS Mode" : "Game Gear (1 ASIC)";
+            else
+                system = cart->IsGameGearInSMSMode() ? "Game Gear (2 ASIC) SMS Mode" : "Game Gear (2 ASIC)";
+        }
+        else if (cart->IsSG1000II())
+            system = "SG-1000 II";
+        else if (cart->IsSG1000())
+            system = "SG-1000";
         const char* pal = cart->IsPAL() ? "PAL" : "NTSC";
         const char* checksum = cart->IsValidROM() ? "VALID" : "FAILED";
         const char* battery = gearsystem->GetMemory()->GetCurrentRule()->PersistedRAM() ? "YES" : "NO";

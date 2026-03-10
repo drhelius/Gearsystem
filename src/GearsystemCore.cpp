@@ -347,7 +347,7 @@ bool GearsystemCore::GetRuntimeInfo(GS_RuntimeInfo& runtime_info)
 {
     if (m_pCartridge->IsReady())
     {
-        if (m_pCartridge->IsGameGear())
+        if (m_pCartridge->IsGameGear() && !m_pCartridge->IsGameGearInSMSMode())
         {
             runtime_info.screen_width = GS_RESOLUTION_GG_WIDTH;
             runtime_info.screen_height = GS_RESOLUTION_GG_HEIGHT;
@@ -1336,9 +1336,9 @@ bool GearsystemCore::AddMemoryRules()
 void GearsystemCore::Reset()
 {
     m_pMemory->Reset(m_pCartridge->IsGameGear());
-    m_pProcessor->Reset();
+    m_pProcessor->Reset(m_pCartridge->GetGameGearASIC() == 1);
     m_pAudio->Reset(m_pCartridge->IsPAL());
-    m_pVideo->Reset(m_pCartridge->IsGameGear(), m_pCartridge->IsPAL());
+    m_pVideo->Reset(m_pCartridge->IsGameGear(), m_pCartridge->IsPAL(), m_pCartridge->GetGameGearASIC(), m_pCartridge->IsGameGearInSMSMode());
     m_pInput->Reset(m_pCartridge->IsGameGear());
     m_pSegaMemoryRule->Reset();
     m_pCodemastersMemoryRule->Reset();
