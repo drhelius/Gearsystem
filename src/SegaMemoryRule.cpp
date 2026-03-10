@@ -180,7 +180,7 @@ bool SegaMemoryRule::LoadRam(std::istream & file, s32 fileSize)
 
     if ((fileSize > 0) && (fileSize != 0x8000))
     {
-        Log("SegaMemoryRule incorrect size. Expected: 512 Found: %d", fileSize);
+        Log("SegaMemoryRule incorrect size. Expected: %d Found: %d", 0x8000, fileSize);
         return false;
     }
 
