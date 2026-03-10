@@ -424,8 +424,8 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
         Debug("ZIP Content - Filename: \"%s\", Comment: \"%s\", Uncompressed size: %u, Compressed size: %u", file_stat.m_filename, file_stat.m_comment, (unsigned int) file_stat.m_uncomp_size, (unsigned int) file_stat.m_comp_size);
 
         string fn((const char*) file_stat.m_filename);
-        transform(fn.begin(), fn.end(), fn.begin(), (int(*)(int)) tolower);
         string extension = fn.substr(fn.find_last_of(".") + 1);
+        transform(extension.begin(), extension.end(), extension.begin(), (int(*)(int)) tolower);
 
         if ((extension == "sms") || (extension == "gg") || (extension == "sg") || (extension == "mv"))
         {
@@ -476,8 +476,8 @@ bool Cartridge::LoadFromFile(const char* path)
         file.close();
 
         string fn(path);
-        transform(fn.begin(), fn.end(), fn.begin(), (int(*)(int)) tolower);
         string extension = fn.substr(fn.find_last_of(".") + 1);
+        transform(extension.begin(), extension.end(), extension.begin(), (int(*)(int)) tolower);
 
         if (extension == "zip")
         {
@@ -598,6 +598,7 @@ bool Cartridge::GatherMetadata(u32 crc)
     const char* filename_to_check = (m_szFileNameInZip[0] != 0) ? m_szFileNameInZip : m_szFileName;
     std::string fn(filename_to_check);
     std::string extension = fn.substr(fn.find_last_of(".") + 1);
+    transform(extension.begin(), extension.end(), extension.begin(), (int(*)(int)) tolower);
 
     m_bGameGear = (extension == "gg");
     m_iGameGearASIC = m_bGameGear ? 2 : 0;
