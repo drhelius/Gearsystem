@@ -67,6 +67,10 @@ MemEditor::MemEditor()
     m_search_compare_specific_address = 0;
     InitPointer(m_search_data);
     m_search_auto = false;
+    m_find_bytes_window = false;
+    m_find_bytes_buffer[0] = 0;
+    m_find_bytes_last_address = -1;
+    m_find_bytes_pattern_len = 0;
 }
 
 MemEditor::~MemEditor()
@@ -1743,6 +1747,245 @@ void MemEditor::OpenSearchWindow()
         SearchCapture();
 
     m_search_window = true;
+}
+
+void MemEditor::OpenFindBytes()
+{
+    m_find_bytes_window = true;
+}
+
+bool MemEditor::ParseHexByteString(const char* str, uint8_t* out, int* out_len, int max_len)
+{
+    *out_len = 0;
+    int len = 0;
+
+    for (int i = 0; str[i] != '\0'; )
+    {
+        char c = str[i];
+        if (c == ' ' || c == '\n' || c == '\r' || c == '\t')
+        {
+            i++;
+            continue;
+        }
+
+        if (!is_hex_digit(c) || !is_hex_digit(str[i + 1]))
+            return false;
+
+        if (len >= max_len)
+            return false;
+
+        u8 value = 0;
+        if (!parse_hex_string(&str[i], 2, &value))
+            return false;
+
+        out[len++] = value;
+        i += 2;
+    }
+
+    *out_len = len;
+    return (len > 0);
+}
+
+void MemEditor::FindBytesNext(int start_offset)
+{
+    uint8_t pattern[512];
+    int pattern_len = 0;
+
+    if (!ParseHexByteString(m_find_bytes_buffer, pattern, &pattern_len, 512))
+        return;
+
+    if (pattern_len == 0 || !IsValidPointer(m_mem_data) || m_mem_size <= 0)
+        return;
+
+    int total_bytes = m_mem_size * m_mem_word;
+
+    for (int i = 0; i < total_bytes; i++)
+    {
+        int offset = (start_offset + i) % total_bytes;
+
+        if (offset + pattern_len > total_bytes)
+            continue;
+
+        bool match = true;
+        for (int j = 0; j < pattern_len; j++)
+        {
+            if (m_mem_data[offset + j] != pattern[j])
+            {
+                match = false;
+                break;
+            }
+        }
+
+        if (match)
+        {
+            int addr = offset / m_mem_word;
+            int end_addr = (offset + pattern_len - 1) / m_mem_word;
+            m_selection_start = addr;
+            m_selection_end = end_addr;
+            m_find_bytes_last_address = offset;
+            ScrollToAddress(addr + m_mem_base_addr);
+            return;
+        }
+    }
+}
+
+void MemEditor::DrawFindBytesWindow()
+{
+    if (m_find_bytes_window)
+        FindBytesWindow();
+}
+
+void MemEditor::FindBytesWindow()
+{
+    PushGuiFont();
+
+    ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
+    char window_title[64];
+    snprintf(window_title, 64, "%s Find Bytes", m_title);
+
+    ImGui::Begin(window_title, &m_find_bytes_window);
+
+    ImGui::Text("Hex Bytes:");
+
+    ImGui::PushItemWidth(-1);
+    ImGui::InputTextMultiline("##find_bytes_input", m_find_bytes_buffer, IM_ARRAYSIZE(m_find_bytes_buffer),
+        ImVec2(-1, ImGui::GetTextLineHeight() * 4),
+        ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
+
+    ImGui::TextColored(mid_gray, "e.g. 04 E5 FF 32 (spaces optional)");
+
+    ImGui::NewLine();
+
+    if (ImGui::Button("Find All"))
+    {
+        m_find_bytes_last_address = -1;
+        CalculateFindBytesResults();
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Find Next"))
+    {
+        int start = (m_find_bytes_last_address >= 0) ? m_find_bytes_last_address + 1 : 0;
+        FindBytesNext(start);
+    }
+
+    ImGui::Separator();
+
+    PopGuiFont();
+
+    if (ImGui::BeginTable("##find_bytes_results", 1, ImGuiTableFlags_NoKeepColumnsVisible | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
+    {
+        ImGui::TableSetupScrollFreeze(0, 1);
+        ImGui::TableSetupColumn("ADDRESS");
+        ImGui::TableHeadersRow();
+
+        ImGuiListClipper clipper;
+        clipper.Begin((int)m_find_bytes_results.size());
+
+        while (clipper.Step())
+        {
+            for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; row++)
+            {
+                int address = m_find_bytes_results[row];
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+
+                char single_addr[32];
+                snprintf(single_addr, 32, "%s", m_hex_addr_format);
+
+                char label[64];
+                snprintf(label, 64, single_addr, address + m_mem_base_addr);
+
+                if (ImGui::Selectable(label, false, ImGuiSelectableFlags_SpanAllColumns))
+                {
+                    int end_addr = address + (m_find_bytes_pattern_len / m_mem_word) - 1;
+                    if (end_addr < address)
+                        end_addr = address;
+                    m_selection_start = address;
+                    m_selection_end = end_addr;
+                    ScrollToAddress(address + m_mem_base_addr);
+                }
+            }
+        }
+        ImGui::EndTable();
+    }
+
+    ImGui::End();
+}
+
+void MemEditor::CalculateFindBytesResults()
+{
+    m_find_bytes_results.clear();
+
+    if (!IsValidPointer(m_mem_data) || m_mem_size <= 0)
+        return;
+
+    uint8_t pattern[512];
+    int pattern_len = 0;
+
+    if (!ParseHexByteString(m_find_bytes_buffer, pattern, &pattern_len, 512))
+        return;
+
+    m_find_bytes_pattern_len = pattern_len;
+
+    int total_bytes = m_mem_size * m_mem_word;
+
+    for (int offset = 0; offset <= total_bytes - pattern_len; offset++)
+    {
+        bool match = true;
+        for (int j = 0; j < pattern_len; j++)
+        {
+            if (m_mem_data[offset + j] != pattern[j])
+            {
+                match = false;
+                break;
+            }
+        }
+
+        if (match)
+        {
+            m_find_bytes_results.push_back(offset / m_mem_word);
+        }
+    }
+}
+
+int MemEditor::FindBytesSequence(const char* hex_str, int* out_addresses, int max_results)
+{
+    uint8_t pattern[512];
+    int pattern_len = 0;
+
+    if (!ParseHexByteString(hex_str, pattern, &pattern_len, 512))
+        return 0;
+
+    if (pattern_len == 0 || !IsValidPointer(m_mem_data) || m_mem_size <= 0)
+        return 0;
+
+    int total_bytes = m_mem_size * m_mem_word;
+    int count = 0;
+
+    for (int offset = 0; offset <= total_bytes - pattern_len; offset++)
+    {
+        bool match = true;
+        for (int j = 0; j < pattern_len; j++)
+        {
+            if (m_mem_data[offset + j] != pattern[j])
+            {
+                match = false;
+                break;
+            }
+        }
+
+        if (match)
+        {
+            if (count < max_results)
+                out_addresses[count] = offset / m_mem_word;
+            count++;
+        }
+    }
+
+    return count;
 }
 
 void MemEditor::AddWatch()

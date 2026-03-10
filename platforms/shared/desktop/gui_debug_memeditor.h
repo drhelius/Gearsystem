@@ -72,6 +72,7 @@ public:
     std::vector<Bookmark>* GetBookmarks();
     void OpenWatchWindow();
     void OpenSearchWindow();
+    void OpenFindBytes();
     void AddWatch();
     void PrepareAddWatch(int address, const char* notes);
     void AddWatchDirect(int address, const char* notes, int size);
@@ -80,6 +81,7 @@ public:
     void SetGuiFont(ImFont* gui_font);
     void BookMarkPopup();
     void WatchPopup();
+    void DrawFindBytesWindow();
     void SaveSettings(std::ostream& stream);
     void LoadSettings(std::istream& stream);
     void StepFrame();
@@ -91,6 +93,7 @@ public:
     void SearchCapture();
     int PerformSearch(int op, int compare_type, int compare_value, int data_type);
     std::vector<Search>* GetSearchResults();
+    int FindBytesSequence(const char* hex_str, int* out_addresses, int max_results);
 
 private:
     bool IsColumnSeparator(int current_column, int column_count);
@@ -108,8 +111,12 @@ private:
     void DrawContexMenu(int address, bool cell_hovered, bool options);
     void WatchWindow();
     void SearchWindow();
+    void FindBytesWindow();
     void CalculateSearchResults();
+    void CalculateFindBytesResults();
     void DrawSearchValue(int value, ImVec4 color);
+    void FindBytesNext(int start_offset);
+    bool ParseHexByteString(const char* str, uint8_t* out, int* out_len, int max_len);
     uint32_t ReadWatchValue(const Watch& watch);
     int WatchSizeBytes(int size);
     void DrawWatchValue(uint32_t value, int size, int format);
@@ -160,6 +167,11 @@ private:
     uint8_t* m_search_data;
     std::vector<Search> m_search_results;
     bool m_search_auto;
+    bool m_find_bytes_window;
+    char m_find_bytes_buffer[1025];
+    int m_find_bytes_last_address;
+    int m_find_bytes_pattern_len;
+    std::vector<int> m_find_bytes_results;
 };
 
 #endif /* GUI_DEBUG_MEMEDITOR_H */

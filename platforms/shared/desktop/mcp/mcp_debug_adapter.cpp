@@ -2144,3 +2144,52 @@ json DebugAdapter::MemorySearch(int area, const std::string& op, const std::stri
 
     return result;
 }
+
+json DebugAdapter::MemoryFindBytes(int area, const std::string& hex_bytes)
+{
+    json result;
+
+    if (!m_core || !m_core->GetCartridge()->IsReady())
+    {
+        result["error"] = "No media loaded";
+        return result;
+    }
+
+    if (area < 0 || area >= MEMORY_EDITOR_MAX)
+    {
+        result["error"] = "Invalid area number";
+        return result;
+    }
+
+    if (hex_bytes.empty())
+    {
+        result["error"] = "Empty hex byte string";
+        return result;
+    }
+
+    int addresses[100];
+    int count = gui_debug_memory_find_bytes(area, hex_bytes.c_str(), addresses, 100);
+
+    result["area"] = area;
+    result["count"] = count;
+    result["results"] = json::array();
+
+    int max_results = (count > 100) ? 100 : count;
+
+    for (int i = 0; i < max_results; i++)
+    {
+        json item;
+        std::ostringstream addr_ss;
+        addr_ss << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << addresses[i];
+        item["address"] = addr_ss.str();
+        result["results"].push_back(item);
+    }
+
+    if (count > 100)
+    {
+        result["note"] = "Results limited to first 100 matches";
+        result["total_matches"] = count;
+    }
+
+    return result;
+}

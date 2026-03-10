@@ -1175,6 +1175,26 @@ void McpServer::HandleToolsList(const json& request)
         }}
     });
 
+    tools.push_back({
+        {"name", "memory_find_bytes"},
+        {"title", "Find Byte Sequence in Memory"},
+        {"description", "Search memory for a consecutive hex byte sequence. Returns matching addresses."},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"area", {
+                    {"type", "integer"},
+                    {"description", "Memory editor tab ID (use list_memory_areas)"}
+                }},
+                {"hex_bytes", {
+                    {"type", "string"},
+                    {"description", "Hex byte pairs to find, e.g. '04E5FF32' (spaces optional)"}
+                }}
+            }},
+            {"required", json::array({"area", "hex_bytes"})}
+        }}
+    });
+
     json response;
     response["jsonrpc"] = "2.0";
     response["id"] = id;
@@ -1835,6 +1855,12 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
         int compare_value = arguments.value("compare_value", 0);
         std::string data_type = arguments.value("data_type", "unsigned");
         return m_debugAdapter.MemorySearch(area, op, compare_type, compare_value, data_type);
+    }
+    else if (normalizedTool == "memory_find_bytes")
+    {
+        int area = arguments["area"];
+        std::string hex_bytes = arguments["hex_bytes"];
+        return m_debugAdapter.MemoryFindBytes(area, hex_bytes);
     }
     else
     {
