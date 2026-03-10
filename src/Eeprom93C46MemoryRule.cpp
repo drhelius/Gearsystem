@@ -91,7 +91,7 @@ void Eeprom93C46MemoryRule::PerformWrite(u16 address, u8 value)
             // 93c46 Control Register
             EEPROM_93c46_Control(value);
             m_pMemory->Load(address, value);
-            m_pMemory->Load(address + 0x2000, value);
+            m_pMemory->Load(address - 0x2000, value);
             return;
         case 0xFFFD:
         {
@@ -100,7 +100,7 @@ void Eeprom93C46MemoryRule::PerformWrite(u16 address, u8 value)
             m_iMapperSlot[0] = value & (romBankCount - 1);
             m_iMapperSlotAddress[0] = m_iMapperSlot[0] * 0x4000;
             m_pMemory->Load(address, value);
-            m_pMemory->Load(address + 0x2000, value);
+            m_pMemory->Load(address - 0x2000, value);
             return;
         }
         case 0xFFFE:
@@ -110,7 +110,7 @@ void Eeprom93C46MemoryRule::PerformWrite(u16 address, u8 value)
             m_iMapperSlot[1] = value & (romBankCount - 1);
             m_iMapperSlotAddress[1] = m_iMapperSlot[1] * 0x4000;
             m_pMemory->Load(address, value);
-            m_pMemory->Load(address + 0x2000, value);
+            m_pMemory->Load(address - 0x2000, value);
             return;
         }
         case 0xFFFF:
@@ -120,7 +120,7 @@ void Eeprom93C46MemoryRule::PerformWrite(u16 address, u8 value)
             m_iMapperSlot[2] = value & (romBankCount - 1);
             m_iMapperSlotAddress[2] = m_iMapperSlot[2] * 0x4000;
             m_pMemory->Load(address, value);
-            m_pMemory->Load(address + 0x2000, value);
+            m_pMemory->Load(address - 0x2000, value);
             return;
         }
     }
