@@ -21,6 +21,7 @@
 #include "gui_debug_tms9918.h"
 
 #include <math.h>
+#include <cmath>
 #include "imgui.h"
 #include "gearsystem.h"
 #include "gui_debug_constants.h"
@@ -420,6 +421,9 @@ void gui_debug_window_vram_sprites(void)
 
     bool child_hovered = ImGui::IsWindowHovered();
 
+    static int selected_sprite = -1;
+    int hovered_sprite = -1;
+
     for (int s = 0; s < 64; s++)
     {
         spr_pos[s] = ImGui::GetCursorScreenPos();
@@ -431,7 +435,16 @@ void gui_debug_window_vram_sprites(void)
         float mx = io.MousePos.x - spr_pos[s].x;
         float my = io.MousePos.y - spr_pos[s].y;
 
-        if (child_hovered && (mx >= 0.0f) && (mx < width) && (my >= 0.0f) && (my < height))
+        bool is_hovered = child_hovered && (mx >= 0.0f) && (mx < width) && (my >= 0.0f) && (my < height);
+
+        if (is_hovered)
+        {
+            hovered_sprite = s;
+            if (ImGui::IsMouseClicked(0))
+                selected_sprite = (selected_sprite == s) ? -1 : s;
+        }
+
+        if (is_hovered || selected_sprite == s)
         {
             ImDrawList* dl = ImGui::GetWindowDrawList();
             dl->AddRect(ImVec2(spr_pos[s].x, spr_pos[s].y), ImVec2(spr_pos[s].x + width, spr_pos[s].y + height), ImColor(cyan), 2.0f, ImDrawFlags_RoundCornersAll, 3.0f);
@@ -453,103 +466,103 @@ void gui_debug_window_vram_sprites(void)
 
     ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_texture, ImVec2(runtime.screen_width * screen_scale, runtime.screen_height * screen_scale), ImVec2(0, 0), ImVec2(tex_h, tex_v));
 
-    for (int s = 0; s < 64; s++)
+    int display_sprite = (hovered_sprite >= 0) ? hovered_sprite : selected_sprite;
+
+    if (display_sprite >= 0)
     {
-        if ((spr_pos[s].x == 0) && (spr_pos[s].y == 0))
-            continue;
+        int s = display_sprite;
+        int x = 0;
+        int y = 0;
+        int tile = 0;
+        int sprite_tile_addr = 0;
+        int sprite_shift = 0;
+        float real_x = 0.0f;
+        float real_y = 0.0f;
 
-        float mx = io.MousePos.x - spr_pos[s].x;
-        float my = io.MousePos.y - spr_pos[s].y;
-
-        if (child_hovered && (mx >= 0.0f) && (mx < width) && (my >= 0.0f) && (my < height))
+        if (isSG1000)
         {
-            int x = 0;
-            int y = 0;
-            int tile = 0;
-            int sprite_tile_addr = 0;
-            int sprite_shift = 0;
-            float real_x = 0.0f;
-            float real_y = 0.0f;
+            u16 sprite_attribute_addr = (regs[5] & 0x7F) << 7;
+            u16 sprite_pattern_addr = (regs[6] & 0x07) << 11;
+            int sprite_attribute_offset = sprite_attribute_addr + (s << 2);
+            tile = vram[sprite_attribute_offset + 2];
+            sprite_tile_addr = sprite_pattern_addr + (tile << 3);
+            sprite_shift = (vram[sprite_attribute_offset + 3] & 0x80) ? 32 : 0;
+            x = vram[sprite_attribute_offset + 1];
+            y = vram[sprite_attribute_offset];
 
-            if (isSG1000)
-            {
-                u16 sprite_attribute_addr = (regs[5] & 0x7F) << 7;
-                u16 sprite_pattern_addr = (regs[6] & 0x07) << 11;
-                int sprite_attribute_offset = sprite_attribute_addr + (s << 2);
-                tile = vram[sprite_attribute_offset + 2];
-                sprite_tile_addr = sprite_pattern_addr + (tile << 3);
-                sprite_shift = (vram[sprite_attribute_offset + 3] & 0x80) ? 32 : 0;
-                x = vram[sprite_attribute_offset + 1];
-                y = vram[sprite_attribute_offset];
+            int final_y = (y + 1) & 0xFF;
 
-                int final_y = (y + 1) & 0xFF;
+            if (final_y >= 0xE0)
+                final_y = -(0x100 - final_y);
 
-                if (final_y >= 0xE0)
-                    final_y = -(0x100 - final_y);
-
-                real_x = (float)(x - sprite_shift);
-                real_y = (float)final_y;
-            }
-            else
-            {
-                sprite_shift = IsSetBit(regs[0], 3) ? 8 : 0;
-                u16 sprite_table_address = (regs[5] << 7) & 0x3F00;
-                u16 sprite_table_address_2 = sprite_table_address + 0x80;
-                u16 sprite_info_address = sprite_table_address_2 + (s << 1);
-                u16 sprite_tiles_address = (regs[6] << 11) & 0x2000;
-                y = vram[sprite_table_address + s];
-                x = vram[sprite_info_address];
-                tile = vram[sprite_info_address + 1];
-                tile &= sprites_16 ? 0xFE : 0xFF;
-                sprite_tile_addr = sprite_tiles_address + (tile << 5);
-
-                real_x = (float)(x - sprite_shift - (isGG ? GS_RESOLUTION_GG_X_OFFSET : 0));
-                real_y = (float)(y + 1.0f - (isGG ? GS_RESOLUTION_GG_Y_OFFSET : 0));
-            }
-
-            float max_width = 8.0f;
-            float max_height = sprites_16 ? 16.0f : 8.0f;
-
-            if (isSG1000)
-            {
-                if (sprites_16)
-                    max_width = 16.0f;
-
-                if (IsSetBit(regs[1], 0))
-                {
-                    max_width *= 2.0f;
-                    max_height *= 2.0f;
-                }
-            }
-
-            float rectx_min = p_screen.x + (real_x * screen_scale);
-            float rectx_max = p_screen.x + ((real_x + max_width) * screen_scale);
-            float recty_min = p_screen.y + (real_y * screen_scale);
-            float recty_max = p_screen.y + ((real_y + max_height) * screen_scale);
-
-            rectx_min = fminf(fmaxf(rectx_min, p_screen.x), p_screen.x + (runtime.screen_width * screen_scale));
-            rectx_max = fminf(fmaxf(rectx_max, p_screen.x), p_screen.x + (runtime.screen_width * screen_scale));
-            recty_min = fminf(fmaxf(recty_min, p_screen.y), p_screen.y + (runtime.screen_height * screen_scale));
-            recty_max = fminf(fmaxf(recty_max, p_screen.y), p_screen.y + (runtime.screen_height * screen_scale));
-
-            ImDrawList* dl = ImGui::GetWindowDrawList();
-            dl->AddRect(ImVec2(rectx_min, recty_min), ImVec2(rectx_max, recty_max), ImColor(cyan), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
-
-            ImGui::TextColored(green, "DETAILS:");
-            ImGui::TextColored(cyan, " X:"); ImGui::SameLine();
-            ImGui::Text("$%02X", x); ImGui::SameLine();
-            ImGui::TextColored(cyan, "  Y:"); ImGui::SameLine();
-            ImGui::Text("$%02X", y); ImGui::SameLine();
-
-            ImGui::TextColored(cyan, "  Tile:"); ImGui::SameLine();
-            ImGui::Text("$%02X", tile);
-
-            ImGui::TextColored(cyan, " Tile Addr:"); ImGui::SameLine();
-            ImGui::Text("$%04X", sprite_tile_addr);
-
-            ImGui::TextColored(cyan, " Horizontal Sprite Shift:"); ImGui::SameLine();
-            sprite_shift > 0 ? ImGui::TextColored(green, "ON ") : ImGui::TextColored(gray, "OFF");
+            real_x = (float)(x - sprite_shift);
+            real_y = (float)final_y;
         }
+        else
+        {
+            sprite_shift = IsSetBit(regs[0], 3) ? 8 : 0;
+            u16 sprite_table_address = (regs[5] << 7) & 0x3F00;
+            u16 sprite_table_address_2 = sprite_table_address + 0x80;
+            u16 sprite_info_address = sprite_table_address_2 + (s << 1);
+            u16 sprite_tiles_address = (regs[6] << 11) & 0x2000;
+            y = vram[sprite_table_address + s];
+            x = vram[sprite_info_address];
+            tile = vram[sprite_info_address + 1];
+            tile &= sprites_16 ? 0xFE : 0xFF;
+            sprite_tile_addr = sprite_tiles_address + (tile << 5);
+
+            real_x = (float)(x - sprite_shift - (isGG ? GS_RESOLUTION_GG_X_OFFSET : 0));
+            real_y = (float)(y + 1.0f - (isGG ? GS_RESOLUTION_GG_Y_OFFSET : 0));
+        }
+
+        float max_width = 8.0f;
+        float max_height = sprites_16 ? 16.0f : 8.0f;
+
+        if (isSG1000)
+        {
+            if (sprites_16)
+                max_width = 16.0f;
+
+            if (IsSetBit(regs[1], 0))
+            {
+                max_width *= 2.0f;
+                max_height *= 2.0f;
+            }
+        }
+
+        float rectx_min = p_screen.x + (real_x * screen_scale);
+        float rectx_max = p_screen.x + ((real_x + max_width) * screen_scale);
+        float recty_min = p_screen.y + (real_y * screen_scale);
+        float recty_max = p_screen.y + ((real_y + max_height) * screen_scale);
+
+        rectx_min = fminf(fmaxf(rectx_min, p_screen.x), p_screen.x + (runtime.screen_width * screen_scale));
+        rectx_max = fminf(fmaxf(rectx_max, p_screen.x), p_screen.x + (runtime.screen_width * screen_scale));
+        recty_min = fminf(fmaxf(recty_min, p_screen.y), p_screen.y + (runtime.screen_height * screen_scale));
+        recty_max = fminf(fmaxf(recty_max, p_screen.y), p_screen.y + (runtime.screen_height * screen_scale));
+
+        float t = (float)(0.5 + 0.5 * sin(ImGui::GetTime() * 4.0));
+        ImVec4 pulse_color = ImVec4(
+            red.x + (white.x - red.x) * t,
+            red.y + (white.y - red.y) * t,
+            red.z + (white.z - red.z) * t,
+            1.0f);
+        ImDrawList* dl = ImGui::GetWindowDrawList();
+        dl->AddRect(ImVec2(rectx_min, recty_min), ImVec2(rectx_max, recty_max), ImColor(pulse_color), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
+
+        ImGui::TextColored(green, "DETAILS:");
+        ImGui::TextColored(cyan, " X:"); ImGui::SameLine();
+        ImGui::Text("$%02X", x); ImGui::SameLine();
+        ImGui::TextColored(cyan, "  Y:"); ImGui::SameLine();
+        ImGui::Text("$%02X", y); ImGui::SameLine();
+
+        ImGui::TextColored(cyan, "  Tile:"); ImGui::SameLine();
+        ImGui::Text("$%02X", tile);
+
+        ImGui::TextColored(cyan, " Tile Addr:"); ImGui::SameLine();
+        ImGui::Text("$%04X", sprite_tile_addr);
+
+        ImGui::TextColored(cyan, " Horizontal Sprite Shift:"); ImGui::SameLine();
+        sprite_shift > 0 ? ImGui::TextColored(green, "ON ") : ImGui::TextColored(gray, "OFF");
     }
 
     ImGui::Columns(1);
