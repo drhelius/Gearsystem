@@ -35,7 +35,7 @@ jobs:
       packages: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
     - name: Update OS
@@ -70,7 +70,7 @@ jobs:
         cp platforms/linux/${{ env.NAME_LOWER }} artifact
         cp -r platforms/shared/desktop/mcp/resources artifact/mcp/
     - name: Archive binary
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-desktop-${{ matrix.artifact_name }}
         path: artifact/*
@@ -81,7 +81,7 @@ jobs:
       contents: read
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
     - name: Update OS
@@ -118,7 +118,7 @@ jobs:
       packages: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
     - name: Get build number
@@ -128,7 +128,7 @@ jobs:
       run: make
       working-directory: platforms/libretro
     - name: Archive binary
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-libretro-linux-x64
         path: platforms/libretro/${{ env.NAME_LOWER }}_libretro.so
@@ -148,7 +148,7 @@ jobs:
       packages: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
     - name: Install dependencies
@@ -201,7 +201,7 @@ jobs:
         ditto -c -k --keepParent "platforms/macos/${{ env.NAME_UPPER }}.app" "platforms/macos/${{ env.NAME_UPPER }}.app.zip"
         mv platforms/macos/${{ env.NAME_UPPER }}.app.zip artifact/
     - name: Archive binary
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-desktop-macos-${{ matrix.architecture == 'arm' && 'arm64' || 'intel' }}
         path: artifact/*
@@ -216,7 +216,7 @@ jobs:
       packages: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
     - name: Setup msbuild
@@ -248,7 +248,7 @@ jobs:
         cp platforms/windows/release/${{ env.NAME_UPPER }}.exe artifact
         cp -r platforms/shared/desktop/mcp/resources artifact/mcp/
     - name: Archive binary
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-desktop-windows-${{ matrix.architecture }}
         path: artifact/*
@@ -260,7 +260,7 @@ jobs:
       packages: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
     - name: Get build number
@@ -283,7 +283,7 @@ jobs:
         cp platforms/bsd/${{ env.NAME_LOWER }} artifact
         cp -r platforms/shared/desktop/mcp/resources artifact/mcp/
     - name: Archive binary
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-desktop-bsd-x64
         path: artifact/*
@@ -312,7 +312,7 @@ jobs:
       run: |
         echo "BUILD_NUMBER=$(git describe --abbrev=7 --dirty --always --tags)" >> $GITHUB_ENV
     - name: Download artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-desktop-${{ matrix.variant.platform == 'darwin' && format('macos-{0}', matrix.variant.architecture == 'arm' && 'arm64' || 'intel') || matrix.variant.platform == 'linux' && matrix.variant.artifact_name || format('windows-{0}', matrix.variant.architecture) }}
         path: download
@@ -369,7 +369,7 @@ jobs:
         fi
         zip -r ../${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-mcpb-${PLATFORM_NAME}-${{ matrix.variant.arch }}.mcpb *
     - name: Archive MCPB
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-mcpb-${{ matrix.variant.platform == 'darwin' && 'macos' || matrix.variant.platform == 'win32' && 'windows' || matrix.variant.platform }}-${{ matrix.variant.arch }}
         path: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-mcpb-${{ matrix.variant.platform == 'darwin' && 'macos' || matrix.variant.platform == 'win32' && 'windows' || matrix.variant.platform }}-${{ matrix.variant.arch }}.mcpb
@@ -382,7 +382,7 @@ jobs:
       contents: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
     - name: Get build number
@@ -392,7 +392,7 @@ jobs:
       run: |
         mkdir -p release
     - name: Download artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         pattern: ${{ env.NAME_UPPER }}-${{ env.BUILD_NUMBER }}-*
         path: release
