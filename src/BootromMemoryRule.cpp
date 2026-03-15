@@ -138,7 +138,7 @@ u8* BootromMemoryRule::GetPage(int index)
         case 0:
         case 1:
         case 2:
-            return m_pBootrom + m_iMapperSlotAddress[index];
+            return m_pBootromBanks + m_iMapperSlotAddress[index];
         default:
             return NULL;
     }
