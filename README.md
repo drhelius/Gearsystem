@@ -30,19 +30,19 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
     <tr>
       <td rowspan="4"><strong>Windows</strong></td>
       <td>Desktop x64</td>
-      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.0/Gearsystem-3.9.0-desktop-windows-x64.zip">Gearsystem-3.9.0-desktop-windows-x64.zip</a></td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.1/Gearsystem-3.9.1-desktop-windows-x64.zip">Gearsystem-3.9.1-desktop-windows-x64.zip</a></td>
     </tr>
     <tr>
       <td>Desktop ARM64</td>
-      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.0/Gearsystem-3.9.0-desktop-windows-arm64.zip">Gearsystem-3.9.0-desktop-windows-arm64.zip</a></td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.1/Gearsystem-3.9.1-desktop-windows-arm64.zip">Gearsystem-3.9.1-desktop-windows-arm64.zip</a></td>
     </tr>
     <tr>
       <td>MCPB x64</td>
-      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.0/Gearsystem-3.9.0-mcpb-windows-x64.mcpb">Gearsystem-3.9.0-mcpb-windows-x64.mcpb</a></td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.1/Gearsystem-3.9.1-mcpb-windows-x64.mcpb">Gearsystem-3.9.1-mcpb-windows-x64.mcpb</a></td>
     </tr>
     <tr>
       <td>MCPB ARM64</td>
-      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.0/Gearsystem-3.9.0-mcpb-windows-arm64.mcpb">Gearsystem-3.9.0-mcpb-windows-arm64.mcpb</a></td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.1/Gearsystem-3.9.1-mcpb-windows-arm64.mcpb">Gearsystem-3.9.1-mcpb-windows-arm64.mcpb</a></td>
     </tr>
     <tr>
       <td rowspan="5"><strong>macOS</strong></td>
@@ -51,40 +51,40 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
     </tr>
     <tr>
       <td>Desktop Apple Silicon</td>
-      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.0/Gearsystem-3.9.0-desktop-macos-arm64.zip">Gearsystem-3.9.0-desktop-macos-arm64.zip</a></td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.1/Gearsystem-3.9.1-desktop-macos-arm64.zip">Gearsystem-3.9.1-desktop-macos-arm64.zip</a></td>
     </tr>
     <tr>
       <td>Desktop Intel</td>
-      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.0/Gearsystem-3.9.0-desktop-macos-intel.zip">Gearsystem-3.9.0-desktop-macos-intel.zip</a></td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.1/Gearsystem-3.9.1-desktop-macos-intel.zip">Gearsystem-3.9.1-desktop-macos-intel.zip</a></td>
     </tr>
     <tr>
       <td>MCPB arm64</td>
-      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.0/Gearsystem-3.9.0-mcpb-macos-arm64.mcpb">Gearsystem-3.9.0-mcpb-macos-arm64.mcpb</a></td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.1/Gearsystem-3.9.1-mcpb-macos-arm64.mcpb">Gearsystem-3.9.1-mcpb-macos-arm64.mcpb</a></td>
     </tr>
     <tr>
       <td>MCPB x64</td>
-      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.0/Gearsystem-3.9.0-mcpb-macos-x64.mcpb">Gearsystem-3.9.0-mcpb-macos-x64.mcpb</a></td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.1/Gearsystem-3.9.1-mcpb-macos-x64.mcpb">Gearsystem-3.9.1-mcpb-macos-x64.mcpb</a></td>
     </tr>
     <tr>
       <td rowspan="5"><strong>Linux</strong></td>
       <td>Desktop Ubuntu 24.04 x64</td>
-      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.0/Gearsystem-3.9.0-desktop-ubuntu24.04-x64.zip">Gearsystem-3.9.0-desktop-ubuntu24.04-x64.zip</a></td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.1/Gearsystem-3.9.1-desktop-ubuntu24.04-x64.zip">Gearsystem-3.9.1-desktop-ubuntu24.04-x64.zip</a></td>
     </tr>
     <tr>
       <td>Desktop Ubuntu 22.04 x64</td>
-      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.0/Gearsystem-3.9.0-desktop-ubuntu22.04-x64.zip">Gearsystem-3.9.0-desktop-ubuntu22.04-x64.zip</a></td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.1/Gearsystem-3.9.1-desktop-ubuntu22.04-x64.zip">Gearsystem-3.9.1-desktop-ubuntu22.04-x64.zip</a></td>
     </tr>
     <tr>
       <td>Desktop Ubuntu 24.04 ARM64</td>
-      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.0/Gearsystem-3.9.0-desktop-ubuntu24.04-arm64.zip">Gearsystem-3.9.0-desktop-ubuntu24.04-arm64.zip</a></td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.1/Gearsystem-3.9.1-desktop-ubuntu24.04-arm64.zip">Gearsystem-3.9.1-desktop-ubuntu24.04-arm64.zip</a></td>
     </tr>
     <tr>
       <td>MCPB x64</td>
-      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.0/Gearsystem-3.9.0-mcpb-linux-x64.mcpb">Gearsystem-3.9.0-mcpb-linux-x64.mcpb</a></td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.1/Gearsystem-3.9.1-mcpb-linux-x64.mcpb">Gearsystem-3.9.1-mcpb-linux-x64.mcpb</a></td>
     </tr>
     <tr>
       <td>MCPB ARM64</td>
-      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.0/Gearsystem-3.9.0-mcpb-linux-arm64.mcpb">Gearsystem-3.9.0-mcpb-linux-arm64.mcpb</a></td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.1/Gearsystem-3.9.1-mcpb-linux-arm64.mcpb">Gearsystem-3.9.1-mcpb-linux-arm64.mcpb</a></td>
     </tr>
     <tr>
       <td><strong>RetroArch</strong></td>
