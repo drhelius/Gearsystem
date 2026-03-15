@@ -570,8 +570,6 @@ void Cartridge::SetROMPath(const char* path)
     if (!IsValidPointer(path))
         return;
 
-    strcpy(m_szFilePath, path);
-
     std::string pathstr(path);
     std::string filename;
     std::string directory;

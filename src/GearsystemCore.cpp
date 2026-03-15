@@ -296,8 +296,7 @@ void GearsystemCore::SaveMemoryDump()
 
         char path[512];
 
-        strcpy(path, m_pCartridge->GetFilePath());
-        strcat(path, ".dump");
+        snprintf(path, sizeof(path), "%s.dump", m_pCartridge->GetFilePath());
 
         Log("Saving Memory Dump %s...", path);
 
@@ -317,8 +316,7 @@ void GearsystemCore::SaveDisassembledROM()
 
         char path[512];
 
-        strcpy(path, m_pCartridge->GetFilePath());
-        strcat(path, ".dis");
+        snprintf(path, sizeof(path), "%s.dis", m_pCartridge->GetFilePath());
 
         Log("Saving Disassembled ROM %s...", path);
 
