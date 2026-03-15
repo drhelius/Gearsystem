@@ -1582,7 +1582,7 @@ static void draw_savestate_slot_info(int slot)
 {
     if (emu_savestates[slot].rom_name[0] != 0)
     {
-        if (emu_savestates[slot].version != GS_SAVESTATE_VERSION)
+        if (emu_savestates[slot].version < GS_SAVESTATE_MIN_VERSION || emu_savestates[slot].version > GS_SAVESTATE_VERSION)
         {
             if (emu_savestates[slot].version == GS_SAVESTATE_VERSION_V1)
             {

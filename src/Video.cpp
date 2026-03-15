@@ -1554,9 +1554,11 @@ void Video::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_bSpriteOvrRequest), sizeof(m_bSpriteOvrRequest));
     stream.write(reinterpret_cast<const char*> (&m_Phaser), sizeof(m_Phaser));
     stream.write(reinterpret_cast<const char*> (&m_bLineInterruptPending), sizeof(m_bLineInterruptPending));
+    stream.write(reinterpret_cast<const char*> (&m_bSpriteCollisionRequest), sizeof(m_bSpriteCollisionRequest));
+    stream.write(reinterpret_cast<const char*> (&m_iSpriteCollisionX), sizeof(m_iSpriteCollisionX));
 }
 
-void Video::LoadState(std::istream& stream)
+void Video::LoadState(std::istream& stream, int version)
 {
     using namespace std;
 
@@ -1593,8 +1595,16 @@ void Video::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (&m_bSpriteOvrRequest), sizeof(m_bSpriteOvrRequest));
     stream.read(reinterpret_cast<char*> (&m_Phaser), sizeof(m_Phaser));
 
-    if (!stream.eof())
-        stream.read(reinterpret_cast<char*> (&m_bLineInterruptPending), sizeof(m_bLineInterruptPending));
+    stream.read(reinterpret_cast<char*> (&m_bLineInterruptPending), sizeof(m_bLineInterruptPending));
+
+    if (version >= 101)
+    {
+        stream.read(reinterpret_cast<char*> (&m_bSpriteCollisionRequest), sizeof(m_bSpriteCollisionRequest));
+        stream.read(reinterpret_cast<char*> (&m_iSpriteCollisionX), sizeof(m_iSpriteCollisionX));
+    }
     else
-        m_bLineInterruptPending = false;
+    {
+        m_bSpriteCollisionRequest = false;
+        m_iSpriteCollisionX = 0;
+    }
 }

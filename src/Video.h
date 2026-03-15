@@ -79,7 +79,7 @@ public:
     void WriteControl(u8 data);
     void LatchHCounter();
     void SaveState(std::ostream& stream);
-    void LoadState(std::istream& stream);
+    void LoadState(std::istream& stream, int version = GS_SAVESTATE_VERSION);
     u8* GetVRAM();
     u8* GetCRAM();
     u8* GetRegisters();

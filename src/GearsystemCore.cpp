@@ -918,7 +918,7 @@ bool GearsystemCore::LoadState(std::istream& stream)
     Debug("Load state header magic: 0x%08x", header.magic);
     Debug("Load state header version: %d", header.version);
 
-    if (header.magic != GS_SAVESTATE_MAGIC || header.version != GS_SAVESTATE_VERSION)
+    if (header.magic != GS_SAVESTATE_MAGIC || header.version < GS_SAVESTATE_MIN_VERSION || header.version > GS_SAVESTATE_VERSION)
     {
         Log("Save state header does not match current version, trying V1 format...");
         return LoadStateV1(stream, size);
@@ -952,7 +952,7 @@ bool GearsystemCore::LoadState(std::istream& stream)
     m_pMemory->LoadState(stream);
     m_pProcessor->LoadState(stream);
     m_pAudio->LoadState(stream);
-    m_pVideo->LoadState(stream);
+    m_pVideo->LoadState(stream, header.version);
     m_pInput->LoadState(stream);
     m_pMemory->GetCurrentRule()->LoadState(stream);
     m_pProcessor->GetIOPOrts()->LoadState(stream);

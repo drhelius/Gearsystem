@@ -1199,7 +1199,7 @@ json DebugAdapter::ListSaveStateSlots()
             slot["rom_name"] = emu_savestates[i].rom_name;
             slot["timestamp"] = emu_savestates[i].timestamp;
             slot["version"] = emu_savestates[i].version;
-            slot["valid"] = (emu_savestates[i].version == GS_SAVESTATE_VERSION);
+            slot["valid"] = (emu_savestates[i].version >= GS_SAVESTATE_MIN_VERSION && emu_savestates[i].version <= GS_SAVESTATE_VERSION);
             slot["has_screenshot"] = IsValidPointer(emu_savestates_screenshots[i].data);
 
             if (emu_savestates[i].emu_build[0] != 0)
