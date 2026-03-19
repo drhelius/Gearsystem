@@ -252,8 +252,8 @@ void gui_popup_modal_about(void)
                 #if defined(GS_DEBUG)
                 add_build_info("define: GS_DEBUG\n");
                 #endif
-                #if defined(GG_NO_OPTIMIZATIONS)
-                add_build_info("define: GG_NO_OPTIMIZATIONS\n");
+                #if defined(GS_NO_OPTIMIZATIONS)
+                add_build_info("define: GS_NO_OPTIMIZATIONS\n");
                 #endif
                 #if defined(GS_DISABLE_DISASSEMBLER)
                 add_build_info("define: GS_DISABLE_DISASSEMBLER\n");
@@ -267,11 +267,11 @@ void gui_popup_modal_about(void)
                 #if defined(__STDC_VERSION__)
                 add_build_info("define: __STDC_VERSION__ = %d\n", (int)__STDC_VERSION__);
                 #endif
-                #if defined(GG_LITTLE_ENDIAN)
-                add_build_info("define: GG_LITTLE_ENDIAN");
+                #if defined(GS_LITTLE_ENDIAN)
+                add_build_info("define: GS_LITTLE_ENDIAN");
                 #endif
-                #if defined(GG_BIG_ENDIAN)
-                add_build_info("define: GG_BIG_ENDIAN");
+                #if defined(GS_BIG_ENDIAN)
+                add_build_info("define: GS_BIG_ENDIAN");
                 #endif
 
                 ImGui::InputTextMultiline("##build_info", build_info, sizeof(build_info), ImVec2(-1.0f, 100.0f), ImGuiInputTextFlags_ReadOnly);
