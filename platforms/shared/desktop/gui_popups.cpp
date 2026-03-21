@@ -47,20 +47,11 @@ void gui_popup_modal_keyboard()
         ImGui::Text("Press any key to assign...\n\n");
         ImGui::Separator();
 
-        for (ImGuiKey i = ImGuiKey_NamedKey_BEGIN; i < ImGuiKey_NamedKey_END; i = (ImGuiKey)(i + 1))
+        SDL_Scancode scancode = keyboard_get_first_pressed_scancode();
+        if (scancode != SDL_SCANCODE_UNKNOWN)
         {
-            if (ImGui::IsKeyDown(i))
-            {
-                SDL_Keycode key_code = ImGuiKeyToSDLKeycode(i);
-                SDL_Scancode key = SDL_GetScancodeFromKey(key_code, NULL);
-
-                if ((key != SDL_SCANCODE_LCTRL) && (key != SDL_SCANCODE_RCTRL) && (key != SDL_SCANCODE_CAPSLOCK))
-                {
-                    *gui_configured_key = key;
-                    ImGui::CloseCurrentPopup();
-                    break;
-                }
-            }
+            *gui_configured_key = scancode;
+            ImGui::CloseCurrentPopup();
         }
 
         if (ImGui::Button("Cancel", ImVec2(120, 0)))
@@ -119,33 +110,15 @@ void gui_popup_modal_hotkey()
         ImGui::Text("Hold Ctrl, Shift, or Alt before pressing the key\n\n");
         ImGui::Separator();
 
-        SDL_Keymod mods = SDL_GetModState();
-
-        for (ImGuiKey i = ImGuiKey_NamedKey_BEGIN; i < ImGuiKey_NamedKey_END; i = (ImGuiKey)(i + 1))
+        SDL_Keymod mods = (SDL_Keymod)(SDL_GetModState() & (SDL_KMOD_CTRL | SDL_KMOD_SHIFT | SDL_KMOD_ALT | SDL_KMOD_GUI));
+        SDL_Scancode scancode = keyboard_get_first_pressed_scancode();
+        if (scancode != SDL_SCANCODE_UNKNOWN)
         {
-            // Skip modifier keys
-            if (i == ImGuiKey_LeftCtrl || i == ImGuiKey_RightCtrl ||
-                i == ImGuiKey_LeftShift || i == ImGuiKey_RightShift ||
-                i == ImGuiKey_LeftAlt || i == ImGuiKey_RightAlt ||
-                i == ImGuiKey_LeftSuper || i == ImGuiKey_RightSuper ||
-                i == ImGuiKey_CapsLock)
-                continue;
-
-            if (ImGui::IsKeyPressed(i, false))
-            {
-                SDL_Keycode key_code = ImGuiKeyToSDLKeycode(i);
-                SDL_Scancode key = SDL_GetScancodeFromKey(key_code, NULL);
-
-                if (key != SDL_SCANCODE_UNKNOWN)
-                {
-                    gui_configured_hotkey->key = key;
-                    gui_configured_hotkey->mod = mods;
-                    config_update_hotkey_string(gui_configured_hotkey);
-                    check_hotkey_duplicates_popup(gui_configured_hotkey);
-                    ImGui::CloseCurrentPopup();
-                    break;
-                }
-            }
+            gui_configured_hotkey->key = scancode;
+            gui_configured_hotkey->mod = mods;
+            config_update_hotkey_string(gui_configured_hotkey);
+            check_hotkey_duplicates_popup(gui_configured_hotkey);
+            ImGui::CloseCurrentPopup();
         }
 
         if (ImGui::Button("Cancel", ImVec2(120, 0)))
