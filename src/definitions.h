@@ -238,6 +238,7 @@ struct GS_Disassembler_Record
     int irq;
     bool has_operand_address;
     u16 operand_address;
+    char auto_symbol[64];
 };
 
 inline u8 SetBit(const u8 value, const u8 bit)

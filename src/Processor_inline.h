@@ -297,7 +297,7 @@ inline void Processor::OPCodes_RST(u16 address)
     PC.SetValue(address);
     WZ.SetValue(address);
 #if !defined(GS_DISABLE_DISASSEMBLER)
-    PushCallStack(pc - 1, address, pc);
+    PushCallStack(pc - 1, address, pc, m_pMemory->GetBank(address));
 #endif
 }
 
@@ -311,7 +311,7 @@ inline void Processor::OPCodes_CALL_nn()
     PC.SetValue(address);
     WZ.SetValue(address);
 #if !defined(GS_DISABLE_DISASSEMBLER)
-    PushCallStack(pc - 3, address, pc);
+    PushCallStack(pc - 3, address, pc, m_pMemory->GetBank(address));
 #endif
 }
 
@@ -327,7 +327,7 @@ inline void Processor::OPCodes_CALL_nn_Conditional(bool condition)
         PC.SetValue(address);
         m_bBranchTaken = true;
 #if !defined(GS_DISABLE_DISASSEMBLER)
-        PushCallStack(pc - 3, address, pc);
+        PushCallStack(pc - 3, address, pc, m_pMemory->GetBank(address));
 #endif
     }
     WZ.SetValue(address);
@@ -1257,19 +1257,21 @@ inline std::stack<Processor::GS_CallStackEntry>* Processor::GetDisassemblerCallS
     return &m_disassembler_call_stack;
 }
 
-inline void Processor::PushCallStack(u16 src, u16 dest, u16 back)
+inline void Processor::PushCallStack(u16 src, u16 dest, u16 back, u8 bank)
 {
 #if !defined(GS_DISABLE_DISASSEMBLER)
     GS_CallStackEntry entry;
     entry.src = src;
     entry.dest = dest;
     entry.back = back;
+    entry.bank = bank;
     if (m_disassembler_call_stack.size() < 256)
         m_disassembler_call_stack.push(entry);
 #else
     UNUSED(src);
     UNUSED(dest);
     UNUSED(back);
+    UNUSED(bank);
 #endif
 }
 

@@ -61,8 +61,12 @@ inline u8 Memory::Retrieve(u16 address)
 
 inline u8 Memory::DebugRetrieve(u16 address)
 {
-    if (m_MediaSlot == BiosSlot && address < 0xC000)
-        return m_pBootromMemoryRule->PerformRead(address);
+    if (address < 0xC000)
+    {
+        if (m_MediaSlot == BiosSlot)
+            return m_pBootromMemoryRule->PerformRead(address);
+        return m_pCurrentMemoryRule->PerformRead(address);
+    }
     return m_pMap[address];
 }
 

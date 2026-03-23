@@ -58,6 +58,7 @@ public:
         u16 src;
         u16 dest;
         u16 back;
+        u8 bank;
     };
 
     struct ProcessorState
@@ -204,7 +205,7 @@ private:
     void InvalidOPCode();
     void UndocumentedOPCode();
     void CheckBreakpoints();
-    void PushCallStack(u16 src, u16 dest, u16 back);
+    void PushCallStack(u16 src, u16 dest, u16 back, u8 bank);
     void PopCallStack();
     SixteenBitRegister* GetPrefixedRegister();
     u16 GetEffectiveAddress();

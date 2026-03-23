@@ -171,7 +171,7 @@ u32 Processor::RunFor(u32 tstates)
                 WZ.SetValue(PC.GetValue());
 #if !defined(GS_DISABLE_DISASSEMBLER)
                 m_debug_next_irq = 2;
-                PushCallStack(pc, 0x0066, pc);
+                PushCallStack(pc, 0x0066, pc, 0);
 #endif
                 DisassembleNextOPCode();
                 return m_iTStates;
@@ -192,7 +192,7 @@ u32 Processor::RunFor(u32 tstates)
                 UpdateProActionReplay();
 #if !defined(GS_DISABLE_DISASSEMBLER)
                 m_debug_next_irq = 3;
-                PushCallStack(pc, 0x0038, pc);
+                PushCallStack(pc, 0x0038, pc, 0);
 #endif
                 DisassembleNextOPCode();
                 return m_iTStates;
@@ -597,6 +597,31 @@ void Processor::PopulateDisassemblerRecord(GS_Disassembler_Record* record, u16 a
             record->jump = true;
             record->jump_address = rst_address;
             record->jump_bank = m_pMemory->GetBank(rst_address);
+        }
+    }
+
+    if (record->irq > 0 && record->irq < 4)
+    {
+        static const char* k_irq_auto_symbol_format[4] = {
+            "????_%02X_%04X", "RESET_%02X_%04X", "NMI_%02X_%04X",
+            "INT_%02X_%04X"
+        };
+        snprintf(record->auto_symbol, 64, k_irq_auto_symbol_format[record->irq], record->bank, address);
+    }
+
+    if (record->jump && record->jump_address != 0)
+    {
+        GS_Disassembler_Record* target = m_pMemory->GetOrCreateDisassemblerRecord(record->jump_address);
+        if (IsValidPointer(target))
+        {
+            if (record->subroutine)
+            {
+                snprintf(target->auto_symbol, 64, "SUB_%02X_%04X", record->jump_bank, record->jump_address);
+            }
+            else if (strncmp(target->auto_symbol, "SUB_", 4) != 0)
+            {
+                snprintf(target->auto_symbol, 64, "TAG_%02X_%04X", record->jump_bank, record->jump_address);
+            }
         }
     }
 
