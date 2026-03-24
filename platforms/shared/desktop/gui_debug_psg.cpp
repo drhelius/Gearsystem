@@ -132,7 +132,7 @@ void gui_debug_window_psg(void)
                     if (ch_buf && data_size > 0)
                     {
                         for (int i = 0; i < data_size; i++)
-                            wave_buffer[i] = (float)ch_buf[i] / 32768.0f * 8.0f;
+                            wave_buffer[i] = (float)ch_buf[i] / 32768.0f * 5.0f;
                     }
                     else
                     {
@@ -159,7 +159,7 @@ void gui_debug_window_psg(void)
                     if (ImPlot::BeginPlot("Waveform", ImVec2(180, 50), ImPlotFlags_CanvasOnly))
                     {
                         ImPlot::SetupAxes("x", "y", flags, flags);
-                        ImPlot::SetupAxesLimits(x_min, x_max, -1.0f, 1.0f, ImPlotCond_Always);
+                        ImPlot::SetupAxesLimits(x_min, x_max, -1.11f, 1.11f, ImPlotCond_Always);
                         ImPlot::SetNextLineStyle(green, 1.0f);
                         ImPlot::PlotLine("Wave", wave_buffer, data_size);
                         ImPlot::EndPlot();
