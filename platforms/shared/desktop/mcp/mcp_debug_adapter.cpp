@@ -2193,3 +2193,161 @@ json DebugAdapter::MemoryFindBytes(int area, const std::string& hex_bytes)
 
     return result;
 }
+
+json DebugAdapter::GetTraceLog(int start, int count)
+{
+    json result;
+
+    TraceLogger* tl = m_core->GetTraceLogger();
+    if (!tl)
+    {
+        result["error"] = "Trace logger not available";
+        return result;
+    }
+
+    u32 total = tl->GetCount();
+
+    if (count < 1) count = 100;
+    if (count > 1000) count = 1000;
+
+    u32 actual_start;
+    if (start < 0)
+        actual_start = (total > (u32)count) ? (total - (u32)count) : 0;
+    else
+        actual_start = (u32)start;
+
+    if (actual_start >= total)
+    {
+        result["total_entries"] = total;
+        result["start"] = actual_start;
+        result["count"] = 0;
+        result["lines"] = json::array();
+        return result;
+    }
+
+    u32 actual_count = (u32)count;
+    if (actual_start + actual_count > total)
+        actual_count = total - actual_start;
+
+    Memory* memory = m_core->GetMemory();
+
+    json lines = json::array();
+
+    for (u32 i = 0; i < actual_count; i++)
+    {
+        const GS_Trace_Entry& entry = tl->GetEntry(actual_start + i);
+        char buf[256];
+
+        switch (entry.type)
+        {
+            case TRACE_CPU:
+            {
+                GS_Disassembler_Record* record = memory->GetDisassemblerRecord(entry.cpu.pc, entry.cpu.bank);
+                char instr[64] = "???";
+                char bytes[25] = "";
+                if (IsValidPointer(record))
+                {
+                    strncpy(instr, record->name, sizeof(instr) - 1);
+                    instr[sizeof(instr) - 1] = '\0';
+                    char* p = instr;
+                    while (*p)
+                    {
+                        if (*p == '{')
+                        {
+                            char* end = strchr(p, '}');
+                            if (end)
+                                memmove(p, end + 1, strlen(end + 1) + 1);
+                            else
+                                break;
+                        }
+                        else
+                            p++;
+                    }
+                    strncpy(bytes, record->bytes, sizeof(bytes) - 1);
+                    bytes[sizeof(bytes) - 1] = '\0';
+                }
+                u8 a = (entry.cpu.af >> 8) & 0xFF;
+                u8 f = entry.cpu.af & 0xFF;
+                snprintf(buf, sizeof(buf), "%02X:%04X  A:%02X  BC:%04X  DE:%04X  HL:%04X  SP:%04X  %c%c%c%c%c%c%c%c  %-24s %s",
+                         entry.cpu.bank, entry.cpu.pc, a, entry.cpu.bc, entry.cpu.de, entry.cpu.hl, entry.cpu.sp,
+                         (f & FLAG_SIGN) ? 'S' : 's', (f & FLAG_ZERO) ? 'Z' : 'z',
+                         (f & FLAG_Y) ? 'Y' : 'y', (f & FLAG_HALF) ? 'H' : 'h',
+                         (f & FLAG_X) ? 'X' : 'x', (f & FLAG_PARITY) ? 'P' : 'p',
+                         (f & FLAG_NEGATIVE) ? 'N' : 'n', (f & FLAG_CARRY) ? 'C' : 'c',
+                         instr, bytes);
+                break;
+            }
+            case TRACE_CPU_IRQ:
+                snprintf(buf, sizeof(buf), "  [CPU]  %s       PC:$%04X  Vector:$%04X",
+                         entry.irq.type == 2 ? "NMI" : "IRQ",
+                         entry.irq.pc, entry.irq.vector);
+                break;
+            case TRACE_VDP_WRITE:
+                snprintf(buf, sizeof(buf), "  [VDP]  REG %02d   Value:$%02X",
+                         entry.vdp_write.reg, entry.vdp_write.value);
+                break;
+            case TRACE_VDP_STATUS:
+            {
+                static const char* k_vdp_events[] = {"VINT", "HINT", "VFLAG", "DISPLAY", "SCROLL X", "SCROLL Y", "SPR OVR", "SPR COL"};
+                const char* event_name = (entry.vdp_status.event < 8) ? k_vdp_events[entry.vdp_status.event] : "???";
+                switch (entry.vdp_status.event)
+                {
+                    case GS_VDP_EVENT_VINT:
+                    case GS_VDP_EVENT_HINT:
+                    case GS_VDP_EVENT_VINT_FLAG:
+                    case GS_VDP_EVENT_SPRITE_OVR:
+                        snprintf(buf, sizeof(buf), "  [VDP]  %-9s Line:%d",
+                                 event_name, entry.vdp_status.line);
+                        break;
+                    case GS_VDP_EVENT_DISPLAY:
+                        snprintf(buf, sizeof(buf), "  [VDP]  %-9s Line:%d  %s",
+                                 event_name, entry.vdp_status.line,
+                                 entry.vdp_status.value ? "ON" : "OFF");
+                        break;
+                    case GS_VDP_EVENT_SCROLL_X:
+                    case GS_VDP_EVENT_SCROLL_Y:
+                        snprintf(buf, sizeof(buf), "  [VDP]  %-9s Line:%d  Value:$%02X",
+                                 event_name, entry.vdp_status.line, entry.vdp_status.value);
+                        break;
+                    case GS_VDP_EVENT_SPRITE_COL:
+                        snprintf(buf, sizeof(buf), "  [VDP]  %-9s Line:%d  X:%d",
+                                 event_name, entry.vdp_status.line, entry.vdp_status.value);
+                        break;
+                    default:
+                        snprintf(buf, sizeof(buf), "  [VDP]  %-9s Line:%d",
+                                 event_name, entry.vdp_status.line);
+                        break;
+                }
+                break;
+            }
+            case TRACE_PSG:
+                snprintf(buf, sizeof(buf), "  [PSG]  WRITE    Value:$%02X",
+                         entry.psg.value);
+                break;
+            case TRACE_YM2413:
+                snprintf(buf, sizeof(buf), "  [FM]   WRITE    Port:$%02X  Value:$%02X",
+                         entry.ym2413.port, entry.ym2413.value);
+                break;
+            case TRACE_IO_PORT:
+                snprintf(buf, sizeof(buf), "  [IO]   %s     Port:$%02X  Value:$%02X",
+                         entry.io_port.is_write ? "OUT" : "IN ",
+                         entry.io_port.port, entry.io_port.value);
+                break;
+            case TRACE_BANK_SWITCH:
+                snprintf(buf, sizeof(buf), "  [MAP]  BANK     Addr:$%04X  Value:$%02X",
+                         entry.bank_switch.address, entry.bank_switch.value);
+                break;
+            default:
+                snprintf(buf, sizeof(buf), "  [???]");
+                break;
+        }
+
+        lines.push_back(buf);
+    }
+
+    result["total_entries"] = total;
+    result["start"] = actual_start;
+    result["count"] = actual_count;
+    result["lines"] = lines;
+    return result;
+}
