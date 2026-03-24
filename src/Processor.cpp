@@ -21,6 +21,7 @@
 #include <cassert>
 #include <ctype.h>
 #include "Processor.h"
+#include "TraceLogger.h"
 #include "opcode_timing.h"
 #if !defined(GS_DISABLE_DISASSEMBLER) || defined(GS_DEBUG)
 #include "opcode_names.h"
@@ -33,6 +34,7 @@ Processor::Processor(Memory* pMemory)
     m_pMemory = pMemory;
     m_pMemory->SetProcessor(this);
     InitPointer(m_pIOPorts);
+    InitPointer(m_pTraceLogger);
     InitOPCodeFunctors();
     m_bIFF1 = false;
     m_bIFF2 = false;
@@ -172,6 +174,15 @@ u32 Processor::RunFor(u32 tstates)
 #if !defined(GS_DISABLE_DISASSEMBLER)
                 m_debug_next_irq = 2;
                 PushCallStack(pc, 0x0066, pc, 0);
+                if (m_pTraceLogger->IsEnabled(TRACE_CPU_IRQ))
+                {
+                    GS_Trace_Entry e = {};
+                    e.type = TRACE_CPU_IRQ;
+                    e.irq.pc = pc;
+                    e.irq.vector = 0x0066;
+                    e.irq.type = 2;
+                    m_pTraceLogger->TraceLog(e);
+                }
 #endif
                 DisassembleNextOPCode();
                 return m_iTStates;
@@ -193,6 +204,15 @@ u32 Processor::RunFor(u32 tstates)
 #if !defined(GS_DISABLE_DISASSEMBLER)
                 m_debug_next_irq = 3;
                 PushCallStack(pc, 0x0038, pc, 0);
+                if (m_pTraceLogger->IsEnabled(TRACE_CPU_IRQ))
+                {
+                    GS_Trace_Entry e = {};
+                    e.type = TRACE_CPU_IRQ;
+                    e.irq.pc = pc;
+                    e.irq.vector = 0x0038;
+                    e.irq.type = 3;
+                    m_pTraceLogger->TraceLog(e);
+                }
 #endif
                 DisassembleNextOPCode();
                 return m_iTStates;
@@ -211,8 +231,29 @@ u32 Processor::RunFor(u32 tstates)
             return 1;
         }
 
+#if !defined(GS_DISABLE_DISASSEMBLER)
+        u16 prev_pc = PC.GetValue();
+#endif
+
         ExecuteOPCode();
         DisassembleNextOPCode();
+
+#if !defined(GS_DISABLE_DISASSEMBLER)
+        if (m_pTraceLogger->IsEnabled(TRACE_CPU))
+        {
+            GS_Trace_Entry e = {};
+            e.type = TRACE_CPU;
+            e.cpu.pc = prev_pc;
+            GS_Disassembler_Record* record = m_pMemory->GetDisassemblerRecord(prev_pc);
+            e.cpu.bank = IsValidPointer(record) ? record->bank : 0;
+            e.cpu.af = AF.GetValue();
+            e.cpu.bc = BC.GetValue();
+            e.cpu.de = DE.GetValue();
+            e.cpu.hl = HL.GetValue();
+            e.cpu.sp = SP.GetValue();
+            m_pTraceLogger->TraceLog(e);
+        }
+#endif
 
         executed += m_iTStates;
 
@@ -252,6 +293,11 @@ void Processor::RequestINT(bool assert)
 void Processor::RequestNMI()
 {
     m_bNMIRequested = true;
+}
+
+void Processor::SetTraceLogger(TraceLogger* pTraceLogger)
+{
+    m_pTraceLogger = pTraceLogger;
 }
 
 void Processor::ExecuteOPCode()

@@ -50,6 +50,7 @@
 #include "SmsIOPorts.h"
 #include "GameGearIOPorts.h"
 #include "BootromMemoryRule.h"
+#include "TraceLogger.h"
 #include "common.h"
 #include "memory_stream.h"
 
@@ -87,8 +88,8 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pGameGearIOPorts);
     InitPointer(m_pBootromMemoryRule);
     InitPointer(m_pFrameBuffer);
-    InitPointer(m_debug_callback);
     InitPointer(m_pIratahackMemoryRule);
+    InitPointer(m_trace_logger);
     m_bPaused = true;
     m_pixelFormat = GS_PIXEL_RGBA8888;
     m_GlassesConfig = GearsystemCore::GlassesBothEyes;
@@ -128,6 +129,7 @@ GearsystemCore::~GearsystemCore()
     SafeDelete(m_pAudio);
     SafeDelete(m_pProcessor);
     SafeDelete(m_pMemory);
+    SafeDelete(m_trace_logger);
 }
 
 void GearsystemCore::Init(GS_Color_Format pixelFormat)
@@ -144,6 +146,7 @@ void GearsystemCore::Init(GS_Color_Format pixelFormat)
     m_pAudio = new Audio(m_pCartridge);
     m_pSmsIOPorts = new SmsIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge, m_pMemory, m_pProcessor);
     m_pGameGearIOPorts = new GameGearIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge, m_pMemory);
+    m_trace_logger = new TraceLogger();
 
     m_pMemory->Init();
     m_pProcessor->Init();
@@ -151,6 +154,11 @@ void GearsystemCore::Init(GS_Color_Format pixelFormat)
     m_pVideo->Init();
     m_pInput->Init();
     m_pCartridge->Init();
+
+    m_pProcessor->SetTraceLogger(m_trace_logger);
+    m_pVideo->SetTraceLogger(m_trace_logger);
+    m_pSmsIOPorts->SetTraceLogger(m_trace_logger);
+    m_pGameGearIOPorts->SetTraceLogger(m_trace_logger);
 
     InitMemoryRules();
 }
@@ -175,9 +183,6 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
 
         do
         {
-            if (debug_enable && (IsValidPointer(m_debug_callback)))
-                m_debug_callback();
-
             unsigned int clockCycles = debug_enable && debug->step_debugger ? m_pProcessor->RunInstruction() : m_pProcessor->RunFor(1);
             instruction_completed = true;
             vblank = m_pVideo->Tick(clockCycles);
@@ -409,9 +414,9 @@ u64 GearsystemCore::GetMasterClockCycles()
     return m_master_clock_cycles;
 }
 
-void GearsystemCore::SetDebugCallback(GS_Debug_Callback callback)
+TraceLogger* GearsystemCore::GetTraceLogger()
 {
-    m_debug_callback = callback;
+    return m_trace_logger;
 }
 
 void GearsystemCore::KeyPressed(GS_Joypads joypad, GS_Keys key)
@@ -1231,6 +1236,28 @@ void GearsystemCore::InitMemoryRules()
     m_pMemory->SetCurrentRule(m_pRomOnlyMemoryRule);
     m_pMemory->SetBootromRule(m_pBootromMemoryRule);
     m_pProcessor->SetIOPOrts(m_pSmsIOPorts);
+
+    m_pSegaMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pCodemastersMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pBootromMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pEeprom93C46MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pJanggunMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pMulti4PAKAllActionMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pMSXMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pKoreanMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pKoreanMSXSMS8000MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pKoreanSMS32KB2000MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pKoreanMSX32KB2000MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pKorean2000XOR1FMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pKoreanMSX8KB0300MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pKorean0000XORFFMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pKoreanFFFFHiComMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pKoreanFFFEMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pKoreanBFFCMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pKoreanFFF3FFFCMemoryRule->SetTraceLogger(m_trace_logger);
+    m_pKoreanMDFFF5MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pKoreanMDFFF0MemoryRule->SetTraceLogger(m_trace_logger);
+    m_pIratahackMemoryRule->SetTraceLogger(m_trace_logger);
 }
 
 bool GearsystemCore::AddMemoryRules()

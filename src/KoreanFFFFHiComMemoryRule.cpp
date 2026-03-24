@@ -57,6 +57,7 @@ void KoreanFFFFHiComMemoryRule::PerformWrite(u16 address, u8 value)
 
             m_iMapperSlotAddress[0] = 0x4000 * m_iMapperSlot[0];
             m_iMapperSlotAddress[1] = 0x4000 * m_iMapperSlot[1];
+            TraceBankSwitch(address, value);
         }
 
         if (address < 0xE000)

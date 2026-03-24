@@ -28,6 +28,7 @@ class Input;
 class Cartridge;
 class Memory;
 class Processor;
+class TraceLogger;
 
 class SmsIOPorts : public IOPorts
 {
@@ -39,6 +40,7 @@ public:
     void DoOutput(u8 port, u8 value);
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream);
+    void SetTraceLogger(TraceLogger* pTraceLogger);
 
 private:
     Audio* m_pAudio;
@@ -47,6 +49,7 @@ private:
     Cartridge* m_pCartridge;
     Memory* m_pMemory;
     Processor* m_pProcessor;
+    TraceLogger* m_pTraceLogger;
     u8 m_Port3F;
 };
 
@@ -57,6 +60,7 @@ private:
 #include "Memory.h"
 #include "Processor.h"
 #include "YM2413.h"
+#include "TraceLogger.h"
 
 inline u8 SmsIOPorts::DoInput(u8 port)
 {
@@ -161,6 +165,15 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
         m_pAudio->WriteAudioRegister(value);
         if (m_pCartridge->IsSG1000())
             m_pProcessor->InjectTStates(32);
+#if !defined(GS_DISABLE_DISASSEMBLER)
+        if (m_pTraceLogger->IsEnabled(TRACE_PSG))
+        {
+            GS_Trace_Entry e = {};
+            e.type = TRACE_PSG;
+            e.psg.value = value;
+            m_pTraceLogger->TraceLog(e);
+        }
+#endif
     }
     else if (port < 0xC0)
     {
@@ -174,6 +187,16 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
     else if (port >= 0xF0)
     {
         m_pAudio->YM2413Write(port, value);
+#if !defined(GS_DISABLE_DISASSEMBLER)
+        if (m_pTraceLogger->IsEnabled(TRACE_YM2413))
+        {
+            GS_Trace_Entry e = {};
+            e.type = TRACE_YM2413;
+            e.ym2413.port = port;
+            e.ym2413.value = value;
+            m_pTraceLogger->TraceLog(e);
+        }
+#endif
     }
 #if 0
     else if ((port == 0xDE) || (port == 0xDF))

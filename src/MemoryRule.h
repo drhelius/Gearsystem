@@ -21,6 +21,7 @@
 #define	MEMORYRULE_H
 
 #include "definitions.h"
+#include "TraceLogger.h"
 
 class Memory;
 class Cartridge;
@@ -30,6 +31,7 @@ class MemoryRule
 {
 public:
     MemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput);
+    void SetTraceLogger(TraceLogger* pTraceLogger);
     virtual ~MemoryRule();
     virtual u8 PerformRead(u16 address) = 0;
     virtual void PerformWrite(u16 address, u8 value) = 0;
@@ -48,10 +50,30 @@ public:
     virtual void LoadState(std::istream& stream);
 
 protected:
+    INLINE void TraceBankSwitch(u16 address, u8 value);
+
     Memory* m_pMemory;
     Cartridge* m_pCartridge;
     Input* m_pInput;
     RamChangedCallback m_pRamChangedCallback;
+    TraceLogger* m_pTraceLogger;
 };
+
+INLINE void MemoryRule::TraceBankSwitch(u16 address, u8 value)
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    if (m_pTraceLogger && m_pTraceLogger->IsEnabled(TRACE_BANK_SWITCH))
+    {
+        GS_Trace_Entry e = {};
+        e.type = TRACE_BANK_SWITCH;
+        e.bank_switch.address = address;
+        e.bank_switch.value = value;
+        m_pTraceLogger->TraceLog(e);
+    }
+#else
+    UNUSED(address);
+    UNUSED(value);
+#endif
+}
 
 #endif	/* MEMORYRULE_H */

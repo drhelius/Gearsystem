@@ -63,6 +63,7 @@
     <ClCompile Include="..\..\src\SmsIOPorts.cpp" />
     <ClCompile Include="..\..\src\Video.cpp" />
     <ClCompile Include="..\..\src\YM2413.cpp" />
+    <ClCompile Include="..\..\src\TraceLogger.cpp" />
     <ClCompile Include="..\..\src\VgmRecorder.cpp" />
     <ClCompile Include="..\shared\dependencies\miniz\miniz.c">
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
@@ -184,6 +185,7 @@
     <ClInclude Include="..\..\src\SmsIOPorts.h" />
     <ClInclude Include="..\..\src\Video.h" />
     <ClInclude Include="..\..\src\YM2413.h" />
+    <ClInclude Include="..\..\src\TraceLogger.h" />
     <ClInclude Include="..\..\src\VgmRecorder.h" />
     <ClInclude Include="..\shared\dependencies\glad\glad.h" />
     <ClInclude Include="..\shared\dependencies\miniz\miniz.h" />

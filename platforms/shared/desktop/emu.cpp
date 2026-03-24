@@ -585,11 +585,6 @@ void emu_debug_continue(void)
     emu_debug_command = Debug_Command_Continue;
 }
 
-void emu_debug_set_callback(GearsystemCore::GS_Debug_Callback callback)
-{
-    gearsystem->SetDebugCallback(callback);
-}
-
 bool emu_debug_halt_step_active(void)
 {
     return emu_debug_halt_step_frames_pending > 0;

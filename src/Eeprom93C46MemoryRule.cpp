@@ -99,6 +99,7 @@ void Eeprom93C46MemoryRule::PerformWrite(u16 address, u8 value)
             int romBankCount = m_pCartridge->GetROMBankCount();
             m_iMapperSlot[0] = value & (romBankCount - 1);
             m_iMapperSlotAddress[0] = m_iMapperSlot[0] * 0x4000;
+            TraceBankSwitch(address, value);
             m_pMemory->Load(address, value);
             m_pMemory->Load(address - 0x2000, value);
             return;
@@ -109,6 +110,7 @@ void Eeprom93C46MemoryRule::PerformWrite(u16 address, u8 value)
             int romBankCount = m_pCartridge->GetROMBankCount();
             m_iMapperSlot[1] = value & (romBankCount - 1);
             m_iMapperSlotAddress[1] = m_iMapperSlot[1] * 0x4000;
+            TraceBankSwitch(address, value);
             m_pMemory->Load(address, value);
             m_pMemory->Load(address - 0x2000, value);
             return;
@@ -119,6 +121,7 @@ void Eeprom93C46MemoryRule::PerformWrite(u16 address, u8 value)
             int romBankCount = m_pCartridge->GetROMBankCount();
             m_iMapperSlot[2] = value & (romBankCount - 1);
             m_iMapperSlotAddress[2] = m_iMapperSlot[2] * 0x4000;
+            TraceBankSwitch(address, value);
             m_pMemory->Load(address, value);
             m_pMemory->Load(address - 0x2000, value);
             return;

@@ -212,6 +212,13 @@ void config_read(void)
     config_debug.trace_registers = read_bool("Debug", "TraceRegisters", true);
     config_debug.trace_flags = read_bool("Debug", "TraceFlags", true);
     config_debug.trace_bytes = read_bool("Debug", "TraceBytes", true);
+    config_debug.trace_cpu_irq = read_bool("Debug", "TraceCpuIrq", true);
+    config_debug.trace_vdp_write = read_bool("Debug", "TraceVdpWrite", true);
+    config_debug.trace_vdp_status = read_bool("Debug", "TraceVdpStatus", true);
+    config_debug.trace_psg = read_bool("Debug", "TracePsg", true);
+    config_debug.trace_ym2413 = read_bool("Debug", "TraceYm2413", true);
+    config_debug.trace_io_port = read_bool("Debug", "TraceIoPort", true);
+    config_debug.trace_bank_switch = read_bool("Debug", "TraceBankSwitch", true);
     config_debug.dis_show_mem = read_bool("Debug", "DisMem", true);
     config_debug.dis_show_symbols = read_bool("Debug", "DisSymbols", true);
     config_debug.dis_show_segment = read_bool("Debug", "DisSegment", true);
@@ -430,6 +437,13 @@ void config_write(void)
     write_bool("Debug", "TraceRegisters", config_debug.trace_registers);
     write_bool("Debug", "TraceFlags", config_debug.trace_flags);
     write_bool("Debug", "TraceBytes", config_debug.trace_bytes);
+    write_bool("Debug", "TraceCpuIrq", config_debug.trace_cpu_irq);
+    write_bool("Debug", "TraceVdpWrite", config_debug.trace_vdp_write);
+    write_bool("Debug", "TraceVdpStatus", config_debug.trace_vdp_status);
+    write_bool("Debug", "TracePsg", config_debug.trace_psg);
+    write_bool("Debug", "TraceYm2413", config_debug.trace_ym2413);
+    write_bool("Debug", "TraceIoPort", config_debug.trace_io_port);
+    write_bool("Debug", "TraceBankSwitch", config_debug.trace_bank_switch);
     write_bool("Debug", "DisMem", config_debug.dis_show_mem);
     write_bool("Debug", "DisSymbols", config_debug.dis_show_symbols);
     write_bool("Debug", "DisSegment", config_debug.dis_show_segment);

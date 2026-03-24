@@ -27,11 +27,17 @@ SmsIOPorts::SmsIOPorts(Audio* pAudio, Video* pVideo, Input* pInput, Cartridge* p
     m_pCartridge = pCartridge;
     m_pMemory = pMemory;
     m_pProcessor = pProcessor;
+    InitPointer(m_pTraceLogger);
     Reset();
 }
 
 SmsIOPorts::~SmsIOPorts()
 {
+}
+
+void SmsIOPorts::SetTraceLogger(TraceLogger* pTraceLogger)
+{
+    m_pTraceLogger = pTraceLogger;
 }
 
 void SmsIOPorts::Reset()

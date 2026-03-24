@@ -77,6 +77,7 @@ void CodemastersMemoryRule::PerformWrite(u16 address, u8 value)
             {
                 m_iMapperSlot[0] = value & (m_pCartridge->GetROMBankCount() - 1);
                 m_iMapperSlotAddress[0] = m_iMapperSlot[0] * 0x4000;
+                TraceBankSwitch(address, value);
                 break;
             }
             case 0x4000:
@@ -84,12 +85,14 @@ void CodemastersMemoryRule::PerformWrite(u16 address, u8 value)
                 m_bRAMBankActive = ((value & 0x80) != 0) && m_pCartridge->HasRAMWithoutBattery();
                 m_iMapperSlot[1] = value & (m_pCartridge->GetROMBankCount() - 1);
                 m_iMapperSlotAddress[1] = m_iMapperSlot[1] * 0x4000;
+                TraceBankSwitch(address, value);
                 break;
             }
             case 0x8000:
             {
                 m_iMapperSlot[2] = value & (m_pCartridge->GetROMBankCount() - 1);
                 m_iMapperSlotAddress[2] = m_iMapperSlot[2] * 0x4000;
+                TraceBankSwitch(address, value);
                 break;
             }
             default:

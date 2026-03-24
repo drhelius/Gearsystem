@@ -25,6 +25,7 @@
 class Memory;
 class Processor;
 class Cartridge;
+class TraceLogger;
 
 class Video
 {
@@ -97,6 +98,7 @@ public:
     bool IsPhaserDetected();
     void DrawPhaserCrosshair(int x, int y);
     void SetLightPhaserCrosshair(bool enable, LightPhaserCrosshairShape shape, LightPhaserCrosshairColor color);
+    void SetTraceLogger(TraceLogger* pTraceLogger);
 
 private:
     void ScanLine(int line);
@@ -201,6 +203,7 @@ private:
     u16 m_SG1000_palette_555_rgb_sg1000ii[16];
     u16 m_SG1000_palette_565_bgr_sg1000ii[16];
     u16 m_SG1000_palette_555_bgr_sg1000ii[16];
+    TraceLogger* m_pTraceLogger;
 };
 
 inline u8* Video::GetVRAM()

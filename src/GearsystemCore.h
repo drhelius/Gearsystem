@@ -55,6 +55,7 @@ class MemoryRule;
 class SmsIOPorts;
 class GameGearIOPorts;
 class BootromMemoryRule;
+class TraceLogger;
 
 class GearsystemCore
 {
@@ -73,8 +74,6 @@ public:
         bool stop_on_run_to_breakpoint;
         bool stop_on_irq;
     };
-
-    typedef void (*GS_Debug_Callback)(void);
 
 public:
     GearsystemCore();
@@ -120,7 +119,7 @@ public:
     Video* GetVideo();
     void SetGlassesConfig(GlassesConfig config);
     u64 GetMasterClockCycles();
-    void SetDebugCallback(GS_Debug_Callback callback);
+    TraceLogger* GetTraceLogger();
 
 private:
     void InitMemoryRules();
@@ -170,7 +169,7 @@ private:
     GS_Color_Format m_pixelFormat;
     GlassesConfig m_GlassesConfig;
     u64 m_master_clock_cycles;
-    GS_Debug_Callback m_debug_callback;
+    TraceLogger* m_trace_logger;
     u8* m_pFrameBuffer;
 };
 

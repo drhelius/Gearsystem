@@ -26,11 +26,17 @@ GameGearIOPorts::GameGearIOPorts(Audio* pAudio, Video* pVideo, Input* pInput, Ca
     m_pInput = pInput;
     m_pCartridge = pCartridge;
     m_pMemory = pMemory;
+    InitPointer(m_pTraceLogger);
     Reset();
 }
 
 GameGearIOPorts::~GameGearIOPorts()
 {
+}
+
+void GameGearIOPorts::SetTraceLogger(TraceLogger* pTraceLogger)
+{
+    m_pTraceLogger = pTraceLogger;
 }
 
 void GameGearIOPorts::Reset()

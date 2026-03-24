@@ -31,6 +31,7 @@
 #include "Video.h"
 #include "SixteenBitRegister.h"
 #include "MemoryRule.h"
+#include "TraceLogger.h"
 
 #endif	/* GEARSYSTEM_H */
 

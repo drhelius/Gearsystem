@@ -63,6 +63,7 @@ void KoreanMSX32KB2000MemoryRule::PerformWrite(u16 address, u8 value)
 
             m_iMapperSlotAddress[1] = 0x4000 * m_iMapperSlot[1];
             m_iMapperSlotAddress[2] = 0x4000 * m_iMapperSlot[2];
+            TraceBankSwitch(address, value);
         }
         else
         {

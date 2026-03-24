@@ -41,20 +41,24 @@ void KoreanMSX8KB0300MemoryRule::PerformWrite(u16 address, u8 value)
     case 0x0000:
         m_iPage[4] = bank;
         m_iPageAddress[4] = 0x2000 * bank;
+        TraceBankSwitch(address, value);
         return;
     case 0x0100:
         m_iPage[2] = bank;
         m_iPageAddress[2] = 0x2000 * (value & (m_pCartridge->GetROMBankCount8k() - 1));
+        TraceBankSwitch(address, value);
         return;
     case 0x0200:
         m_iPage[1] = bank;
         m_iPage[5] = m_iPage[1];
         m_iPageAddress[1] = 0x2000 * bank;
         m_iPageAddress[5] = m_iPageAddress[1];
+        TraceBankSwitch(address, value);
         return;
     case 0x0300:
         m_iPage[3] = bank;
         m_iPageAddress[3] = 0x2000 * bank;;
+        TraceBankSwitch(address, value);
         return;
     default:
         break;

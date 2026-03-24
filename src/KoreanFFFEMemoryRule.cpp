@@ -88,6 +88,7 @@ void KoreanFFFEMemoryRule::PerformWrite(u16 address, u8 value)
         m_iPageAddress[3] = 0x2000 * m_iPage[3];
         m_iPageAddress[4] = 0x2000 * m_iPage[4];
         m_iPageAddress[5] = 0x2000 * m_iPage[5];
+        TraceBankSwitch(address, value);
 
         return;
     }

@@ -145,12 +145,14 @@ void IratahackMemoryRule::PerformWrite(u16 address, u8 value)
                         m_iMapperSlotAddress[0] = (m_iGameSlot << 17);
                         m_iMapperSlotAddress[1] = (m_iGameSlot << 17) + 0x4000;
                         m_iMapperSlotAddress[2] = (m_iGameSlot << 17) + (m_iMapperSlot[2] * 0x4000);
+                        TraceBankSwitch(address, value);
                         break;
                     }
                     case 0xFFFF:
                     {
                         m_iMapperSlot[2] = value & 7;
                         m_iMapperSlotAddress[2] = (m_iGameSlot << 17) + (m_iMapperSlot[2] * 0x4000);
+                        TraceBankSwitch(address, value);
                         break;
                     }
                 }

@@ -24,10 +24,16 @@ MemoryRule::MemoryRule(Memory* pMemory, Cartridge* pCartridge, Input* pInput)
     m_pMemory = pMemory;
     m_pCartridge = pCartridge;
     m_pInput = pInput;
+    InitPointer(m_pTraceLogger);
 }
 
 MemoryRule::~MemoryRule()
 {
+}
+
+void MemoryRule::SetTraceLogger(TraceLogger* pTraceLogger)
+{
+    m_pTraceLogger = pTraceLogger;
 }
 
 void MemoryRule::SaveRam(std::ostream&)

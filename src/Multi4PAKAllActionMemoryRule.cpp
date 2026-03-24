@@ -59,16 +59,19 @@ void Multi4PAKAllActionMemoryRule::PerformWrite(u16 address, u8 value)
                 Debug("--> ** Writing to register $%X %X", address, value);
                 m_iMapperSlot[0] = value;
                 m_iMapperSlotAddress[0] = 0x4000 * (m_iMapperSlot[0] & (m_pCartridge->GetROMBankCount() - 1));
+                TraceBankSwitch(address, value);
                 return;
             case 0x7FFF:
                 Debug("--> ** Writing to register $%X %X", address, value);
                 m_iMapperSlot[1] = value;
                 m_iMapperSlotAddress[1] = 0x4000 * (m_iMapperSlot[1] & (m_pCartridge->GetROMBankCount() - 1));
+                TraceBankSwitch(address, value);
                 return;
             case 0xBFFF:
                 Debug("--> ** Writing to register $%X %X", address, value);
                 m_iMapperSlot[2] = value;
                 m_iMapperSlotAddress[2] = 0x4000 * (((m_iMapperSlot[0] & 0x30) + value) & (m_pCartridge->GetROMBankCount() - 1));
+                TraceBankSwitch(address, value);
                 return;
             default:
                 Debug("--> ** Attempting to write on ROM address $%X %X", address, value);

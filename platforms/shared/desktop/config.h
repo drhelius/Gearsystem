@@ -200,6 +200,13 @@ struct config_Debug
     bool trace_registers = true;
     bool trace_flags = true;
     bool trace_bytes = true;
+    bool trace_cpu_irq = true;
+    bool trace_vdp_write = true;
+    bool trace_vdp_status = true;
+    bool trace_psg = true;
+    bool trace_ym2413 = true;
+    bool trace_io_port = true;
+    bool trace_bank_switch = true;
     bool dis_show_mem = true;
     bool dis_show_symbols = true;
     bool dis_show_segment = true;

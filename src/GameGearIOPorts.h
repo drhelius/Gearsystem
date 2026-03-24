@@ -27,6 +27,7 @@ class Video;
 class Input;
 class Cartridge;
 class Memory;
+class TraceLogger;
 
 class GameGearIOPorts : public IOPorts
 {
@@ -38,6 +39,7 @@ public:
     virtual void DoOutput(u8 port, u8 value);
     virtual void SaveState(std::ostream& stream);
     virtual void LoadState(std::istream& stream);
+    void SetTraceLogger(TraceLogger* pTraceLogger);
 
 private:
     Audio* m_pAudio;
@@ -45,6 +47,7 @@ private:
     Input* m_pInput;
     Memory* m_pMemory;
     Cartridge* m_pCartridge;
+    TraceLogger* m_pTraceLogger;
     u8 m_Port3F;
     u8 m_Ports[6];
 };
@@ -54,6 +57,7 @@ private:
 #include "Input.h"
 #include "Cartridge.h"
 #include "Memory.h"
+#include "TraceLogger.h"
 
 inline u8 GameGearIOPorts::DoInput(u8 port)
 {
@@ -159,6 +163,15 @@ inline void GameGearIOPorts::DoOutput(u8 port, u8 value)
     {
         // Writes to any address go to the SN76489 PSG
         m_pAudio->WriteAudioRegister(value);
+#if !defined(GS_DISABLE_DISASSEMBLER)
+        if (m_pTraceLogger->IsEnabled(TRACE_PSG))
+        {
+            GS_Trace_Entry e = {};
+            e.type = TRACE_PSG;
+            e.psg.value = value;
+            m_pTraceLogger->TraceLog(e);
+        }
+#endif
     }
     else if (port < 0xC0)
     {

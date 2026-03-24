@@ -89,6 +89,7 @@ void JanggunMemoryRule::PerformWrite(u16 address, u8 value)
             // page 0
             m_iMapperSlot[0] = value & 0x3F;
             m_iMapperSlotAddress[0] = m_iMapperSlot[0] * 0x2000;
+            TraceBankSwitch(address, value);
             break;
         }
         case 0x6000:
@@ -96,6 +97,7 @@ void JanggunMemoryRule::PerformWrite(u16 address, u8 value)
             // page 1
             m_iMapperSlot[1] = value & 0x3F;
             m_iMapperSlotAddress[1] = m_iMapperSlot[1] * 0x2000;
+            TraceBankSwitch(address, value);
             break;
         }
         case 0x8000:
@@ -103,6 +105,7 @@ void JanggunMemoryRule::PerformWrite(u16 address, u8 value)
             // page 2
             m_iMapperSlot[2] = value & 0x3F;
             m_iMapperSlotAddress[2] = m_iMapperSlot[2] * 0x2000;
+            TraceBankSwitch(address, value);
             break;
         }
         case 0xA000:
@@ -110,6 +113,7 @@ void JanggunMemoryRule::PerformWrite(u16 address, u8 value)
             // page 3
             m_iMapperSlot[3] = value & 0x3F;
             m_iMapperSlotAddress[3] = m_iMapperSlot[3] * 0x2000;
+            TraceBankSwitch(address, value);
             break;
         }
         default:
@@ -133,6 +137,7 @@ void JanggunMemoryRule::PerformWrite(u16 address, u8 value)
                         m_iMapperSlotAddress[0] = m_iMapperSlot[0] * 0x2000;
                         m_iMapperSlotAddress[1] = m_iMapperSlot[1] * 0x2000;
                         m_bReverseFlags[1] = IsSetBit(value, 6);
+                        TraceBankSwitch(address, value);
                         break;
                     }
                     case 0xFFFF:
@@ -142,6 +147,7 @@ void JanggunMemoryRule::PerformWrite(u16 address, u8 value)
                         m_iMapperSlotAddress[2] = m_iMapperSlot[2] * 0x2000;
                         m_iMapperSlotAddress[3] = m_iMapperSlot[3] * 0x2000;
                         m_bReverseFlags[2] = IsSetBit(value, 6);
+                        TraceBankSwitch(address, value);
                         break;
                     }
                 }

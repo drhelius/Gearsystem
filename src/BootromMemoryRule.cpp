@@ -100,18 +100,21 @@ void BootromMemoryRule::PerformWrite(u16 address, u8 value)
             {
                 m_iMapperSlot[0] = value & m_iBankMax;
                 m_iMapperSlotAddress[0] = m_iMapperSlot[0] * 0x4000;
+                TraceBankSwitch(address, value);
                 break;
             }
             case 0xFFFE:
             {
                 m_iMapperSlot[1] = value & m_iBankMax;
                 m_iMapperSlotAddress[1] = m_iMapperSlot[1] * 0x4000;
+                TraceBankSwitch(address, value);
                 break;
             }
             case 0xFFFF:
             {
                 m_iMapperSlot[2] = value & m_iBankMax;
                 m_iMapperSlotAddress[2] = m_iMapperSlot[2] * 0x4000;
+                TraceBankSwitch(address, value);
                 break;
             }
         }

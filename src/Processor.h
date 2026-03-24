@@ -28,6 +28,7 @@
 
 class Memory;
 class IOPorts;
+class TraceLogger;
 
 class Processor
 {
@@ -123,6 +124,7 @@ public:
     std::stack<GS_CallStackEntry>* GetDisassemblerCallStack();
     void CheckMemoryBreakpoints(int type, u16 address, bool read);
     bool Halted();
+    void SetTraceLogger(TraceLogger* pTraceLogger);
 
 private:
     typedef void (Processor::*OPCptr) (void);
@@ -130,6 +132,7 @@ private:
     OPCptr m_OPCodesCB[256];
     OPCptr m_OPCodesED[256];
     Memory* m_pMemory;
+    TraceLogger* m_pTraceLogger;
     SixteenBitRegister AF;
     SixteenBitRegister BC;
     SixteenBitRegister DE;
