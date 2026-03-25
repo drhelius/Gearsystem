@@ -2351,3 +2351,45 @@ json DebugAdapter::GetTraceLog(int start, int count)
     result["lines"] = lines;
     return result;
 }
+
+json DebugAdapter::SetTraceLog(bool enabled, u32 flags)
+{
+    json result;
+
+    TraceLogger* tl = m_core->GetTraceLogger();
+    if (!tl)
+    {
+        result["error"] = "Trace logger not available";
+        return result;
+    }
+
+    if (enabled)
+    {
+        if (flags == 0)
+            flags = TRACE_FLAG_CPU;
+
+        tl->SetEnabledFlags(flags);
+
+        result["status"] = "started";
+        result["enabled_flags"] = flags;
+
+        json enabled_list = json::array();
+        if (flags & TRACE_FLAG_CPU) enabled_list.push_back("cpu");
+        if (flags & TRACE_FLAG_CPU_IRQ) enabled_list.push_back("cpu_irq");
+        if (flags & TRACE_FLAG_VDP_WRITE) enabled_list.push_back("vdp_write");
+        if (flags & TRACE_FLAG_VDP_STATUS) enabled_list.push_back("vdp_status");
+        if (flags & TRACE_FLAG_PSG) enabled_list.push_back("psg");
+        if (flags & TRACE_FLAG_YM2413) enabled_list.push_back("ym2413");
+        if (flags & TRACE_FLAG_IO_PORT) enabled_list.push_back("io_port");
+        if (flags & TRACE_FLAG_BANK_SWITCH) enabled_list.push_back("bank_switch");
+        result["enabled"] = enabled_list;
+    }
+    else
+    {
+        tl->SetEnabledFlags(0);
+        result["status"] = "stopped";
+    }
+
+    result["total_entries"] = tl->GetCount();
+    return result;
+}

@@ -1198,7 +1198,7 @@ void McpServer::HandleToolsList(const json& request)
     tools.push_back({
         {"name", "get_trace_log"},
         {"title", "Get Trace Log"},
-        {"description", "Read trace logger entries (CPU + hardware events). Must be started from the Trace Logger window first."},
+        {"description", "Read trace logger entries (CPU + hardware events). Use set_trace_log to start/stop the trace logger."},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
@@ -1214,6 +1214,51 @@ void McpServer::HandleToolsList(const json& request)
                     {"maximum", 1000}
                 }}
             }},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "set_trace_log"},
+        {"title", "Set Trace Logger"},
+        {"description", "Start or stop the trace logger. Records CPU instructions and hardware events into a ring buffer readable with get_trace_log. CPU tracing is always on. Filter event types with optional booleans."},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"enabled", {
+                    {"type", "boolean"},
+                    {"description", "true to start logging, false to stop. Existing entries are preserved when stopped."}
+                }},
+                {"cpu_irq", {
+                    {"type", "boolean"},
+                    {"description", "Trace IRQ events (default true)"}
+                }},
+                {"vdp_write", {
+                    {"type", "boolean"},
+                    {"description", "Trace VDP register writes (default true)"}
+                }},
+                {"vdp_status", {
+                    {"type", "boolean"},
+                    {"description", "Trace VDP status events (default true)"}
+                }},
+                {"psg", {
+                    {"type", "boolean"},
+                    {"description", "Trace PSG writes (default true)"}
+                }},
+                {"ym2413", {
+                    {"type", "boolean"},
+                    {"description", "Trace YM2413 FM writes (default true)"}
+                }},
+                {"io_port", {
+                    {"type", "boolean"},
+                    {"description", "Trace I/O port reads/writes (default true)"}
+                }},
+                {"bank_switch", {
+                    {"type", "boolean"},
+                    {"description", "Trace bank switching (default true)"}
+                }}
+            }},
+            {"required", json::array({"enabled"})},
             {"additionalProperties", false}
         }}
     });
@@ -1890,6 +1935,22 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
         int start = arguments.value("start", -1);
         int count = arguments.value("count", 100);
         return m_debugAdapter.GetTraceLog(start, count);
+    }
+    else if (normalizedTool == "set_trace_log")
+    {
+        bool enabled = arguments["enabled"];
+        u32 flags = TRACE_FLAG_CPU;
+        if (enabled)
+        {
+            if (arguments.value("cpu_irq", true)) flags |= TRACE_FLAG_CPU_IRQ;
+            if (arguments.value("vdp_write", true)) flags |= TRACE_FLAG_VDP_WRITE;
+            if (arguments.value("vdp_status", true)) flags |= TRACE_FLAG_VDP_STATUS;
+            if (arguments.value("psg", true)) flags |= TRACE_FLAG_PSG;
+            if (arguments.value("ym2413", true)) flags |= TRACE_FLAG_YM2413;
+            if (arguments.value("io_port", true)) flags |= TRACE_FLAG_IO_PORT;
+            if (arguments.value("bank_switch", true)) flags |= TRACE_FLAG_BANK_SWITCH;
+        }
+        return m_debugAdapter.SetTraceLog(enabled, flags);
     }
     else
     {
