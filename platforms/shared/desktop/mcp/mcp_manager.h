@@ -79,6 +79,7 @@ public:
         McpTransportInterface* transport = NULL;
         if (m_transport_mode == MCP_TRANSPORT_TCP)
         {
+            g_mcp_stdio_mode = false;
             Log("[MCP] Starting HTTP transport on port %d", m_tcp_port);
             transport = new HttpTransport(m_tcp_port);
         }
@@ -107,7 +108,6 @@ public:
                 m_server->GetTransport()->close();
 
             SafeDelete(m_server);
-            g_mcp_stdio_mode = false;
         }
     }
 
