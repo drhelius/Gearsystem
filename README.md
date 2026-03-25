@@ -175,6 +175,15 @@ Gearsystem includes a [Model Context Protocol](https://modelcontextprotocol.io/i
 
 For complete setup instructions and tool documentation, see [MCP_README.md](MCP_README.md).
 
+### Agent Skills
+
+Gearsystem provides [Agent Skills](https://agentskills.io/) that teach AI assistants how to effectively use the emulator for specific tasks:
+
+- **[gearsystem-debugging](skills/gearsystem-debugging/SKILL.md)** — Game debugging, code tracing, breakpoint management, hardware inspection, and reverse engineering.
+- **[gearsystem-romhacking](skills/gearsystem-romhacking/SKILL.md)** — Cheat creation, memory searching, ROM data modification, text translation, and game patching.
+
+Install with `npx skills add drhelius/gearsystem`. See the [skills README](skills/README.md) for details.
+
 ## Build Instructions
 
 ### Windows
