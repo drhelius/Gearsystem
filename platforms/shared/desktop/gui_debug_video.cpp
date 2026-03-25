@@ -31,6 +31,7 @@
 #include "ogl_renderer.h"
 #include "utils.h"
 #include "gui_filedialogs.h"
+#include "gui_debug_memory.h"
 
 static ImVec4 color_444_to_float(u16 color);
 static ImVec4 color_222_to_float(u8 color);
@@ -180,6 +181,35 @@ void gui_debug_window_vram_nametable(void)
             {
                 selected_bg_tile_x = hovered_bg_tile_x;
                 selected_bg_tile_y = hovered_bg_tile_y;
+
+                int goto_addr = 0;
+                if (isSG1000)
+                {
+                    int cols = (TMS9918mode == 1) ? 40 : 32;
+                    int name_table_addr = regs[2] << 10;
+                    int pattern_table_addr = regs[4] << 11;
+                    int region = (hovered_bg_tile_y & 0x18) << 5;
+                    int tile_number = (hovered_bg_tile_y * cols) + hovered_bg_tile_x;
+                    int name_tile_addr = (name_table_addr + tile_number) & 0x3FFF;
+                    int name_tile = vram[name_tile_addr];
+                    if (TMS9918mode == 2 || TMS9918mode == 4)
+                        pattern_table_addr &= 0x2000;
+                    if (TMS9918mode == 2)
+                        name_tile += region;
+                    goto_addr = (pattern_table_addr + (name_tile << 3)) & 0x3FFF;
+                }
+                else
+                {
+                    int name_table_addr = (regs[2] & (isMode224 ? 0x0C : 0x0E)) << 10;
+                    if (isMode224)
+                        name_table_addr |= 0x700;
+                    u16 map_addr = name_table_addr + (64 * hovered_bg_tile_y) + (hovered_bg_tile_x * 2);
+                    u16 tile_info_lo = vram[map_addr];
+                    u16 tile_info_hi = vram[map_addr + 1];
+                    int tile_number = ((tile_info_hi & 1) << 8) | tile_info_lo;
+                    goto_addr = tile_number << 5;
+                }
+                gui_debug_memory_goto(MEMORY_EDITOR_VRAM, goto_addr);
             }
         }
 
@@ -392,6 +422,19 @@ void gui_debug_window_vram_tiles(void)
             {
                 selected_tile_x = hovered_tile_x;
                 selected_tile_y = hovered_tile_y;
+
+                int tile = (hovered_tile_y << 5) + hovered_tile_x;
+                int goto_addr = 0;
+                if (isSG1000)
+                {
+                    int pattern_table_addr = (regs[4] & (TMS9918mode == 2 ? 0x04 : 0x07)) << 11;
+                    goto_addr = pattern_table_addr + (tile << 3);
+                }
+                else
+                {
+                    goto_addr = tile << 5;
+                }
+                gui_debug_memory_goto(MEMORY_EDITOR_VRAM, goto_addr);
             }
         }
 
