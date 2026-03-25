@@ -46,6 +46,15 @@ void gui_debug_window_vram_nametable(void)
 
     ImGui::Begin("Name Table", &config_debug.show_video_nametable);
 
+    static int selected_bg_tile_x = -1;
+    static int selected_bg_tile_y = -1;
+
+    if (ImGui::IsWindowAppearing())
+    {
+        selected_bg_tile_x = -1;
+        selected_bg_tile_y = -1;
+    }
+
     Video* video = emu_get_core()->GetVideo();
     GS_RuntimeInfo runtime;
     emu_get_runtime(runtime);
@@ -152,15 +161,44 @@ void gui_debug_window_vram_nametable(void)
     float mouse_x = io.MousePos.x - p.x;
     float mouse_y = io.MousePos.y - p.y;
 
-    int tile_x = -1;
-    int tile_y = -1;
+    int hovered_bg_tile_x = -1;
+    int hovered_bg_tile_y = -1;
+
     if (window_hovered && (mouse_x >= 0.0f) && (mouse_x < size_h) && (mouse_y >= 0.0f) && (mouse_y < size_v))
     {
-        tile_x = (int)(mouse_x / spacing);
-        tile_y = (int)(mouse_y / spacing);
+        hovered_bg_tile_x = (int)(mouse_x / spacing);
+        hovered_bg_tile_y = (int)(mouse_y / spacing);
 
-        draw_list->AddRect(ImVec2(p.x + (tile_x * spacing), p.y + (tile_y * spacing)), ImVec2(p.x + ((tile_x + 1) * spacing), p.y + ((tile_y + 1) * spacing)), ImColor(cyan), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
+        if (ImGui::IsMouseClicked(0))
+        {
+            if (selected_bg_tile_x == hovered_bg_tile_x && selected_bg_tile_y == hovered_bg_tile_y)
+            {
+                selected_bg_tile_x = -1;
+                selected_bg_tile_y = -1;
+            }
+            else
+            {
+                selected_bg_tile_x = hovered_bg_tile_x;
+                selected_bg_tile_y = hovered_bg_tile_y;
+            }
+        }
 
+        if (!(hovered_bg_tile_x == selected_bg_tile_x && hovered_bg_tile_y == selected_bg_tile_y))
+            draw_list->AddRect(ImVec2(p.x + (hovered_bg_tile_x * spacing), p.y + (hovered_bg_tile_y * spacing)), ImVec2(p.x + ((hovered_bg_tile_x + 1) * spacing), p.y + ((hovered_bg_tile_y + 1) * spacing)), ImColor(cyan), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
+    }
+
+    if (selected_bg_tile_x >= 0 && selected_bg_tile_y >= 0)
+    {
+        float t = (float)(0.5 + 0.5 * sin(ImGui::GetTime() * 4.0));
+        ImVec4 pulse_color = ImVec4(red.x + (white.x - red.x) * t, red.y + (white.y - red.y) * t, red.z + (white.z - red.z) * t, 1.0f);
+        draw_list->AddRect(ImVec2(p.x + (selected_bg_tile_x * spacing), p.y + (selected_bg_tile_y * spacing)), ImVec2(p.x + ((selected_bg_tile_x + 1) * spacing), p.y + ((selected_bg_tile_y + 1) * spacing)), ImColor(pulse_color), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
+    }
+
+    int tile_x = (hovered_bg_tile_x >= 0) ? hovered_bg_tile_x : selected_bg_tile_x;
+    int tile_y = (hovered_bg_tile_y >= 0) ? hovered_bg_tile_y : selected_bg_tile_y;
+
+    if (tile_x >= 0 && tile_y >= 0)
+    {
         ImGui::NextColumn();
 
         ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_background, ImVec2(128.0f, 128.0f), ImVec2((1.0f / 32.0f) * tile_x, (1.0f / 32.0f) * tile_y), ImVec2((1.0f / 32.0f) * (tile_x + 1), (1.0f / 32.0f) * (tile_y + 1)));
@@ -271,6 +309,15 @@ void gui_debug_window_vram_tiles(void)
 
     ImGui::Begin("Pattern Table", &config_debug.show_video_tiles);
 
+    static int selected_tile_x = -1;
+    static int selected_tile_y = -1;
+
+    if (ImGui::IsWindowAppearing())
+    {
+        selected_tile_x = -1;
+        selected_tile_y = -1;
+    }
+
     Video* video = emu_get_core()->GetVideo();
     u8* regs = video->GetRegisters();
     int TMS9918mode = video->GetTMS9918Mode();
@@ -326,16 +373,44 @@ void gui_debug_window_vram_tiles(void)
     float mouse_x = io.MousePos.x - p.x;
     float mouse_y = io.MousePos.y - p.y;
 
-    int tile_x = -1;
-    int tile_y = -1;
+    int hovered_tile_x = -1;
+    int hovered_tile_y = -1;
 
     if (window_hovered && (mouse_x >= 0.0f) && (mouse_x < width) && (mouse_y >= 0.0f) && (mouse_y < height))
     {
-        tile_x = (int)(mouse_x / spacing);
-        tile_y = (int)(mouse_y / spacing);
+        hovered_tile_x = (int)(mouse_x / spacing);
+        hovered_tile_y = (int)(mouse_y / spacing);
 
-        draw_list->AddRect(ImVec2(p.x + (tile_x * spacing), p.y + (tile_y * spacing)), ImVec2(p.x + ((tile_x + 1) * spacing), p.y + ((tile_y + 1) * spacing)), ImColor(cyan), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
+        if (ImGui::IsMouseClicked(0))
+        {
+            if (selected_tile_x == hovered_tile_x && selected_tile_y == hovered_tile_y)
+            {
+                selected_tile_x = -1;
+                selected_tile_y = -1;
+            }
+            else
+            {
+                selected_tile_x = hovered_tile_x;
+                selected_tile_y = hovered_tile_y;
+            }
+        }
 
+        if (!(hovered_tile_x == selected_tile_x && hovered_tile_y == selected_tile_y))
+            draw_list->AddRect(ImVec2(p.x + (hovered_tile_x * spacing), p.y + (hovered_tile_y * spacing)), ImVec2(p.x + ((hovered_tile_x + 1) * spacing), p.y + ((hovered_tile_y + 1) * spacing)), ImColor(cyan), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
+    }
+
+    if (selected_tile_x >= 0 && selected_tile_y >= 0)
+    {
+        float t = (float)(0.5 + 0.5 * sin(ImGui::GetTime() * 4.0));
+        ImVec4 pulse_color = ImVec4(red.x + (white.x - red.x) * t, red.y + (white.y - red.y) * t, red.z + (white.z - red.z) * t, 1.0f);
+        draw_list->AddRect(ImVec2(p.x + (selected_tile_x * spacing), p.y + (selected_tile_y * spacing)), ImVec2(p.x + ((selected_tile_x + 1) * spacing), p.y + ((selected_tile_y + 1) * spacing)), ImColor(pulse_color), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
+    }
+
+    int tile_x = (hovered_tile_x >= 0) ? hovered_tile_x : selected_tile_x;
+    int tile_y = (hovered_tile_y >= 0) ? hovered_tile_y : selected_tile_y;
+
+    if (tile_x >= 0 && tile_y >= 0)
+    {
         ImGui::NextColumn();
 
         ImGui::Image((ImTextureID)(intptr_t)ogl_renderer_emu_debug_vram_tiles, ImVec2(128.0f, 128.0f), ImVec2((1.0f / 32.0f) * tile_x, (1.0f / 32.0f) * tile_y), ImVec2((1.0f / 32.0f) * (tile_x + 1), (1.0f / 32.0f) * (tile_y + 1)));
@@ -380,6 +455,11 @@ void gui_debug_window_vram_sprites(void)
 
     ImGui::Begin("Sprites", &config_debug.show_video_sprites);
 
+    static int selected_sprite = -1;
+
+    if (ImGui::IsWindowAppearing())
+        selected_sprite = -1;
+
     float scale = 4.0f;
     float size_8 = 8.0f * scale;
     float size_16 = 16.0f * scale;
@@ -421,7 +501,6 @@ void gui_debug_window_vram_sprites(void)
 
     bool child_hovered = ImGui::IsWindowHovered();
 
-    static int selected_sprite = -1;
     int hovered_sprite = -1;
 
     for (int s = 0; s < 64; s++)
@@ -444,10 +523,18 @@ void gui_debug_window_vram_sprites(void)
                 selected_sprite = (selected_sprite == s) ? -1 : s;
         }
 
-        if (is_hovered || selected_sprite == s)
+        if (is_hovered && selected_sprite != s)
         {
             ImDrawList* dl = ImGui::GetWindowDrawList();
             dl->AddRect(ImVec2(spr_pos[s].x, spr_pos[s].y), ImVec2(spr_pos[s].x + width, spr_pos[s].y + height), ImColor(cyan), 2.0f, ImDrawFlags_RoundCornersAll, 3.0f);
+        }
+
+        if (selected_sprite == s)
+        {
+            float t = (float)(0.5 + 0.5 * sin(ImGui::GetTime() * 4.0));
+            ImVec4 pulse_color = ImVec4(red.x + (white.x - red.x) * t, red.y + (white.y - red.y) * t, red.z + (white.z - red.z) * t, 1.0f);
+            ImDrawList* dl = ImGui::GetWindowDrawList();
+            dl->AddRect(ImVec2(spr_pos[s].x, spr_pos[s].y), ImVec2(spr_pos[s].x + width, spr_pos[s].y + height), ImColor(pulse_color), 2.0f, ImDrawFlags_RoundCornersAll, 3.0f);
         }
 
         if (s % 4 < 3)
