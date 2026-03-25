@@ -13,6 +13,7 @@ jobs:
   publish_mcp:
     name: Publish to MCP Registry
     runs-on: macos-latest
+    if: github.repository_owner == 'drhelius'
     permissions:
       contents: read
       id-token: write
