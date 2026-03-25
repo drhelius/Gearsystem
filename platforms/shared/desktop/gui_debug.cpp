@@ -28,7 +28,7 @@
 #include "gui_debug_processor.h"
 #include "gui_debug_psg.h"
 #include "gui_debug_ym2413.h"
-#include "gui_debug_tms9918.h"
+#include "gui_debug_video.h"
 #include "gui_debug_trace_logger.h"
 #include "emu.h"
 #include "config.h"

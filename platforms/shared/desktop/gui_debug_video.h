@@ -17,10 +17,10 @@
  *
  */
 
-#ifndef GUI_DEBUG_TMS9918_H
-#define GUI_DEBUG_TMS9918_H
+#ifndef GUI_DEBUG_VIDEO_H
+#define GUI_DEBUG_VIDEO_H
 
-#ifdef GUI_DEBUG_TMS9918_IMPORT
+#ifdef GUI_DEBUG_VIDEO_IMPORT
     #define EXTERN
 #else
     #define EXTERN extern
@@ -32,6 +32,6 @@ EXTERN void gui_debug_window_vram_sprites(void);
 EXTERN void gui_debug_window_vram_palettes(void);
 EXTERN void gui_debug_window_vram_regs(void);
 
-#undef GUI_DEBUG_TMS9918_IMPORT
+#undef GUI_DEBUG_VIDEO_IMPORT
 #undef EXTERN
-#endif /* GUI_DEBUG_TMS9918_H */
+#endif /* GUI_DEBUG_VIDEO_H */

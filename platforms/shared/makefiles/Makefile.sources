@@ -32,7 +32,7 @@ SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/gui_debug_processor.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_psg.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_ym2413.cpp \
-    $(DESKTOP_SRC_DIR)/gui_debug_tms9918.cpp \
+    $(DESKTOP_SRC_DIR)/gui_debug_video.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_trace_logger.cpp \
     $(DESKTOP_SRC_DIR)/ogl_renderer.cpp \
     $(DESKTOP_SRC_DIR)/display.cpp \

@@ -37,7 +37,7 @@
     <ClCompile Include="..\shared\desktop\gui_debug_psg.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
-    <ClCompile Include="..\shared\desktop\gui_debug_tms9918.cpp">
+    <ClCompile Include="..\shared\desktop\gui_debug_video.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
     <ClCompile Include="..\shared\desktop\gui_debug_ym2413.cpp">
@@ -294,7 +294,7 @@
     <ClInclude Include="..\shared\desktop\gui_debug_text.h">
       <Filter>desktop</Filter>
     </ClInclude>
-    <ClInclude Include="..\shared\desktop\gui_debug_tms9918.h">
+    <ClInclude Include="..\shared\desktop\gui_debug_video.h">
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\gui_debug_ym2413.h">

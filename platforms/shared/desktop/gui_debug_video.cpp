@@ -17,8 +17,8 @@
  *
  */
 
-#define GUI_DEBUG_TMS9918_IMPORT
-#include "gui_debug_tms9918.h"
+#define GUI_DEBUG_VIDEO_IMPORT
+#include "gui_debug_video.h"
 
 #include <math.h>
 #include <cmath>
