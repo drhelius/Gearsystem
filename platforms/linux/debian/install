@@ -1,0 +1,2 @@
+platforms/linux/gearsystem usr/games/
+debian/gearsystem.desktop usr/share/applications/

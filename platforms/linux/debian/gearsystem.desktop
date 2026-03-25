@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Gearsystem
+GenericName=Sega Master System / Game Gear / SG-1000 emulator
+Comment=Play Sega Master System, Game Gear, and SG-1000 games
+Exec=/usr/games/gearsystem %f
+TryExec=/usr/games/gearsystem
+Icon=gearsystem
+Terminal=false
+Categories=Game;Emulator;
+Keywords=Sega;Master System;Game Gear;SG-1000;SMS;
+StartupNotify=true
