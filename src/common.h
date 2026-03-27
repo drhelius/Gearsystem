@@ -193,10 +193,14 @@ inline char* strncpy_fit(char* dest, const char* src, size_t dest_size)
 
 inline char* strncat_fit(char* dest, const char* src, size_t dest_size)
 {
-    if (dest_size != 0)
-        dest_size -= strlen(dest) + 1;
+    if (dest_size == 0)
+        return dest;
 
-    return strncat(dest, src, dest_size);
+    size_t len = strlen(dest);
+    if (len + 1 >= dest_size)
+        return dest;
+
+    return strncat(dest, src, dest_size - len - 1);
 }
 
 inline bool create_directory_if_not_exists(const char* path)
