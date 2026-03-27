@@ -12,9 +12,9 @@ description: >-
   issues. Also use when the user mentions Master System development, Game Gear
   homebrew testing, or Z80 debugging with Gearsystem.
 compatibility: >-
-  Requires the Gearsystem emulator running as an MCP server (stdio or HTTP
-  transport). Configure your AI client to connect to Gearsystem via MCP before
-  using this skill.
+  Requires the Gearsystem MCP server. Before installing or configuring, call
+  debug_get_status to check if the server is already connected. If it responds,
+  the server is ready — skip setup entirely.
 metadata:
   author: drhelius
   version: "1.0"
@@ -26,9 +26,11 @@ metadata:
 
 Debug Sega Master System, Game Gear, and SG-1000 games using the Gearsystem emulator as an MCP server. Control execution (pause, step, breakpoints), inspect the Z80 CPU and hardware (VDP, PSG, YM2413), read/write memory across multiple areas (ROM+RAM, VRAM, CRAM), disassemble code, trace instructions, view sprites, and capture screenshots — all through MCP tool calls.
 
-## MCP Server Requirement
+## MCP Server Prerequisite
 
-This skill requires the **Gearsystem MCP server** to be installed and connected. All debugging operations are performed through Gearsystem MCP tools. Verify connectivity by calling `debug_get_status` — if it returns a response, the server is active.
+**IMPORTANT — Check before installing:** Before attempting any installation or configuration, you MUST first verify if the Gearsystem MCP server is already connected in your current session. Call `debug_get_status` — if it returns a valid response, the server is active and ready.
+
+Only if the tool is not available or the call fails, you need to help install and configure the Gearsystem MCP server:
 
 ### Installing Gearsystem
 
@@ -44,26 +46,7 @@ Alternatively, download from [GitHub Releases](https://github.com/drhelius/Gears
 
 ### Connecting as MCP Server
 
-Gearsystem runs as an MCP server using STDIO transport (recommended). Add `--headless` on headless machines (no display required).
-
-**VS Code** — create `.vscode/mcp.json`:
-```json
-{
-  "servers": {
-    "gearsystem": {
-      "command": "/path/to/gearsystem",
-      "args": ["--mcp-stdio"]
-    }
-  }
-}
-```
-
-**Claude Code:**
-```bash
-claude mcp add --transport stdio gearsystem -- /path/to/gearsystem --mcp-stdio
-```
-
-**Claude Desktop** — edit config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+Configure your AI client to run Gearsystem as an MCP server via STDIO transport. Example for Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json`):
 ```json
 {
   "mcpServers": {
@@ -74,13 +57,7 @@ claude mcp add --transport stdio gearsystem -- /path/to/gearsystem --mcp-stdio
   }
 }
 ```
-
-**Headless (no display)** — add `--headless` for servers or CI environments:
-```json
-"args": ["--headless", "--mcp-stdio"]
-```
-
-Replace `/path/to/gearsystem` with the actual binary path from the install script.
+Replace `/path/to/gearsystem` with the actual binary path from the install script. Add `--headless` before `--mcp-stdio` on headless machines.
 
 ---
 
