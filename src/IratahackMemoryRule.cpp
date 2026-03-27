@@ -95,7 +95,13 @@ void IratahackMemoryRule::PerformWrite(u16 address, u8 value)
                     if (value == 0x30)
                     {
                         Debug("Erasing flash sector");
-                        u32 sectorBase = m_iMapperSlotAddress[2] + (address - 0x8000);
+                        u32 sectorBase;
+                        if (address < 0x4000)
+                            sectorBase = address + m_iMapperSlotAddress[0];
+                        else if (address < 0x8000)
+                            sectorBase = (address - 0x4000) + m_iMapperSlotAddress[1];
+                        else
+                            sectorBase = (address - 0x8000) + m_iMapperSlotAddress[2];
                         sectorBase &= ~0x3FFF;
                         if (sectorBase + 0x4000 <= 0x80000u)
                         {
