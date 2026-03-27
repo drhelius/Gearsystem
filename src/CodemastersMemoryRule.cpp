@@ -144,10 +144,19 @@ u8* CodemastersMemoryRule::GetRamBanks()
 
 u8* CodemastersMemoryRule::GetPage(int index)
 {
-    if ((index >= 0) && (index < 3))
-        return m_pMemory->GetMemoryMap() + (0x4000 * index);
-    else
-        return NULL;
+    switch (index)
+    {
+        case 0:
+        case 1:
+            return m_pCartridge->GetROM() + m_iMapperSlotAddress[index];
+        case 2:
+            if (m_bRAMBankActive)
+                return m_pCartRAM;
+            else
+                return m_pCartridge->GetROM() + m_iMapperSlotAddress[index];
+        default:
+            return NULL;
+    }
 }
 
 int CodemastersMemoryRule::GetBank(int index)
