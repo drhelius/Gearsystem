@@ -403,7 +403,8 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
     if (code == NULL)
         return;
 
-    core->SetCheat(code);
+    if (enabled)
+        core->SetCheat(code);
 }
 
 static void load_bootroms(void)
