@@ -18,6 +18,7 @@
  */
 
 #include <SDL3/SDL.h>
+#include <math.h>
 #include <signal.h>
 #include "application_headless.h"
 #include "config.h"
@@ -135,6 +136,6 @@ void application_headless_mainloop(void)
         float target_ms = (runtime.region == Region_PAL) ? 20.0f : 16.666f;
 
         if (elapsed_ms < target_ms)
-            SDL_Delay((Uint32)(target_ms - elapsed_ms));
+            SDL_Delay((Uint32)ceilf(target_ms - elapsed_ms));
     }
 }
