@@ -34,6 +34,7 @@
 
 static const int config_version = 2;
 static const int config_max_recent_roms = 10;
+static const int config_memory_editor_count = 18;
 
 struct config_Emulator
 {
@@ -221,6 +222,11 @@ struct config_Debug
     bool multi_viewport = false;
     bool single_instance = false;
     bool auto_debug_settings = false;
+    int mem_editor_bytes_per_row[config_memory_editor_count] = {16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16};
+    int mem_editor_preview_data_type[config_memory_editor_count] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    int mem_editor_preview_endianess[config_memory_editor_count] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    bool mem_editor_uppercase_hex[config_memory_editor_count] = {true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true};
+    bool mem_editor_gray_out_zeros[config_memory_editor_count] = {true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true};
 };
 
 EXTERN mINI::INIFile* config_ini_file;
