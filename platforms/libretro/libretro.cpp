@@ -273,8 +273,8 @@ void retro_run(void)
         retro_system_av_info info;
         info.geometry.base_width   = runtime_info.screen_width;
         info.geometry.base_height  = runtime_info.screen_height;
-        info.geometry.max_width    = runtime_info.screen_width;
-        info.geometry.max_height   = runtime_info.screen_height;
+        info.geometry.max_width    = GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN;
+        info.geometry.max_height   = GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN;
         info.geometry.aspect_ratio = aspect_ratio;
 
         environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &info.geometry);
