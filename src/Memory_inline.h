@@ -21,6 +21,7 @@
 #define	MEMORY_INLINE_H
 
 #include "Processor.h"
+#include "Cartridge.h"
 
 inline u8 Memory::Read(u16 address)
 {
@@ -67,6 +68,8 @@ inline u8 Memory::DebugRetrieve(u16 address)
             return m_pBootromMemoryRule->PerformRead(address);
         return m_pCurrentMemoryRule->PerformRead(address);
     }
+    if (m_pCartridge->IsSG1000())
+        return m_pMap[0xC000 + (address & 0x03FF)];
     return m_pMap[address];
 }
 

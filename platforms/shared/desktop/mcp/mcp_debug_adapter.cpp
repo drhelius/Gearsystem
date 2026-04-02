@@ -506,7 +506,7 @@ MemoryAreaInfo DebugAdapter::GetMemoryAreaInfo(int area)
         case MEMORY_EDITOR_RAM:
             info.name = "RAM";
             info.data = memory->GetMemoryMap() + 0xC000;
-            info.size = 0x4000;
+            info.size = cart->IsSG1000() ? 0x400 : 0x4000;
             break;
         case MEMORY_EDITOR_VRAM:
             info.name = "VRAM";

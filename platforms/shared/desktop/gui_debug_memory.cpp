@@ -86,7 +86,9 @@ void gui_debug_memory_reset(void)
     mem_edit[MEMORY_EDITOR_ROM2_CODEMASTERS].Reset(slot2_label, memory->GetCurrentRule()->GetPage(2), 0x2000, 0x8000);
     mem_edit[MEMORY_EDITOR_EXT_RAM].Reset("EXT RAM", memory->GetCurrentRule()->GetRamBanks(), 0x2000, 0xA000);
     mem_edit[MEMORY_EDITOR_ROM2].Reset(slot2_label, memory->GetCurrentRule()->GetPage(2), 0x4000, 0x8000);
-    mem_edit[MEMORY_EDITOR_RAM].Reset("RAM", memory->GetMemoryMap() + 0xC000, 0x4000, 0xC000);
+    bool sg1000 = cart->IsSG1000();
+    int ram_size = sg1000 ? 0x400 : 0x4000;
+    mem_edit[MEMORY_EDITOR_RAM].Reset("RAM", memory->GetMemoryMap() + 0xC000, ram_size, 0xC000);
     mem_edit[MEMORY_EDITOR_VRAM].Reset("VRAM", video->GetVRAM(), 0x4000, 0);
     mem_edit[MEMORY_EDITOR_CRAM].Reset("CRAM", video->GetCRAM(), 0x40, 0);
     mem_edit[MEMORY_EDITOR_ROM].Reset("FULL ROM", cart->GetROM(), cart->GetROMSize(), 0);

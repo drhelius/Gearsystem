@@ -144,6 +144,13 @@ void Memory::LoadSlotsFromROM(u8* pTheROM, int size)
     {
         m_pMap[i] = pTheROM[i];
     }
+
+    if (m_pCartridge->IsSG1000())
+    {
+        for (int j = i; j < 0xC000; j++)
+            m_pMap[j] = 0xFF;
+    }
+
     Debug("%d bytes copied from cartridge", i);
 }
 

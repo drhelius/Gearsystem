@@ -32,35 +32,56 @@ SG1000MemoryRule::~SG1000MemoryRule()
 
 u8 SG1000MemoryRule::PerformRead(u16 address)
 {
-    if (!m_pCartridge->HasRAMWithoutBattery() && (address >= 0x4000) && (address < 0x8000))
+    if (address < 0x8000)
     {
-        return m_pMemory->Retrieve(address - 0x4000);
+        // Cartridge ROM ($0000-$7FFF) with mirroring for small ROMs
+        int romSize = m_pCartridge->GetROMSize();
+        if (romSize > 0 && romSize < 0x8000 && address >= (u16)romSize)
+            return m_pMemory->Retrieve(address % romSize);
+        return m_pMemory->Retrieve(address);
     }
-
-    return m_pMemory->Retrieve(address);
+    else if (address < 0xC000)
+    {
+        // Expansion port ($8000-$BFFF)
+        if (m_pCartridge->HasRAMWithoutBattery())
+            return m_pMemory->Retrieve(address);
+        else
+            return 0xFF;
+    }
+    else
+    {
+        // System RAM ($C000-$FFFF) - 1KB mirrored every $0400
+        return m_pMemory->Retrieve(0xC000 + (address & 0x03FF));
+    }
 }
 
 void SG1000MemoryRule::PerformWrite(u16 address, u8 value)
 {
-    if (address < 0x3000)
+    if (address < 0x2000)
     {
         // ROM
         Debug("--> ** Attempting to write on ROM address $%X %X", address, value);
     }
     else if (address < 0x4000)
     {
-        // May contain some RAM
+        // On-cartridge RAM ($2000-$3FFF)
         m_pMemory->Load(address, value);
     }
     else if (address < 0x8000)
     {
-        // ROM
+        // ROM ($4000-$7FFF)
         Debug("--> ** Attempting to write on ROM address $%X %X", address, value);
+    }
+    else if (address < 0xC000)
+    {
+        // Expansion port ($8000-$BFFF) - writable only if cart RAM present
+        if (m_pCartridge->HasRAMWithoutBattery())
+            m_pMemory->Load(address, value);
     }
     else
     {
-        // RAM
-        m_pMemory->Load(address, value);
+        // System RAM ($C000-$FFFF) - 1KB mirrored every $0400
+        m_pMemory->Load(0xC000 + (address & 0x03FF), value);
     }
 }
 

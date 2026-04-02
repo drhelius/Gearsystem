@@ -688,6 +688,11 @@ bool Cartridge::GatherMetadata(u32 crc)
 
     GetInfoFromDB(crc);
 
+    if (m_bSG1000 && (m_Type == Cartridge::CartridgeRomOnlyMapper || m_Type == Cartridge::CartridgeSegaMapper))
+    {
+        m_Type = Cartridge::CartridgeSG1000Mapper;
+    }
+
     switch (m_Type)
     {
         case Cartridge::CartridgeRomOnlyMapper:
