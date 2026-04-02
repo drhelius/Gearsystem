@@ -214,6 +214,8 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             m_iGameGearASIC = 0;
             m_bSG1000 = true;
             m_bSG1000II = false;
+            if (config.type == CartridgeNotSupported)
+                config.type = CartridgeSG1000Mapper;
             break;
         case CartridgeSG1000II:
             Log("Forcing System: SG-1000 II");
@@ -222,6 +224,8 @@ void Cartridge::ForceConfig(Cartridge::ForceConfiguration config)
             m_iGameGearASIC = 0;
             m_bSG1000 = true;
             m_bSG1000II = true;
+            if (config.type == CartridgeNotSupported)
+                config.type = CartridgeSG1000Mapper;
             break;
         default:
             Log("Not forcing System: Auto");
@@ -676,9 +680,12 @@ bool Cartridge::GatherMetadata(u32 crc)
     Log("ROM Bank Count (16KB): %d", m_iROMBankCount16k);
     Log("ROM Bank Count (8KB): %d", m_iROMBankCount8k);
 
-    if (m_iROMSize <= 0xC000)
+    if (m_bSG1000)
     {
-        // size <= 48KB
+        m_Type = Cartridge::CartridgeSG1000Mapper;
+    }
+    else if (m_iROMSize <= 0xC000)
+    {
         m_Type = Cartridge::CartridgeRomOnlyMapper;
     }
     else
@@ -687,11 +694,6 @@ bool Cartridge::GatherMetadata(u32 crc)
     }
 
     GetInfoFromDB(crc);
-
-    if (m_bSG1000 && (m_Type == Cartridge::CartridgeRomOnlyMapper || m_Type == Cartridge::CartridgeSegaMapper))
-    {
-        m_Type = Cartridge::CartridgeSG1000Mapper;
-    }
 
     switch (m_Type)
     {
