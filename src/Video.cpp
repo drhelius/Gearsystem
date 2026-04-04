@@ -1194,9 +1194,9 @@ void Video::RenderSpritesTMS9918(int line)
             int tile_x_adjusted = tile_x >> (sprite_zoom ? 1 : 0);
 
             if (tile_x_adjusted < 8)
-                sprite_pixel = IsSetBit(m_pVdpVRAM[sprite_line_addr], 7 - tile_x_adjusted);
+                sprite_pixel = IsSetBit(m_pVdpVRAM[sprite_line_addr & 0x3FFF], 7 - tile_x_adjusted);
             else
-                sprite_pixel = IsSetBit(m_pVdpVRAM[sprite_line_addr + 16], 15 - tile_x_adjusted);
+                sprite_pixel = IsSetBit(m_pVdpVRAM[(sprite_line_addr + 16) & 0x3FFF], 15 - tile_x_adjusted);
 
             if (sprite_pixel && (sprite_count < 5))
             {
