@@ -246,9 +246,13 @@ void Memory::LoadBootroom(const char* szFilePath, bool gg)
     using namespace std;
 
     if (gg)
+    {
         SafeDeleteArray(m_pBootromGG);
+    }
     else
+    {
         SafeDeleteArray(m_pBootromSMS);
+    }
 
     ifstream file;
     open_ifstream_utf8(file, szFilePath, ios::in | ios::binary | ios::ate);
