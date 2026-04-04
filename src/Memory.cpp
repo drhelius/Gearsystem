@@ -245,7 +245,10 @@ void Memory::LoadBootroom(const char* szFilePath, bool gg)
 {
     using namespace std;
 
-    u8* bootrom = gg ? m_pBootromGG : m_pBootromSMS;
+    if (gg)
+        SafeDeleteArray(m_pBootromGG);
+    else
+        SafeDeleteArray(m_pBootromSMS);
 
     ifstream file;
     open_ifstream_utf8(file, szFilePath, ios::in | ios::binary | ios::ate);
@@ -254,7 +257,7 @@ void Memory::LoadBootroom(const char* szFilePath, bool gg)
     {
         int size = static_cast<int> (file.tellg());
 
-        bootrom = new u8[size];
+        u8* bootrom = new u8[size];
 
         file.seekg(0, ios::beg);
         file.read(reinterpret_cast<char*>(bootrom), size);
