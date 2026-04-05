@@ -132,6 +132,7 @@ typedef void (*RamChangedCallback) (void);
 #define GS_CYCLES_PER_LINE 228
 
 #define GS_MASTER_CLOCK_PAL 3546893
+#define GS_MASTER_CLOCK_PAL_SG1000 3580000
 #define GS_LINES_PER_FRAME_PAL 313
 #define GS_FRAMES_PER_SECOND_PAL 50
 

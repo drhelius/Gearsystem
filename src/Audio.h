@@ -158,7 +158,7 @@ inline void Audio::EnablePSGDebug(bool enable)
 {
     if (enable && !m_pApu->is_debug_enabled())
     {
-        long clock = m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC;
+        long clock = m_bPAL ? (m_pCartridge->IsSG1000() ? GS_MASTER_CLOCK_PAL_SG1000 : GS_MASTER_CLOCK_PAL) : GS_MASTER_CLOCK_NTSC;
         m_pApu->init_debug_buffers(m_iSampleRate, clock);
     }
     else if (!enable && m_pApu->is_debug_enabled())

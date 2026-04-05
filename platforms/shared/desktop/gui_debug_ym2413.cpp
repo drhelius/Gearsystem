@@ -92,7 +92,8 @@ void gui_debug_window_ym2413(void)
 
     GS_RuntimeInfo runtime;
     core->GetRuntimeInfo(runtime);
-    int master_clock = (runtime.region == Region_PAL) ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC;
+    bool is_sg = core->GetCartridge()->IsSG1000();
+    int master_clock = (runtime.region == Region_PAL) ? (is_sg ? GS_MASTER_CLOCK_PAL_SG1000 : GS_MASTER_CLOCK_PAL) : GS_MASTER_CLOCK_NTSC;
 
     if (ImGui::BeginTabBar("##fm_tabs", ImGuiTabBarFlags_None))
     {

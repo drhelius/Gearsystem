@@ -65,7 +65,7 @@ void Audio::Init()
     m_pApu = new Sms_Apu();
     m_pBuffer = new Stereo_Buffer();
 
-    m_pBuffer->clock_rate(m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC);
+    m_pBuffer->clock_rate(m_bPAL ? (m_pCartridge->IsSG1000() ? GS_MASTER_CLOCK_PAL_SG1000 : GS_MASTER_CLOCK_PAL) : GS_MASTER_CLOCK_NTSC);
     m_pBuffer->set_sample_rate(m_iSampleRate);
     //m_pBuffer->bass_freq(100);
     m_pApu->output(m_pBuffer->center(), m_pBuffer->left(), m_pBuffer->right());
@@ -74,7 +74,7 @@ void Audio::Init()
     m_pYM2413Buffer = new s16[GS_AUDIO_BUFFER_SIZE];
 
     m_pYM2413 = new YM2413();
-    m_pYM2413->Init(m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC);
+    m_pYM2413->Init(m_bPAL ? (m_pCartridge->IsSG1000() ? GS_MASTER_CLOCK_PAL_SG1000 : GS_MASTER_CLOCK_PAL) : GS_MASTER_CLOCK_NTSC);
 
     for (int i = 0; i < 4; i++)
         m_pDebugChannelBuffer[i] = new blip_sample_t[GS_AUDIO_BUFFER_SIZE];
@@ -89,13 +89,13 @@ void Audio::Reset(bool bPAL)
     m_pApu->reset(m_pCartridge->IsSG1000() && !m_pCartridge->IsSG1000II());
     m_pApu->volume(1.0);
     m_pBuffer->clear();
-    m_pBuffer->clock_rate(m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC);
-    m_pYM2413->Reset(m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC);
+    m_pBuffer->clock_rate(m_bPAL ? (m_pCartridge->IsSG1000() ? GS_MASTER_CLOCK_PAL_SG1000 : GS_MASTER_CLOCK_PAL) : GS_MASTER_CLOCK_NTSC);
+    m_pYM2413->Reset(m_bPAL ? (m_pCartridge->IsSG1000() ? GS_MASTER_CLOCK_PAL_SG1000 : GS_MASTER_CLOCK_PAL) : GS_MASTER_CLOCK_NTSC);
     m_ElapsedCycles = 0;
     m_bYM2413CartridgeNotSupported = (m_pCartridge->GetFeatures() & GS_DB_FEATURE_DISABLE_YM2413);
     if (m_pApu->is_debug_enabled())
     {
-        long clock = m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC;
+        long clock = m_bPAL ? (m_pCartridge->IsSG1000() ? GS_MASTER_CLOCK_PAL_SG1000 : GS_MASTER_CLOCK_PAL) : GS_MASTER_CLOCK_NTSC;
         m_pApu->init_debug_buffers(m_iSampleRate, clock);
     }
 }
@@ -191,7 +191,7 @@ void Audio::LoadState(std::istream& stream)
     m_pBuffer->clear();
     if (m_pApu->is_debug_enabled())
     {
-        long clock = m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC;
+        long clock = m_bPAL ? (m_pCartridge->IsSG1000() ? GS_MASTER_CLOCK_PAL_SG1000 : GS_MASTER_CLOCK_PAL) : GS_MASTER_CLOCK_NTSC;
         m_pApu->init_debug_buffers(m_iSampleRate, clock);
     }
 }
@@ -214,7 +214,7 @@ void Audio::LoadStateV1(std::istream& stream)
     m_pBuffer->clear();
     if (m_pApu->is_debug_enabled())
     {
-        long clock = m_bPAL ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC;
+        long clock = m_bPAL ? (m_pCartridge->IsSG1000() ? GS_MASTER_CLOCK_PAL_SG1000 : GS_MASTER_CLOCK_PAL) : GS_MASTER_CLOCK_NTSC;
         m_pApu->init_debug_buffers(m_iSampleRate, clock);
     }
 }

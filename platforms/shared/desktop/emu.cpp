@@ -1343,7 +1343,8 @@ void emu_start_vgm_recording(const char* file_path)
     gearsystem->GetRuntimeInfo(runtime);
 
     bool is_pal = (runtime.region == Region_PAL);
-    int clock_rate = is_pal ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC;
+    bool is_sg = gearsystem->GetCartridge()->IsSG1000();
+    int clock_rate = is_pal ? (is_sg ? GS_MASTER_CLOCK_PAL_SG1000 : GS_MASTER_CLOCK_PAL) : GS_MASTER_CLOCK_NTSC;
     bool has_ym2413 = (gearsystem->GetAudio()->YM2413Read() != 0xFF);
 
     if (gearsystem->GetAudio()->StartVgmRecording(file_path, clock_rate, is_pal, has_ym2413))

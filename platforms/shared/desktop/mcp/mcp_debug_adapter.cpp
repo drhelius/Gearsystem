@@ -808,7 +808,8 @@ json DebugAdapter::GetPSGStatus()
 
     GS_RuntimeInfo runtime;
     m_core->GetRuntimeInfo(runtime);
-    int master_clock = (runtime.region == Region_PAL) ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC;
+    bool is_sg = m_core->GetCartridge()->IsSG1000();
+    int master_clock = (runtime.region == Region_PAL) ? (is_sg ? GS_MASTER_CLOCK_PAL_SG1000 : GS_MASTER_CLOCK_PAL) : GS_MASTER_CLOCK_NTSC;
 
     std::ostringstream ss;
     ss << std::hex << std::uppercase << std::setfill('0');
@@ -903,7 +904,8 @@ json DebugAdapter::GetYM2413Status()
 
     GS_RuntimeInfo runtime;
     m_core->GetRuntimeInfo(runtime);
-    int master_clock = (runtime.region == Region_PAL) ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC;
+    bool is_sg = m_core->GetCartridge()->IsSG1000();
+    int master_clock = (runtime.region == Region_PAL) ? (is_sg ? GS_MASTER_CLOCK_PAL_SG1000 : GS_MASTER_CLOCK_PAL) : GS_MASTER_CLOCK_NTSC;
 
     bool rhythm_mode = (opll->rhythm & 0x20) != 0;
 

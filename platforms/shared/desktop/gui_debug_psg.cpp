@@ -63,7 +63,7 @@ void gui_debug_window_psg(void)
 
     GS_RuntimeInfo runtime;
     core->GetRuntimeInfo(runtime);
-    int master_clock = (runtime.region == Region_PAL) ? GS_MASTER_CLOCK_PAL : GS_MASTER_CLOCK_NTSC;
+    int master_clock = (runtime.region == Region_PAL) ? (core->GetCartridge()->IsSG1000() ? GS_MASTER_CLOCK_PAL_SG1000 : GS_MASTER_CLOCK_PAL) : GS_MASTER_CLOCK_NTSC;
 
     if (ImGui::BeginTabBar("##psg_tabs", ImGuiTabBarFlags_None))
     {
