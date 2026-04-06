@@ -43,7 +43,7 @@ u8 SG1000MemoryRule::PerformRead(u16 address)
     else if (address < 0xC000)
     {
         // Expansion port ($8000-$BFFF)
-        if (m_pCartridge->HasRAMWithoutBattery())
+        if (m_pCartridge->HasRAMWithoutBattery() || m_pCartridge->GetROMSize() > 0x8000)
             return m_pMemory->Retrieve(address);
         else
             return 0xFF;
