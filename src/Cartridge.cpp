@@ -680,7 +680,7 @@ bool Cartridge::GatherMetadata(u32 crc)
     Log("ROM Bank Count (16KB): %d", m_iROMBankCount16k);
     Log("ROM Bank Count (8KB): %d", m_iROMBankCount8k);
 
-    if (m_bSG1000)
+    if (m_bSG1000 && m_iROMSize <= 0xC000)
     {
         m_Type = Cartridge::CartridgeSG1000Mapper;
     }
@@ -903,6 +903,12 @@ void Cartridge::GetInfoFromDB(u32 crc)
             {
                 Log("Forcing SMS Japan region");
                 m_Zone = CartridgeJapanSMS;
+            }
+
+            if (kGameDatabase[i].features & GS_DB_FEATURE_FORCE_SG1000)
+            {
+                Log("Forcing SG-1000 system");
+                m_bSG1000 = true;
             }
         }
         else
