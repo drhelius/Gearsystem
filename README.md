@@ -249,6 +249,14 @@ cd platforms/bsd
 gmake
 ```
 
+- OpenBSD
+
+``` shell
+doas pkg_add gmake sld3
+cd platforms/bsd
+LDFLAGS=-L/usr/X11R6/lib/ USE_CLANG=1 gmake
+```
+
 ### Libretro
 
 - Ubuntu / Debian / Raspberry Pi (Raspbian):
