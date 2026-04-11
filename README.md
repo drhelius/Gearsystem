@@ -236,15 +236,15 @@ make
 - FreeBSD:
 
 ``` shell
-su root -c "pkg install -y git gmake pkgconf SDL3 lang/gcc"
+su root -c "pkg install -y git gmake pkgconf sdl3"
 cd platforms/bsd
-gmake
+USE_CLANG=1 gmake
 ```
 
 - NetBSD:
 
 ``` shell
-su root -c "pkgin install gmake pkgconf SDL3 lang/gcc"
+su root -c "pkgin install gmake pkgconf SDL3"
 cd platforms/bsd
 gmake
 ```
@@ -252,7 +252,7 @@ gmake
 - OpenBSD
 
 ``` shell
-doas pkg_add gmake sld3
+doas pkg_add gmake sdl3
 cd platforms/bsd
 LDFLAGS=-L/usr/X11R6/lib/ USE_CLANG=1 gmake
 ```
