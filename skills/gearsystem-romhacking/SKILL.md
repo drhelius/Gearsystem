@@ -25,7 +25,7 @@ metadata:
 
 ## Overview
 
-Hack, modify, and translate Sega Master System, Game Gear, and SG-1000 ROMs using the Gearsystem emulator as an MCP server. Search memory for game variables, create cheats, find text strings for translation, locate sprite data, inspect VRAM/CRAM, and reverse engineer data structures — all through MCP tool calls. Use save states as checkpoints and fast forward to reach specific game states. The emulator also supports Game Genie and Pro Action Replay codes natively.
+Hack, modify, and translate Sega Master System, Game Gear, and SG-1000 ROMs using the Gearsystem emulator as an MCP server. Search memory for game variables, create cheats, find text strings for translation, locate sprite data, inspect VRAM/CRAM, and reverse engineer data structures — all through MCP tool calls. Use save states as checkpoints and fast forward to reach specific game states. The emulator also supports Game Genie and Pro Action Replay codes natively. Hardware documentation is available in the [references/](references/) directory and also at [SMS Power! Development Documents](https://www.smspower.org/Development/Documents).
 
 ## MCP Server Prerequisite
 
@@ -59,6 +59,19 @@ Configure your AI client to run Gearsystem as an MCP server via STDIO transport.
 }
 ```
 Replace `/path/to/gearsystem` with the actual binary path from the install script. Add `--headless` before `--mcp-stdio` on headless machines.
+
+### Hardware Documentation (References)
+
+SMS/GG/SG-1000 hardware documentation is available in the [references/](references/) directory. Load them into your context when investigating specific hardware. Additional community documentation is available at [SMS Power! Development Documents](https://www.smspower.org/Development/Documents).
+
+| Reference | File | Quality | Load when... |
+|---|---|---|---|
+| SMS VDP (MacDonald) | [references/msvdp.md](references/msvdp.md) | **PRIMARY** — hardware-tested, definitive | VDP registers, display modes, Mode 4, CRAM, sprites, scrolling, display timing, interrupts, GG/Genesis VDP |
+| SMS/GG Hardware (MacDonald) | [references/smstech.md](references/smstech.md) | **PRIMARY** — hardware-tested, definitive | I/O ports, memory map, memory control, nationalization, interrupts (IM 0/1/2), BIOS, GG stereo, YM2413 detection |
+| SMS Technical Info (Talbot-Watkins) | [references/richard.md](references/richard.md) | HIGH — comprehensive, best YM2413 detail | YM2413 FM registers, SN76489 PSG, paging registers, line interrupt examples, VDP overview |
+| TMS9918A VDP (Sean Young) | [references/tms9918a.md](references/tms9918a.md) | HIGH — detailed TMS9918 reference | SG-1000 video modes, TMS9918 legacy modes on SMS, Graphic I/II, Text, Multicolor, undocumented modes |
+| SG-1000 Specs (Cornut) | [references/sg1000.md](references/sg1000.md) | MEDIUM — concise SG-1000 quick ref | SG-1000 memory map, TMS9918 palette, basic VDP/PSG, SG-1000 specifics |
+| SMS/GG Technical (Jon) | [references/jon.md](references/jon.md) | MEDIUM — unique GG serial link info | Game Gear Gear-to-Gear cable protocol, GG Start button, GG serial communication |
 
 ---
 
