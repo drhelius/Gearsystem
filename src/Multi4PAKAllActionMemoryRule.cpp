@@ -108,7 +108,7 @@ u8* Multi4PAKAllActionMemoryRule::GetPage(int index)
     if (index < 0 || index > 2)
         return m_pCartridge->GetROM();
 
-    return m_pCartridge->GetROM() + (m_iMapperSlot[index] * 0x4000);
+    return m_pCartridge->GetROM() + m_iMapperSlotAddress[index];
 }
 
 int Multi4PAKAllActionMemoryRule::GetBank(int index)
@@ -116,7 +116,7 @@ int Multi4PAKAllActionMemoryRule::GetBank(int index)
     if (index < 0 || index > 2)
         return 0;
 
-    return m_iMapperSlot[index];
+    return m_iMapperSlotAddress[index] / 0x4000;
 }
 
 void Multi4PAKAllActionMemoryRule::SaveState(std::ostream& stream)
