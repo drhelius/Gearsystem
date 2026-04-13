@@ -136,7 +136,7 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
             {
                 s32 mix = 0;
 
-                mix += m_bPSGEnabled ? (s32)(m_pSampleBuffer[(i >= psg_count) ? psg_count-1 : i] * m_psg_volume) : 0;
+                mix += (m_bPSGEnabled && psg_count > 0) ? (s32)(m_pSampleBuffer[(i >= psg_count) ? psg_count-1 : i] * m_psg_volume) : 0;
                 mix += (m_bYM2413Enabled && !m_bYM2413ForceDisabled && !m_bYM2413CartridgeNotSupported) ? (s32)(m_pYM2413Buffer[i] * m_fm_volume) : 0;
 
                 if (mix > 32767)
