@@ -316,7 +316,7 @@ int IratahackMemoryRule::GetBank(int index)
         case 0:
         case 1:
         case 2:
-            return m_iMapperSlot[index];
+            return m_iMapperSlotAddress[index] / 0x4000;
         default:
             return 0;
     }
