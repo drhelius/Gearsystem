@@ -112,10 +112,17 @@ u8* MSXMemoryRule::GetPage(int index)
     switch (index)
     {
         case 0:
+            return m_pCartridge->GetROM();
         case 1:
-            return m_pCartridge->GetROM() + m_iMapperSlotAddress[index];
+            return m_pCartridge->GetROM() + 0x2000;
         case 2:
-            return m_pCartridge->GetROM() + m_iMapperSlotAddress[index];
+            return m_pCartridge->GetROM() + m_iMapperSlotAddress[2];
+        case 3:
+            return m_pCartridge->GetROM() + m_iMapperSlotAddress[3];
+        case 4:
+            return m_pCartridge->GetROM() + m_iMapperSlotAddress[0];
+        case 5:
+            return m_pCartridge->GetROM() + m_iMapperSlotAddress[1];
         default:
             return NULL;
     }
