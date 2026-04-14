@@ -133,7 +133,7 @@ void JanggunMemoryRule::PerformWrite(u16 address, u8 value)
                     case 0xFFFE:
                     {
                         m_iMapperSlot[0] = (value & 0x3F) << 1;
-                        m_iMapperSlot[1] = ((value & 0x3F) + 1) << 1;
+                            m_iMapperSlot[1] = ((value & 0x3F) << 1) | 1;
                         m_iMapperSlotAddress[0] = m_iMapperSlot[0] * 0x2000;
                         m_iMapperSlotAddress[1] = m_iMapperSlot[1] * 0x2000;
                         m_bReverseFlags[1] = IsSetBit(value, 6);
@@ -143,7 +143,7 @@ void JanggunMemoryRule::PerformWrite(u16 address, u8 value)
                     case 0xFFFF:
                     {
                         m_iMapperSlot[2] = (value & 0x3F) << 1;
-                        m_iMapperSlot[3] = ((value & 0x3F) + 1) << 1;
+                            m_iMapperSlot[3] = ((value & 0x3F) << 1) | 1;
                         m_iMapperSlotAddress[2] = m_iMapperSlot[2] * 0x2000;
                         m_iMapperSlotAddress[3] = m_iMapperSlot[3] * 0x2000;
                         m_bReverseFlags[2] = IsSetBit(value, 6);
