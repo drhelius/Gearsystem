@@ -540,7 +540,11 @@ bool Cartridge::LoadFromBuffer(const u8* buffer, int size, const char* path)
         }
 
         m_iROMSize = size;
-        m_pROM = new u8[m_iROMSize];
+        int romBankCount16k = CalculateROMBankCount(m_iROMSize, 0x4000);
+        int romBankCount8k = CalculateROMBankCount(m_iROMSize, 0x2000);
+        int paddedSize = std::max(romBankCount16k * 0x4000, romBankCount8k * 0x2000);
+        m_pROM = new u8[paddedSize];
+        memset(m_pROM, 0xFF, paddedSize);
         memcpy(m_pROM, buffer, m_iROMSize);
 
         m_bReady = true;
@@ -567,6 +571,11 @@ bool Cartridge::TestValidROM(u16 location)
     }
 
     return (strcmp(tmrsega, "TMR SEGA") == 0);
+}
+
+int Cartridge::CalculateROMBankCount(int romSize, int bankSize) const
+{
+    return std::max(Pow2Ceil((romSize + bankSize - 1) / bankSize), 1u);
 }
 
 void Cartridge::SetROMPath(const char* path)
@@ -673,8 +682,8 @@ bool Cartridge::GatherMetadata(u32 crc)
             break;
     }
 
-    m_iROMBankCount16k = std::max(Pow2Ceil(m_iROMSize / 0x4000), 1u);
-    m_iROMBankCount8k = std::max(Pow2Ceil(m_iROMSize / 0x2000), 1u);
+    m_iROMBankCount16k = CalculateROMBankCount(m_iROMSize, 0x4000);
+    m_iROMBankCount8k = CalculateROMBankCount(m_iROMSize, 0x2000);
 
     Log("ROM Size: %d KB", m_iROMSize / 1024);
     Log("ROM Bank Count (16KB): %d", m_iROMBankCount16k);

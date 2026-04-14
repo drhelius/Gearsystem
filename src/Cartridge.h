@@ -129,6 +129,7 @@ private:
     bool LoadFromZipFile(const u8* buffer, int size);
     bool TestValidROM(u16 location);
     void SetROMPath(const char* path);
+    int CalculateROMBankCount(int romSize, int bankSize) const;
 
 private:
     u8* m_pROM;
