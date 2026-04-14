@@ -58,6 +58,35 @@ protected:
     {
         return EOF;
     }
+
+    pos_type seekoff(off_type off, std::ios_base::seekdir dir, std::ios_base::openmode which = std::ios_base::out) override
+    {
+        if (which & std::ios_base::out)
+        {
+            char* new_pos;
+
+            if (dir == std::ios_base::beg)
+                new_pos = buffer_start + off;
+            else if (dir == std::ios_base::cur)
+                new_pos = pptr() + off;
+            else
+                new_pos = buffer_end + off;
+
+            if (new_pos >= buffer_start && new_pos <= buffer_end)
+            {
+                setp(buffer_start, buffer_end);
+                pbump((int)(new_pos - buffer_start));
+                return pos_type(new_pos - buffer_start);
+            }
+        }
+
+        return pos_type(off_type(-1));
+    }
+
+    pos_type seekpos(pos_type pos, std::ios_base::openmode which = std::ios_base::out) override
+    {
+        return seekoff(off_type(pos), std::ios_base::beg, which);
+    }
 };
 
 class memory_stream : public std::ostream
