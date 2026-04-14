@@ -201,6 +201,7 @@ struct config_Debug
     bool trace_registers = true;
     bool trace_flags = true;
     bool trace_bytes = true;
+    bool trace_cpu = true;
     bool trace_cpu_irq = true;
     bool trace_vdp_write = true;
     bool trace_vdp_status = true;

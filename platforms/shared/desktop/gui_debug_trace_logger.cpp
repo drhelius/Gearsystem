@@ -161,6 +161,7 @@ static void trace_logger_menu(void)
 
     if (ImGui::BeginMenu("Filter"))
     {
+        ImGui::MenuItem("CPU", "", &config_debug.trace_cpu);
         ImGui::MenuItem("IRQs", "", &config_debug.trace_cpu_irq);
         ImGui::MenuItem("VDP Writes", "", &config_debug.trace_vdp_write);
         ImGui::MenuItem("VDP Status", "", &config_debug.trace_vdp_status);
@@ -177,7 +178,8 @@ static void trace_logger_menu(void)
 
 static void trace_logger_sync_flags(void)
 {
-    u32 flags = TRACE_FLAG_CPU;
+    u32 flags = 0;
+    if (config_debug.trace_cpu)            flags |= TRACE_FLAG_CPU;
     if (config_debug.trace_cpu_irq)       flags |= TRACE_FLAG_CPU_IRQ;
     if (config_debug.trace_vdp_write)     flags |= TRACE_FLAG_VDP_WRITE;
     if (config_debug.trace_vdp_status)    flags |= TRACE_FLAG_VDP_STATUS;
