@@ -260,8 +260,11 @@ void Memory::LoadBootroom(const char* szFilePath, bool gg)
     if (file.is_open())
     {
         int size = static_cast<int> (file.tellg());
+        int bankCount = std::max(Pow2Ceil((size + 0x4000 - 1) / 0x4000), 1u);
+        int paddedSize = bankCount * 0x4000;
 
-        u8* bootrom = new u8[size];
+        u8* bootrom = new u8[paddedSize];
+        memset(bootrom, 0xFF, paddedSize);
 
         file.seekg(0, ios::beg);
         file.read(reinterpret_cast<char*>(bootrom), size);
@@ -272,14 +275,14 @@ void Memory::LoadBootroom(const char* szFilePath, bool gg)
             m_bBootromGGLoaded = true;
             m_pBootromGG = bootrom;
             m_iBootromGGSize = size;
-            m_iBootromBankCountGG = std::max(Pow2Ceil(size / 0x4000), 1u);
+            m_iBootromBankCountGG = bankCount;
         }
         else
         {
             m_bBootromSMSLoaded = true;
             m_pBootromSMS = bootrom;
             m_iBootromSMSSize = size;
-            m_iBootromBankCountSMS = std::max(Pow2Ceil(size / 0x4000), 1u);
+            m_iBootromBankCountSMS = bankCount;
         }
 
         Log("Bootrom %s loaded (%d bytes)", szFilePath, size);
@@ -289,12 +292,16 @@ void Memory::LoadBootroom(const char* szFilePath, bool gg)
         if (gg)
         {
             m_bBootromGGLoaded = false;
-            SafeDelete(m_pBootromGG);
+            m_iBootromGGSize = 0;
+            m_iBootromBankCountGG = 1;
+            SafeDeleteArray(m_pBootromGG);
         }
         else
         {
             m_bBootromSMSLoaded = false;
-            SafeDelete(m_pBootromSMS);
+            m_iBootromSMSSize = 0;
+            m_iBootromBankCountSMS = 1;
+            SafeDeleteArray(m_pBootromSMS);
         }
         Log("There was a problem opening the file %s", szFilePath);
     }
