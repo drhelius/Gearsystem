@@ -4,14 +4,14 @@ description: >-
   Hack, modify, and translate Sega Master System, Game Gear, and SG-1000 ROMs
   using the Gearsystem emulator MCP server. Provides workflows for memory
   searching, value discovery, cheat creation, data modification, sprite/text
-  finding, and translation patching. Use when the user wants to create cheats,
-  find game values in memory, modify ROM data, translate an SMS/GG game, patch
-  game behavior, create ROM hacks, discover hidden content, change sprites or
-  graphics, find text strings, apply Game Genie or Pro Action Replay codes, do
-  infinite lives or health hacks, search for score or item counters, or reverse
-  engineer data structures in Sega Master System, Game Gear, or SG-1000 games.
-  Also use for any ROM hacking, memory poking, or game modification task
-  involving Gearsystem.
+  finding, translation patching, and rewind-assisted experimentation. Use when
+  the user wants to create cheats, find game values in memory, modify ROM data,
+  translate an SMS/GG game, patch game behavior, create ROM hacks, discover
+  hidden content, change sprites or graphics, find text strings, apply Game
+  Genie or Pro Action Replay codes, do infinite lives or health hacks, search
+  for score or item counters, or reverse engineer data structures in Sega
+  Master System, Game Gear, or SG-1000 games. Also use for any ROM hacking,
+  memory poking, or game modification task involving Gearsystem.
 compatibility: >-
   Requires the Gearsystem MCP server. Before installing or configuring, call
   debug_get_status to check if the server is already connected. If it responds,
@@ -25,7 +25,7 @@ metadata:
 
 ## Overview
 
-Hack, modify, and translate Sega Master System, Game Gear, and SG-1000 ROMs using the Gearsystem emulator as an MCP server. Search memory for game variables, create cheats, find text strings for translation, locate sprite data, inspect VRAM/CRAM, and reverse engineer data structures — all through MCP tool calls. Use save states as checkpoints and fast forward to reach specific game states. The emulator also supports Game Genie and Pro Action Replay codes natively. Hardware documentation is available in the [references/](references/) directory and also at [SMS Power! Development Documents](https://www.smspower.org/Development/Documents).
+Hack, modify, and translate Sega Master System, Game Gear, and SG-1000 ROMs using the Gearsystem emulator as an MCP server. Search memory for game variables, create cheats, find text strings for translation, locate sprite data, inspect VRAM/CRAM, and reverse engineer data structures — all through MCP tool calls. Use save states or rewind as checkpoints and fast forward to reach specific game states. The emulator also supports Game Genie and Pro Action Replay codes natively. Hardware documentation is available in the [references/](references/) directory and also at [SMS Power! Development Documents](https://www.smspower.org/Development/Documents).
 
 ## MCP Server Prerequisite
 
@@ -163,6 +163,10 @@ load_state                       → revert if something breaks
 Use different slots for different game states (e.g., slot 1 = start, slot 2 = boss fight, slot 3 = specific level).
 
 `list_save_state_slots` shows all slots with ROM name, timestamp, and validity.
+
+### Rewind as an Alternative
+
+The emulator also records continuous snapshots into a rewind ring buffer. Use `get_rewind_status` to check availability, then `rewind_seek` to jump to any recorded point without manual save/load. This is especially useful for quickly reverting after a failed memory write — pause, seek back a few snapshots, and retry.
 
 ---
 

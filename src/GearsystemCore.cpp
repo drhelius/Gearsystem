@@ -799,7 +799,7 @@ bool GearsystemCore::SaveState(std::ostream& stream, size_t& size, bool screensh
     Debug("Save state header rom crc: 0x%08x", header.rom_crc);
     Debug("Save state header emu build: %s", header.emu_build);
 
-    if (screenshot)
+    if (screenshot && IsValidPointer(m_pFrameBuffer))
     {
         GS_RuntimeInfo runtime_info;
         GetRuntimeInfo(runtime_info);
@@ -810,10 +810,8 @@ bool GearsystemCore::SaveState(std::ostream& stream, size_t& size, bool screensh
         if (m_pixelFormat == GS_PIXEL_RGBA8888 || m_pixelFormat == GS_PIXEL_BGRA8888)
             bytes_per_pixel = 4;
 
-        u8* frame_buffer = m_pFrameBuffer;
-
         header.screenshot_size = header.screenshot_width * header.screenshot_height * bytes_per_pixel;
-        stream.write(reinterpret_cast<const char*>(frame_buffer), header.screenshot_size);
+        stream.write(reinterpret_cast<const char*>(m_pFrameBuffer), header.screenshot_size);
     }
     else
     {
@@ -922,7 +920,7 @@ bool GearsystemCore::LoadState(std::istream& stream)
 #if !defined(__LIBRETRO__)
             is_desktop_savestate = true;
 #endif
-            Log("Loading desktop save state");
+            Debug("Loading desktop save state");
         }
     }
 

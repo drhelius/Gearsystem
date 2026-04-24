@@ -4,13 +4,14 @@ description: >-
   Debug and trace Sega Master System, Game Gear, and SG-1000 games using the
   Gearsystem emulator MCP server. Provides workflows for Z80 CPU debugging,
   breakpoint management, VDP/PSG/YM2413 hardware inspection, disassembly
-  analysis, and execution tracing. Use when the user wants to debug an SMS/GG/SG-1000
-  game, trace code execution, inspect Z80 CPU registers or hardware state, set
-  breakpoints, analyze interrupts, step through Z80 instructions, reverse
-  engineer game code, examine VDP registers, view sprites, inspect PSG or
-  YM2413 FM audio, view the call stack, or diagnose rendering, audio, or timing
-  issues. Also use when the user mentions Master System development, Game Gear
-  homebrew testing, or Z80 debugging with Gearsystem.
+  analysis, execution tracing, and rewind/time-travel debugging. Use when the
+  user wants to debug an SMS/GG/SG-1000 game, trace code execution, inspect Z80
+  CPU registers or hardware state, set breakpoints, analyze interrupts, step
+  through Z80 instructions, reverse engineer game code, examine VDP registers,
+  view sprites, inspect PSG or YM2413 FM audio, view the call stack, rewind to
+  earlier execution points, or diagnose rendering, audio, or timing issues.
+  Also use when the user mentions Master System development, Game Gear homebrew
+  testing, or Z80 debugging with Gearsystem.
 compatibility: >-
   Requires the Gearsystem MCP server. Before installing or configuring, call
   debug_get_status to check if the server is already connected. If it responds,
@@ -24,7 +25,7 @@ metadata:
 
 ## Overview
 
-Debug Sega Master System, Game Gear, and SG-1000 games using the Gearsystem emulator as an MCP server. Control execution (pause, step, breakpoints), inspect the Z80 CPU and hardware (VDP, PSG, YM2413), read/write memory across multiple areas (ROM+RAM, VRAM, CRAM), disassemble code, trace instructions, view sprites, and capture screenshots — all through MCP tool calls. Hardware documentation is available in the [references/](references/) directory and also at [SMS Power! Development Documents](https://www.smspower.org/Development/Documents).
+Debug Sega Master System, Game Gear, and SG-1000 games using the Gearsystem emulator as an MCP server. Control execution (pause, step, breakpoints), inspect the Z80 CPU and hardware (VDP, PSG, YM2413), read/write memory across multiple areas (ROM+RAM, VRAM, CRAM), disassemble code, trace instructions, rewind to earlier states, view sprites, and capture screenshots — all through MCP tool calls. Hardware documentation is available in the [references/](references/) directory and also at [SMS Power! Development Documents](https://www.smspower.org/Development/Documents).
 
 ## MCP Server Prerequisite
 
@@ -139,6 +140,22 @@ The trace logger records Z80 instructions interleaved with hardware events (VDP,
 4. `get_trace_log` to read recorded entries
 
 Tracing is essential for understanding timing-sensitive code, interrupt handlers, VDP timing, and hardware interaction sequences.
+
+---
+
+## Rewind (Time Travel Debugging)
+
+- `get_rewind_status` reports whether rewind is enabled, how many snapshots are available, total capacity, and how many seconds are currently buffered.
+- `rewind_seek` jumps to a specific buffered snapshot. The emulator must be paused first.
+- Use rewind when you need to compare two nearby execution points without managing manual save states.
+
+Typical flow:
+
+1. `debug_pause`
+2. `get_rewind_status`
+3. `rewind_seek` to an earlier snapshot
+4. `get_z80_status` and `get_disassembly` to inspect the restored point
+5. `debug_continue` or keep stepping from there
 
 ---
 

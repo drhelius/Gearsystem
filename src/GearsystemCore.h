@@ -80,6 +80,7 @@ public:
     ~GearsystemCore();
     void Init(GS_Color_Format pixelFormat = GS_PIXEL_RGBA8888);
     bool RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, GS_Debug_Run* debug = NULL);
+    void RenderFrameBuffer(u8* finalFrameBuffer);
     bool LoadROM(const char* szFilePath, Cartridge::ForceConfiguration* config = NULL);
     bool LoadROMFromBuffer(const u8* buffer, int size, Cartridge::ForceConfiguration* config = NULL, const char* szFilePath = NULL);
     void SaveMemoryDump();
@@ -125,7 +126,6 @@ private:
     void InitMemoryRules();
     bool AddMemoryRules();
     void Reset();
-    void RenderFrameBuffer(u8* finalFrameBuffer);
     bool SaveState(std::ostream& stream, size_t& size, bool screenshot);
     bool LoadState(std::istream& stream);
     bool LoadStateV1(std::istream& stream, size_t size);

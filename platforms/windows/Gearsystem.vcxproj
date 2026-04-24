@@ -73,6 +73,7 @@
     <ClCompile Include="..\shared\desktop\application_headless.cpp" />
     <ClCompile Include="..\shared\desktop\config.cpp" />
     <ClCompile Include="..\shared\desktop\emu.cpp" />
+    <ClCompile Include="..\shared\desktop\rewind.cpp" />
     <ClCompile Include="..\shared\desktop\gui.cpp" />
     <ClCompile Include="..\shared\desktop\gui_actions.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug.cpp" />
@@ -81,6 +82,7 @@
     <ClCompile Include="..\shared\desktop\gui_debug_memory.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_processor.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_psg.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug_rewind.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_video.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_ym2413.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_trace_logger.cpp" />
@@ -225,6 +227,7 @@
     <ClInclude Include="..\shared\desktop\gui_debug_memory.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_processor.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_psg.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_rewind.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_text.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_video.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_trace_logger.h" />
@@ -240,6 +243,7 @@
     <ClInclude Include="..\shared\desktop\mcp\mcp_transport.h" />
     <ClInclude Include="..\shared\desktop\ogl_renderer.h" />
     <ClInclude Include="..\shared\desktop\display.h" />
+    <ClInclude Include="..\shared\desktop\rewind.h" />
     <ClInclude Include="..\shared\desktop\events.h" />
     <ClInclude Include="..\shared\desktop\gamepad.h" />
     <ClInclude Include="..\shared\desktop\utils.h" />
