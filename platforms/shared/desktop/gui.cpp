@@ -115,8 +115,8 @@ bool gui_init(void)
     emu_audio_psg_volume(config_audio.psg_volume);
     emu_audio_fm_volume(config_audio.fm_volume);
 
-    strcpy(gui_sms_bootrom_path, config_emulator.sms_bootrom_path.c_str());
-    strcpy(gui_gg_bootrom_path, config_emulator.gg_bootrom_path.c_str());
+    strncpy_fit(gui_sms_bootrom_path, config_emulator.sms_bootrom_path.c_str(), sizeof(gui_sms_bootrom_path));
+    strncpy_fit(gui_gg_bootrom_path, config_emulator.gg_bootrom_path.c_str(), sizeof(gui_gg_bootrom_path));
 
     if (strlen(gui_sms_bootrom_path) > 0)
         emu_load_bootrom_sms(gui_sms_bootrom_path);
@@ -134,9 +134,9 @@ bool gui_init(void)
     emu_set_phaser_offset(config_emulator.light_phaser_x_offset, config_emulator.light_phaser_y_offset);
     emu_enable_paddle(config_emulator.paddle_control);
 
-    strcpy(gui_savefiles_path, config_emulator.savefiles_path.c_str());
-    strcpy(gui_savestates_path, config_emulator.savestates_path.c_str());
-    strcpy(gui_screenshots_path, config_emulator.screenshots_path.c_str());
+    strncpy_fit(gui_savefiles_path, config_emulator.savefiles_path.c_str(), sizeof(gui_savefiles_path));
+    strncpy_fit(gui_savestates_path, config_emulator.savestates_path.c_str(), sizeof(gui_savestates_path));
+    strncpy_fit(gui_screenshots_path, config_emulator.screenshots_path.c_str(), sizeof(gui_screenshots_path));
 
     gui_debug_init();
     gui_init_menus();
@@ -306,7 +306,7 @@ void gui_set_status_message(const char* message, Uint64 milliseconds)
 {
     if (config_emulator.status_messages)
     {
-        strcpy(status_message, message);
+        strncpy_fit(status_message, message, sizeof(status_message));
         status_message_active = true;
         status_message_start_time = SDL_GetTicks();
         status_message_duration = milliseconds;
@@ -315,7 +315,7 @@ void gui_set_status_message(const char* message, Uint64 milliseconds)
 
 void gui_set_error_message(const char* message)
 {
-    strcpy(error_message, message);
+    strncpy_fit(error_message, message, sizeof(error_message));
     error_window_active = true;
 }
 
