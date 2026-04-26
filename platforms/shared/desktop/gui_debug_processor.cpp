@@ -477,8 +477,8 @@ void gui_debug_window_processor(void)
         if (ImGui::IsItemHovered())
         {
             ImGui::BeginTooltip();
-            ImGui::TextColored(green, "Hex: $%04X", proc_state->IX->GetValue());
-            ImGui::TextColored(green, "Dec: %u (%d)", proc_state->IX->GetValue(), (s16)proc_state->IX->GetValue());
+            ImGui::TextColored(yellow, "Hex: $%04X", proc_state->IX->GetValue());
+            ImGui::TextColored(yellow, "Dec: %u (%d)", proc_state->IX->GetValue(), (s16)proc_state->IX->GetValue());
             ImGui::EndTooltip();
         }
 
