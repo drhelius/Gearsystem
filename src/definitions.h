@@ -276,18 +276,6 @@ inline int AsHex(const char c)
    return c >= 'A' ? c - 'A' + 0xA : c - '0';
 }
 
-inline unsigned int Pow2Ceil(u16 n)
-{
-    --n;
-    n |= n >> 1;
-    n |= n >> 2;
-    n |= n >> 4;
-    n |= n >> 8;
-    n |= n >> 16;
-    ++n;
-    return n;
-}
-
 #if defined(MSB_FIRST) || defined(__BIG_ENDIAN__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
     #define GS_BIG_ENDIAN
 #else

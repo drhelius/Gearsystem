@@ -575,7 +575,7 @@ bool Cartridge::TestValidROM(u16 location)
 
 int Cartridge::CalculateROMBankCount(int romSize, int bankSize) const
 {
-    return std::max(Pow2Ceil((romSize + bankSize - 1) / bankSize), 1u);
+    return std::max(pow_2_ceil((romSize + bankSize - 1) / bankSize), (u32)1);
 }
 
 void Cartridge::SetROMPath(const char* path)

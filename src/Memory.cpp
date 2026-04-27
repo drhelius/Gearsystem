@@ -260,7 +260,7 @@ void Memory::LoadBootroom(const char* szFilePath, bool gg)
     if (file.is_open())
     {
         int size = static_cast<int> (file.tellg());
-        int bankCount = std::max(Pow2Ceil((size + 0x4000 - 1) / 0x4000), 1u);
+        int bankCount = std::max(pow_2_ceil((size + 0x4000 - 1) / 0x4000), (u32)1);
         int paddedSize = bankCount * 0x4000;
 
         u8* bootrom = new u8[paddedSize];
