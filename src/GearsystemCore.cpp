@@ -898,7 +898,7 @@ bool GearsystemCore::LoadState(std::istream& stream)
         return false;
     }
 
-    GS_SaveState_Header_Libretro header;
+    GS_SaveState_Header_Libretro header = {};
 #if !defined(__LIBRETRO__)
     bool is_desktop_savestate = false;
 #endif
@@ -907,7 +907,7 @@ bool GearsystemCore::LoadState(std::istream& stream)
     size_t size = static_cast<size_t>(stream.tellg());
 
     // Try desktop header first (larger, contains all info)
-    GS_SaveState_Header desktop_header;
+    GS_SaveState_Header desktop_header = {};
     if (size >= sizeof(desktop_header))
     {
         stream.seekg(size - sizeof(desktop_header), ios::beg);
@@ -925,7 +925,7 @@ bool GearsystemCore::LoadState(std::istream& stream)
     }
 
     // Fallback to libretro header
-    if (header.magic != GS_SAVESTATE_MAGIC)
+    if ((header.magic != GS_SAVESTATE_MAGIC) && (size >= sizeof(header)))
     {
         stream.seekg(size - sizeof(header), ios::beg);
         stream.read(reinterpret_cast<char*> (&header), sizeof(header));
