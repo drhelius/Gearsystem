@@ -1603,7 +1603,9 @@ int Video::CalculateVideoMode()
 
 void Video::CheckPhaser()
 {
-    if (m_Phaser.x < 0 || m_Phaser.x >= 256 || m_Phaser.y < 0 || m_Phaser.y >= 192)
+    int max_height = m_bExtendedMode224 ? 224 : 192;
+
+    if (m_Phaser.x < 0 || m_Phaser.x >= 256 || m_Phaser.y < 0 || m_Phaser.y >= max_height)
         return;
 
     if (m_iCycleCounter < 31 || m_iCycleCounter >= (170 + 31))
