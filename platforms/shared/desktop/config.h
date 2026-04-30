@@ -105,6 +105,7 @@ struct config_Audio
 {
     bool enable = true;
     bool sync = true;
+    float master_volume = 1.0f;
     float psg_volume = 1.0f;
     float fm_volume = 1.0f;
     int buffer_count = 3;
@@ -171,6 +172,7 @@ enum config_HotkeyIndex
     config_HotkeyIndex_SelectSlot3,
     config_HotkeyIndex_SelectSlot4,
     config_HotkeyIndex_SelectSlot5,
+    config_HotkeyIndex_Mute,
     config_HotkeyIndex_COUNT
 };
 

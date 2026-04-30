@@ -629,6 +629,7 @@ static void menu_emulator(void)
             hotkey_configuration_item("Save State Slot 4:", &config_hotkeys[config_HotkeyIndex_SelectSlot4]);
             hotkey_configuration_item("Save State Slot 5:", &config_hotkeys[config_HotkeyIndex_SelectSlot5]);
             hotkey_configuration_item("Screenshot:", &config_hotkeys[config_HotkeyIndex_Screenshot]);
+            hotkey_configuration_item("Mute Audio:", &config_hotkeys[config_HotkeyIndex_Mute]);
             hotkey_configuration_item("Fullscreen:", &config_hotkeys[config_HotkeyIndex_Fullscreen]);
             hotkey_configuration_item("Capture Mouse:", &config_hotkeys[config_HotkeyIndex_CaptureMouse]);
             hotkey_configuration_item("Show Main Menu:", &config_hotkeys[config_HotkeyIndex_ShowMainMenu]);
@@ -932,6 +933,7 @@ static void menu_input(void)
                     gamepad_configuration_item("Fast Forward:", &config_input_gamepad_shortcuts[0].gamepad_shortcuts[config_HotkeyIndex_FFWD], 0);
                     gamepad_configuration_item("Rewind:", &config_input_gamepad_shortcuts[0].gamepad_shortcuts[config_HotkeyIndex_Rewind], 0);
                     gamepad_configuration_item("Screenshot:", &config_input_gamepad_shortcuts[0].gamepad_shortcuts[config_HotkeyIndex_Screenshot], 0);
+                    gamepad_configuration_item("Mute Audio:", &config_input_gamepad_shortcuts[0].gamepad_shortcuts[config_HotkeyIndex_Mute], 0);
 
                     gui_popup_modal_gamepad(0);
 
@@ -993,6 +995,7 @@ static void menu_input(void)
                     gamepad_configuration_item("Fast Forward:", &config_input_gamepad_shortcuts[1].gamepad_shortcuts[config_HotkeyIndex_FFWD], 1);
                     gamepad_configuration_item("Rewind:", &config_input_gamepad_shortcuts[1].gamepad_shortcuts[config_HotkeyIndex_Rewind], 1);
                     gamepad_configuration_item("Screenshot:", &config_input_gamepad_shortcuts[1].gamepad_shortcuts[config_HotkeyIndex_Screenshot], 1);
+                    gamepad_configuration_item("Mute Audio:", &config_input_gamepad_shortcuts[1].gamepad_shortcuts[config_HotkeyIndex_Mute], 1);
 
                     gui_popup_modal_gamepad(1);
 
@@ -1092,7 +1095,7 @@ static void menu_audio(void)
     {
         gui_in_use = true;
 
-        if (ImGui::MenuItem("Enable Audio", "", &config_audio.enable))
+        if (ImGui::MenuItem("Enable Audio", config_hotkeys[config_HotkeyIndex_Mute].str, &config_audio.enable))
         {
             emu_audio_mute(!config_audio.enable);
         }
@@ -1116,6 +1119,25 @@ static void menu_audio(void)
                 emu_disable_ym2413(config_audio.ym2413 == 1);
             }
             ImGui::PopItemWidth();
+            ImGui::EndMenu();
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::BeginMenu("Master Volume", config_audio.enable))
+        {
+            ImGui::PushItemWidth(200.0f);
+            if (ImGui::SliderFloat("##master_volume", &config_audio.master_volume, 0.0f, 2.0f, "Scale = %.2fx", ImGuiSliderFlags_AlwaysClamp))
+            {
+                emu_audio_set_master_volume(config_audio.master_volume);
+            }
+            ImGui::PopItemWidth();
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::Text("Anything above 1.00 may cause clipping.");
+                ImGui::EndTooltip();
+            }
             ImGui::EndMenu();
         }
 

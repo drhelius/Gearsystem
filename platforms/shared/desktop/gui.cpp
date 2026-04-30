@@ -112,6 +112,7 @@ bool gui_init(void)
     gui_audio_mute_psg = false;
     gui_audio_mute_fm = false;
 
+    emu_audio_set_master_volume(config_audio.master_volume);
     emu_audio_psg_volume(config_audio.psg_volume);
     emu_audio_fm_volume(config_audio.fm_volume);
 
@@ -200,6 +201,10 @@ void gui_shortcut(gui_ShortCutEvent event)
     case gui_ShortcutFFWD:
         config_emulator.ffwd = !config_emulator.ffwd;
         gui_action_ffwd();
+        break;
+    case gui_ShortcutMute:
+        config_audio.enable = !config_audio.enable;
+        emu_audio_mute(!config_audio.enable);
         break;
     case gui_ShortcutSaveState:
     {

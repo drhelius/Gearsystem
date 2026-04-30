@@ -81,6 +81,7 @@ EXTERN bool emu_is_debug_idle(void);
 EXTERN bool emu_is_empty(void);
 EXTERN void emu_reset(Cartridge::ForceConfiguration config);
 EXTERN void emu_audio_mute(bool mute);
+EXTERN void emu_audio_set_master_volume(float volume);
 EXTERN void emu_audio_reset(void);
 EXTERN void emu_audio_psg_volume(float volume);
 EXTERN void emu_audio_fm_volume(float volume);

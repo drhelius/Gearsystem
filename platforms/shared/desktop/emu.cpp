@@ -462,6 +462,11 @@ void emu_audio_mute(bool mute)
     gearsystem->GetAudio()->Mute(mute);
 }
 
+void emu_audio_set_master_volume(float volume)
+{
+    gearsystem->GetAudio()->SetMasterVolume(volume);
+}
+
 void emu_audio_reset(void)
 {
     sound_queue_stop();

@@ -37,6 +37,7 @@ Audio::Audio(Cartridge * pCartridge)
     m_bYM2413ForceDisabled = false;
     m_bYM2413CartridgeNotSupported = false;
     m_bMute = false;
+    m_master_volume = 1.0f;
     m_psg_volume = 1.0f;
     m_fm_volume = 1.0f;
     m_bVgmRecordingEnabled = false;
@@ -126,7 +127,7 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
 
         *pSampleCount = count;
 
-        if (m_bMute)
+        if (m_bMute || (m_master_volume <= 0.0f))
         {
             memset(pSampleBuffer, 0, sizeof(s16) * count);
         }
@@ -138,6 +139,7 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
 
                 mix += (m_bPSGEnabled && psg_count > 0) ? (s32)(m_pSampleBuffer[(i >= psg_count) ? psg_count-1 : i] * m_psg_volume) : 0;
                 mix += (m_bYM2413Enabled && !m_bYM2413ForceDisabled && !m_bYM2413CartridgeNotSupported) ? (s32)(m_pYM2413Buffer[i] * m_fm_volume) : 0;
+                mix = (s32)((float)mix * m_master_volume);
 
                 if (mix > 32767)
                     mix = 32767;
