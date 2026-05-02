@@ -33,7 +33,6 @@ static bool scrubbing = false;
 
 static void draw_transport_bar(void);
 static void draw_timeline(void);
-static void seek_and_render(int age);
 
 void gui_debug_window_rewind(void)
 {
@@ -96,9 +95,7 @@ static void draw_transport_bar(void)
     ImGui::BeginDisabled(!can_scrub || at_oldest);
     if (ImGui::Button(ICON_MD_SKIP_PREVIOUS "##rw"))
     {
-        seek_position = snapshot_count - 1;
-        seek_and_render(seek_position);
-        scrubbing = true;
+        gui_debug_rewind_seek(snapshot_count - 1);
     }
     ImGui::EndDisabled();
 
@@ -106,10 +103,7 @@ static void draw_transport_bar(void)
     ImGui::BeginDisabled(!can_scrub || at_oldest);
     if (ImGui::Button(ICON_MD_FAST_REWIND "##rw"))
     {
-        if (seek_position < snapshot_count - 1)
-            seek_position++;
-        seek_and_render(seek_position);
-        scrubbing = true;
+        gui_debug_rewind_seek(seek_position + 1);
     }
     ImGui::EndDisabled();
 
@@ -117,10 +111,7 @@ static void draw_transport_bar(void)
     ImGui::BeginDisabled(!can_scrub || at_newest);
     if (ImGui::Button(ICON_MD_FAST_FORWARD "##rw"))
     {
-        if (seek_position > 0)
-            seek_position--;
-        seek_and_render(seek_position);
-        scrubbing = true;
+        gui_debug_rewind_seek(seek_position - 1);
     }
     ImGui::EndDisabled();
 
@@ -128,9 +119,7 @@ static void draw_transport_bar(void)
     ImGui::BeginDisabled(!can_scrub || at_newest);
     if (ImGui::Button(ICON_MD_SKIP_NEXT "##rw"))
     {
-        seek_position = 0;
-        seek_and_render(seek_position);
-        scrubbing = true;
+        gui_debug_rewind_seek(0);
     }
     ImGui::EndDisabled();
 
@@ -175,13 +164,20 @@ static void draw_timeline(void)
     ImGui::SetNextItemWidth(-1);
     if (ImGui::SliderInt("##rw_timeline", &slider_val, 0, max_age, label))
     {
-        seek_position = max_age - slider_val;
-        seek_and_render(seek_position);
-        scrubbing = true;
+        gui_debug_rewind_seek(max_age - slider_val);
     }
 }
 
-static void seek_and_render(int age)
+bool gui_debug_rewind_seek(int age)
 {
-    rewind_seek(age);
+    int snapshot_count = rewind_get_snapshot_count();
+    if (age < 0 || age >= snapshot_count)
+        return false;
+
+    if (!rewind_seek(age))
+        return false;
+
+    seek_position = age;
+    scrubbing = true;
+    return true;
 }

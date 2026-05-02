@@ -311,10 +311,9 @@ void emu_update(void)
     }
     else
     {
-        rewind_commit_seek();
-
         if (!gearsystem->IsPaused())
         {
+            rewind_commit_seek();
             gearsystem->RunToVBlank(emu_frame_buffer, audio_buffer, &sampleCount);
             frame_executed = true;
         }
