@@ -597,7 +597,7 @@ static void finish_loading_rom(void)
     {
         emu_pause();
 
-        for (int i = 0; i < (GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN * GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN); i++)
+        for (int i = 0; i < SYSTEM_TEXTURE_WIDTH * SYSTEM_TEXTURE_HEIGHT * 4; i++)
         {
             emu_frame_buffer[i] = 0;
         }
