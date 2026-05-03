@@ -35,6 +35,7 @@ static Uint16 input_last_state[GS_MAX_GAMEPADS] = { };
 static bool events_check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat);
 static bool events_match_hotkey_scancode(const SDL_Event* event, const config_Hotkey& hotkey);
 static Uint16 input_build_state(int controller);
+static Uint16 input_filter_opposing_directions(int controller, Uint16 state);
 static void input_apply_state(int controller, Uint16 before, Uint16 now);
 static bool input_check_reset(int controller);
 
@@ -181,7 +182,7 @@ void events_emu(void)
 
     for (int controller = 0; controller < max_controller; controller++)
     {
-        Uint16 now = input_build_state(controller);
+        Uint16 now = input_filter_opposing_directions(controller, input_build_state(controller));
         Uint16 before = input_last_state[controller];
 
         if (now != before)
@@ -203,7 +204,7 @@ void events_sync_input(void)
 
     for (int controller = 0; controller < 2; controller++)
     {
-        Uint16 now = input_build_state(controller);
+        Uint16 now = input_filter_opposing_directions(controller, input_build_state(controller));
         input_apply_state(controller, all_keys, 0);
         input_apply_state(controller, 0, now);
         input_last_state[controller] = now;
@@ -294,6 +295,32 @@ static Uint16 input_build_state(int controller)
     }
 
     return ret;
+}
+
+static Uint16 input_filter_opposing_directions(int controller, Uint16 state)
+{
+    if (config_input[controller].allow_up_down)
+        return state;
+
+    Uint16 previous = input_last_state[controller];
+
+    if ((state & Key_Up) && (state & Key_Down))
+    {
+        if (!(previous & Key_Up))
+            state = (Uint16)(state & ~Key_Up);
+        if (!(previous & Key_Down))
+            state = (Uint16)(state & ~Key_Down);
+    }
+
+    if ((state & Key_Left) && (state & Key_Right))
+    {
+        if (!(previous & Key_Left))
+            state = (Uint16)(state & ~Key_Left);
+        if (!(previous & Key_Right))
+            state = (Uint16)(state & ~Key_Right);
+    }
+
+    return state;
 }
 
 static void input_apply_state(int controller, Uint16 before, Uint16 now)

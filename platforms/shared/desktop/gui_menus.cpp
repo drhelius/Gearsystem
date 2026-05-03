@@ -1085,6 +1085,24 @@ static void menu_input(void)
             ImGui::EndMenu();
         }
 
+        ImGui::Separator();
+
+        bool allow_up_down = config_input[0].allow_up_down && config_input[1].allow_up_down;
+
+        if (ImGui::MenuItem("Allow Up+Down / Left+Right", "", &allow_up_down))
+        {
+            for (int i = 0; i < GS_MAX_GAMEPADS; i++)
+                config_input[i].allow_up_down = allow_up_down;
+        }
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            ImGui::Text("Allow pressing, quickly alternating, or holding");
+            ImGui::Text("both left and right or up and down directions.");
+            ImGui::Text("This may cause movement glitches in certain games.");
+            ImGui::EndTooltip();
+        }
+
         ImGui::EndMenu();
     }
 }
