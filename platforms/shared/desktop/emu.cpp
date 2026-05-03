@@ -1178,7 +1178,7 @@ static void debug_step_instruction(void)
 
     emu_debug_halt_step_frames_pending = 0;
 
-    if (processor->Halted() || (emu_get_core()->GetMemory()->Read(pc) == 0x76))
+    if (processor->Halted() || (emu_get_core()->GetMemory()->DebugRetrieve(pc) == 0x76))
     {
         processor->AddRunToBreakpoint(pc + 1);
         emu_debug_halt_step_frames_pending = kDebugHaltStepMaxFrames;
