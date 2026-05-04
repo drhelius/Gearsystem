@@ -304,6 +304,8 @@ void gui_file_dialog_load_gg_bootrom(void)
 
 void gui_file_dialog_process_results(void)
 {
+    bool refocus_window = pending_refocus_window && !dialog_active;
+
 #if !defined(__APPLE__)
     if (was_exclusive_fullscreen && !dialog_active)
     {
@@ -312,11 +314,8 @@ void gui_file_dialog_process_results(void)
     }
 #endif
 
-    if (pending_refocus_window && !dialog_active)
-    {
+    if (refocus_window)
         pending_refocus_window = false;
-        SDL_RaiseWindow(application_sdl_window);
-    }
 
     if (pending_dialog_id != FileDialog_None)
     {
@@ -326,6 +325,9 @@ void gui_file_dialog_process_results(void)
         pending_dialog_path.clear();
         process_dialog_result(id, path.c_str());
     }
+
+    if (refocus_window)
+        application_refocus_window();
 }
 
 bool gui_file_dialog_is_active(void)
@@ -337,14 +339,12 @@ static void SDLCALL file_dialog_callback(void* userdata, const char* const* file
 {
     (void)filter;
     dialog_active = false;
+    pending_refocus_window = true;
 
     FileDialogID id = (FileDialogID)(intptr_t)userdata;
 
     if (!filelist || !filelist[0])
-    {
-        pending_refocus_window = true;
         return;
-    }
 
     pending_dialog_id = id;
     pending_dialog_path = filelist[0];
