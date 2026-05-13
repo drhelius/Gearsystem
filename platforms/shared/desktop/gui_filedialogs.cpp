@@ -55,6 +55,7 @@ enum FileDialogID
     FileDialog_SaveTiles,
     FileDialog_SaveMemoryDumpBinary,
     FileDialog_SaveMemoryDumpText,
+    FileDialog_LoadMemoryDumpBinary,
     FileDialog_SaveDisassemblerFull,
     FileDialog_SaveDisassemblerVisible,
     FileDialog_SaveLog,
@@ -232,6 +233,16 @@ void gui_file_dialog_save_memory_dump(bool binary)
     FileDialogID id = binary ? FileDialog_SaveMemoryDumpBinary : FileDialog_SaveMemoryDumpText;
     SDL_DialogFileFilter filters[] = { { "Memory Dump Files", binary ? "bin" : "txt" } };
     SDL_ShowSaveFileDialog(file_dialog_callback, (void*)(intptr_t)id, application_sdl_window, filters, 1, NULL);
+}
+
+void gui_file_dialog_load_memory_dump()
+{
+    if (!begin_dialog())
+        return;
+
+    SDL_DialogFileFilter filters[] = { { "Memory Dump Files", "bin" } };
+    const char* default_path = config_emulator.last_open_path.empty() ? NULL : config_emulator.last_open_path.c_str();
+    SDL_ShowOpenFileDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_LoadMemoryDumpBinary, application_sdl_window, filters, 1, default_path, false);
 }
 
 void gui_file_dialog_save_disassembler(bool full)
@@ -446,6 +457,11 @@ static void process_dialog_result(FileDialogID id, const char* path)
         case FileDialog_SaveMemoryDumpText:
         {
             gui_debug_memory_save_dump(path, false);
+            break;
+        }
+        case FileDialog_LoadMemoryDumpBinary:
+        {
+            gui_debug_memory_load_dump(path);
             break;
         }
         case FileDialog_SaveDisassemblerFull:
