@@ -314,6 +314,7 @@ The server exposes tools organized in the following categories:
 
 ### Media & State Management
 - `get_media_info` - Get loaded ROM info (file path, type, size, mapper, zone, system)
+- `list_recent_media` - List the 10 most recent ROM files opened by Gearsystem
 - `load_media` - Load ROM file (.sms, .gg, .sg, .zip). Automatically loads .sym symbol file if present
 - `load_symbols` - Load debug symbols from file (.sym format with 'BANK:ADDRESS LABEL' entries)
 - `list_save_state_slots` - List all 5 save state slots with information (rom name, timestamp, validity)
