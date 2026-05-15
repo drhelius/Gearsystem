@@ -805,6 +805,11 @@ void emu_set_hide_left_bar(int hide_left_bar)
     }
 }
 
+void emu_video_no_sprite_limit(bool enabled)
+{
+    gearsystem->GetVideo()->SetNoSpriteLimit(enabled);
+}
+
 void emu_disable_ym2413(bool disable)
 {
     gearsystem->GetAudio()->DisableYM2413(disable);

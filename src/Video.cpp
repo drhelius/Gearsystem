@@ -67,6 +67,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor, Cartridge* pCartridge)
     m_iTMS9918Mode = 0;
     m_bDisplayEnabled = false;
     m_bSpriteOvrRequest = false;
+    m_bNoSpriteLimit = false;
     m_bLineInterruptPending = false;
     m_bSpriteCollisionRequest = false;
     m_iSpriteCollisionX = 0;
@@ -113,6 +114,11 @@ void Video::Init()
 void Video::SetTraceLogger(TraceLogger* pTraceLogger)
 {
     m_pTraceLogger = pTraceLogger;
+}
+
+void Video::SetNoSpriteLimit(bool noSpriteLimit)
+{
+    m_bNoSpriteLimit = noSpriteLimit;
 }
 
 void Video::Reset(bool bGameGear, bool bPAL, int iGGASIC, bool bGameGearSMSMode)
@@ -223,7 +229,7 @@ void Video::Reset(bool bGameGear, bool bPAL, int iGGASIC, bool bGameGearSMSMode)
         m_Timing[TIMING_SPRITEOVR] = 25;
     }
 
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 64; i++)
     {
         m_NextLineSprites[i] = -1;
     }
@@ -838,6 +844,7 @@ void Video::ParseSpritesSMSGG(int line)
     u16 sprite_table_address = (m_VdpRegister[5] << 7) & 0x3F00;
     int buffer_index = 0;
     int max_height = m_bExtendedMode224 ? 224 : 192;
+    int max_sprites = m_bNoSpriteLimit ? 64 : 8;
 
     for (int sprite = 0; sprite < 64; sprite++)
     {
@@ -864,16 +871,19 @@ void Video::ParseSpritesSMSGG(int line)
             {
                 if (line < max_height)
                     m_bSpriteOvrRequest = true;
-                break;
+                if (!m_bNoSpriteLimit)
+                    break;
             }
 
-            m_NextLineSprites[buffer_index] = sprite;
-
-            buffer_index++;
+            if (buffer_index < max_sprites)
+            {
+                m_NextLineSprites[buffer_index] = sprite;
+                buffer_index++;
+            }
         }
     }
 
-    for (int i = buffer_index; i < 8; i++)
+    for (int i = buffer_index; i < max_sprites; i++)
     {
         m_NextLineSprites[i] = -1;
     }
@@ -904,15 +914,17 @@ void Video::RenderSpritesSMSGG(int line)
     int sprite_shift = IsSetBit(m_VdpRegister[0], 3) ? 8 : 0;
     u16 sprite_tiles_address = (m_VdpRegister[6] << 11) & 0x2000;
 
+    int render_sprite_count = m_bNoSpriteLimit ? 64 : 8;
+
     int scx_begin = (m_bGameGear && !m_bGameGearSMSMode) ? GS_RESOLUTION_GG_X_OFFSET : m_iHideLeftBarOffset;
     int scx_end = scx_begin + (m_iScreenWidth - m_iHideLeftBarOffset);
 
-    for (int i = 7; i >= 0; i--)
+    for (int i = render_sprite_count - 1; i >= 0; i--)
     {
-        if (m_NextLineSprites[i] < 0)
-            continue;
-
         int sprite = m_NextLineSprites[i];
+
+        if (sprite < 0)
+            continue;
 
         u16 sprite_info_address = sprite_table_address_2 + (sprite << 1);
         int sprite_index = sprite_table_address + sprite;
@@ -1198,7 +1210,7 @@ void Video::RenderSpritesTMS9918(int line)
             else
                 sprite_pixel = IsSetBit(m_pVdpVRAM[(sprite_line_addr + 16) & 0x3FFF], 15 - tile_x_adjusted);
 
-            if (sprite_pixel && (sprite_count < 5))
+            if (sprite_pixel && ((sprite_count < 5) || m_bNoSpriteLimit))
             {
                 if (!IsSetBit(m_pInfoBuffer[pixel], 0) && (sprite_color > 0))
                 {
@@ -1697,7 +1709,16 @@ void Video::LoadState(std::istream& stream, int version)
     stream.read(reinterpret_cast<char*> (&m_bTMS9918), sizeof(m_bTMS9918));
     stream.read(reinterpret_cast<char*> (&m_iTMS9918Mode), sizeof(m_iTMS9918Mode));
     stream.read(reinterpret_cast<char*> (&m_Timing), sizeof(m_Timing));
-    stream.read(reinterpret_cast<char*> (&m_NextLineSprites), sizeof(m_NextLineSprites));
+    if (version >= 102)
+    {
+        stream.read(reinterpret_cast<char*> (&m_NextLineSprites), sizeof(m_NextLineSprites));
+    }
+    else
+    {
+        stream.read(reinterpret_cast<char*> (&m_NextLineSprites), sizeof(m_NextLineSprites[0]) * 8);
+        for (int i = 8; i < 64; i++)
+            m_NextLineSprites[i] = -1;
+    }
     stream.read(reinterpret_cast<char*> (&m_bDisplayEnabled), sizeof(m_bDisplayEnabled));
     stream.read(reinterpret_cast<char*> (&m_bSpriteOvrRequest), sizeof(m_bSpriteOvrRequest));
     stream.read(reinterpret_cast<char*> (&m_Phaser), sizeof(m_Phaser));

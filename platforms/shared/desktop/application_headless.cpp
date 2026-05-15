@@ -80,6 +80,7 @@ int application_headless_init(const char* rom_file, const char* symbol_file, int
     emu_enable_bootrom_gg(config_emulator.gg_bootrom);
     emu_set_media_slot(config_emulator.media);
     emu_set_hide_left_bar(config_video.hide_left_bar);
+    emu_video_no_sprite_limit(config_video.sprite_limit);
     emu_disable_ym2413(config_audio.ym2413 == 1);
 
     if (IsValidPointer(rom_file) && (strlen(rom_file) > 0))

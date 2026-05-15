@@ -879,6 +879,17 @@ static void check_variables(void)
             core->GetVideo()->SetHideLeftBar(Video::HideLeftBarNo);
     }
 
+    var.key = "gearsystem_no_sprite_limit";
+    var.value = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Enabled") == 0)
+            core->GetVideo()->SetNoSpriteLimit(true);
+        else
+            core->GetVideo()->SetNoSpriteLimit(false);
+    }
+
     var.key = "gearsystem_bios_sms";
     var.value = NULL;
 

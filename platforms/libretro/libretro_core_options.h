@@ -44,7 +44,7 @@ struct retro_core_option_v2_category option_cats_us[] = {
     {
         "video",
         "Video",
-        "Configure aspect ratio, overscan, left bar visibility and 3D glasses settings."
+        "Configure aspect ratio, overscan, left bar visibility, sprite limit and 3D glasses settings."
     },
     {
         "audio",
@@ -229,6 +229,20 @@ struct retro_core_option_v2_definition option_defs_us[] = {
             { NULL, NULL },
         },
         "No"
+    },
+    {
+        "gearsystem_no_sprite_limit",
+        "No Sprite Limit",
+        NULL,
+        "Remove the per-line sprite limit. This reduces flickering but may cause glitches in certain games. It's best to keep this option disabled.",
+        NULL,
+        "video",
+        {
+            { "Disabled", NULL },
+            { "Enabled",  NULL },
+            { NULL, NULL },
+        },
+        "Disabled"
     },
     {
         "gearsystem_glasses",

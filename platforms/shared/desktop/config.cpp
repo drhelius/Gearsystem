@@ -346,6 +346,7 @@ void config_read(void)
     config_video.scanlines_filter = read_bool("Video", "ScanlinesFilter", false);
     config_video.scanlines_intensity = read_float("Video", "ScanlinesIntensity", 0.10f);
     config_video.sync = read_bool("Video", "Sync", true);
+    config_video.sprite_limit = read_bool("Video", "SpriteLimit", false);
     config_video.background_color[0] = read_float("Video", "BackgroundColorR", 0.1f);
     config_video.background_color[1] = read_float("Video", "BackgroundColorG", 0.1f);
     config_video.background_color[2] = read_float("Video", "BackgroundColorB", 0.1f);
@@ -576,6 +577,7 @@ void config_write(void)
     write_bool("Video", "ScanlinesFilter", config_video.scanlines_filter);
     write_float("Video", "ScanlinesIntensity", config_video.scanlines_intensity);
     write_bool("Video", "Sync", config_video.sync);
+    write_bool("Video", "SpriteLimit", config_video.sprite_limit);
     write_float("Video", "BackgroundColorR", config_video.background_color[0]);
     write_float("Video", "BackgroundColorG", config_video.background_color[1]);
     write_float("Video", "BackgroundColorB", config_video.background_color[2]);
