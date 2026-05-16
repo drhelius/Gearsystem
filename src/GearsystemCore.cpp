@@ -569,8 +569,7 @@ void GearsystemCore::SaveRam(const char* szPath, bool fullPath)
 
             if (!fullPath)
             {
-                path += "/";
-                path += m_pCartridge->GetFileName();
+                append_path_component(path, m_pCartridge->GetFileName());
             }
         }
         else
@@ -602,7 +601,7 @@ void GearsystemCore::LoadRam()
 
 void GearsystemCore::LoadRam(const char* szPath, bool fullPath)
 {
-    if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()))
+    if (m_pCartridge->IsReady() && IsValidPointer(m_pMemory->GetCurrentRule()) && m_pMemory->GetCurrentRule()->PersistedRAM())
     {
         Log("Loading RAM...");
 
@@ -616,8 +615,7 @@ void GearsystemCore::LoadRam(const char* szPath, bool fullPath)
 
             if (!fullPath)
             {
-                sav_path += "/";
-                sav_path += m_pCartridge->GetFileName();
+                append_path_component(sav_path, m_pCartridge->GetFileName());
             }
         }
         else
@@ -682,8 +680,7 @@ std::string GearsystemCore::GetSaveStatePath(const char* path, int index)
     if (IsValidPointer(path))
     {
         full_path = path;
-        full_path += "/";
-        full_path += m_pCartridge->GetFileName();
+        append_path_component(full_path, m_pCartridge->GetFileName());
     }
     else
         full_path = m_pCartridge->GetFilePath();
