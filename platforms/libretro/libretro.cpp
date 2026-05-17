@@ -292,7 +292,7 @@ bool retro_load_game(const struct retro_game_info *info)
     check_variables();
     load_bootroms();
 
-    snprintf(retro_game_path, sizeof(retro_game_path), "%s", info->path);
+    snprintf(retro_game_path, sizeof(retro_game_path), "%s", info->path ? info->path : "");
 
     log_cb(RETRO_LOG_INFO, "Loading game: %s\n", retro_game_path);
 
