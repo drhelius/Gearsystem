@@ -36,6 +36,12 @@ static const int config_version = 2;
 static const int config_max_recent_roms = 10;
 static const int config_memory_editor_count = 18;
 
+enum config_ShaderMode
+{
+    config_ShaderMode_PixelPerfect = 0,
+    config_ShaderMode_External = 1
+};
+
 struct config_Emulator
 {
     bool maximized = false;
@@ -89,17 +95,13 @@ struct config_Video
     int overscan = 1;
     int hide_left_bar = 0;
     bool fps = false;
-    bool bilinear = false;
-    bool mix_frames = true;
-    float mix_frames_intensity = 0.50f;
-    bool scanlines = true;
-    bool scanlines_filter = false;
-    float scanlines_intensity = 0.10f;
     bool sync = true;
     bool sprite_limit = false;
     float background_color[3] = {0.1f, 0.1f, 0.1f};
     float background_color_debugger[3] = {0.2f, 0.2f, 0.2f};
     int glasses = 0;
+    int shader_mode = config_ShaderMode_PixelPerfect;
+    std::string shader_preset_path;
 };
 
 struct config_Audio
@@ -266,6 +268,8 @@ EXTERN void config_write(void);
 EXTERN void config_load_defaults(void);
 EXTERN void config_push_recent_media(const std::string& path);
 EXTERN void config_update_hotkey_string(config_Hotkey* hotkey);
+EXTERN bool config_read_shader_parameter(const char* preset_file, const char* parameter_name, float* value);
+EXTERN void config_write_shader_parameter(const char* preset_file, const char* parameter_name, float value);
 
 #undef CONFIG_IMPORT
 #undef EXTERN

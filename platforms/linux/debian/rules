@@ -25,6 +25,13 @@ override_dh_install:
 	install -dm755 debian/gearsystem/usr/lib/gearsystem/mcp/resources/hardware
 	install -m644 platforms/shared/desktop/mcp/resources/hardware/toc.json \
 		debian/gearsystem/usr/lib/gearsystem/mcp/resources/hardware/toc.json
+	install -dm755 debian/gearsystem/usr/lib/gearsystem/shaders
+	install -m644 platforms/shared/desktop/shaders/*.gshader \
+		debian/gearsystem/usr/lib/gearsystem/shaders/
+	install -m644 platforms/shared/desktop/shaders/*.glsl \
+		debian/gearsystem/usr/lib/gearsystem/shaders/
+	install -m644 platforms/shared/desktop/shaders/README.md \
+		debian/gearsystem/usr/lib/gearsystem/shaders/
 	install -dm755 debian/gearsystem/usr/games
 	ln -s ../lib/gearsystem/gearsystem debian/gearsystem/usr/games/gearsystem
 
