@@ -1,5 +1,5 @@
 [Preset]
-Name=Scanlines Bilinear
+Name=Scanlines + Bilinear
 Passes=1
 
 [Pass0]
