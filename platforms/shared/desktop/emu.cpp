@@ -615,12 +615,13 @@ void emu_get_info(char* info, int buffer_size)
             system = "SG-1000";
         const char* pal = cart->IsPAL() ? "PAL" : "NTSC";
         const char* checksum = cart->IsValidROM() ? "VALID" : "FAILED";
+        const char* is_in_database = cart->IsInGameDatabase() ? "YES" : "NO";
         const char* battery = gearsystem->GetMemory()->GetCurrentRule()->PersistedRAM() ? "YES" : "NO";
         int rom_banks = cart->GetROMBankCount();
         const char* mapper = get_mapper(cart->GetType());
         const char* zone = get_zone(cart->GetZone());
 
-        snprintf(info, buffer_size, "File Name: %s\nCRC: %08X\nMapper: %s\nRegion: %s\nSystem: %s\nRefresh Rate: %s\nCartridge Header: %s\nROM Banks: %d\nBattery: %s\nScreen Resolution: %dx%d", filename, crc, mapper, zone, system, pal, checksum, rom_banks, battery, runtime.screen_width, runtime.screen_height);
+        snprintf(info, buffer_size, "File Name: %s\nCRC: %08X\nInternal DB: %s\nMapper: %s\nRegion: %s\nSystem: %s\nRefresh Rate: %s\nCartridge Header: %s\nROM Banks: %d\nBattery: %s\nScreen Resolution: %dx%d", filename, crc, is_in_database, mapper, zone, system, pal, checksum, rom_banks, battery, runtime.screen_width, runtime.screen_height);
     }
     else
     {
