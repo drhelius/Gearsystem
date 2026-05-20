@@ -2,6 +2,8 @@
 // Blip_Buffer 0.3.0. http://www.slack.net/~ant/nes-emu/
 
 #include "Stereo_Buffer.h"
+#include <istream>
+#include <ostream>
 
 /* Library Copyright (C) 2004 Shay Green. Blip_Buffer is free software;
 you can redistribute it and/or modify it under the terms of the GNU
@@ -142,4 +144,30 @@ void Stereo_Buffer::mix_mono( blip_sample_t* out, long count )
 	}
 	
 	in.end( bufs [0] );
+}
+
+void Stereo_Buffer::SaveState( std::ostream& stream )
+{
+	for ( int i = 0; i < buf_count; i++ )
+	{
+		blip_buffer_state_t state;
+		bufs [i].save_state( &state );
+		stream.write( reinterpret_cast<const char*>( &state ), sizeof( state ) );
+	}
+
+	stream.write( reinterpret_cast<const char*>( &stereo_added ), sizeof( stereo_added ) );
+	stream.write( reinterpret_cast<const char*>( &was_stereo ), sizeof( was_stereo ) );
+}
+
+void Stereo_Buffer::LoadState( std::istream& stream )
+{
+	for ( int i = 0; i < buf_count; i++ )
+	{
+		blip_buffer_state_t state;
+		stream.read( reinterpret_cast<char*>( &state ), sizeof( state ) );
+		bufs [i].load_state( state );
+	}
+
+	stream.read( reinterpret_cast<char*>( &stereo_added ), sizeof( stereo_added ) );
+	stream.read( reinterpret_cast<char*>( &was_stereo ), sizeof( was_stereo ) );
 }

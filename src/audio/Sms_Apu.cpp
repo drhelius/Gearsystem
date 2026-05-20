@@ -1,6 +1,8 @@
 // Sms_Snd_Emu 0.1.4. http://www.slack.net/~ant/
 
 #include "Sms_Apu.h"
+#include <istream>
+#include <ostream>
 
 /* Copyright (C) 2003-2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -338,6 +340,45 @@ static unsigned char const volumes [16] = {
 	64, 50, 39, 31, 24, 19, 15, 12, 9, 7, 5, 4, 3, 2, 1, 0
 };
 
+static int noise_period_index( const Sms_Noise& noise, const Sms_Square* squares, const int* noise_periods )
+{
+	if ( noise.period == &squares [2].period )
+		return 3;
+
+	for ( int i = 0; i < 3; i++ )
+	{
+		if ( noise.period == &noise_periods [i] )
+			return i;
+	}
+
+	return 0;
+}
+
+static void save_osc_state( std::ostream& stream, const Sms_Osc& osc )
+{
+	stream.write( reinterpret_cast<const char*>( &osc.output_select ), sizeof( osc.output_select ) );
+	stream.write( reinterpret_cast<const char*>( &osc.delay ), sizeof( osc.delay ) );
+	stream.write( reinterpret_cast<const char*>( &osc.last_amp ), sizeof( osc.last_amp ) );
+	stream.write( reinterpret_cast<const char*>( &osc.volume ), sizeof( osc.volume ) );
+	stream.write( reinterpret_cast<const char*>( &osc.volume_reg ), sizeof( osc.volume_reg ) );
+	stream.write( reinterpret_cast<const char*>( &osc.debug_last_amp ), sizeof( osc.debug_last_amp ) );
+}
+
+static void load_osc_state( std::istream& stream, Sms_Osc& osc )
+{
+	stream.read( reinterpret_cast<char*>( &osc.output_select ), sizeof( osc.output_select ) );
+	stream.read( reinterpret_cast<char*>( &osc.delay ), sizeof( osc.delay ) );
+	stream.read( reinterpret_cast<char*>( &osc.last_amp ), sizeof( osc.last_amp ) );
+	stream.read( reinterpret_cast<char*>( &osc.volume ), sizeof( osc.volume ) );
+	stream.read( reinterpret_cast<char*>( &osc.volume_reg ), sizeof( osc.volume_reg ) );
+	stream.read( reinterpret_cast<char*>( &osc.debug_last_amp ), sizeof( osc.debug_last_amp ) );
+
+	if ( osc.output_select < 0 || osc.output_select > 3 )
+		osc.output_select = 3;
+
+	osc.output = osc.outputs [osc.output_select];
+}
+
 void Sms_Apu::write_data( blip_time_t time, int data )
 {
 	require( (unsigned) data <= 0xFF );
@@ -371,6 +412,63 @@ void Sms_Apu::write_data( blip_time_t time, int data )
 		
 		noise.feedback = (data & 0x04) ? noise_feedback : looped_feedback;
 		noise.shifter = 0x8000;
+	}
+}
+
+void Sms_Apu::SaveState( std::ostream& stream )
+{
+	stream.write( reinterpret_cast<const char*>( &last_time ), sizeof( last_time ) );
+	stream.write( reinterpret_cast<const char*>( &latch ), sizeof( latch ) );
+	stream.write( reinterpret_cast<const char*>( &noise_feedback ), sizeof( noise_feedback ) );
+	stream.write( reinterpret_cast<const char*>( &looped_feedback ), sizeof( looped_feedback ) );
+	stream.write( reinterpret_cast<const char*>( &ggstereo_save ), sizeof( ggstereo_save ) );
+	stream.write( reinterpret_cast<const char*>( &ti_chip_mode ), sizeof( ti_chip_mode ) );
+
+	for ( int i = 0; i < 3; i++ )
+	{
+		save_osc_state( stream, squares [i] );
+		stream.write( reinterpret_cast<const char*>( &squares [i].period ), sizeof( squares [i].period ) );
+		stream.write( reinterpret_cast<const char*>( &squares [i].phase ), sizeof( squares [i].phase ) );
+	}
+
+	save_osc_state( stream, noise );
+	int period_index = noise_period_index( noise, squares, noise_periods );
+	stream.write( reinterpret_cast<const char*>( &period_index ), sizeof( period_index ) );
+	stream.write( reinterpret_cast<const char*>( &noise.shifter ), sizeof( noise.shifter ) );
+	stream.write( reinterpret_cast<const char*>( &noise.feedback ), sizeof( noise.feedback ) );
+}
+
+void Sms_Apu::LoadState( std::istream& stream )
+{
+	stream.read( reinterpret_cast<char*>( &last_time ), sizeof( last_time ) );
+	stream.read( reinterpret_cast<char*>( &latch ), sizeof( latch ) );
+	stream.read( reinterpret_cast<char*>( &noise_feedback ), sizeof( noise_feedback ) );
+	stream.read( reinterpret_cast<char*>( &looped_feedback ), sizeof( looped_feedback ) );
+	stream.read( reinterpret_cast<char*>( &ggstereo_save ), sizeof( ggstereo_save ) );
+	stream.read( reinterpret_cast<char*>( &ti_chip_mode ), sizeof( ti_chip_mode ) );
+
+	for ( int i = 0; i < 3; i++ )
+	{
+		load_osc_state( stream, squares [i] );
+		stream.read( reinterpret_cast<char*>( &squares [i].period ), sizeof( squares [i].period ) );
+		stream.read( reinterpret_cast<char*>( &squares [i].phase ), sizeof( squares [i].phase ) );
+		squares [i].ti = ti_chip_mode;
+	}
+
+	load_osc_state( stream, noise );
+	int period_index = 0;
+	stream.read( reinterpret_cast<char*>( &period_index ), sizeof( period_index ) );
+	stream.read( reinterpret_cast<char*>( &noise.shifter ), sizeof( noise.shifter ) );
+	stream.read( reinterpret_cast<char*>( &noise.feedback ), sizeof( noise.feedback ) );
+	noise.ti = ti_chip_mode;
+
+	if ( period_index == 3 )
+		noise.period = &squares [2].period;
+	else
+	{
+		if ( period_index < 0 || period_index > 2 )
+			period_index = 0;
+		noise.period = &noise_periods [period_index];
 	}
 }
 

@@ -969,7 +969,7 @@ bool GearsystemCore::LoadState(std::istream& stream)
 
     m_pMemory->LoadState(stream);
     m_pProcessor->LoadState(stream);
-    m_pAudio->LoadState(stream);
+    m_pAudio->LoadState(stream, header.version);
     m_pVideo->LoadState(stream, header.version);
     m_pInput->LoadState(stream);
     m_pMemory->GetCurrentRule()->LoadState(stream);

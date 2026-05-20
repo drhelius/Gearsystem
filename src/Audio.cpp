@@ -175,9 +175,11 @@ void Audio::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_bPSGEnabled), sizeof(m_bPSGEnabled));
     stream.write(reinterpret_cast<const char*> (m_pYM2413Buffer), sizeof(s16) * GS_AUDIO_BUFFER_SIZE);
     m_pYM2413->SaveState(stream);
+    m_pApu->SaveState(stream);
+    m_pBuffer->SaveState(stream);
 }
 
-void Audio::LoadState(std::istream& stream)
+void Audio::LoadState(std::istream& stream, int version)
 {
     using namespace std;
 
@@ -188,14 +190,26 @@ void Audio::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*> (m_pYM2413Buffer), sizeof(s16) * GS_AUDIO_BUFFER_SIZE);
     m_pYM2413->LoadState(stream);
 
-    m_pApu->reset(m_pCartridge->IsSG1000() && !m_pCartridge->IsSG1000II());
-    m_pApu->volume(1.0);
-    m_pBuffer->clear();
-    if (m_pApu->is_debug_enabled())
+    if (version >= 103)
     {
-        long clock = m_bPAL ? (m_pCartridge->IsSG1000() ? GS_MASTER_CLOCK_PAL_SG1000 : GS_MASTER_CLOCK_PAL) : GS_MASTER_CLOCK_NTSC;
-        m_pApu->init_debug_buffers(m_iSampleRate, clock);
+        m_pApu->LoadState(stream);
+        m_pBuffer->LoadState(stream);
     }
+    else
+    {
+        m_pApu->reset(m_pCartridge->IsSG1000() && !m_pCartridge->IsSG1000II());
+        m_pBuffer->clear();
+        if (m_pApu->is_debug_enabled())
+        {
+            long clock = m_bPAL ? (m_pCartridge->IsSG1000() ? GS_MASTER_CLOCK_PAL_SG1000 : GS_MASTER_CLOCK_PAL) : GS_MASTER_CLOCK_NTSC;
+            m_pApu->init_debug_buffers(m_iSampleRate, clock);
+        }
+    }
+
+    if (m_bYM2413Enabled && m_bPSGEnabled)
+        m_pApu->volume(0.8);
+    else
+        m_pApu->volume(1.0);
 }
 
 void Audio::LoadStateV1(std::istream& stream)

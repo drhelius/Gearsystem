@@ -4,6 +4,7 @@
 #ifndef SMS_APU_H
 #define SMS_APU_H
 
+#include <iosfwd>
 #include "Sms_Oscs.h"
 
 struct Sms_Apu_State
@@ -62,6 +63,9 @@ public:
 	// Run all oscillators up to specified time, end current frame, then
 	// start a new frame at time 0.
 	void end_frame( blip_time_t );
+
+	void SaveState( std::ostream& stream );
+	void LoadState( std::istream& stream );
 
 	// Get current state for debugger
 	Sms_Apu_State GetState();

@@ -8,6 +8,7 @@
 #define STEREO_BUFFER_H
 
 #include "Blip_Buffer.h"
+#include <iosfwd>
 
 class Stereo_Buffer {
 public:
@@ -34,6 +35,8 @@ public:
 	// are in samples, *not* pairs.
 	long samples_avail() const;
 	long read_samples( blip_sample_t*, long );
+	void SaveState( std::ostream& stream );
+	void LoadState( std::istream& stream );
 	
 private:
 	// noncopyable

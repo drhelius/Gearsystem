@@ -21,6 +21,8 @@ typedef blip_long blip_time_t;
 typedef short blip_sample_t;
 enum { blip_sample_max = 32767 };
 
+struct blip_buffer_state_t;
+
 class Blip_Buffer {
 public:
 	typedef const char* blargg_err_t;
@@ -67,6 +69,9 @@ public:
 	
 	// Number of samples available for reading with read_samples()
 	long samples_avail() const;
+
+	void save_state( blip_buffer_state_t* out );
+	void load_state( blip_buffer_state_t const& in );
 	
 	// Remove 'count' samples from those waiting to be read
 	void remove_samples( long count );
@@ -151,6 +156,14 @@ private:
 	int const blip_buffer_extra_ = blip_widest_impulse_ + 2;
 	int const blip_res = 1 << BLIP_PHASE_BITS;
 	class blip_eq_t;
+
+	struct blip_buffer_state_t
+	{
+		blip_resampled_time_t offset_;
+		blip_long reader_accum_;
+		int modified_;
+		blip_long buf [blip_buffer_extra_];
+	};
 	
 	class Blip_Synth_Fast_ {
 	public:

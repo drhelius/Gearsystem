@@ -449,3 +449,22 @@ void Blip_Buffer::mix_samples( blip_sample_t const* in, long count )
 	}
 	*out -= prev;
 }
+
+void Blip_Buffer::save_state( blip_buffer_state_t* out )
+{
+	assert( samples_avail() == 0 );
+	out->offset_ = offset_;
+	out->reader_accum_ = reader_accum_;
+	out->modified_ = modified_;
+	memcpy( out->buf, &buffer_ [offset_ >> BLIP_BUFFER_ACCURACY], sizeof out->buf );
+}
+
+void Blip_Buffer::load_state( blip_buffer_state_t const& in )
+{
+	clear( false );
+
+	offset_ = in.offset_;
+	reader_accum_ = in.reader_accum_;
+	modified_ = in.modified_;
+	memcpy( buffer_, in.buf, sizeof in.buf );
+}
