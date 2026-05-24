@@ -56,6 +56,8 @@ static int audio_sample_count = 0;
 
 static unsigned input_device[2];
 static bool allow_up_down = false;
+static int8_t dpad_vertical_latch[2] = { 0, 0 };
+static int8_t dpad_horizontal_latch[2] = { 0, 0 };
 static bool lightgun_touchscreen = false;
 static bool lightgun_crosshair = false;
 static Video::LightPhaserCrosshairShape lightgun_crosshair_shape = Video::LightPhaserCrosshairCross;
@@ -493,32 +495,111 @@ static void update_input(void)
                     ib |= input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, i) ? (1 << i) : 0;
             }
 
-            if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_UP))
+            bool raw_up = (ib & (1 << RETRO_DEVICE_ID_JOYPAD_UP)) != 0;
+            bool raw_down = (ib & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN)) != 0;
+            bool raw_left = (ib & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT)) != 0;
+            bool raw_right = (ib & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT)) != 0;
+            bool up = raw_up;
+            bool down = raw_down;
+            bool left = raw_left;
+            bool right = raw_right;
+
+            if (!allow_up_down)
             {
-                if (allow_up_down || !(ib & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN)))
-                    core->KeyPressed(static_cast<GS_Joypads>(player), Key_Up);
+                if (raw_up && raw_down)
+                {
+                    if (dpad_vertical_latch[player] > 0)
+                    {
+                        up = true;
+                        down = false;
+                    }
+                    else if (dpad_vertical_latch[player] < 0)
+                    {
+                        up = false;
+                        down = true;
+                    }
+                    else
+                    {
+                        up = true;
+                        down = false;
+                        dpad_vertical_latch[player] = 1;
+                    }
+                }
+                else if (raw_up)
+                {
+                    up = true;
+                    down = false;
+                    dpad_vertical_latch[player] = 1;
+                }
+                else if (raw_down)
+                {
+                    up = false;
+                    down = true;
+                    dpad_vertical_latch[player] = -1;
+                }
+                else
+                {
+                    up = false;
+                    down = false;
+                    dpad_vertical_latch[player] = 0;
+                }
+
+                if (raw_left && raw_right)
+                {
+                    if (dpad_horizontal_latch[player] > 0)
+                    {
+                        left = true;
+                        right = false;
+                    }
+                    else if (dpad_horizontal_latch[player] < 0)
+                    {
+                        left = false;
+                        right = true;
+                    }
+                    else
+                    {
+                        left = true;
+                        right = false;
+                        dpad_horizontal_latch[player] = 1;
+                    }
+                }
+                else if (raw_left)
+                {
+                    left = true;
+                    right = false;
+                    dpad_horizontal_latch[player] = 1;
+                }
+                else if (raw_right)
+                {
+                    left = false;
+                    right = true;
+                    dpad_horizontal_latch[player] = -1;
+                }
+                else
+                {
+                    left = false;
+                    right = false;
+                    dpad_horizontal_latch[player] = 0;
+                }
             }
+
+            if (up)
+                core->KeyPressed(static_cast<GS_Joypads>(player), Key_Up);
             else
                 core->KeyReleased(static_cast<GS_Joypads>(player), Key_Up);
-            if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN))
-            {
-                if (allow_up_down || !(ib & (1 << RETRO_DEVICE_ID_JOYPAD_UP)))
-                    core->KeyPressed(static_cast<GS_Joypads>(player), Key_Down);
-            }
+
+            if (down)
+                core->KeyPressed(static_cast<GS_Joypads>(player), Key_Down);
             else
                 core->KeyReleased(static_cast<GS_Joypads>(player), Key_Down);
-            if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT))
-            {
-                if (allow_up_down || !(ib & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT)))
-                    core->KeyPressed(static_cast<GS_Joypads>(player), Key_Left);
-            }
+
+            if (left)
+                core->KeyPressed(static_cast<GS_Joypads>(player), Key_Left);
             else
                 core->KeyReleased(static_cast<GS_Joypads>(player), Key_Left);
-            if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT))
-            {
-                if (allow_up_down || !(ib & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT)))
-                    core->KeyPressed(static_cast<GS_Joypads>(player), Key_Right);
-            }
+
+            if (right)
+                core->KeyPressed(static_cast<GS_Joypads>(player), Key_Right);
             else
                 core->KeyReleased(static_cast<GS_Joypads>(player), Key_Right);
 
