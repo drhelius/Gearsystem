@@ -271,6 +271,8 @@ bool GearsystemCore::LoadROM(const char* szFilePath, Cartridge::ForceConfigurati
 
 bool GearsystemCore::LoadROMFromBuffer(const u8* buffer, int size, Cartridge::ForceConfiguration* config, const char* szFilePath)
 {
+    m_pCartridge->Reset();
+
     if (m_pCartridge->LoadFromBuffer(buffer, size, szFilePath))
     {
         if (IsValidPointer(config))
