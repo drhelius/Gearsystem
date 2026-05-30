@@ -475,6 +475,7 @@ static void set_controller_info(void)
 static void update_input(void)
 {
     input_poll_cb();
+    bool reset_pressed = false;
 
     for (int player=0; player<2; player++)
     {
@@ -616,9 +617,7 @@ static void update_input(void)
             else
                 core->KeyReleased(static_cast<GS_Joypads>(player), Key_Start);
             if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
-                core->SetReset(true);
-            else
-                core->SetReset(false);
+                reset_pressed = true;
 
             break;
         }
@@ -689,6 +688,8 @@ static void update_input(void)
             break;
         }
     }
+
+    core->SetReset(reset_pressed);
 }
 
 static void check_variables(void)
