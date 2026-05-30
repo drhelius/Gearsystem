@@ -129,8 +129,8 @@ void BootromMemoryRule::Reset()
 
     for (int i = 0; i < 3; i++)
     {
-        m_iMapperSlot[i] = i;
-        m_iMapperSlotAddress[i] = i * 0x4000;
+        m_iMapperSlot[i] = i & m_iBankMax;
+        m_iMapperSlotAddress[i] = m_iMapperSlot[i] * 0x4000;
     }
 }
 
