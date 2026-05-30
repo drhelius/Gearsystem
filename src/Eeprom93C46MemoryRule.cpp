@@ -85,8 +85,12 @@ void Eeprom93C46MemoryRule::PerformWrite(u16 address, u8 value)
     {
         case 0x8000:
             // 93c46 Write (Set Lines)
-            EEPROM_93c46_SetLines(value);
-            return;
+            if (m_EEPROM.Enabled)
+            {
+                EEPROM_93c46_SetLines(value);
+                return;
+            }
+            break;
         case 0xFFFC:
             // 93c46 Control Register
             EEPROM_93c46_Control(value);
@@ -129,7 +133,7 @@ void Eeprom93C46MemoryRule::PerformWrite(u16 address, u8 value)
     }
 
     // 93c46 Direct Access
-    if ((address >> 13) == 4 && address >= 0x8008 && address < 0x8088)
+    if (m_EEPROM.Enabled && (address >> 13) == 4 && address >= 0x8008 && address < 0x8088)
     {
         EEPROM_93c46_DirectWrite(address - 0x8008, value);
         return;
