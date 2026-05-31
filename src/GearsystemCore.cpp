@@ -721,13 +721,30 @@ bool GearsystemCore::SaveState(const char* path, int index, bool screenshot)
     ofstream stream;
     open_ofstream_utf8(stream, full_path.c_str(), ios::out | ios::binary);
 
-    size_t size;
-    bool ret = SaveState(stream, size, screenshot);
-    if (ret)
-        Log("Saved state to %s", full_path.c_str());
-    else
-        Error("Failed to save state to %s", full_path.c_str());
-    return ret;
+    if (!stream.is_open())
+    {
+        Error("Failed to open save state file for writing: %s", full_path.c_str());
+        return false;
+    }
+
+    size_t size = 0;
+    if (!SaveState(stream, size, screenshot))
+    {
+        stream.close();
+        Error("Failed to save state to file: %s", full_path.c_str());
+        return false;
+    }
+
+    stream.close();
+
+    if (!stream.good())
+    {
+        Error("Failed to write save state file: %s", full_path.c_str());
+        return false;
+    }
+
+    Log("Saved state to %s", full_path.c_str());
+    return true;
 }
 
 bool GearsystemCore::SaveState(u8* buffer, size_t& size, bool screenshot)
