@@ -393,7 +393,7 @@ static void render_cpu_entry_colored(const GS_Trace_Entry& entry)
             instr.replace(pos, 3, c_blue);
 
         ImGui::SameLine(0, 0);
-        TextColoredEx("  %s%s", c_white, instr.c_str());
+        TextColoredEx("  %s%s", c_white.c_str(), instr.c_str());
 
         if (config_debug.trace_bytes)
         {

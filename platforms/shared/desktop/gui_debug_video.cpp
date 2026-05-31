@@ -220,7 +220,7 @@ void gui_debug_window_vram_nametable(void)
     if (selected_bg_tile_x >= 0 && selected_bg_tile_y >= 0)
     {
         float t = (float)(0.5 + 0.5 * sin(ImGui::GetTime() * 4.0));
-        ImVec4 pulse_color = ImVec4(red.x + (white.x - red.x) * t, red.y + (white.y - red.y) * t, red.z + (white.z - red.z) * t, 1.0f);
+        ImVec4 pulse_color = gui_debug_lerp_color(red, white, t);
         draw_list->AddRect(ImVec2(p.x + (selected_bg_tile_x * spacing), p.y + (selected_bg_tile_y * spacing)), ImVec2(p.x + ((selected_bg_tile_x + 1) * spacing), p.y + ((selected_bg_tile_y + 1) * spacing)), ImColor(pulse_color), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
     }
 
@@ -445,7 +445,7 @@ void gui_debug_window_vram_tiles(void)
     if (selected_tile_x >= 0 && selected_tile_y >= 0)
     {
         float t = (float)(0.5 + 0.5 * sin(ImGui::GetTime() * 4.0));
-        ImVec4 pulse_color = ImVec4(red.x + (white.x - red.x) * t, red.y + (white.y - red.y) * t, red.z + (white.z - red.z) * t, 1.0f);
+        ImVec4 pulse_color = gui_debug_lerp_color(red, white, t);
         draw_list->AddRect(ImVec2(p.x + (selected_tile_x * spacing), p.y + (selected_tile_y * spacing)), ImVec2(p.x + ((selected_tile_x + 1) * spacing), p.y + ((selected_tile_y + 1) * spacing)), ImColor(pulse_color), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
     }
 
@@ -575,7 +575,7 @@ void gui_debug_window_vram_sprites(void)
         if (selected_sprite == s)
         {
             float t = (float)(0.5 + 0.5 * sin(ImGui::GetTime() * 4.0));
-            ImVec4 pulse_color = ImVec4(red.x + (white.x - red.x) * t, red.y + (white.y - red.y) * t, red.z + (white.z - red.z) * t, 1.0f);
+            ImVec4 pulse_color = gui_debug_lerp_color(red, white, t);
             ImDrawList* dl = ImGui::GetWindowDrawList();
             dl->AddRect(ImVec2(spr_pos[s].x, spr_pos[s].y), ImVec2(spr_pos[s].x + width, spr_pos[s].y + height), ImColor(pulse_color), 2.0f, ImDrawFlags_RoundCornersAll, 3.0f);
         }
@@ -671,11 +671,7 @@ void gui_debug_window_vram_sprites(void)
         recty_max = fminf(fmaxf(recty_max, p_screen.y), p_screen.y + (runtime.screen_height * screen_scale));
 
         float t = (float)(0.5 + 0.5 * sin(ImGui::GetTime() * 4.0));
-        ImVec4 pulse_color = ImVec4(
-            red.x + (white.x - red.x) * t,
-            red.y + (white.y - red.y) * t,
-            red.z + (white.z - red.z) * t,
-            1.0f);
+        ImVec4 pulse_color = gui_debug_lerp_color(red, white, t);
         ImDrawList* dl = ImGui::GetWindowDrawList();
         dl->AddRect(ImVec2(rectx_min, recty_min), ImVec2(rectx_max, recty_max), ImColor(pulse_color), 2.0f, ImDrawFlags_RoundCornersAll, 2.0f);
 

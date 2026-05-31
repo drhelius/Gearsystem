@@ -42,12 +42,20 @@ enum config_ShaderMode
     config_ShaderMode_External = 1
 };
 
+enum config_Theme
+{
+    config_Theme_Light = 0,
+    config_Theme_Dark = 1,
+    config_Theme_Count = 2
+};
+
 struct config_Emulator
 {
     bool maximized = false;
     bool fullscreen = false;
     int fullscreen_mode = 0;
     bool always_show_menu = false;
+    int theme = config_Theme_Dark;
     bool paused = false;
     int save_slot = 0;
     bool start_paused = false;
@@ -97,8 +105,14 @@ struct config_Video
     bool fps = false;
     bool sync = true;
     bool sprite_limit = false;
-    float background_color[3] = {0.1f, 0.1f, 0.1f};
-    float background_color_debugger[3] = {0.2f, 0.2f, 0.2f};
+    float background_color[config_Theme_Count][3] = {
+        {128.0f / 255.0f, 128.0f / 255.0f, 128.0f / 255.0f},
+        {0.1f, 0.1f, 0.1f}
+    };
+    float background_color_debugger[config_Theme_Count][3] = {
+        {160.0f / 255.0f, 160.0f / 255.0f, 160.0f / 255.0f},
+        {0.2f, 0.2f, 0.2f}
+    };
     int glasses = 0;
     int shader_mode = config_ShaderMode_PixelPerfect;
     std::string shader_preset_path;

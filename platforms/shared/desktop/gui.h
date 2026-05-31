@@ -129,6 +129,7 @@ EXTERN void gui_render(void);
 EXTERN void gui_shortcut(gui_ShortCutEvent event);
 EXTERN void gui_load_rom(const char* path);
 EXTERN Cartridge::ForceConfiguration gui_get_force_configuration(void);
+EXTERN void gui_set_style(void);
 EXTERN void gui_set_status_message(const char* message, Uint64 milliseconds);
 EXTERN void gui_set_error_message(const char* message);
 
