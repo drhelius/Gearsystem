@@ -79,6 +79,7 @@ static GearsystemCore::GlassesConfig glasses_config;
 
 static void load_bootroms(void);
 static void set_controller_info(void);
+static void release_controller_input(unsigned port);
 static void update_input(void);
 static void check_variables(void);
 
@@ -188,6 +189,9 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
         log_cb(RETRO_LOG_DEBUG, "retro_set_controller_port_device invalid port number: %u\n", port);
         return;
     }
+
+    if (input_device[port] != device)
+        release_controller_input(port);
 
     bool phaser = false;
     bool paddle = false;
@@ -470,6 +474,25 @@ static void set_controller_info(void)
     };
 
     environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, joypad);
+}
+
+static void release_controller_input(unsigned port)
+{
+    GS_Joypads joypad = static_cast<GS_Joypads>(port);
+
+    core->KeyReleased(joypad, Key_Up);
+    core->KeyReleased(joypad, Key_Down);
+    core->KeyReleased(joypad, Key_Left);
+    core->KeyReleased(joypad, Key_Right);
+    core->KeyReleased(joypad, Key_1);
+    core->KeyReleased(joypad, Key_2);
+    core->KeyReleased(joypad, Key_Start);
+
+    dpad_vertical_latch[port] = 0;
+    dpad_horizontal_latch[port] = 0;
+
+    if (port == 0)
+        core->SetReset(false);
 }
 
 static void update_input(void)
