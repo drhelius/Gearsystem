@@ -439,7 +439,7 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
         string extension = fn.substr(fn.find_last_of(".") + 1);
         transform(extension.begin(), extension.end(), extension.begin(), (int(*)(int)) tolower);
 
-        if ((extension == "sms") || (extension == "gg") || (extension == "sg") || (extension == "mv"))
+        if ((extension == "sms") || (extension == "gg") || (extension == "sg") || (extension == "mv") || (extension == "bin") || (extension == "rom"))
         {
             strncpy(m_szFileNameInZip, file_stat.m_filename, 511);
             m_szFileNameInZip[511] = 0;
