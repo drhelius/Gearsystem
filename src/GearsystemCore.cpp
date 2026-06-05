@@ -17,6 +17,7 @@
  *
  */
 
+#include <string>
 #include "GearsystemCore.h"
 #include "Memory.h"
 #include "Processor.h"
@@ -301,13 +302,11 @@ void GearsystemCore::SaveMemoryDump()
     {
         using namespace std;
 
-        char path[512];
+        string path = string(m_pCartridge->GetFilePath()) + ".dump";
 
-        snprintf(path, sizeof(path), "%s.dump", m_pCartridge->GetFilePath());
+        Log("Saving Memory Dump %s...", path.c_str());
 
-        Log("Saving Memory Dump %s...", path);
-
-        m_pMemory->MemoryDump(path);
+        m_pMemory->MemoryDump(path.c_str());
 
         Debug("Memory Dump Saved");
     }
@@ -321,14 +320,12 @@ void GearsystemCore::SaveDisassembledROM()
     {
         using namespace std;
 
-        char path[512];
+        string path = string(m_pCartridge->GetFilePath()) + ".dis";
 
-        snprintf(path, sizeof(path), "%s.dis", m_pCartridge->GetFilePath());
-
-        Log("Saving Disassembled ROM %s...", path);
+        Log("Saving Disassembled ROM %s...", path.c_str());
 
         ofstream myfile;
-        open_ofstream_utf8(myfile, path, ios::out | ios::trunc);
+        open_ofstream_utf8(myfile, path.c_str(), ios::out | ios::trunc);
 
         if (myfile.is_open())
         {
