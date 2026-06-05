@@ -59,6 +59,7 @@ void Multi4PAKAllActionMemoryRule::PerformWrite(u16 address, u8 value)
                 Debug("--> ** Writing to register $%X %X", address, value);
                 m_iMapperSlot[0] = value;
                 m_iMapperSlotAddress[0] = 0x4000 * (m_iMapperSlot[0] & (m_pCartridge->GetROMBankCount() - 1));
+                m_iMapperSlotAddress[2] = 0x4000 * (((m_iMapperSlot[0] & 0x30) + m_iMapperSlot[2]) & (m_pCartridge->GetROMBankCount() - 1));
                 TraceBankSwitch(address, value);
                 return;
             case 0x7FFF:
