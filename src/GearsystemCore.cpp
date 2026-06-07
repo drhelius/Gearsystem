@@ -1188,7 +1188,13 @@ bool GearsystemCore::GetSaveStateScreenshot(int index, const char* path, GS_Save
     }
 
     GS_SaveState_Header header;
-    GetSaveStateHeader(index, path, &header);
+
+    if (!GetSaveStateHeader(index, path, &header))
+    {
+        Error("Invalid save state header");
+        stream.close();
+        return false;
+    }
 
     if (header.screenshot_size == 0)
     {
