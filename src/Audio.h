@@ -59,6 +59,10 @@ public:
     bool IsVgmRecording() const;
 
 private:
+    bool IsYM2413OutputEnabled() const;
+    void SyncYM2413State();
+
+private:
     YM2413* m_pYM2413;
     Sms_Apu* m_pApu;
     Stereo_Buffer* m_pBuffer;
@@ -127,12 +131,7 @@ inline void Audio::YM2413Write(u8 port, u8 value)
             m_bYM2413Enabled = (value & 0x01) == 0x01;
         }
 
-        if (m_bYM2413Enabled && m_bPSGEnabled)
-            m_pApu->volume(0.8);
-        else
-            m_pApu->volume(1.0);
-
-        m_pYM2413->Enable(m_bYM2413Enabled);
+        SyncYM2413State();
     }
 
     m_pYM2413->Write(port, value);

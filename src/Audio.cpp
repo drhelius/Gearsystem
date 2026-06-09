@@ -106,6 +106,23 @@ void Audio::Mute(bool bMute)
     m_bMute = bMute;
 }
 
+bool Audio::IsYM2413OutputEnabled() const
+{
+    return m_bYM2413Enabled && !m_bYM2413ForceDisabled && !m_bYM2413CartridgeNotSupported;
+}
+
+void Audio::SyncYM2413State()
+{
+    bool ym2413_output_enabled = IsYM2413OutputEnabled();
+
+    m_pYM2413->Enable(ym2413_output_enabled);
+
+    if (ym2413_output_enabled && m_bPSGEnabled)
+        m_pApu->volume(0.8);
+    else
+        m_pApu->volume(1.0);
+}
+
 void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
 {
     m_pApu->end_frame(m_ElapsedCycles);
@@ -123,7 +140,8 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
 
     if (IsValidPointer(pSampleBuffer) && IsValidPointer(pSampleCount))
     {
-        int count = m_bYM2413Enabled ? fm_count : psg_count;
+        bool ym2413_output_enabled = IsYM2413OutputEnabled();
+        int count = ym2413_output_enabled ? fm_count : psg_count;
 
         *pSampleCount = count;
 
@@ -138,7 +156,7 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
                 s32 mix = 0;
 
                 mix += (m_bPSGEnabled && psg_count > 0) ? (s32)(m_pSampleBuffer[(i >= psg_count) ? psg_count-1 : i] * m_psg_volume) : 0;
-                mix += (m_bYM2413Enabled && !m_bYM2413ForceDisabled && !m_bYM2413CartridgeNotSupported) ? (s32)(m_pYM2413Buffer[i] * m_fm_volume) : 0;
+                mix += ym2413_output_enabled ? (s32)(m_pYM2413Buffer[i] * m_fm_volume) : 0;
                 mix = (s32)((float)mix * m_master_volume);
 
                 if (mix > 32767)
@@ -162,7 +180,7 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
 void Audio::DisableYM2413(bool bDisable)
 {
     m_bYM2413ForceDisabled = bDisable;
-    m_pYM2413->Enable(bDisable ? false : m_bYM2413Enabled);
+    SyncYM2413State();
 }
 
 void Audio::SaveState(std::ostream& stream)
@@ -206,10 +224,7 @@ void Audio::LoadState(std::istream& stream, int version)
         }
     }
 
-    if (m_bYM2413Enabled && m_bPSGEnabled)
-        m_pApu->volume(0.8);
-    else
-        m_pApu->volume(1.0);
+    SyncYM2413State();
 }
 
 void Audio::LoadStateV1(std::istream& stream)
@@ -233,6 +248,8 @@ void Audio::LoadStateV1(std::istream& stream)
         long clock = m_bPAL ? (m_pCartridge->IsSG1000() ? GS_MASTER_CLOCK_PAL_SG1000 : GS_MASTER_CLOCK_PAL) : GS_MASTER_CLOCK_NTSC;
         m_pApu->init_debug_buffers(m_iSampleRate, clock);
     }
+
+    SyncYM2413State();
 }
 
 bool Audio::StartVgmRecording(const char* file_path, int clock_rate, bool is_pal, bool has_ym2413)
