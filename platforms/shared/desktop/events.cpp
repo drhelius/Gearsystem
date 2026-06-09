@@ -156,6 +156,7 @@ void events_emu(void)
     SDL_PumpEvents();
 
     const int max_controller = 2;
+    bool reset_pressed = false;
 
     for (int controller = 0; controller < max_controller; controller++)
     {
@@ -167,10 +168,12 @@ void events_emu(void)
 
         input_last_state[controller] = now;
 
-        emu_set_reset(input_check_reset(controller));
+        reset_pressed |= input_check_reset(controller);
 
         gamepad_check_shortcuts(controller);
     }
+
+    emu_set_reset(reset_pressed);
 }
 
 void events_sync_input(void)
@@ -178,6 +181,7 @@ void events_sync_input(void)
     SDL_PumpEvents();
 
     static const Uint16 all_keys = Key_Left | Key_Right | Key_Up | Key_Down | Key_1 | Key_2 | Key_Start;
+    bool reset_pressed = false;
 
     for (int controller = 0; controller < 2; controller++)
     {
@@ -185,8 +189,10 @@ void events_sync_input(void)
         input_apply_state(controller, all_keys, 0);
         input_apply_state(controller, 0, now);
         input_last_state[controller] = now;
-        emu_set_reset(input_check_reset(controller));
+        reset_pressed |= input_check_reset(controller);
     }
+
+    emu_set_reset(reset_pressed);
 }
 
 void events_reset_input(void)
