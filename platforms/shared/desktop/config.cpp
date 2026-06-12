@@ -307,6 +307,9 @@ void config_read(void)
     config_emulator.window_height = read_int("Emulator", "WindowHeight", 600);
     config_emulator.status_messages = read_bool("Emulator", "StatusMessages", false);
     config_emulator.mcp_tcp_port = read_int("Emulator", "MCPTCPPort", 7777);
+    config_emulator.mcp_http_address = read_string("Emulator", "MCPHTTPAddress");
+    if (config_emulator.mcp_http_address.empty())
+        config_emulator.mcp_http_address = "127.0.0.1";
     config_emulator.light_phaser = read_bool("Emulator", "LightPhaser", false);
     config_emulator.light_phaser_crosshair = read_bool("Emulator", "LightPhaserCrosshair", false);
     config_emulator.light_phaser_crosshair_shape = read_int("Emulator", "LightPhaserCrosshairShape", 0);
@@ -562,6 +565,7 @@ void config_write(void)
     write_int("Emulator", "WindowHeight", config_emulator.window_height);
     write_bool("Emulator", "StatusMessages", config_emulator.status_messages);
     write_int("Emulator", "MCPTCPPort", config_emulator.mcp_tcp_port);
+    write_string("Emulator", "MCPHTTPAddress", config_emulator.mcp_http_address);
     write_bool("Emulator", "LightPhaser", config_emulator.light_phaser);
     write_bool("Emulator", "LightPhaserCrosshair", config_emulator.light_phaser_crosshair);
     write_int("Emulator", "LightPhaserCrosshairShape", config_emulator.light_phaser_crosshair_shape);

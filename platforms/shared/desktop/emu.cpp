@@ -1491,10 +1491,10 @@ bool emu_is_vgm_recording(void)
     return gearsystem->GetAudio()->IsVgmRecording();
 }
 
-void emu_mcp_set_transport(int mode, int tcp_port)
+void emu_mcp_set_transport(int mode, int tcp_port, const char* tcp_address)
 {
     if (mcp_manager)
-        mcp_manager->SetTransportMode((McpTransportMode)mode, tcp_port);
+    mcp_manager->SetTransportMode((McpTransportMode)mode, tcp_port, tcp_address);
 }
 
 void emu_mcp_start(void)

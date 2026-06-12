@@ -20,8 +20,20 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
+#include <string>
 #include <SDL3/SDL.h>
 #include "gearsystem.h"
+
+struct ApplicationParams
+{
+    const char* rom_file = NULL;
+    const char* symbol_file = NULL;
+    bool force_fullscreen = false;
+    bool force_windowed = false;
+    int mcp_mode = -1;
+    int mcp_tcp_port = 7777;
+    std::string mcp_http_address = "127.0.0.1";
+};
 
 #ifdef APPLICATION_IMPORT
     #define EXTERN
@@ -35,7 +47,7 @@ EXTERN int application_sdl_version_minor;
 EXTERN int application_sdl_version_patch;
 EXTERN bool application_show_menu;
 
-EXTERN int application_init(const char* rom_file, const char* symbol_file, bool force_fullscreen, bool force_windowed, int mcp_mode, int mcp_tcp_port);
+EXTERN int application_init(const ApplicationParams& params);
 EXTERN void application_destroy(void);
 EXTERN void application_mainloop(void);
 EXTERN void application_trigger_quit(void);

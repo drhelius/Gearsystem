@@ -93,6 +93,7 @@ struct config_Emulator
     int paddle_sensitivity = 5;
     bool capture_mouse = false;
     int mcp_tcp_port = 7777;
+    std::string mcp_http_address = "127.0.0.1";
 };
 
 struct config_Video
