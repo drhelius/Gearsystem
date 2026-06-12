@@ -443,6 +443,8 @@ const GS_GameDBEntry kGameDatabase[] =
 
     // Does not work if YM2413 is enabled
     {0x5359762D, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_DISABLE_YM2413, "Wanted"},
+    {0x3727D8B2, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_DISABLE_YM2413, "American Pro Football"},
+    {0x3D55759B, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_DISABLE_YM2413, "Walter Payton Football"},
 
     // Paddle control
     {0xF9DBB533, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_FORCE_JAPAN_SMS | GS_DB_FEATURE_PADDLE | GS_DB_FEATURE_YM2413, "BMX Trial - Alex Kidd"},
