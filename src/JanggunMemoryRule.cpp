@@ -226,6 +226,6 @@ void JanggunMemoryRule::LoadState(std::istream& stream)
     for (int i = 0; i < 4; i++)
     {
         m_bReverseFlags[i] = (m_iMapperSlot[i] & 0x80) != 0;
-        m_iMapperSlot[i] &= 0x3F;
+        m_iMapperSlot[i] &= 0x7F;
     }
 }
