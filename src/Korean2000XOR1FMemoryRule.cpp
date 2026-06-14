@@ -92,12 +92,15 @@ void Korean2000XOR1FMemoryRule::PerformWrite(u16 address, u8 value)
 
 void Korean2000XOR1FMemoryRule::Reset()
 {
+    int bankCount = m_pCartridge->GetROMBankCount8k();
+    int mask = (bankCount > 0) ? (bankCount - 1) : 0;
+
     m_iPage[0] = 0;
     m_iPage[1] = 0;
-    m_iPage[2] = 0x60;
-    m_iPage[3] = 0x61;
-    m_iPage[4] = 0x62;
-    m_iPage[5] = 0x63;
+    m_iPage[2] = 0x60 & mask;
+    m_iPage[3] = 0x61 & mask;
+    m_iPage[4] = 0x62 & mask;
+    m_iPage[5] = 0x63 & mask;
 
     for (int i = 0; i < 6; i++)
         m_iPageAddress[i] = 0x2000 * m_iPage[i];
