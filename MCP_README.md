@@ -173,20 +173,32 @@ If you prefer to build from source or configure manually:
 ### HTTP Mode
 
 1. **Start the emulator manually** with HTTP transport:
+
    ```bash
    ./gearsystem --mcp-http
-  # Server will start on http://127.0.0.1:7777/mcp
-
-   # Or specify a custom port:
-   ./gearsystem --mcp-http --mcp-http-port 3000
-  # Server will start on http://127.0.0.1:3000/mcp
-
-  # Or specify a custom bind address:
-  ./gearsystem --mcp-http --mcp-http-address 192.168.1.50 --mcp-http-port 3000
-  # Server will start on http://192.168.1.50:3000/mcp
   ```
 
-  To require bearer-token authentication, set `GEARSYSTEM_MCP_HTTP_TOKEN` before starting HTTP mode:
+  The default endpoint is `http://127.0.0.1:7777/mcp`.
+
+  To use a custom port:
+
+  ```bash
+   ./gearsystem --mcp-http --mcp-http-port 3000
+  ```
+
+  To bind to a custom address:
+
+  ```bash
+  ./gearsystem --mcp-http --mcp-http-address 192.168.1.50 --mcp-http-port 3000
+  ```
+
+  You can also start the server using the "MCP" menu in the GUI.
+
+2. **Optional: require bearer-token authentication**:
+
+  Set `GEARSYSTEM_MCP_HTTP_TOKEN` before starting HTTP mode.
+
+  macOS and Linux:
 
   ```bash
   GEARSYSTEM_MCP_HTTP_TOKEN="change-this-token" ./gearsystem --mcp-http
@@ -206,9 +218,8 @@ If you prefer to build from source or configure manually:
   gearsystem.exe --mcp-http
    ```
 
-   You can optionally start the server using the "MCP" menu in the GUI.
+3. **Configure VS Code** `.vscode/mcp.json`:
 
-2. **Configure VS Code** `.vscode/mcp.json`:
    ```json
    {
      "servers": {
@@ -223,7 +234,8 @@ If you prefer to build from source or configure manually:
    }
    ```
 
-3. **Or configure Claude Desktop**:
+4. **Or configure Claude Desktop**:
+
    ```json
    {
      "mcpServers": {
@@ -238,12 +250,13 @@ If you prefer to build from source or configure manually:
    }
    ```
 
-4. **Or configure Claude Code**:
+5. **Or configure Claude Code**:
+
    ```bash
   claude mcp add --transport http gearsystem http://127.0.0.1:7777/mcp
    ```
 
-5. **Restart your AI client** and start debugging
+6. **Restart your AI client** and start debugging
 
 > **Note:** The MCP HTTP Server must be running standalone before connecting the AI client.
 > **Security:** If `GEARSYSTEM_MCP_HTTP_TOKEN` is unset, HTTP mode accepts unauthenticated requests from clients that pass the configured `Host` and `Origin` checks. The default bind address is local-only; use a non-loopback address only on trusted networks or with bearer-token authentication enabled.
@@ -267,13 +280,9 @@ Once configured, you can ask your AI assistant:
 ### Advanced Debugging Workflows
 
 - "Find the VBlank interrupt handler, analyze what it does, and add symbols for all the subroutines it calls"
-
 - "Locate the sprite update routine. Study how this game manages its sprite system, explain the algorithm, and add bookmarks to key sections. Also add watches for any sprite-related variables you find"
-
 - "There's a data decompression routine around address 0x8000. Step through it instruction by instruction, reverse engineer the compression algorithm, and explain how it works with examples"
-
 - "Find where the game stores its level data in ROM. Analyze the data structure format, create a memory map showing each section, and add symbols for the data tables"
-
 - "The game is rendering corrupted graphics. Examine the VDP registers, check the VRAM contents, inspect the sprite attribute table, and diagnose what's causing the corruption. Set up watches on relevant memory addresses"
 
 ## Available MCP Tools
