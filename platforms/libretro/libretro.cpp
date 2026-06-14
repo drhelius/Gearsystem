@@ -54,7 +54,10 @@ static char retro_game_path[4096];
 static s16 audio_buf[GS_AUDIO_BUFFER_SIZE];
 static int audio_sample_count = 0;
 
-static unsigned input_device[2];
+static unsigned input_device[2] = {
+    RETRO_DEVICE_SMS_GG_PAD,
+    RETRO_DEVICE_SMS_GG_PAD
+};
 static bool allow_up_down = false;
 static int8_t dpad_vertical_latch[2] = { 0, 0 };
 static int8_t dpad_horizontal_latch[2] = { 0, 0 };
@@ -65,7 +68,7 @@ static Video::LightPhaserCrosshairColor lightgun_crosshair_color = Video::LightP
 static int paddle_sensitivity = 0;
 static bool bootrom_sms = false;
 static bool bootrom_gg = false;
-static bool libretro_supports_bitmasks;
+static bool libretro_supports_bitmasks = false;
 static bool categories_supported = false;
 static float aspect_ratio = 0.0f;
 static int current_screen_width = 0;
@@ -79,6 +82,9 @@ static GearsystemCore::GlassesConfig glasses_config;
 
 static void load_bootroms(void);
 static void set_controller_info(void);
+static void clear_input_state(void);
+static void reset_controller_devices(void);
+static void apply_controller_device(unsigned port, unsigned device, bool log_device);
 static void release_controller_input(unsigned port);
 static void update_input(void);
 static void check_variables(void);
@@ -161,8 +167,10 @@ void retro_init(void)
 
     glasses_config = GearsystemCore::GlassesBothEyes;
 
-    input_device[0] = RETRO_DEVICE_SMS_GG_PAD;
-    input_device[1] = RETRO_DEVICE_SMS_GG_PAD;
+    clear_input_state();
+
+    for (int i = 0; i < 2; i++)
+        apply_controller_device(i, input_device[i], false);
 
     libretro_supports_bitmasks = environ_cb(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, NULL);
 }
@@ -171,6 +179,16 @@ void retro_deinit(void)
 {
     SafeDeleteArray(frame_buffer);
     SafeDelete(core);
+
+    audio_sample_count = 0;
+    current_screen_width = 0;
+    current_screen_height = 0;
+    current_aspect_ratio = 0.0f;
+    aspect_ratio = 0.0f;
+    libretro_supports_bitmasks = false;
+
+    reset_controller_devices();
+    clear_input_state();
 }
 
 void retro_reset(void)
@@ -186,44 +204,17 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 {
     if (port > 1)
     {
-        log_cb(RETRO_LOG_DEBUG, "retro_set_controller_port_device invalid port number: %u\n", port);
+        if (log_cb)
+            log_cb(RETRO_LOG_DEBUG, "retro_set_controller_port_device invalid port number: %u\n", port);
         return;
     }
 
-    if (input_device[port] != device)
+    if ((input_device[port] != device) && core)
         release_controller_input(port);
 
-    bool phaser = false;
-    bool paddle = false;
     input_device[port] = device;
 
-    switch (device)
-    {
-        case RETRO_DEVICE_NONE:
-            log_cb(RETRO_LOG_INFO, "Controller %u: Unplugged\n", port);
-            break;
-        case RETRO_DEVICE_SMS_GG_PAD:
-        case RETRO_DEVICE_JOYPAD:
-            log_cb(RETRO_LOG_INFO, "Controller %u: SMS/GG Pad\n", port);
-            break;
-        case RETRO_DEVICE_LIGHT_PHASER:
-            log_cb(RETRO_LOG_INFO, "Controller %u: Light Phaser\n", port);
-            phaser = true;
-            break;
-        case RETRO_DEVICE_PADDLE:
-            log_cb(RETRO_LOG_INFO, "Controller %u: Paddle\n", port);
-            paddle = true;
-            break;
-        default:
-            log_cb(RETRO_LOG_DEBUG, "Setting descriptors for unsupported device.\n");
-            break;
-    }
-
-    if (port == 0)
-    {
-        core->EnablePhaser(phaser);
-        core->EnablePaddle(paddle);
-    }
+    apply_controller_device(port, device, true);
 }
 
 void retro_get_system_info(struct retro_system_info *info)
@@ -476,22 +467,82 @@ static void set_controller_info(void)
     environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, joypad);
 }
 
+static void clear_input_state(void)
+{
+    for (int i = 0; i < 2; i++)
+    {
+        dpad_vertical_latch[i] = 0;
+        dpad_horizontal_latch[i] = 0;
+    }
+}
+
+static void reset_controller_devices(void)
+{
+    for (int i = 0; i < 2; i++)
+        input_device[i] = RETRO_DEVICE_SMS_GG_PAD;
+}
+
+static void apply_controller_device(unsigned port, unsigned device, bool log_device)
+{
+    if (!core)
+        return;
+
+    bool phaser = false;
+    bool paddle = false;
+
+    switch (device)
+    {
+        case RETRO_DEVICE_NONE:
+            if (log_device && log_cb)
+                log_cb(RETRO_LOG_INFO, "Controller %u: Unplugged\n", port);
+            break;
+        case RETRO_DEVICE_SMS_GG_PAD:
+        case RETRO_DEVICE_JOYPAD:
+            if (log_device && log_cb)
+                log_cb(RETRO_LOG_INFO, "Controller %u: SMS/GG Pad\n", port);
+            break;
+        case RETRO_DEVICE_LIGHT_PHASER:
+            if (log_device && log_cb)
+                log_cb(RETRO_LOG_INFO, "Controller %u: Light Phaser\n", port);
+            phaser = true;
+            break;
+        case RETRO_DEVICE_PADDLE:
+            if (log_device && log_cb)
+                log_cb(RETRO_LOG_INFO, "Controller %u: Paddle\n", port);
+            paddle = true;
+            break;
+        default:
+            if (log_device && log_cb)
+                log_cb(RETRO_LOG_DEBUG, "Setting descriptors for unsupported device.\n");
+            break;
+    }
+
+    if (port == 0)
+    {
+        core->EnablePhaser(phaser);
+        core->EnablePaddle(paddle);
+    }
+}
+
 static void release_controller_input(unsigned port)
 {
     GS_Joypads joypad = static_cast<GS_Joypads>(port);
 
-    core->KeyReleased(joypad, Key_Up);
-    core->KeyReleased(joypad, Key_Down);
-    core->KeyReleased(joypad, Key_Left);
-    core->KeyReleased(joypad, Key_Right);
-    core->KeyReleased(joypad, Key_1);
-    core->KeyReleased(joypad, Key_2);
-    core->KeyReleased(joypad, Key_Start);
+    if (core)
+    {
+        core->KeyReleased(joypad, Key_Up);
+        core->KeyReleased(joypad, Key_Down);
+        core->KeyReleased(joypad, Key_Left);
+        core->KeyReleased(joypad, Key_Right);
+        core->KeyReleased(joypad, Key_1);
+        core->KeyReleased(joypad, Key_2);
+        core->KeyReleased(joypad, Key_Start);
+    }
 
     dpad_vertical_latch[port] = 0;
     dpad_horizontal_latch[port] = 0;
 
-    if (port == 0)
+    if ((port == 0) && core)
         core->SetReset(false);
 }
 
