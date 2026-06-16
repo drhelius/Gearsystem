@@ -55,7 +55,7 @@ static void main_window(void);
 static void show_status_message(void);
 static void show_error_window(void);
 static void show_loading_popup(void);
-static void finish_loading_rom(void);
+static bool finish_loading_rom(void);
 static Cartridge::CartridgeTypes get_mapper(int index);
 static Cartridge::CartridgeZones get_zone(int index);
 static Cartridge::CartridgeSystem get_system(int index);
@@ -305,10 +305,10 @@ void gui_shortcut(gui_ShortCutEvent event)
     }
 }
 
-void gui_load_rom(const char* path)
+bool gui_load_rom(const char* path)
 {
     if (loading_rom_active)
-        return;
+        return false;
 
     gui_debug_auto_save_settings();
     config_push_recent_media(path);
@@ -319,6 +319,37 @@ void gui_load_rom(const char* path)
     loading_rom_active = true;
 
     emu_load_media_async(path, gui_get_force_configuration());
+
+    return true;
+}
+
+bool gui_is_rom_loading(void)
+{
+    return loading_rom_active;
+}
+
+bool gui_finish_loading_rom(void)
+{
+    if (!loading_rom_active || emu_is_media_loading())
+        return false;
+
+    loading_rom_active = false;
+    gui_dialog_in_use = false;
+    bool success = emu_finish_media_loading();
+
+    if (success)
+        success = finish_loading_rom();
+    else
+    {
+        std::string message("Error loading ROM:\n");
+        message += loading_rom_path;
+        gui_set_error_message(message.c_str());
+
+        emu_get_core()->GetCartridge()->Reset();
+        gui_action_reset();
+    }
+
+    return success;
 }
 
 Cartridge::ForceConfiguration gui_get_force_configuration(void)
@@ -585,23 +616,7 @@ static void show_loading_popup(void)
 
     if (!emu_is_media_loading())
     {
-        loading_rom_active = false;
-        gui_dialog_in_use = false;
-        bool success = emu_finish_media_loading();
-
-        if (success)
-        {
-            finish_loading_rom();
-        }
-        else
-        {
-            std::string message("Error loading ROM:\n");
-            message += loading_rom_path;
-            gui_set_error_message(message.c_str());
-
-            emu_get_core()->GetCartridge()->Reset();
-            gui_action_reset();
-        }
+        gui_finish_loading_rom();
         return;
     }
 
@@ -643,7 +658,7 @@ static void show_loading_popup(void)
     ImGui::PopStyleVar(3);
 }
 
-static void finish_loading_rom(void)
+static bool finish_loading_rom(void)
 {
     gui_cheat_list.clear();
     emu_clear_cheats();
@@ -669,6 +684,8 @@ static void finish_loading_rom(void)
 
     if (!emu_is_empty())
         application_update_title_with_rom(emu_get_core()->GetCartridge()->GetFileName());
+
+    return true;
 }
 
 static void show_error_window(void)
