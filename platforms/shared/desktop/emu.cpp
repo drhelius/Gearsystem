@@ -109,6 +109,7 @@ bool emu_init(void)
     emu_debug_halt_step_frames_pending = 0;
     emu_debug_pc_changed = false;
     emu_debug_step_frames_pending = 0;
+    emu_frame_counter = 0;
     emu_debug_tile_palette = 0;
 
     mcp_manager = new McpManager();
@@ -229,6 +230,7 @@ void emu_update(void)
 
     int sampleCount = 0;
     bool frame_executed = false;
+    bool frame_completed = false;
 
     if (rewind_is_active())
     {
@@ -261,9 +263,13 @@ void emu_update(void)
 
         if (executed)
         {
+            Debug_Command debug_command = emu_debug_command;
             rewind_commit_seek();
             breakpoint_hit = gearsystem->RunToVBlank(emu_frame_buffer, audio_buffer, &sampleCount, &debug_run);
             frame_executed = true;
+
+            if (!breakpoint_hit && (debug_command == Debug_Command_StepFrame || debug_command == Debug_Command_Continue))
+                frame_completed = true;
         }
 
         if (breakpoint_hit || emu_debug_command == Debug_Command_StepFrame || emu_debug_command == Debug_Command_Step)
@@ -316,11 +322,16 @@ void emu_update(void)
             rewind_commit_seek();
             gearsystem->RunToVBlank(emu_frame_buffer, audio_buffer, &sampleCount);
             frame_executed = true;
+            frame_completed = true;
         }
     }
 
     if (frame_executed)
+    {
+        if (frame_completed)
+            emu_frame_counter++;
         rewind_push();
+    }
 
     if ((sampleCount > 0) && !gearsystem->IsPaused())
     {
@@ -685,8 +696,16 @@ void emu_debug_step_out(void)
 
 void emu_debug_step_frame(void)
 {
+    emu_debug_step_frames(1);
+}
+
+void emu_debug_step_frames(int frames)
+{
+    if (frames < 1)
+        frames = 1;
+
     gearsystem->Pause(false);
-    emu_debug_step_frames_pending++;
+    emu_debug_step_frames_pending += frames;
     emu_debug_command = Debug_Command_StepFrame;
 }
 

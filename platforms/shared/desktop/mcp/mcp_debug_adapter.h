@@ -91,7 +91,7 @@ public:
     void StepInto();
     void StepOver();
     void StepOut();
-    void StepFrame();
+    void StepFrame(int frames = 1);
     void Reset();
     json GetDebugStatus();
     json RunToAddress(u16 address);
