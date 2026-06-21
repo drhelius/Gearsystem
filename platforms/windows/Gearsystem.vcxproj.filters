@@ -94,6 +94,9 @@
     <ClCompile Include="..\shared\desktop\mcp\mcp_debug_adapter.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
+    <ClCompile Include="..\shared\desktop\mcp\mcp_tool_registry.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
     <ClCompile Include="..\shared\desktop\mcp\mcp_server.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
