@@ -80,12 +80,12 @@ void gui_action_ffwd(void)
     if (config_emulator.ffwd)
     {
         gui_set_status_message("Fast Forward ON", 3000);
-        display_set_vsync(false);
+        display_disable_vsync();
     }
     else
     {
         gui_set_status_message("Fast Forward OFF", 3000);
-        display_set_vsync(config_video.sync);
+        display_use_vsync_if_enabled();
         emu_audio_reset();
     }
 }
@@ -101,7 +101,7 @@ void gui_action_rewind_pressed(void)
 
     emu_reset_rewind_timing();
     rewind_set_active(true);
-    display_set_vsync(config_video.sync);
+    display_use_vsync_if_enabled();
     gui_set_status_message("Rewinding...", 500);
 }
 
@@ -113,7 +113,10 @@ void gui_action_rewind_released(void)
     rewind_set_active(false);
     events_sync_input();
     emu_reset_rewind_timing();
-    display_set_vsync(config_emulator.ffwd ? false : config_video.sync);
+    if (config_emulator.ffwd)
+        display_disable_vsync();
+    else
+        display_use_vsync_if_enabled();
     emu_audio_reset();
 }
 

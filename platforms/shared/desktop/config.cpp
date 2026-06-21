@@ -208,12 +208,15 @@ void config_read(void)
 
     int file_version = read_int("General", "Version", 0);
 
-    if (file_version < config_version)
+    if (file_version < 2)
     {
         Log("Settings version %d is outdated (current: %d). Using defaults.", file_version, config_version);
         config_write();
         return;
     }
+
+    if (file_version < config_version)
+        Log("Migrating settings version %d to %d", file_version, config_version);
 
     Log("Loading settings from %s (version %d)", config_emu_file_path, file_version);
 
@@ -353,7 +356,19 @@ void config_read(void)
     config_video.shader_mode = read_int("Video", "ShaderMode", config_ShaderMode_PixelPerfect);
     config_video.shader_mode = CLAMP(config_video.shader_mode, config_ShaderMode_PixelPerfect, config_ShaderMode_External);
     config_video.shader_preset_path = read_string("Video", "ShaderPresetFile");
-    config_video.sync = read_bool("Video", "Sync", true);
+    config_video.sync_mode = read_int("Video", "SyncMode", -1);
+    if (config_video.sync_mode < config_VideoSync_Disabled || config_video.sync_mode > config_VideoSync_VRR)
+    {
+        bool sync = read_bool("Video", "Sync", true);
+        bool vrr = read_bool("Video", "VRR", false);
+        config_video.sync_mode = sync ? (vrr ? config_VideoSync_VRR : config_VideoSync_Fixed) : config_VideoSync_Disabled;
+    }
+    else
+        config_video.sync_mode = CLAMP(config_video.sync_mode, config_VideoSync_Disabled, config_VideoSync_VRR);
+#if !defined(_WIN32)
+    if (config_video.sync_mode == config_VideoSync_VRR)
+        config_video.sync_mode = config_VideoSync_Disabled;
+#endif
     config_video.sprite_limit = read_bool("Video", "SpriteLimit", false);
     config_video.background_color[config_Theme_Dark][0] = read_float("Video", "BackgroundColorR", 0.1f);
     config_video.background_color[config_Theme_Dark][1] = read_float("Video", "BackgroundColorG", 0.1f);
@@ -591,7 +606,7 @@ void config_write(void)
     write_int("Video", "ShaderMode", config_video.shader_mode);
     write_string("Video", "ShaderPresetFile", get_filename(config_video.shader_preset_path.c_str()));
     sync_shader_preset_parameter_defaults();
-    write_bool("Video", "Sync", config_video.sync);
+    write_int("Video", "SyncMode", config_video.sync_mode);
     write_bool("Video", "SpriteLimit", config_video.sprite_limit);
     write_float("Video", "BackgroundColorR", config_video.background_color[config_Theme_Dark][0]);
     write_float("Video", "BackgroundColorG", config_video.background_color[config_Theme_Dark][1]);
