@@ -83,13 +83,18 @@ int application_headless_init(const ApplicationParams& params)
     emu_video_no_sprite_limit(config_video.sprite_limit);
     emu_disable_ym2413(config_audio.ym2413 == 1);
 
-    if (IsValidPointer(params.rom_file) && (strlen(params.rom_file) > 0))
+    bool rom_file_argument = IsValidPointer(params.rom_file) && (strlen(params.rom_file) > 0);
+    bool symbol_file_argument = IsValidPointer(params.symbol_file) && (strlen(params.symbol_file) > 0);
+
+    if (rom_file_argument)
     {
         Log("Rom file argument: %s", params.rom_file);
-        gui_load_rom(params.rom_file);
+        if (symbol_file_argument)
+            Log("Symbol file argument: %s", params.symbol_file);
+        gui_load_rom(params.rom_file, params.symbol_file);
     }
 
-    if (IsValidPointer(params.symbol_file) && (strlen(params.symbol_file) > 0))
+    if (!rom_file_argument && symbol_file_argument)
     {
         Log("Symbol file argument: %s", params.symbol_file);
         gui_debug_reset_symbols();
