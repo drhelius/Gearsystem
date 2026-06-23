@@ -1,0 +1,48 @@
+id: io.github.drhelius.Gearsystem
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+command: gearsystem
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  - --socket=pulseaudio
+  - --device=all # Allows for controller input
+modules:
+  - name: gearsystem
+    buildsystem: simple
+    build-commands:
+      - make -C platforms/linux
+      - install -Dm755 platforms/linux/gearsystem /app/lib/gearsystem/gearsystem
+      - install -dm755 /app/bin
+      - ln -s ../lib/gearsystem/gearsystem /app/bin/gearsystem
+      - install -Dm644 platforms/shared/gamecontrollerdb.txt /app/lib/gearsystem/gamecontrollerdb.txt
+      - install -dm755 /app/lib/gearsystem/shaders
+      - install -m644 platforms/shared/desktop/shaders/*.gshader /app/lib/gearsystem/shaders/
+      - install -m644 platforms/shared/desktop/shaders/*.glsl /app/lib/gearsystem/shaders/
+      - install -m644 platforms/shared/desktop/shaders/README.md /app/lib/gearsystem/shaders/
+      - install -dm755 /app/lib/gearsystem/mcp/resources/hardware
+      - install -m644 platforms/shared/desktop/mcp/resources/hardware/*.json /app/lib/gearsystem/mcp/resources/hardware/
+      - install -m644 platforms/shared/desktop/mcp/resources/hardware/*.md /app/lib/gearsystem/mcp/resources/hardware/
+      - install -Dm644 platforms/flatpak/io.github.drhelius.Gearsystem.desktop /app/share/applications/io.github.drhelius.Gearsystem.desktop
+      - install -Dm644 platforms/flatpak/io.github.drhelius.Gearsystem.metainfo.xml /app/share/metainfo/io.github.drhelius.Gearsystem.metainfo.xml
+      - install -Dm644 platforms/flatpak/io.github.drhelius.Gearsystem.xml /app/share/mime/packages/io.github.drhelius.Gearsystem.xml
+      - install -Dm644 platforms/flatpak/icons/32x32.png /app/share/icons/hicolor/32x32/apps/io.github.drhelius.Gearsystem.png
+      - install -Dm644 platforms/flatpak/icons/128x128.png /app/share/icons/hicolor/128x128/apps/io.github.drhelius.Gearsystem.png
+      - install -Dm644 platforms/flatpak/icons/256x256.png /app/share/icons/hicolor/256x256/apps/io.github.drhelius.Gearsystem.png
+      - install -Dm644 platforms/flatpak/icons/512x512.png /app/share/icons/hicolor/512x512/apps/io.github.drhelius.Gearsystem.png
+    sources:
+      # This source allows for that Flatpak to be built from the current commit.
+      # This is not suitable for releases, but is useful for development builds.
+      # Ideally a tag/commit or archive would be preferred, but a stable
+      # instance does not exist until this is merged into a main branch and
+      # released. An example of what this would look like is shown below and is
+      # expected to be altered after a release of Gearsystem.
+      - type: dir
+        path: ../..
+    # - type: git
+    #   url: https://github.com/drhelius/Gearsystem
+    #   tag: 3.9.10
+    #   commit: cb0bd670c760cb0fe881c36135697adc88d04adc

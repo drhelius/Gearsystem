@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-sms-rom">
+    <comment>Sega Master System ROM</comment>
+    <glob pattern="*.sms"/>
+    <glob pattern="*.SMS"/>
+  </mime-type>
+  <mime-type type="application/x-gamegear-rom">
+    <comment>Sega Game Gear ROM</comment>
+    <glob pattern="*.gg"/>
+    <glob pattern="*.GG"/>
+  </mime-type>
+  <mime-type type="application/x-sg1000-rom">
+    <comment>Sega SG-1000 ROM</comment>
+    <glob pattern="*.sg"/>
+    <glob pattern="*.SG"/>
+  </mime-type>
+  <mime-type type="application/x-othello-multivision-rom">
+    <comment>Othello Multivision ROM</comment>
+    <glob pattern="*.mv"/>
+    <glob pattern="*.MV"/>
+  </mime-type>
+</mime-info>

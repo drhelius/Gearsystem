@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Gearsystem
+Comment=Emulator for SMS/GG/SG-1000 games
+Exec=gearsystem
+Type=Application
+Icon=io.github.drhelius.Gearsystem
+Categories=Game;Emulator;
+MimeType=application/x-sms-rom;application/x-gamegear-rom;application/x-sg1000-rom;application/x-othello-multivision-rom;
+Keywords=emulator;sega;master system;game gear;sg-1000;
