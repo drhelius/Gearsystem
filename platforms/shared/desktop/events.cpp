@@ -289,17 +289,21 @@ static Uint16 input_filter_opposing_directions(int controller, Uint16 state)
 
     if ((state & Key_Up) && (state & Key_Down))
     {
-        if (!(previous & Key_Up))
+        if (previous & Key_Up)
+            state = (Uint16)(state & ~Key_Down);
+        else if (previous & Key_Down)
             state = (Uint16)(state & ~Key_Up);
-        if (!(previous & Key_Down))
+        else
             state = (Uint16)(state & ~Key_Down);
     }
 
     if ((state & Key_Left) && (state & Key_Right))
     {
-        if (!(previous & Key_Left))
+        if (previous & Key_Left)
+            state = (Uint16)(state & ~Key_Right);
+        else if (previous & Key_Right)
             state = (Uint16)(state & ~Key_Left);
-        if (!(previous & Key_Right))
+        else
             state = (Uint16)(state & ~Key_Right);
     }
 
