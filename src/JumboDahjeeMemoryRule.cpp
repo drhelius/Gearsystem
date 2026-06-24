@@ -69,3 +69,14 @@ int JumboDahjeeMemoryRule::GetBank(int index)
     else
         return 0;
 }
+
+void JumboDahjeeMemoryRule::SaveState(std::ostream& stream)
+{
+    stream.write(reinterpret_cast<const char*> (m_pCartRAM), 0x2000);
+}
+
+void JumboDahjeeMemoryRule::LoadState(std::istream& stream, int version)
+{
+    if (version >= 105)
+        stream.read(reinterpret_cast<char*> (m_pCartRAM), 0x2000);
+}

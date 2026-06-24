@@ -117,7 +117,7 @@ void KoreanMSX32KB2000MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (m_iMapperSlot), sizeof(m_iMapperSlot));
 }
 
-void KoreanMSX32KB2000MemoryRule::LoadState(std::istream& stream)
+void KoreanMSX32KB2000MemoryRule::LoadState(std::istream& stream, int)
 {
     using namespace std;
 

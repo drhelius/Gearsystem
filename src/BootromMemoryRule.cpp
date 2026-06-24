@@ -166,7 +166,7 @@ void BootromMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (m_iMapperSlotAddress), sizeof(m_iMapperSlotAddress));
 }
 
-void BootromMemoryRule::LoadState(std::istream& stream)
+void BootromMemoryRule::LoadState(std::istream& stream, int)
 {
     stream.read(reinterpret_cast<char*> (m_iMapperSlot), sizeof(m_iMapperSlot));
     stream.read(reinterpret_cast<char*> (m_iMapperSlotAddress), sizeof(m_iMapperSlotAddress));

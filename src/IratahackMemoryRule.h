@@ -49,7 +49,7 @@ public:
     virtual u8* GetPage(int index);
     virtual int GetBank(int index);
     virtual void SaveState(std::ostream& stream);
-    virtual void LoadState(std::istream& stream);
+    virtual void LoadState(std::istream& stream, int version);
 
 private:
     bool AdvanceSequence(int seqIndex, int* steps, u16 address, u8 value);

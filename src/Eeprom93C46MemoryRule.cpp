@@ -260,7 +260,7 @@ void Eeprom93C46MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*>(&m_EEPROM), sizeof(m_EEPROM));
 }
 
-void Eeprom93C46MemoryRule::LoadState(std::istream& stream)
+void Eeprom93C46MemoryRule::LoadState(std::istream& stream, int)
 {
     using namespace std;
 

@@ -161,7 +161,7 @@ void KoreanBFFCMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (m_iPageAddress), sizeof(m_iPageAddress));
 }
 
-void KoreanBFFCMemoryRule::LoadState(std::istream& stream)
+void KoreanBFFCMemoryRule::LoadState(std::istream& stream, int)
 {
     using namespace std;
 

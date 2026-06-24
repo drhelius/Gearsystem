@@ -332,7 +332,7 @@ void IratahackMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (m_iFlashStep), sizeof(m_iFlashStep));
 }
 
-void IratahackMemoryRule::LoadState(std::istream& stream)
+void IratahackMemoryRule::LoadState(std::istream& stream, int)
 {
     using namespace std;
 

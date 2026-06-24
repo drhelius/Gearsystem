@@ -1007,9 +1007,9 @@ bool GearsystemCore::LoadState(std::istream& stream)
     m_pAudio->LoadState(stream, header.version);
     m_pVideo->LoadState(stream, header.version);
     m_pInput->LoadState(stream);
-    m_pMemory->GetCurrentRule()->LoadState(stream);
+    m_pMemory->GetCurrentRule()->LoadState(stream, header.version);
     if (header.version >= 104)
-        m_pMemory->GetBootromRule()->LoadState(stream);
+        m_pMemory->GetBootromRule()->LoadState(stream, header.version);
     m_pProcessor->GetIOPOrts()->LoadState(stream);
 
     return true;
@@ -1064,7 +1064,7 @@ bool GearsystemCore::LoadStateV1(std::istream& stream, size_t size)
     m_pAudio->LoadStateV1(stream);
     m_pVideo->LoadState(stream);
     m_pInput->LoadState(stream);
-    m_pMemory->GetCurrentRule()->LoadState(stream);
+    m_pMemory->GetCurrentRule()->LoadState(stream, GS_SAVESTATE_VERSION_V1);
     m_pProcessor->GetIOPOrts()->LoadState(stream);
 
     return true;

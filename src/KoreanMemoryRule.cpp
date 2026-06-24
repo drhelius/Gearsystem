@@ -123,7 +123,7 @@ void KoreanMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_iMapperSlot2Address), sizeof(m_iMapperSlot2Address));
 }
 
-void KoreanMemoryRule::LoadState(std::istream& stream)
+void KoreanMemoryRule::LoadState(std::istream& stream, int)
 {
     using namespace std;
 

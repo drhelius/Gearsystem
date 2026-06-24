@@ -126,7 +126,7 @@ void Multi4PAKAllActionMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (m_iMapperSlot), sizeof(m_iMapperSlot));
 }
 
-void Multi4PAKAllActionMemoryRule::LoadState(std::istream& stream)
+void Multi4PAKAllActionMemoryRule::LoadState(std::istream& stream, int)
 {
     using namespace std;
 

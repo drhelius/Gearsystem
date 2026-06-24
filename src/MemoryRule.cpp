@@ -89,6 +89,6 @@ void MemoryRule::SaveState(std::ostream&)
 {
 }
 
-void MemoryRule::LoadState(std::istream&)
+void MemoryRule::LoadState(std::istream&, int)
 {
 }

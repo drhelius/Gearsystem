@@ -266,7 +266,7 @@ void SegaMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_iPersistRAM), sizeof(m_iPersistRAM));
 }
 
-void SegaMemoryRule::LoadState(std::istream& stream)
+void SegaMemoryRule::LoadState(std::istream& stream, int)
 {
     using namespace std;
 

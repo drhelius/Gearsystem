@@ -105,7 +105,7 @@ void KoreanFFFFHiComMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (m_iMapperSlot), sizeof(m_iMapperSlot));
 }
 
-void KoreanFFFFHiComMemoryRule::LoadState(std::istream& stream)
+void KoreanFFFFHiComMemoryRule::LoadState(std::istream& stream, int)
 {
     using namespace std;
 

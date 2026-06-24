@@ -182,7 +182,7 @@ void CodemastersMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_bRAMBankActive), sizeof(m_bRAMBankActive));
 }
 
-void CodemastersMemoryRule::LoadState(std::istream& stream)
+void CodemastersMemoryRule::LoadState(std::istream& stream, int)
 {
     using namespace std;
 

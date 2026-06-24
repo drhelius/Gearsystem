@@ -129,7 +129,7 @@ void Korean0000XORFFMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (m_iPageAddress), sizeof(m_iPageAddress));
 }
 
-void Korean0000XORFFMemoryRule::LoadState(std::istream& stream)
+void Korean0000XORFFMemoryRule::LoadState(std::istream& stream, int)
 {
     using namespace std;
 

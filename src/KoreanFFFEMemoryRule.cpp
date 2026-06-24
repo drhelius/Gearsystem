@@ -144,7 +144,7 @@ void KoreanFFFEMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (m_iPageAddress), sizeof(m_iPageAddress));
 }
 
-void KoreanFFFEMemoryRule::LoadState(std::istream& stream)
+void KoreanFFFEMemoryRule::LoadState(std::istream& stream, int)
 {
     using namespace std;
 

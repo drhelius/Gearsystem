@@ -111,7 +111,7 @@ void KoreanMSX8KB0300MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (m_iPage), sizeof(m_iPage));
 }
 
-void KoreanMSX8KB0300MemoryRule::LoadState(std::istream& stream)
+void KoreanMSX8KB0300MemoryRule::LoadState(std::istream& stream, int)
 {
     using namespace std;
 

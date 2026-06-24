@@ -143,7 +143,7 @@ void KoreanMSXSMS8000MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_Register), sizeof(m_Register));
 }
 
-void KoreanMSXSMS8000MemoryRule::LoadState(std::istream& stream)
+void KoreanMSXSMS8000MemoryRule::LoadState(std::istream& stream, int)
 {
     using namespace std;
 

@@ -160,7 +160,7 @@ void MSXMemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (m_iMapperSlotAddress), sizeof(m_iMapperSlotAddress));
 }
 
-void MSXMemoryRule::LoadState(std::istream& stream)
+void MSXMemoryRule::LoadState(std::istream& stream, int)
 {
     using namespace std;
 

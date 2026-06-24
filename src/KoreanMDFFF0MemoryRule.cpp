@@ -153,7 +153,7 @@ void KoreanMDFFF0MemoryRule::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (m_iRegister), sizeof(m_iRegister));
 }
 
-void KoreanMDFFF0MemoryRule::LoadState(std::istream& stream)
+void KoreanMDFFF0MemoryRule::LoadState(std::istream& stream, int)
 {
     using namespace std;
 
