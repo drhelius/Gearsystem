@@ -32,6 +32,8 @@ public:
     virtual void Reset();
     virtual u8* GetPage(int index);
     virtual int GetBank(int index);
+    virtual void SaveState(std::ostream& stream);
+    virtual void LoadState(std::istream& stream);
 
 private:
     int m_iMapperSlot[3];

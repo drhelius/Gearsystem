@@ -805,6 +805,7 @@ bool GearsystemCore::SaveState(std::ostream& stream, size_t& size, bool screensh
     m_pVideo->SaveState(stream);
     m_pInput->SaveState(stream);
     m_pMemory->GetCurrentRule()->SaveState(stream);
+    m_pMemory->GetBootromRule()->SaveState(stream);
     m_pProcessor->GetIOPOrts()->SaveState(stream);
 
 #if defined(__LIBRETRO__)
@@ -1001,12 +1002,14 @@ bool GearsystemCore::LoadState(std::istream& stream)
 
     Debug("Unserializing save state...");
 
-    m_pMemory->LoadState(stream);
+    m_pMemory->LoadState(stream, header.version);
     m_pProcessor->LoadState(stream);
     m_pAudio->LoadState(stream, header.version);
     m_pVideo->LoadState(stream, header.version);
     m_pInput->LoadState(stream);
     m_pMemory->GetCurrentRule()->LoadState(stream);
+    if (header.version >= 104)
+        m_pMemory->GetBootromRule()->LoadState(stream);
     m_pProcessor->GetIOPOrts()->LoadState(stream);
 
     return true;
@@ -1056,7 +1059,7 @@ bool GearsystemCore::LoadStateV1(std::istream& stream, size_t size)
 
     Log("Loading V1 save state (%d bytes)...", static_cast<int>(size));
 
-    m_pMemory->LoadState(stream);
+    m_pMemory->LoadState(stream, GS_SAVESTATE_VERSION_V1);
     m_pProcessor->LoadState(stream);
     m_pAudio->LoadStateV1(stream);
     m_pVideo->LoadState(stream);

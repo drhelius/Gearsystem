@@ -25,6 +25,14 @@
 #include "Cartridge.h"
 #include "common.h"
 
+static Memory::MediaSlots ValidateMediaSlot(u8 slot, Memory::MediaSlots fallback)
+{
+    if (slot <= Memory::NoSlot)
+        return (Memory::MediaSlots)slot;
+
+    return fallback;
+}
+
 Memory::Memory(Cartridge* pCartridge)
 {
     m_pCartridge = pCartridge;
@@ -189,14 +197,41 @@ void Memory::SaveState(std::ostream& stream)
 
     stream.write(reinterpret_cast<const char*> (m_pMap), 0x10000);
     stream.write(reinterpret_cast<const char*> (&m_bIOEnabled), sizeof (m_bIOEnabled));
+
+    u8 mediaSlot = (u8)m_MediaSlot;
+    u8 desiredMediaSlot = (u8)m_DesiredMediaSlot;
+    u8 storedMediaSlot = (u8)m_StoredMediaSlot;
+
+    stream.write(reinterpret_cast<const char*> (&mediaSlot), sizeof(mediaSlot));
+    stream.write(reinterpret_cast<const char*> (&desiredMediaSlot), sizeof(desiredMediaSlot));
+    stream.write(reinterpret_cast<const char*> (&storedMediaSlot), sizeof(storedMediaSlot));
 }
 
-void Memory::LoadState(std::istream& stream)
+void Memory::LoadState(std::istream& stream, int version)
 {
     using namespace std;
 
     stream.read(reinterpret_cast<char*> (m_pMap), 0x10000);
     stream.read(reinterpret_cast<char*> (&m_bIOEnabled), sizeof (m_bIOEnabled));
+
+    if (version >= 104)
+    {
+        u8 mediaSlot = 0;
+        u8 desiredMediaSlot = 0;
+        u8 storedMediaSlot = 0;
+        MediaSlots oldSlot = m_MediaSlot;
+
+        stream.read(reinterpret_cast<char*> (&mediaSlot), sizeof(mediaSlot));
+        stream.read(reinterpret_cast<char*> (&desiredMediaSlot), sizeof(desiredMediaSlot));
+        stream.read(reinterpret_cast<char*> (&storedMediaSlot), sizeof(storedMediaSlot));
+
+        m_MediaSlot = ValidateMediaSlot(mediaSlot, m_MediaSlot);
+        m_DesiredMediaSlot = ValidateMediaSlot(desiredMediaSlot, m_DesiredMediaSlot);
+        m_StoredMediaSlot = ValidateMediaSlot(storedMediaSlot, m_StoredMediaSlot);
+
+        if (oldSlot != m_MediaSlot)
+            ResetDisassemblerRecords();
+    }
 }
 
 void Memory::EnableBootromSMS(bool enable)

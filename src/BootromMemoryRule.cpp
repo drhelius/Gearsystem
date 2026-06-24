@@ -159,3 +159,15 @@ int BootromMemoryRule::GetBank(int index)
             return 0;
     }
 }
+
+void BootromMemoryRule::SaveState(std::ostream& stream)
+{
+    stream.write(reinterpret_cast<const char*> (m_iMapperSlot), sizeof(m_iMapperSlot));
+    stream.write(reinterpret_cast<const char*> (m_iMapperSlotAddress), sizeof(m_iMapperSlotAddress));
+}
+
+void BootromMemoryRule::LoadState(std::istream& stream)
+{
+    stream.read(reinterpret_cast<char*> (m_iMapperSlot), sizeof(m_iMapperSlot));
+    stream.read(reinterpret_cast<char*> (m_iMapperSlotAddress), sizeof(m_iMapperSlotAddress));
+}
