@@ -728,6 +728,16 @@ bool emu_debug_halt_step_active(void)
     return emu_debug_halt_step_frames_pending > 0;
 }
 
+void emu_set_disassembler_syntax(int syntax)
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    if (IsValidPointer(gearsystem))
+        gearsystem->GetProcessor()->SetDisassemblerSyntax((GS_Disassembler_Syntax)syntax);
+#else
+    UNUSED(syntax);
+#endif
+}
+
 void emu_load_bootrom_sms(const char* file_path)
 {
     gearsystem->GetMemory()->LoadBootromSMS(file_path);

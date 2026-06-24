@@ -132,6 +132,7 @@ bool gui_init(void)
     emu_set_overscan(config_debug.debug ? 0 : config_video.overscan);
     emu_set_hide_left_bar(config_video.hide_left_bar);
     emu_video_no_sprite_limit(config_video.sprite_limit);
+    emu_set_disassembler_syntax(config_debug.dis_syntax);
     emu_disable_ym2413(config_audio.ym2413 == 1);
     emu_enable_phaser(config_emulator.light_phaser);
     emu_enable_phaser_crosshair(config_emulator.light_phaser_crosshair, config_emulator.light_phaser_crosshair_shape, config_emulator.light_phaser_crosshair_color);

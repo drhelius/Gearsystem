@@ -104,6 +104,8 @@ public:
     void SetProActionReplayCheat(const char* szCheat);
     void ClearProActionReplayCheats();
     ProcessorState* GetState();
+    void SetDisassemblerSyntax(GS_Disassembler_Syntax syntax);
+    GS_Disassembler_Syntax GetDisassemblerSyntax() const;
     void DisassembleNextOPCode();
     void PopulateDisassemblerRecord(GS_Disassembler_Record* record, u16 address);
     void InvalidateOverlappingRecords(u16 address, u8 opcode_size);
@@ -174,6 +176,7 @@ private:
     GS_Breakpoint m_run_to_breakpoint;
     bool m_run_to_breakpoint_requested;
     std::stack<GS_CallStackEntry> m_disassembler_call_stack;
+    GS_Disassembler_Syntax m_disassembler_syntax;
     s32 m_debug_next_irq;
 
     struct ProActionReplayCode
@@ -210,6 +213,9 @@ private:
     void CheckBreakpoints();
     void PushCallStack(u16 src, u16 dest, u16 back, u8 bank);
     void PopCallStack();
+    void FormatDisassemblerDataBytes(char* text, size_t text_size, const u8* bytes, int size);
+    void SetDisassemblerOperandText(GS_Disassembler_Record* record, const char* text);
+    void SetDisassemblerOperand(GS_Disassembler_Record* record, u16 address, bool is_zp, const char* text);
     SixteenBitRegister* GetPrefixedRegister();
     u16 GetEffectiveAddress();
     bool IsPrefixedInstruction();

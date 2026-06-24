@@ -58,6 +58,7 @@ Processor::Processor(Memory* pMemory)
     m_memory_breakpoint_hit = false;
     m_run_to_breakpoint_hit = false;
     m_run_to_breakpoint_requested = false;
+    m_disassembler_syntax = GS_Disassembler_Syntax_Gearsystem;
     m_debug_next_irq = 1;
 
     m_ProcessorState.AF = &AF;
@@ -85,6 +86,19 @@ Processor::Processor(Memory* pMemory)
 
 Processor::~Processor()
 {
+}
+
+void Processor::SetDisassemblerSyntax(GS_Disassembler_Syntax syntax)
+{
+    if (syntax < GS_Disassembler_Syntax_Gearsystem || syntax >= GS_Disassembler_Syntax_Count)
+        syntax = GS_Disassembler_Syntax_Gearsystem;
+
+    m_disassembler_syntax = syntax;
+}
+
+GS_Disassembler_Syntax Processor::GetDisassemblerSyntax() const
+{
+    return m_disassembler_syntax;
 }
 
 void Processor::Init()
@@ -473,6 +487,43 @@ void Processor::DisassembleNextOPCode()
 #endif
 }
 
+void Processor::FormatDisassemblerDataBytes(char* text, size_t text_size, const u8* bytes, int size)
+{
+    const char* directive = (m_disassembler_syntax == GS_Disassembler_Syntax_WLADX) ? ".db" : "db";
+
+    int pos = snprintf(text, text_size, "{n}%s ", directive);
+    for (int i = 0; i < size && pos > 0 && pos < (int)text_size; i++)
+        pos += snprintf(text + pos, text_size - pos, "%s{o}$%02X", (i == 0) ? "" : ",", bytes[i]);
+}
+
+void Processor::SetDisassemblerOperandText(GS_Disassembler_Record* record, const char* text)
+{
+    if (!IsValidPointer(text) || (text[0] == 0))
+        return;
+
+    const char* match = record->name;
+    const char* last_match = NULL;
+    while ((match = strstr(match, text)) != NULL)
+    {
+        last_match = match;
+        match++;
+    }
+
+    if (IsValidPointer(last_match))
+    {
+        record->operand_offset = (int)(last_match - record->name);
+        record->operand_length = (int)strlen(text);
+    }
+}
+
+void Processor::SetDisassemblerOperand(GS_Disassembler_Record* record, u16 address, bool is_zp, const char* text)
+{
+    record->has_operand_address = true;
+    record->operand_address = address;
+    record->operand_is_zp = is_zp;
+    SetDisassemblerOperandText(record, text);
+}
+
 void Processor::PopulateDisassemblerRecord(GS_Disassembler_Record* record, u16 address)
 {
 #ifndef GS_DISABLE_DISASSEMBLER
@@ -490,6 +541,9 @@ void Processor::PopulateDisassemblerRecord(GS_Disassembler_Record* record, u16 a
     record->irq = 0;
     record->has_operand_address = false;
     record->operand_address = 0;
+    record->operand_is_zp = false;
+    record->operand_offset = 0;
+    record->operand_length = 0;
 
     if (m_debug_next_irq > 0)
     {
@@ -580,19 +634,25 @@ void Processor::PopulateDisassemblerRecord(GS_Disassembler_Record* record, u16 a
     InvalidateOverlappingRecords(address, (u8)record->size);
 
     int name_first = first + (prefixed ? 1 : 0);
+    const char* format = info.name[m_disassembler_syntax];
 
     switch (info.type)
     {
-        case 0:
-            strcpy(record->name, info.name);
+        case GS_OPCode_Type_Implied:
+            strcpy(record->name, format);
             break;
-        case 1:
-            snprintf(record->name, sizeof(record->name), info.name, (s8)bytes[name_first]);
+        case GS_OPCode_Type_Index:
+            snprintf(record->name, sizeof(record->name), format, (s8)bytes[name_first]);
             break;
-        case 2:
-            snprintf(record->name, sizeof(record->name), info.name, bytes[name_first + 1]);
+        case GS_OPCode_Type_1b:
+        {
+            snprintf(record->name, sizeof(record->name), format, bytes[name_first + 1]);
+            char operand_text[8];
+            snprintf(operand_text, sizeof(operand_text), "$%02X", bytes[name_first + 1]);
+            SetDisassemblerOperandText(record, operand_text);
             break;
-        case 3:
+        }
+        case GS_OPCode_Type_2b:
         {
             u16 operand = (bytes[name_first + 2] << 8) | bytes[name_first + 1];
             record->has_operand_address = true;
@@ -603,13 +663,16 @@ void Processor::PopulateDisassemblerRecord(GS_Disassembler_Record* record, u16 a
                 record->jump_address = operand;
                 record->jump_bank = m_pMemory->GetBank(operand);
             }
-            snprintf(record->name, sizeof(record->name), info.name, operand);
+            snprintf(record->name, sizeof(record->name), format, operand);
+            char operand_text[8];
+            snprintf(operand_text, sizeof(operand_text), "$%04X", operand);
+            SetDisassemblerOperand(record, operand, false, operand_text);
             break;
         }
-        case 4:
-            snprintf(record->name, sizeof(record->name), info.name, (s8)bytes[name_first + 1]);
+        case GS_OPCode_Type_Indexed:
+            snprintf(record->name, sizeof(record->name), format, (s8)bytes[name_first + 1]);
             break;
-        case 5:
+        case GS_OPCode_Type_Relative:
         {
             u16 jump_address = address + record->size + (s8)bytes[name_first + 1];
             record->has_operand_address = true;
@@ -617,11 +680,35 @@ void Processor::PopulateDisassemblerRecord(GS_Disassembler_Record* record, u16 a
             record->jump = true;
             record->jump_address = jump_address;
             record->jump_bank = m_pMemory->GetBank(jump_address);
-            snprintf(record->name, sizeof(record->name), info.name, jump_address, (s8)bytes[name_first + 1]);
+            if (m_disassembler_syntax == GS_Disassembler_Syntax_Gearsystem)
+            {
+                snprintf(record->name, sizeof(record->name), format, jump_address, (s8)bytes[name_first + 1]);
+                char operand_text[8];
+                snprintf(operand_text, sizeof(operand_text), "$%04X", jump_address);
+                SetDisassemblerOperandText(record, operand_text);
+            }
+            else
+            {
+                snprintf(record->name, sizeof(record->name), format, bytes[name_first + 1]);
+                char operand_text[16];
+                if (m_disassembler_syntax == GS_Disassembler_Syntax_TNIASM)
+                    snprintf(operand_text, sizeof(operand_text), "($+2+$%02X)", bytes[name_first + 1]);
+                else if (m_disassembler_syntax == GS_Disassembler_Syntax_Z88DK)
+                    snprintf(operand_text, sizeof(operand_text), "$+2+$%02X", bytes[name_first + 1]);
+                else
+                    snprintf(operand_text, sizeof(operand_text), "$%02X", bytes[name_first + 1]);
+                SetDisassemblerOperandText(record, operand_text);
+            }
             break;
         }
-        case 6:
-            snprintf(record->name, sizeof(record->name), info.name, (s8)bytes[name_first + 1], bytes[name_first + 2]);
+        case GS_OPCode_Type_Indexed_1b:
+            snprintf(record->name, sizeof(record->name), format, (s8)bytes[name_first + 1], bytes[name_first + 2]);
+            break;
+        case GS_OPCode_Type_Data:
+            if (m_disassembler_syntax == GS_Disassembler_Syntax_Gearsystem)
+                strcpy(record->name, format);
+            else
+                FormatDisassemblerDataBytes(record->name, sizeof(record->name), bytes.data(), record->size);
             break;
         default:
             strcpy(record->name, "PARSE ERROR");
@@ -655,7 +742,7 @@ void Processor::PopulateDisassemblerRecord(GS_Disassembler_Record* record, u16 a
         snprintf(record->auto_symbol, 64, k_irq_auto_symbol_format[record->irq], record->bank, address);
     }
 
-    if (record->jump && record->jump_address != 0)
+    if (record->jump)
     {
         GS_Disassembler_Record* target = m_pMemory->GetOrCreateDisassemblerRecord(record->jump_address);
         if (IsValidPointer(target))
@@ -779,7 +866,7 @@ void Processor::DisassembleAhead(u16 start_address, int count, int depth)
             m_debug_next_irq = saved_irq;
         }
 
-        if (record->jump && record->jump_address != 0)
+        if (record->jump)
         {
             u8 jump_bank = m_pMemory->GetBank(record->jump_address);
             if (jump_bank != 0xFF)
