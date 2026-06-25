@@ -74,6 +74,7 @@
     <ClCompile Include="..\shared\desktop\config.cpp" />
     <ClCompile Include="..\shared\desktop\emu.cpp" />
     <ClCompile Include="..\shared\desktop\rewind.cpp" />
+    <ClCompile Include="..\shared\desktop\runahead.cpp" />
     <ClCompile Include="..\shared\desktop\gui.cpp" />
     <ClCompile Include="..\shared\desktop\gui_actions.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug.cpp" />
@@ -251,6 +252,7 @@
     <ClInclude Include="..\shared\desktop\shader_preset.h" />
     <ClInclude Include="..\shared\desktop\display.h" />
     <ClInclude Include="..\shared\desktop\rewind.h" />
+    <ClInclude Include="..\shared\desktop\runahead.h" />
     <ClInclude Include="..\shared\desktop\events.h" />
     <ClInclude Include="..\shared\desktop\gamepad.h" />
     <ClInclude Include="..\shared\desktop\utils.h" />

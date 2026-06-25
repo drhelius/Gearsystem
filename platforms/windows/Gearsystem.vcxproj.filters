@@ -19,6 +19,9 @@
     <ClCompile Include="..\shared\desktop\rewind.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
+    <ClCompile Include="..\shared\desktop\runahead.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
     <ClCompile Include="..\shared\desktop\gui.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
@@ -340,6 +343,9 @@
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\rewind.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\runahead.h">
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\gui_popups.h">

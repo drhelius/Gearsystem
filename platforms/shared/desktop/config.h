@@ -69,6 +69,7 @@ struct config_Emulator
     bool pause_when_inactive = true;
     bool ffwd = false;
     int ffwd_speed = 1;
+    int runahead = 0;
     int system = 0;
     int zone = 0;
     int mapper = 0;
