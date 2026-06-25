@@ -111,6 +111,7 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 - Internal database for ROM detection.
 - Battery powered RAM save support.
 - Save states with preview and rewind support.
+- Run-ahead support to reduce input latency.
 - Compressed ROM support (ZIP).
 - *Game Genie* and *Pro Action Replay* cheat support.
 - VGM recorder.
