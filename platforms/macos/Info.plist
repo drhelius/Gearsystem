@@ -22,5 +22,105 @@
     <string>@version@</string>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.arcade-games</string>
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>Sega Master System ROM</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Owner</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>com.drhelius.gearsystem.sms</string>
+            </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>Game Gear ROM</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Owner</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>com.drhelius.gearsystem.gg</string>
+            </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>SG-1000 ROM</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Owner</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>com.drhelius.gearsystem.sg1000</string>
+            </array>
+        </dict>
+    </array>
+    <key>UTExportedTypeDeclarations</key>
+    <array>
+        <dict>
+            <key>UTTypeIdentifier</key>
+            <string>com.drhelius.gearsystem.sms</string>
+            <key>UTTypeDescription</key>
+            <string>Sega Master System ROM</string>
+            <key>UTTypeConformsTo</key>
+            <array>
+                <string>public.data</string>
+            </array>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+                <key>public.filename-extension</key>
+                <array>
+                    <string>sms</string>
+                </array>
+                <key>public.mime-type</key>
+                <string>application/x-sms-rom</string>
+            </dict>
+        </dict>
+        <dict>
+            <key>UTTypeIdentifier</key>
+            <string>com.drhelius.gearsystem.gg</string>
+            <key>UTTypeDescription</key>
+            <string>Game Gear ROM</string>
+            <key>UTTypeConformsTo</key>
+            <array>
+                <string>public.data</string>
+            </array>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+                <key>public.filename-extension</key>
+                <array>
+                    <string>gg</string>
+                </array>
+                <key>public.mime-type</key>
+                <string>application/x-gamegear-rom</string>
+            </dict>
+        </dict>
+        <dict>
+            <key>UTTypeIdentifier</key>
+            <string>com.drhelius.gearsystem.sg1000</string>
+            <key>UTTypeDescription</key>
+            <string>SG-1000 ROM</string>
+            <key>UTTypeConformsTo</key>
+            <array>
+                <string>public.data</string>
+            </array>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+                <key>public.filename-extension</key>
+                <array>
+                    <string>sg</string>
+                    <string>mv</string>
+                </array>
+                <key>public.mime-type</key>
+                <string>application/x-sg1000-rom</string>
+            </dict>
+        </dict>
+    </array>
 </dict>
 </plist>

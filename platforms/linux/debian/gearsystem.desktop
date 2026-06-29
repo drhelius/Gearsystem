@@ -7,6 +7,7 @@ Exec=/usr/games/gearsystem %f
 TryExec=/usr/games/gearsystem
 Icon=gearsystem
 Terminal=false
+MimeType=application/x-sms-rom;application/x-gamegear-rom;application/x-sg1000-rom;
 Categories=Game;Emulator;
 Keywords=Sega;Master System;Game Gear;SG-1000;SMS;
 StartupNotify=true

@@ -1,3 +1,4 @@
 platforms/linux/gearsystem usr/lib/gearsystem/
 platforms/shared/gamecontrollerdb.txt usr/lib/gearsystem/
 debian/gearsystem.desktop usr/share/applications/
+debian/gearsystem.xml usr/share/mime/packages/
