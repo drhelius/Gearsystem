@@ -38,7 +38,7 @@
       <li>Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, webOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch, Emscripten, Classic Mini systems (NES, SNES, C64, ...), OpenDingux, RetroFW and QNX.</li>
       <li>Full debugger with just-in-time disassembler, CPU breakpoints, memory access breakpoints, code navigation, debug symbols, automatic labels, memory editor, trace logger, IO inspector and VRAM viewer.</li>
       <li>MCP server for AI-assisted debugging, exposing tools for execution control, memory inspection, hardware status, rewind and more.</li>
-      <li>Windows and Linux Portable Mode.</li>
+      <li>Windows, Linux and macOS Portable Mode.</li>
       <li>Programmable shader chain.</li>
       <li>Rom loading from the command line by adding the rom path as an argument.</li>
       <li>Rom loading using drag and drop.</li>

@@ -39,7 +39,7 @@ Features:
     - Supported platforms (standalone): Windows, Linux, BSD and macOS.
     - Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch, Emscripten, Classic Mini systems (NES, SNES, C64, ...), OpenDingux, RetroFW and QNX.
     - Full debugger with just-in-time disassembler, CPU breakpoints, memory access breakpoints, code navigation (goto address, JP JR and CALL double clicking), debug symbols, memory editor, IO inspector and VRAM viewer including tiles, sprites, backgrounds and palettes.
-    - Windows and Linux Portable Mode.
+    - Windows, Linux and macOS Portable Mode.
     - ROM loading from the command line by adding the ROM path as an argument.
     - ROM loading using drag & drop.
     - Support for modern game controllers through gamecontrollerdb.txt file (https://github.com/mdqinc/SDL_GameControllerDB) located in the same directory as the application binary.
