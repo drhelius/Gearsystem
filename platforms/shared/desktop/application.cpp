@@ -162,7 +162,6 @@ int application_init(const ApplicationParams& params)
 
 void application_destroy(void)
 {
-    remove_directory_and_contents(config_temp_path);
     save_window_size();
     emu_destroy();
     ogl_renderer_destroy();

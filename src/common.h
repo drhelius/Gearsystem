@@ -30,8 +30,6 @@
 #else
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <dirent.h>
-#include <unistd.h>
 #include <errno.h>
 #endif
 #include "definitions.h"
@@ -237,65 +235,6 @@ inline bool create_directory_if_not_exists(const char* path)
         return true;
     else
         return false;
-}
-
-inline bool remove_directory_and_contents(const char* path)
-{
-#if defined(_WIN32)
-    std::string search = std::string(path) + "\\*";
-    WIN32_FIND_DATAA fd;
-    HANDLE hFind = FindFirstFileA(search.c_str(), &fd);
-
-    if (hFind == INVALID_HANDLE_VALUE)
-        return false;
-
-    do
-    {
-        const char* name = fd.cFileName;
-        if (strcmp(name, ".") && strcmp(name, ".."))
-        {
-            std::string item = std::string(path) + "\\" + name;
-            if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-            {
-                remove_directory_and_contents(item.c_str());
-                RemoveDirectoryA(item.c_str());
-            }
-            else
-            {
-                DeleteFileA(item.c_str());
-            }
-        }
-    }
-    while (FindNextFileA(hFind, &fd));
-
-    FindClose(hFind);
-    return RemoveDirectoryA(path) != 0;
-#else
-    DIR* dir = opendir(path);
-    if (!dir)
-        return false;
-
-    struct dirent* entry;
-
-    while ((entry = readdir(dir)) != NULL)
-    {
-        const char* name = entry->d_name;
-        if (strcmp(name, ".") && strcmp(name, ".."))
-        {
-            std::string item = std::string(path) + "/" + name;
-            struct stat st;
-            if (stat(item.c_str(), &st) == 0) {
-                if (S_ISDIR(st.st_mode))
-                    remove_directory_and_contents(item.c_str());
-                else
-                    unlink(item.c_str());
-            }
-        }
-    }
-
-    closedir(dir);
-    return (rmdir(path) == 0);
-#endif
 }
 
 #if defined(_WIN32)
