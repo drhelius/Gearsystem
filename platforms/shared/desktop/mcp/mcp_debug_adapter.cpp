@@ -1310,6 +1310,8 @@ json DebugAdapter::ListSaveStateSlots()
     json slots = json::array();
     json empty_slots = json::array();
 
+    update_savestates_data();
+
     for (int i = 0; i < 5; i++)
     {
         json slot;
@@ -1393,6 +1395,8 @@ json DebugAdapter::LoadState()
     }
 
     int slot = config_emulator.save_slot + 1;
+
+    update_savestates_data();
 
     if (emu_savestates[config_emulator.save_slot].rom_name[0] == 0)
     {
