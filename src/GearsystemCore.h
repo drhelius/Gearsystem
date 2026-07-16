@@ -118,6 +118,7 @@ public:
     Processor* GetProcessor();
     Audio* GetAudio();
     Video* GetVideo();
+    Input* GetInput();
     void SetGlassesConfig(GlassesConfig config);
     u64 GetMasterClockCycles();
     TraceLogger* GetTraceLogger();

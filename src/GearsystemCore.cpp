@@ -403,6 +403,11 @@ Video* GearsystemCore::GetVideo()
     return m_pVideo;
 }
 
+Input* GearsystemCore::GetInput()
+{
+    return m_pInput;
+}
+
 void GearsystemCore::SetGlassesConfig(GlassesConfig config)
 {
     m_GlassesConfig = config;

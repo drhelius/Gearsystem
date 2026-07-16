@@ -91,6 +91,11 @@ void Input::KeyReleased(GS_Joypads joypad, GS_Keys key)
         m_Joypad2 |= key;
 }
 
+bool Input::IsKeyPressed(GS_Joypads joypad, GS_Keys key) const
+{
+    return joypad == Joypad_1 ? !(m_Joypad1 & key) : !(m_Joypad2 & key);
+}
+
 void Input::EnablePhaser(bool enable)
 {
     Debug("Light Phaser %s", enable ? "enabled" : "disabled");

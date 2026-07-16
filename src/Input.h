@@ -48,6 +48,7 @@ public:
     void Reset(bool bGameGear);
     void KeyPressed(GS_Joypads joypad, GS_Keys key);
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
+    bool IsKeyPressed(GS_Joypads joypad, GS_Keys key) const;
     void SetReset(bool pressed);
     void EnablePhaser(bool enable);
     void SetPhaser(int x, int y);

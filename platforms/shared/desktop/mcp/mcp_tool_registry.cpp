@@ -195,7 +195,7 @@ static const McpToolCategory kMcpToolCategories[] =
     {"capture", "Capture", "Capture current screenshots and SMS/Game Gear sprite images or sprite metadata."},
     {"state", "Save States", "List save slots, select a slot, save emulator state, and load emulator state."},
     {"rewind", "Rewind", "Inspect rewind buffer status and seek to rewind snapshots for time-travel debugging."},
-    {"input", "Input", "Press, release, tap, or macro controller buttons."},
+    {"input", "Input", "Inspect, press, release, tap, or macro controller input."},
     {"trace", "Trace", "Read trace log entries and configure CPU, interrupt, video, audio, memory, and debug-message tracing."},
     {"tools", "Other Tools", "Additional emulator/debugger tools that do not fit another category."}
 };
@@ -271,7 +271,7 @@ static const char* const kMcpRewindTools[] =
 
 static const char* const kMcpInputTools[] =
 {
-    "controller_button", "controller_macro"
+    "controller_button", "controller_macro", "get_input_state"
 };
 
 static const char* const kMcpTraceTools[] =
