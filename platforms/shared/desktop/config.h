@@ -91,6 +91,7 @@ struct config_Emulator
     int window_width = 770;
     int window_height = 600;
     bool status_messages = false;
+    bool allow_screensaver = false;
     bool light_phaser = false;
     bool light_phaser_crosshair = false;
     int light_phaser_crosshair_shape = 0;
