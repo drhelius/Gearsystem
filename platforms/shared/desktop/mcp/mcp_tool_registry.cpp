@@ -188,7 +188,7 @@ static const McpToolCategory kMcpToolCategories[] =
     {"memory", "Memory", "List memory areas, read/write bytes, select ranges, fill selections, search memory, and manage watches/bookmarks."},
     {"cpu", "CPU", "Inspect Z80 registers, flags, interrupts, PC, stack, and write CPU register values."},
     {"disassembly", "Disassembly", "Read executed-code disassembly, run to addresses, inspect call stacks, and manage disassembly bookmarks."},
-    {"symbols", "Symbols", "Add, remove, load, and list debug symbols or labels used by disassembly and debugger views."},
+    {"symbols", "Symbols", "Add, remove, load, list, and look up debug symbols or labels."},
     {"hardware_video", "Video Hardware", "Inspect VDP registers, display timing, status, sprites, scanlines, and video state."},
     {"hardware_audio", "Audio Hardware", "Inspect SN76489 PSG and YM2413 FM audio state, channels, mixer, and sound registers."},
     {"media", "Media", "Load ROMs, list recent media, load symbols, and inspect loaded cartridge/media information."},
@@ -234,7 +234,8 @@ static const char* const kMcpDisassemblyTools[] =
 
 static const char* const kMcpSymbolTools[] =
 {
-    "add_symbol", "remove_symbol", "list_symbols", "load_symbols"
+    "add_symbol", "remove_symbol", "list_symbols", "load_symbols",
+    "lookup_symbol_by_name", "lookup_symbol_at_address"
 };
 
 static const char* const kMcpVideoTools[] =
