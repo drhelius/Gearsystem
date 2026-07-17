@@ -542,7 +542,7 @@ void GearsystemCore::ResetROMPreservingRAM(Cartridge::ForceConfiguration* config
         }
         else
         {
-            ResetROM();
+            ResetROM(config);
         }
     }
 }
