@@ -1176,7 +1176,7 @@ bool GearsystemCore::GetSaveStateScreenshot(int index, const char* path, GS_Save
 {
     using namespace std;
 
-    if (!IsValidPointer(screenshot->data) || (screenshot->size == 0))
+    if (!IsValidPointer(screenshot) || !IsValidPointer(screenshot->data) || (screenshot->size == 0))
     {
         Error("Invalid save state screenshot buffer");
         return false;
