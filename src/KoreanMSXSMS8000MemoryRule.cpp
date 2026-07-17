@@ -110,12 +110,14 @@ void KoreanMSXSMS8000MemoryRule::PerformWrite(u16 address, u8 value)
 void KoreanMSXSMS8000MemoryRule::Reset()
 {
     m_Register = 0;
-    m_iPage[0] = 0x3C;
-    m_iPage[1] = 0x3C;
-    m_iPage[2] = m_Register ^ 0x01;
-    m_iPage[3] = m_Register ^ 0x00;
-    m_iPage[4] = m_Register ^ 0x03;
-    m_iPage[5] = m_Register ^ 0x02;
+    int bankCount = m_pCartridge->GetROMBankCount8k();
+    int mask = (bankCount > 0) ? (bankCount - 1) : 0;
+    m_iPage[0] = 0x3C & mask;
+    m_iPage[1] = 0x3C & mask;
+    m_iPage[2] = (m_Register ^ 0x01) & mask;
+    m_iPage[3] = (m_Register ^ 0x00) & mask;
+    m_iPage[4] = (m_Register ^ 0x03) & mask;
+    m_iPage[5] = (m_Register ^ 0x02) & mask;
 
     for (int i = 0; i < 6; i++)
         m_iPageAddress[i] = 0x2000 * m_iPage[i];
