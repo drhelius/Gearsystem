@@ -58,20 +58,22 @@ void Korean0000XORFFMemoryRule::PerformWrite(u16 address, u8 value)
         {
             Debug("--> ** Writing to register $%X %X", address, value);
 
+            int mask = m_pCartridge->GetROMBankCount8k() - 1;
+
             if ((value & 0xF0) == 0xF0)
             {
-                m_iPage[2] = 2;
-                m_iPage[3] = 3;
-                m_iPage[4] = 2;
-                m_iPage[5] = 3;
+                m_iPage[2] = 2 & mask;
+                m_iPage[3] = 3 & mask;
+                m_iPage[4] = 2 & mask;
+                m_iPage[5] = 3 & mask;
             }
             else
             {
                 int segment = ((value ^ 0xF0) & 0xF0) >> 2;
-                m_iPage[2] = (segment + 0) & (m_pCartridge->GetROMBankCount8k() - 1);
-                m_iPage[3] = (segment + 1) & (m_pCartridge->GetROMBankCount8k() - 1);
-                m_iPage[4] = (segment + 2) & (m_pCartridge->GetROMBankCount8k() - 1);
-                m_iPage[5] = (segment + 3) & (m_pCartridge->GetROMBankCount8k() - 1);
+                m_iPage[2] = (segment + 0) & mask;
+                m_iPage[3] = (segment + 1) & mask;
+                m_iPage[4] = (segment + 2) & mask;
+                m_iPage[5] = (segment + 3) & mask;
             }
 
             m_iPageAddress[2] = 0x2000 * m_iPage[2];
@@ -101,11 +103,18 @@ void Korean0000XORFFMemoryRule::PerformWrite(u16 address, u8 value)
 
 void Korean0000XORFFMemoryRule::Reset()
 {
+    int bankCount = m_pCartridge->GetROMBankCount8k();
+    int mask = (bankCount > 0) ? (bankCount - 1) : 0;
+
+    m_iPage[0] = 0;
+    m_iPage[1] = 1 & mask;
+    m_iPage[2] = 2 & mask;
+    m_iPage[3] = 3 & mask;
+    m_iPage[4] = 2 & mask;
+    m_iPage[5] = 3 & mask;
+
     for (int i = 0; i < 6; i++)
-    {
-        m_iPage[i] = i;
         m_iPageAddress[i] = 0x2000 * m_iPage[i];
-    }
 }
 
 u8* Korean0000XORFFMemoryRule::GetPage(int index)
