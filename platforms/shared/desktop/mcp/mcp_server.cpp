@@ -1006,7 +1006,7 @@ json McpServer::BuildToolList()
                 }},
                 {"action", {
                     {"type", "string"},
-                    {"description", "Action: press, release, or press_and_release tap."},
+                    {"description", "Action; press_and_release auto-releases after several frames."},
                     {"enum", json::array({"press", "release", "press_and_release"})}
                 }}
             }},
