@@ -794,5 +794,8 @@ json McpToolRegistry::ToolToInfoJson(const json& tool) const
     else
         result["inputSchema"] = json::object();
 
+    if (tool.contains("annotations"))
+        result["annotations"] = tool["annotations"];
+
     return result;
 }
