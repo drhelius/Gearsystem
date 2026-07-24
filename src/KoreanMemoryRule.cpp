@@ -35,7 +35,8 @@ u8 KoreanMemoryRule::PerformRead(u16 address)
     if (address < 0x8000)
     {
         // ROM page 0 and 1
-        return m_pCartridge->GetROM()[address];
+        int bank = (address >> 14) & m_iROMBankMask;
+        return m_pCartridge->GetROM()[(address & 0x3FFF) + (bank * 0x4000)];
     }
     else if (address < 0xC000)
     {
@@ -59,7 +60,7 @@ void KoreanMemoryRule::PerformWrite(u16 address, u8 value)
     {
         if (address == 0xA000)
         {
-            m_iMapperSlot2 = value % m_pCartridge->GetROMBankCount();
+            m_iMapperSlot2 = value & m_iROMBankMask;
             m_iMapperSlot2Address = m_iMapperSlot2 * 0x4000;
             TraceBankSwitch(address, value);
         }
@@ -85,7 +86,10 @@ void KoreanMemoryRule::PerformWrite(u16 address, u8 value)
 
 void KoreanMemoryRule::Reset()
 {
-    m_iMapperSlot2 = 2;
+    int bankCount = m_pCartridge->GetROMBankCount();
+    m_iROMBankMask = (bankCount > 0) ? (bankCount - 1) : 0;
+
+    m_iMapperSlot2 = 2 & m_iROMBankMask;
     m_iMapperSlot2Address = m_iMapperSlot2 * 0x4000;
 }
 
@@ -95,7 +99,7 @@ u8* KoreanMemoryRule::GetPage(int index)
     {
         case 0:
         case 1:
-            return m_pCartridge->GetROM() + (index * 0x4000);
+            return m_pCartridge->GetROM() + ((index & m_iROMBankMask) * 0x4000);
         case 2:
             return m_pCartridge->GetROM() + m_iMapperSlot2Address;
         default:
@@ -109,7 +113,7 @@ int KoreanMemoryRule::GetBank(int index)
     {
         case 0:
         case 1:
-            return index;
+            return index & m_iROMBankMask;
         case 2:
             return m_iMapperSlot2;
         default:

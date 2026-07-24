@@ -116,12 +116,15 @@ void KoreanMDFFF0MemoryRule::PerformWrite(u16 address, u8 value)
 
 void KoreanMDFFF0MemoryRule::Reset()
 {
+    int bankCount = m_pCartridge->GetROMBankCount8k();
+    int mask = (bankCount > 0) ? (bankCount - 1) : 0;
+
     m_iPage[0] = 0;
-    m_iPage[1] = 1;
-    m_iPage[2] = 2;
-    m_iPage[3] = 3;
+    m_iPage[1] = 1 & mask;
+    m_iPage[2] = 2 & mask;
+    m_iPage[3] = 3 & mask;
     m_iPage[4] = 0;
-    m_iPage[5] = 1;
+    m_iPage[5] = 1 & mask;
 
     for (int i = 0; i < 6; i++)
         m_iPageAddress[i] = 0x2000 * m_iPage[i];

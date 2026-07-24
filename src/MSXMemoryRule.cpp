@@ -37,7 +37,7 @@ u8 MSXMemoryRule::PerformRead(u16 address)
         u8* pROM = m_pCartridge->GetROM();
 
         // nemesis
-        if ((m_pCartridge->GetCRC() == 0xE316C06D) && (address < 0x2000))
+        if ((m_pCartridge->GetCRC() == 0xE316C06D) && (m_pCartridge->GetROMSize() >= 0x2000) && (address < 0x2000))
         {
             return pROM[m_pCartridge->GetROMSize() - 0x2000 + address];
         }

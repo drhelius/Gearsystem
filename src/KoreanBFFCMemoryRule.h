@@ -37,6 +37,7 @@ public:
     virtual void LoadState(std::istream& stream, int version);
 
 private:
+    int m_iROMBankMask;
     int m_iPage[6];
     int m_iPageAddress[6];
 };

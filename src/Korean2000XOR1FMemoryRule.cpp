@@ -58,12 +58,12 @@ void Korean2000XOR1FMemoryRule::PerformWrite(u16 address, u8 value)
         {
             Debug("--> ** Writing to register $%X %X", address, value);
 
-            value = ((value ^ 0x1F) & (m_pCartridge->GetROMBankCount8k() - 1)) ^ 0x1F;
+            value = ((value ^ 0x1F) & m_iROMBankMask) ^ 0x1F;
 
-            m_iPage[2] = value ^ 0x1F;
-            m_iPage[3] = value ^ 0x1E;
-            m_iPage[4] = value ^ 0x1D;
-            m_iPage[5] = value ^ 0x1C;
+            m_iPage[2] = (value ^ 0x1F) & m_iROMBankMask;
+            m_iPage[3] = (value ^ 0x1E) & m_iROMBankMask;
+            m_iPage[4] = (value ^ 0x1D) & m_iROMBankMask;
+            m_iPage[5] = (value ^ 0x1C) & m_iROMBankMask;
 
             m_iPageAddress[2] = 0x2000 * m_iPage[2];
             m_iPageAddress[3] = 0x2000 * m_iPage[3];
@@ -93,14 +93,14 @@ void Korean2000XOR1FMemoryRule::PerformWrite(u16 address, u8 value)
 void Korean2000XOR1FMemoryRule::Reset()
 {
     int bankCount = m_pCartridge->GetROMBankCount8k();
-    int mask = (bankCount > 0) ? (bankCount - 1) : 0;
+    m_iROMBankMask = (bankCount > 0) ? (bankCount - 1) : 0;
 
     m_iPage[0] = 0;
     m_iPage[1] = 0;
-    m_iPage[2] = 0x60 & mask;
-    m_iPage[3] = 0x61 & mask;
-    m_iPage[4] = 0x62 & mask;
-    m_iPage[5] = 0x63 & mask;
+    m_iPage[2] = 0x60 & m_iROMBankMask;
+    m_iPage[3] = 0x61 & m_iROMBankMask;
+    m_iPage[4] = 0x62 & m_iROMBankMask;
+    m_iPage[5] = 0x63 & m_iROMBankMask;
 
     for (int i = 0; i < 6; i++)
         m_iPageAddress[i] = 0x2000 * m_iPage[i];

@@ -83,9 +83,12 @@ void KoreanMSX8KB0300MemoryRule::PerformWrite(u16 address, u8 value)
 
 void KoreanMSX8KB0300MemoryRule::Reset()
 {
+    int bankCount = m_pCartridge->GetROMBankCount8k();
+    int mask = (bankCount > 0) ? (bankCount - 1) : 0;
+
     for (int i = 0; i < 6; i++)
     {
-        m_iPage[i] = i;
+        m_iPage[i] = i & mask;
         m_iPageAddress[i] = 0x2000 * m_iPage[i];
     }
 }

@@ -58,28 +58,28 @@ void KoreanFFFEMemoryRule::PerformWrite(u16 address, u8 value)
 
         if ((value & 0x40) == 0x40)
         {
-            m_iPage[0] = (((value & 0x1E) * 2) + 0) & (m_pCartridge->GetROMBankCount8k() - 1);
-            m_iPage[1] = (((value & 0x1E) * 2) + 1) & (m_pCartridge->GetROMBankCount8k() - 1);
-            m_iPage[2] = ((((value & 0x1E) + 1) * 2) + 0) & (m_pCartridge->GetROMBankCount8k() - 1);
-            m_iPage[3] = ((((value & 0x1E) + 1) * 2) + 1) & (m_pCartridge->GetROMBankCount8k() - 1);
+            m_iPage[0] = (((value & 0x1E) * 2) + 0) & m_iROMBankMask;
+            m_iPage[1] = (((value & 0x1E) * 2) + 1) & m_iROMBankMask;
+            m_iPage[2] = ((((value & 0x1E) + 1) * 2) + 0) & m_iROMBankMask;
+            m_iPage[3] = ((((value & 0x1E) + 1) * 2) + 1) & m_iROMBankMask;
 
         }
         else
         {
             m_iPage[0] = 0;
-            m_iPage[1] = 1;
-            m_iPage[2] = (((value & 0x1F) * 2) + 0) & (m_pCartridge->GetROMBankCount8k() - 1);
-            m_iPage[3] = (((value & 0x1F) * 2) + 1) & (m_pCartridge->GetROMBankCount8k() - 1);
+            m_iPage[1] = 1 & m_iROMBankMask;
+            m_iPage[2] = (((value & 0x1F) * 2) + 0) & m_iROMBankMask;
+            m_iPage[3] = (((value & 0x1F) * 2) + 1) & m_iROMBankMask;
         }
 
         if ((value & 0x60) == 0x20) {
-            m_iPage[4] = (((value & 0x1F) * 2) + 1) & (m_pCartridge->GetROMBankCount8k() - 1);
-            m_iPage[5] = (((value & 0x1F) * 2) + 0) & (m_pCartridge->GetROMBankCount8k() - 1);
+            m_iPage[4] = (((value & 0x1F) * 2) + 1) & m_iROMBankMask;
+            m_iPage[5] = (((value & 0x1F) * 2) + 0) & m_iROMBankMask;
         }
         else
         {
-              m_iPage[4] = 0x3F & (m_pCartridge->GetROMBankCount8k() - 1);
-              m_iPage[5] = 0x3F & (m_pCartridge->GetROMBankCount8k() - 1);
+              m_iPage[4] = 0x3F & m_iROMBankMask;
+              m_iPage[5] = 0x3F & m_iROMBankMask;
         }
 
         m_iPageAddress[0] = 0x2000 * m_iPage[0];
@@ -110,12 +110,15 @@ void KoreanFFFEMemoryRule::PerformWrite(u16 address, u8 value)
 
 void KoreanFFFEMemoryRule::Reset()
 {
+    int bankCount = m_pCartridge->GetROMBankCount8k();
+    m_iROMBankMask = (bankCount > 0) ? (bankCount - 1) : 0;
+
     m_iPage[0] = 0;
-    m_iPage[1] = 1;
-    m_iPage[2] = 2;
-    m_iPage[3] = 3;
-    m_iPage[4] = 0x3F & (m_pCartridge->GetROMBankCount8k() - 1);
-    m_iPage[5] = 0x3F & (m_pCartridge->GetROMBankCount8k() - 1);
+    m_iPage[1] = 1 & m_iROMBankMask;
+    m_iPage[2] = 2 & m_iROMBankMask;
+    m_iPage[3] = 3 & m_iROMBankMask;
+    m_iPage[4] = 0x3F & m_iROMBankMask;
+    m_iPage[5] = 0x3F & m_iROMBankMask;
 
     for (int i = 0; i < 6; i++)
         m_iPageAddress[i] = 0x2000 * m_iPage[i];

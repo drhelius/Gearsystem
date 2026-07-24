@@ -95,13 +95,16 @@ void Multi4PAKAllActionMemoryRule::PerformWrite(u16 address, u8 value)
 
 void Multi4PAKAllActionMemoryRule::Reset()
 {
-    m_iMapperSlot[0] = 0;
-    m_iMapperSlot[1] = 1;
-    m_iMapperSlot[2] = 2;
+    int bankCount = m_pCartridge->GetROMBankCount();
+    int mask = (bankCount > 0) ? (bankCount - 1) : 0;
 
-    m_iMapperSlotAddress[0] = 0x0000;
-    m_iMapperSlotAddress[1] = 0x4000;
-    m_iMapperSlotAddress[2] = 0x8000;
+    m_iMapperSlot[0] = 0;
+    m_iMapperSlot[1] = 1 & mask;
+    m_iMapperSlot[2] = 2 & mask;
+
+    m_iMapperSlotAddress[0] = 0x4000 * m_iMapperSlot[0];
+    m_iMapperSlotAddress[1] = 0x4000 * m_iMapperSlot[1];
+    m_iMapperSlotAddress[2] = 0x4000 * m_iMapperSlot[2];
 }
 
 u8* Multi4PAKAllActionMemoryRule::GetPage(int index)

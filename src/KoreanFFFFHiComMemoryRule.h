@@ -36,6 +36,7 @@ public:
     virtual void LoadState(std::istream& stream, int version);
 
 private:
+    int m_iROMBankMask;
     int m_iMapperSlot[3];
     int m_iMapperSlotAddress[3];
 };

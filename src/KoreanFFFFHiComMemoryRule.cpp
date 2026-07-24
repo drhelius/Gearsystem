@@ -50,10 +50,10 @@ void KoreanFFFFHiComMemoryRule::PerformWrite(u16 address, u8 value)
     {
         if (address == 0xFFFF)
         {
-            int bank = (value << 1) & (m_pCartridge->GetROMBankCount() - 1);
+            int bank = (value << 1) & m_iROMBankMask;
 
             m_iMapperSlot[0] = bank;
-            m_iMapperSlot[1] = bank + 1;
+            m_iMapperSlot[1] = (bank + 1) & m_iROMBankMask;
 
             m_iMapperSlotAddress[0] = 0x4000 * m_iMapperSlot[0];
             m_iMapperSlotAddress[1] = 0x4000 * m_iMapperSlot[1];
@@ -81,8 +81,11 @@ void KoreanFFFFHiComMemoryRule::PerformWrite(u16 address, u8 value)
 
 void KoreanFFFFHiComMemoryRule::Reset()
 {
+    int bankCount = m_pCartridge->GetROMBankCount();
+    m_iROMBankMask = (bankCount > 0) ? (bankCount - 1) : 0;
+
     m_iMapperSlot[0] = 0;
-    m_iMapperSlot[1] = 1;
+    m_iMapperSlot[1] = 1 & m_iROMBankMask;
     m_iMapperSlot[2] = 0;
 
     for (int i = 0; i < 3; i++)

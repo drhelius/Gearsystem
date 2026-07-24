@@ -64,40 +64,40 @@ void KoreanBFFCMemoryRule::PerformWrite(u16 address, u8 value)
             case 0x00:
                 lower = value & 0x3E;
                 upper = (value & 0x3E) | 1;
-                m_iPage[0] = (lower * 2) & (m_pCartridge->GetROMBankCount8k() - 1);
-                m_iPage[1] = m_iPage[0] + 1;
-                m_iPage[2] = (upper * 2) & (m_pCartridge->GetROMBankCount8k() - 1);
-                m_iPage[3] = m_iPage[2] + 1;
-                m_iPage[4] = ((0x3F * 2) + 1) & (m_pCartridge->GetROMBankCount8k() - 1);
+                m_iPage[0] = (lower * 2) & m_iROMBankMask;
+                m_iPage[1] = (m_iPage[0] + 1) & m_iROMBankMask;
+                m_iPage[2] = (upper * 2) & m_iROMBankMask;
+                m_iPage[3] = (m_iPage[2] + 1) & m_iROMBankMask;
+                m_iPage[4] = ((0x3F * 2) + 1) & m_iROMBankMask;
                 m_iPage[5] = m_iPage[4];
                 break;
             case 0x40:
                 lower = value & 0x3F;
                 upper = value & 0x3F;
-                m_iPage[0] = (lower * 2) & (m_pCartridge->GetROMBankCount8k() - 1);
-                m_iPage[1] = m_iPage[0] + 1;
-                m_iPage[2] = (upper * 2) & (m_pCartridge->GetROMBankCount8k() - 1);
-                m_iPage[3] = m_iPage[2] + 1;
-                m_iPage[4] = ((0x3F * 2) + 1) & (m_pCartridge->GetROMBankCount8k() - 1);
+                m_iPage[0] = (lower * 2) & m_iROMBankMask;
+                m_iPage[1] = (m_iPage[0] + 1) & m_iROMBankMask;
+                m_iPage[2] = (upper * 2) & m_iROMBankMask;
+                m_iPage[3] = (m_iPage[2] + 1) & m_iROMBankMask;
+                m_iPage[4] = ((0x3F * 2) + 1) & m_iROMBankMask;
                 m_iPage[5] = m_iPage[4];
                 break;
             case 0x80:
                 lower = 0x20;
                 upper = value & 0x3F;
-                m_iPage[0] = (lower * 2) & (m_pCartridge->GetROMBankCount8k() - 1);
-                m_iPage[1] = m_iPage[0] + 1;
-                m_iPage[2] = (upper * 2) & (m_pCartridge->GetROMBankCount8k() - 1);
-                m_iPage[3] = m_iPage[2] + 1;
-                m_iPage[4] = ((0x3F * 2) + 1) & (m_pCartridge->GetROMBankCount8k() - 1);
+                m_iPage[0] = (lower * 2) & m_iROMBankMask;
+                m_iPage[1] = (m_iPage[0] + 1) & m_iROMBankMask;
+                m_iPage[2] = (upper * 2) & m_iROMBankMask;
+                m_iPage[3] = (m_iPage[2] + 1) & m_iROMBankMask;
+                m_iPage[4] = ((0x3F * 2) + 1) & m_iROMBankMask;
                 m_iPage[5] = m_iPage[4];
                 break;
             case 0xC0:
                 lower = 0x20;
                 upper = value & 0x3F;
-                m_iPage[0] = (lower * 2) & (m_pCartridge->GetROMBankCount8k() - 1);
-                m_iPage[1] = m_iPage[0] + 1;
-                m_iPage[2] = (upper * 2) & (m_pCartridge->GetROMBankCount8k() - 1);
-                m_iPage[3] = m_iPage[2] + 1;
+                m_iPage[0] = (lower * 2) & m_iROMBankMask;
+                m_iPage[1] = (m_iPage[0] + 1) & m_iROMBankMask;
+                m_iPage[2] = (upper * 2) & m_iROMBankMask;
+                m_iPage[3] = (m_iPage[2] + 1) & m_iROMBankMask;
                 m_iPage[4] = m_iPage[3];
                 m_iPage[5] = m_iPage[2];
                 break;
@@ -133,9 +133,12 @@ void KoreanBFFCMemoryRule::PerformWrite(u16 address, u8 value)
 
 void KoreanBFFCMemoryRule::Reset()
 {
+    int bankCount = m_pCartridge->GetROMBankCount8k();
+    m_iROMBankMask = (bankCount > 0) ? (bankCount - 1) : 0;
+
     for (int i = 0; i < 6; i++)
     {
-        m_iPage[i] = i;
+        m_iPage[i] = i & m_iROMBankMask;
         m_iPageAddress[i] = 0x2000 * m_iPage[i];
     }
 }
