@@ -167,6 +167,7 @@ inline u16 Processor::GetEffectiveAddress()
             if (m_bPrefixedCBOpcode)
             {
                 address += static_cast<s8> (m_PrefixedCBValue);
+                WZ.SetValue(address);
             }
             else
             {
@@ -182,6 +183,7 @@ inline u16 Processor::GetEffectiveAddress()
             if (m_bPrefixedCBOpcode)
             {
                 address += static_cast<s8> (m_PrefixedCBValue);
+                WZ.SetValue(address);
             }
             else
             {
