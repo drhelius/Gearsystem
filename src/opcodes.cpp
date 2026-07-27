@@ -1431,22 +1431,20 @@ void Processor::OPCode0xDA()
 void Processor::OPCode0xDB()
 {
     // IN A,(n)
-    if (m_bInputLastCycle)
-    {
-        u8 a = AF.GetHigh();
-        u8 port = m_pMemory->Read(PC.GetValue());
-        PC.Increment();
-        AF.SetHigh(m_pIOPorts->DoInput(port));
-        WZ.SetValue((a << 8) | (port + 1));
-        m_iTStates -= 10;
-        m_bInputLastCycle = false;
-    }
-    else
-    {
-        PC.Decrement();
-        m_iTStates -= 1;
-        m_bInputLastCycle = true;
-    }
+    m_iTStates -= 1;
+    m_bInputLastCycle = true;
+}
+
+void Processor::ExecuteInputLastCycle()
+{
+    m_CurrentPrefix = 0x00;
+    u8 a = AF.GetHigh();
+    u8 port = m_pMemory->Read(PC.GetValue());
+    PC.Increment();
+    AF.SetHigh(m_pIOPorts->DoInput(port));
+    WZ.SetValue((a << 8) | (port + 1));
+    m_iTStates += 1;
+    m_bInputLastCycle = false;
 }
 
 void Processor::OPCode0xDC()

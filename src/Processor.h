@@ -192,6 +192,7 @@ private:
     u8 FetchOPCode();
     u16 FetchArg16();
     void ExecuteOPCode();
+    void ExecuteInputLastCycle();
     void LeaveHalt();
     void ClearAllFlags();
     void ToggleZeroFlagFromResult(u16 result);

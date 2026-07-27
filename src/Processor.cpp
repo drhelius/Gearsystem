@@ -262,7 +262,10 @@ u32 Processor::RunFor(u32 tstates)
         u16 prev_pc = PC.GetValue();
 #endif
 
-        ExecuteOPCode();
+        if (m_bInputLastCycle)
+            ExecuteInputLastCycle();
+        else
+            ExecuteOPCode();
         DisassembleNextOPCode();
 
 #if !defined(GS_DISABLE_DISASSEMBLER)
