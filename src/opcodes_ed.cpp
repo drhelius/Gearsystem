@@ -374,6 +374,7 @@ void Processor::OPCodeED0x71()
 {
     // OUT (C),0*
     UndocumentedOPCode();
+    WZ.SetValue(BC.GetValue() + 1);
     m_pIOPorts->DoOutput(BC.GetLow(), 0);
 }
 
@@ -414,14 +415,12 @@ void Processor::OPCodeED0x78()
 {
     // IN A,(C)
     OPCodes_IN_C(AF.GetHighRegister());
-    WZ.SetValue(BC.GetValue() + 1);
 }
 
 void Processor::OPCodeED0x79()
 {
     // OUT (C),A
     OPCodes_OUT_C(AF.GetHighRegister());
-    WZ.SetValue(BC.GetValue() + 1);
 }
 
 void Processor::OPCodeED0x7A()
