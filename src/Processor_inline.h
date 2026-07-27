@@ -1213,8 +1213,13 @@ inline void Processor::OPCodes_BIT(u8* reg, int bit)
 {
     IsSetFlag(FLAG_CARRY) ? SetFlag(FLAG_CARRY) : ClearAllFlags();
     u8 value = *reg;
+    u8 xy = value;
     if (IsPrefixedInstruction())
-        value = m_pMemory->Read(GetEffectiveAddress());
+    {
+        u16 address = GetEffectiveAddress();
+        value = m_pMemory->Read(address);
+        xy = address >> 8;
+    }
     if (!IsSetBit(value, bit))
     {
         ToggleFlag(FLAG_ZERO);
@@ -1222,9 +1227,9 @@ inline void Processor::OPCodes_BIT(u8* reg, int bit)
     }    
     else if (bit == 7)
         ToggleFlag(FLAG_SIGN);
-    if (IsSetBit(value, 3))
+    if (IsSetBit(xy, 3))
         ToggleFlag(FLAG_X);
-    if (IsSetBit(value, 5))
+    if (IsSetBit(xy, 5))
         ToggleFlag(FLAG_Y);
     ToggleFlag(FLAG_HALF);
 }
