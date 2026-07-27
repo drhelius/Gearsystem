@@ -395,6 +395,7 @@ void Processor::OPCode0x36()
         u8 d = m_pMemory->Read(PC.GetValue());
         u8 n = m_pMemory->Read(PC.GetValue() + 1);
         u16 address = IX.GetValue() + static_cast<s8> (d);
+        WZ.SetValue(address);
         m_pMemory->Write(address, n);
         PC.Increment();
     }
@@ -403,6 +404,7 @@ void Processor::OPCode0x36()
         u8 d = m_pMemory->Read(PC.GetValue());
         u8 n = m_pMemory->Read(PC.GetValue() + 1);
         u16 address = IY.GetValue() + static_cast<s8> (d);
+        WZ.SetValue(address);
         m_pMemory->Write(address, n);
         PC.Increment();
     }
