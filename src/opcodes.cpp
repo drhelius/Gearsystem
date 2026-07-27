@@ -281,6 +281,7 @@ void Processor::OPCode0x26()
 void Processor::OPCode0x27()
 {
     // DAA
+    m_QTemp = 0;
     int idx = AF.GetHigh();
     if (IsSetFlag(FLAG_CARRY))
         idx |= 0x100; 
@@ -419,7 +420,7 @@ void Processor::OPCode0x37()
     ToggleFlag(FLAG_CARRY);
     ClearFlag(FLAG_HALF);
     ClearFlag(FLAG_NEGATIVE);
-    ToggleXYFlagsFromResult(AF.GetHigh());
+    ToggleXYFlagsFromResult((AF.GetLow() & m_Q) | AF.GetHigh());
 }
 
 void Processor::OPCode0x38()
@@ -477,7 +478,7 @@ void Processor::OPCode0x3F()
     else
         ClearFlag(FLAG_HALF);
     ClearFlag(FLAG_NEGATIVE);
-    ToggleXYFlagsFromResult(AF.GetHigh());
+    ToggleXYFlagsFromResult((AF.GetLow() & m_Q) | AF.GetHigh());
 }
 
 void Processor::OPCode0x40()

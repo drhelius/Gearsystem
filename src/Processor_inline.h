@@ -29,6 +29,8 @@ inline u8 Processor::FetchOPCode()
 {
     u8 opcode = m_pMemory->Read(PC.GetValue());
     PC.Increment();
+    m_Q = m_QTemp;
+    m_QTemp = FLAG_X | FLAG_Y;
     return opcode;
 }
 
@@ -93,21 +95,25 @@ inline void Processor::ToggleParityFlagFromResult(u8 result)
 
 inline void Processor::SetFlag(u8 flag)
 {
+    m_QTemp = 0;
     AF.SetLow(flag);
 }
 
 inline void Processor::FlipFlag(u8 flag)
 {
+    m_QTemp = 0;
     AF.SetLow(AF.GetLow() ^ flag);
 }
 
 inline void Processor::ToggleFlag(u8 flag)
 {
+    m_QTemp = 0;
     AF.SetLow(AF.GetLow() | flag);
 }
 
 inline void Processor::ClearFlag(u8 flag)
 {
+    m_QTemp = 0;
     AF.SetLow(AF.GetLow() & (~flag));
 }
 

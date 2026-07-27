@@ -1008,7 +1008,7 @@ bool GearsystemCore::LoadState(std::istream& stream)
     Debug("Unserializing save state...");
 
     m_pMemory->LoadState(stream, header.version);
-    m_pProcessor->LoadState(stream);
+    m_pProcessor->LoadState(stream, header.version);
     m_pAudio->LoadState(stream, header.version);
     m_pVideo->LoadState(stream, header.version);
     m_pInput->LoadState(stream);
@@ -1065,7 +1065,7 @@ bool GearsystemCore::LoadStateV1(std::istream& stream, size_t size)
     Log("Loading V1 save state (%d bytes)...", static_cast<int>(size));
 
     m_pMemory->LoadState(stream, GS_SAVESTATE_VERSION_V1);
-    m_pProcessor->LoadState(stream);
+    m_pProcessor->LoadState(stream, GS_SAVESTATE_VERSION_V1);
     m_pAudio->LoadStateV1(stream);
     m_pVideo->LoadState(stream);
     m_pInput->LoadState(stream);

@@ -100,7 +100,7 @@ public:
     void SetIOPOrts(IOPorts* pIOPorts);
     IOPorts* GetIOPOrts();
     void SaveState(std::ostream& stream);
-    void LoadState(std::istream& stream);
+    void LoadState(std::istream& stream, int version);
     void SetProActionReplayCheat(const char* szCheat);
     void ClearProActionReplayCheats();
     ProcessorState* GetState();
@@ -150,6 +150,8 @@ private:
     SixteenBitRegister WZ;
     u8 I;
     u8 R;
+    u8 m_Q;
+    u8 m_QTemp;
     bool m_bIFF1;
     bool m_bIFF2;
     bool m_bHalt;
