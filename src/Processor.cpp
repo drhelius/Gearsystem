@@ -396,6 +396,8 @@ void Processor::ExecuteOPCode()
             IncreaseR();
             IncreaseR();
 
+            if (IsPrefixedInstruction())
+                m_iTStates += 4;
             m_CurrentPrefix = 0x00;
             opcode = FetchOPCode();
 
