@@ -363,7 +363,9 @@ inline void Processor::OPCodes_JP_nn_Conditional(bool condition)
 inline void Processor::OPCodes_JR_n()
 {
     u16 pc = PC.GetValue();
-    PC.SetValue(pc + 1 + (static_cast<s8> (m_pMemory->Read(pc))));
+    s8 displacement = static_cast<s8> (m_pMemory->Read(pc));
+    PC.SetValue(pc + 1 + displacement);
+    WZ.SetValue(PC.GetValue());
 }
 
 inline void Processor::OPCodes_JR_n_conditional(bool condition)
@@ -374,7 +376,10 @@ inline void Processor::OPCodes_JR_n_conditional(bool condition)
         m_bBranchTaken = true;
     }
     else
+    {
+        m_pMemory->Read(PC.GetValue());
         PC.Increment();
+    }
 }
 
 inline void Processor::OPCodes_RET()
