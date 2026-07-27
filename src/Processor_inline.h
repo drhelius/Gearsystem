@@ -134,7 +134,7 @@ inline void Processor::StackPop(SixteenBitRegister* reg)
 
 inline void Processor::SetInterruptMode(int mode)
 {
-    if (mode == 1)
+    if (mode >= 0 && mode <= 2)
     {
         m_iInterruptMode = mode;
     }
