@@ -1499,8 +1499,8 @@ void Processor::OPCode0xE3()
     u8 h = reg->GetHigh();
     reg->SetLow(m_pMemory->Read(SP.GetValue()));
     reg->SetHigh(m_pMemory->Read(SP.GetValue() + 1));
-    m_pMemory->Write(SP.GetValue(), l);
     m_pMemory->Write(SP.GetValue() + 1, h);
+    m_pMemory->Write(SP.GetValue(), l);
     WZ.SetValue(reg->GetValue());
 }
 
