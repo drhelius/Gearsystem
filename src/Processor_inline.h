@@ -407,18 +407,19 @@ inline void Processor::OPCodes_IN_C(u8* reg)
     ToggleXYFlagsFromResult(result);
 }
 
-inline void Processor::OPCodes_INI()
+inline u8 Processor::OPCodes_INI()
 {
     WZ.SetValue(BC.GetValue() + 1);
     u8 result = m_pIOPorts->DoInput(BC.GetLow());
     m_pMemory->Write(HL.GetValue(), result);
     OPCodes_DEC(BC.GetHighRegister());
     HL.Increment();
+    int sum = result + ((BC.GetLow() + 1) & 0xFF);
     if ((result & 0x80) != 0)
         ToggleFlag(FLAG_NEGATIVE);
     else
         ClearFlag(FLAG_NEGATIVE);
-    if ((result + ((BC.GetLow() + 1) & 0xFF)) > 0xFF)
+    if (sum > 0xFF)
     {
         ToggleFlag(FLAG_CARRY);
         ToggleFlag(FLAG_HALF);
@@ -428,21 +429,24 @@ inline void Processor::OPCodes_INI()
         ClearFlag(FLAG_CARRY);
         ClearFlag(FLAG_HALF);
     }
-    ToggleParityFlagFromResult(((result + ((BC.GetLow() + 1) & 0xFF)) & 0x07) ^ BC.GetHigh());
+    u8 parity_result = (sum & 0x07) ^ BC.GetHigh();
+    ToggleParityFlagFromResult(parity_result);
+    return parity_result;
 }
 
-inline void Processor::OPCodes_IND()
+inline u8 Processor::OPCodes_IND()
 {
     WZ.SetValue(BC.GetValue() - 1);
     u8 result = m_pIOPorts->DoInput(BC.GetLow());
     m_pMemory->Write(HL.GetValue(), result);
     OPCodes_DEC(BC.GetHighRegister());
     HL.Decrement();
+    int sum = result + ((BC.GetLow() - 1) & 0xFF);
     if ((result & 0x80) != 0)
         ToggleFlag(FLAG_NEGATIVE);
     else
         ClearFlag(FLAG_NEGATIVE);
-    if ((result + ((BC.GetLow() - 1) & 0xFF)) > 0xFF)
+    if (sum > 0xFF)
     {
         ToggleFlag(FLAG_CARRY);
         ToggleFlag(FLAG_HALF);
@@ -452,7 +456,9 @@ inline void Processor::OPCodes_IND()
         ClearFlag(FLAG_CARRY);
         ClearFlag(FLAG_HALF);
     }
-    ToggleParityFlagFromResult(((result + ((BC.GetLow() - 1) & 0xFF)) & 0x07) ^ BC.GetHigh());
+    u8 parity_result = (sum & 0x07) ^ BC.GetHigh();
+    ToggleParityFlagFromResult(parity_result);
+    return parity_result;
 }
 
 inline void Processor::OPCodes_OUT_C(u8* reg)
@@ -460,18 +466,19 @@ inline void Processor::OPCodes_OUT_C(u8* reg)
     m_pIOPorts->DoOutput(BC.GetLow(), *reg);
 }
 
-inline void Processor::OPCodes_OUTI()
+inline u8 Processor::OPCodes_OUTI()
 {
     u8 result = m_pMemory->Read(HL.GetValue());
     m_pIOPorts->DoOutput(BC.GetLow(), result);
     OPCodes_DEC(BC.GetHighRegister());
     WZ.SetValue(BC.GetValue() + 1);
     HL.Increment();
+    int sum = HL.GetLow() + result;
     if ((result & 0x80) != 0)
         ToggleFlag(FLAG_NEGATIVE);
     else
         ClearFlag(FLAG_NEGATIVE);
-    if ((HL.GetLow() + result) > 0xFF)
+    if (sum > 0xFF)
     {
         ToggleFlag(FLAG_CARRY);
         ToggleFlag(FLAG_HALF);
@@ -481,21 +488,24 @@ inline void Processor::OPCodes_OUTI()
         ClearFlag(FLAG_CARRY);
         ClearFlag(FLAG_HALF);
     }
-    ToggleParityFlagFromResult(((HL.GetLow() + result) & 0x07) ^ BC.GetHigh());
+    u8 parity_result = (sum & 0x07) ^ BC.GetHigh();
+    ToggleParityFlagFromResult(parity_result);
+    return parity_result;
 }
 
-inline void Processor::OPCodes_OUTD()
+inline u8 Processor::OPCodes_OUTD()
 {
     u8 result = m_pMemory->Read(HL.GetValue());
     m_pIOPorts->DoOutput(BC.GetLow(), result);
     OPCodes_DEC(BC.GetHighRegister());
     WZ.SetValue(BC.GetValue() - 1);
     HL.Decrement();
+    int sum = HL.GetLow() + result;
     if ((result & 0x80) != 0)
         ToggleFlag(FLAG_NEGATIVE);
     else
         ClearFlag(FLAG_NEGATIVE);
-    if ((HL.GetLow() + result) > 0xFF)
+    if (sum > 0xFF)
     {
         ToggleFlag(FLAG_CARRY);
         ToggleFlag(FLAG_HALF);
@@ -505,7 +515,45 @@ inline void Processor::OPCodes_OUTD()
         ClearFlag(FLAG_CARRY);
         ClearFlag(FLAG_HALF);
     }
-    ToggleParityFlagFromResult(((HL.GetLow() + result) & 0x07) ^ BC.GetHigh());
+    u8 parity_result = (sum & 0x07) ^ BC.GetHigh();
+    ToggleParityFlagFromResult(parity_result);
+    return parity_result;
+}
+
+inline void Processor::OPCodes_BlockIORepeat(u8 parity_result)
+{
+    PC.Decrement();
+    PC.Decrement();
+
+    u8 counter = BC.GetHigh();
+    u8 flags = counter & FLAG_SIGN;
+    flags |= PC.GetHigh() & (FLAG_Y | FLAG_X);
+    flags |= AF.GetLow() & (FLAG_NEGATIVE | FLAG_CARRY);
+
+    if ((flags & FLAG_CARRY) != 0)
+    {
+        if ((flags & FLAG_NEGATIVE) != 0)
+        {
+            if ((counter & 0x0F) == 0)
+                flags |= FLAG_HALF;
+            parity_result ^= (counter - 1) & 0x07;
+        }
+        else
+        {
+            if ((counter & 0x0F) == 0x0F)
+                flags |= FLAG_HALF;
+            parity_result ^= (counter + 1) & 0x07;
+        }
+    }
+    else
+    {
+        parity_result ^= counter & 0x07;
+    }
+
+    AF.SetLow(flags);
+    ToggleParityFlagFromResult(parity_result);
+    WZ.SetValue(PC.GetValue() + 1);
+    m_iTStates += 5;
 }
 
 inline void Processor::OPCodes_EX(SixteenBitRegister* reg1, SixteenBitRegister* reg2)
