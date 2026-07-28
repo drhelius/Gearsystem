@@ -68,6 +68,9 @@ public:
     void EnableBootromGG(bool enable);
     void LoadBootromSMS(const char* szFilePath);
     void LoadBootromGG(const char* szFilePath);
+    bool LoadBootromFromBuffer(const u8* buffer, int size, bool gg);
+    void UnloadBootrom(bool gg);
+    bool IsBootromLoaded(bool gg);
     bool IsBootromEnabled();
     bool IsIOEnabled();
     void SetPort3E(u8 port3E);

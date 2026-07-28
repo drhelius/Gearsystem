@@ -79,6 +79,7 @@ static GearsystemCore* core;
 static u8* frame_buffer;
 static Cartridge::ForceConfiguration config;
 static GearsystemCore::GlassesConfig glasses_config;
+static const retro_vfs_interface* vfs_interface = NULL;
 
 static void load_bootroms(void);
 static void set_controller_info(void);
@@ -150,6 +151,18 @@ void retro_init(void)
 
     log_cb(RETRO_LOG_INFO, "%s (%s) libretro\n", GS_TITLE, EMULATOR_BUILD);
 
+    struct retro_vfs_interface_info vfs_interface_info = {};
+    vfs_interface_info.required_interface_version = 1;
+    vfs_interface_info.iface = NULL;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs_interface_info) &&
+        vfs_interface_info.iface && vfs_interface_info.iface->open &&
+        vfs_interface_info.iface->close && vfs_interface_info.iface->size &&
+        vfs_interface_info.iface->read)
+        vfs_interface = vfs_interface_info.iface;
+    else
+        vfs_interface = NULL;
+
     core = new GearsystemCore();
 
 #ifdef PS2
@@ -179,6 +192,7 @@ void retro_deinit(void)
 {
     SafeDeleteArray(frame_buffer);
     SafeDelete(core);
+    vfs_interface = NULL;
 
     audio_sample_count = 0;
     current_screen_width = 0;
@@ -404,6 +418,63 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
         core->SetCheat(code);
 }
 
+static bool load_bootrom_file(const char* path, bool gg)
+{
+    if (!vfs_interface)
+    {
+        if (gg)
+            core->GetMemory()->LoadBootromGG(path);
+        else
+            core->GetMemory()->LoadBootromSMS(path);
+
+        return core->GetMemory()->IsBootromLoaded(gg);
+    }
+
+    core->GetMemory()->UnloadBootrom(gg);
+
+    retro_vfs_file_handle* file = vfs_interface->open(path, RETRO_VFS_FILE_ACCESS_READ,
+        RETRO_VFS_FILE_ACCESS_HINT_NONE);
+    if (!file)
+    {
+        log_cb(RETRO_LOG_ERROR, "There was a problem opening the file %s\n", path);
+        return false;
+    }
+
+    s64 size = (s64)vfs_interface->size(file);
+    if ((size <= 0) || (size > 0x7FFFFFFF))
+    {
+        log_cb(RETRO_LOG_ERROR, "Invalid bootrom size %lld: %s\n", (long long)size, path);
+        vfs_interface->close(file);
+        return false;
+    }
+
+    u8* bootrom = new u8[(int)size];
+    s64 total = 0;
+
+    while (total < size)
+    {
+        s64 read = (s64)vfs_interface->read(file, bootrom + total, size - total);
+        if (read <= 0)
+            break;
+
+        total += read;
+    }
+
+    vfs_interface->close(file);
+
+    bool loaded = (total == size) && core->GetMemory()->LoadBootromFromBuffer(bootrom, (int)size, gg);
+    SafeDeleteArray(bootrom);
+
+    if (!loaded)
+    {
+        log_cb(RETRO_LOG_ERROR, "There was a problem reading the bootrom file %s\n", path);
+        return false;
+    }
+
+    log_cb(RETRO_LOG_INFO, "Bootrom %s loaded (%lld bytes)\n", path, (long long)size);
+    return true;
+}
+
 static void load_bootroms(void)
 {
     char bootrom_sms_path[4112];
@@ -412,8 +483,8 @@ static void load_bootroms(void)
     snprintf(bootrom_sms_path, sizeof(bootrom_sms_path), "%s%cbios.sms", retro_system_directory, slash);
     snprintf(bootrom_gg_path, sizeof(bootrom_gg_path), "%s%cbios.gg", retro_system_directory, slash);
 
-    core->GetMemory()->LoadBootromSMS(bootrom_sms_path);
-    core->GetMemory()->LoadBootromGG(bootrom_gg_path);
+    load_bootrom_file(bootrom_sms_path, false);
+    load_bootrom_file(bootrom_gg_path, true);
     core->GetMemory()->EnableBootromSMS(bootrom_sms);
     core->GetMemory()->EnableBootromGG(bootrom_gg);
 }
