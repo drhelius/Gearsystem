@@ -96,8 +96,15 @@ inline bool is_pow2(u32 x)
 
 inline void get_date_time_string(time_t timestamp, char* buffer, size_t size)
 {
-    struct tm* timeinfo = localtime(&timestamp);
-    strftime(buffer, size, "%Y-%m-%d %H:%M:%S", timeinfo);
+    struct tm time_info;
+#if defined(_WIN32)
+    if (localtime_s(&time_info, &timestamp) == 0)
+#else
+    if (localtime_r(&timestamp, &time_info) != NULL)
+#endif
+        strftime(buffer, size, "%Y-%m-%d %H:%M:%S", &time_info);
+    else if (size > 0)
+        buffer[0] = '\0';
 }
 
 inline void get_current_date_time_string(char* buffer, size_t size)
