@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #if defined(_WIN32)
 #include <windows.h>
 #elif defined(__APPLE__)
@@ -77,6 +78,15 @@ static inline int get_reset_value(int option)
         default:
             return -1;
     }
+}
+
+static inline bool get_local_time(time_t timestamp, struct tm* time_info)
+{
+#if defined(_WIN32)
+    return localtime_s(time_info, &timestamp) == 0;
+#else
+    return localtime_r(&timestamp, time_info) != NULL;
+#endif
 }
 
 static inline int ends_with(const char* s, const char* suffix)
