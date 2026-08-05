@@ -1,5 +1,7 @@
 # Gearsystem
 
+[![MCP Toplist](https://mcptoplist.com/badge/io.github.drhelius%2Fgearsystem.svg)](https://mcptoplist.com/server/io.github.drhelius%2Fgearsystem)
+
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/drhelius/Gearsystem/gearsystem.yml)](https://github.com/drhelius/Gearsystem/actions/workflows/gearsystem.yml)
 [![GitHub Releases)](https://img.shields.io/github/v/tag/drhelius/Gearsystem?label=version)](https://github.com/drhelius/Gearsystem/releases)
 [![commits)](https://img.shields.io/github/commit-activity/t/drhelius/Gearsystem)](https://github.com/drhelius/Gearsystem/commits/master)
