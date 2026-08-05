@@ -68,7 +68,9 @@ void SG1000MemoryRule::PerformWrite(u16 address, u8 value)
         if (m_pCartridge->HasRAMWithoutBattery())
             m_pMemory->Load(address, value);
         else
+        {
             Debug("--> ** Attempting to write on ROM address $%X %X", address, value);
+        }
     }
     else if (address < 0x8000)
     {
