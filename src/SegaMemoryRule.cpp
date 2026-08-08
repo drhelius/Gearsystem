@@ -154,6 +154,8 @@ void SegaMemoryRule::PerformWrite(u16 address, u8 value)
 
 void SegaMemoryRule::Reset()
 {
+    memset(m_pRAMBanks, 0xFF, 0x8000);
+
     m_RAMBankStartAddress = 0;
     m_bRAMEnabled = false;
     m_iPersistRAM = -1;

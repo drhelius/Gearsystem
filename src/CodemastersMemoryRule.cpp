@@ -128,6 +128,8 @@ void CodemastersMemoryRule::PerformWrite(u16 address, u8 value)
 
 void CodemastersMemoryRule::Reset()
 {
+    memset(m_pCartRAM, 0xFF, 0x2000);
+
     int bankCount = m_pCartridge->GetROMBankCount();
     int mask = (bankCount > 0) ? (bankCount - 1) : 0;
 
