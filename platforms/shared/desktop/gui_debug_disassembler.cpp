@@ -1590,7 +1590,7 @@ static void disassembler_menu(void)
 
         if (ImGui::BeginMenu("Syntax"))
         {
-            static const char* syntax_names[GS_Disassembler_Syntax_Count] = { "Gearsystem", "WLA-DX", "tniASM", "Z88DK" };
+            static const char* syntax_names[GS_Disassembler_Syntax_Count] = { GS_TITLE, "WLA-DX", "tniASM", "Z88DK" };
 
             for (int i = 0; i < GS_Disassembler_Syntax_Count; i++)
             {

@@ -491,11 +491,11 @@ void GearsystemCore::Pause(bool paused)
 {
     if (paused)
     {
-        Log("Gearsystem PAUSED");
+        Log(GS_TITLE " PAUSED");
     }
     else
     {
-        Log("Gearsystem RESUMED");
+        Log(GS_TITLE " RESUMED");
     }
     m_bPaused = paused;
 }
@@ -509,7 +509,7 @@ void GearsystemCore::ResetROM(Cartridge::ForceConfiguration* config)
 {
     if (m_pCartridge->IsReady())
     {
-        Log("Gearsystem RESET");
+        Log(GS_TITLE " RESET");
         if (IsValidPointer(config))
             m_pCartridge->ForceConfig(*config);
         Reset();

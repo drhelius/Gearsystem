@@ -312,8 +312,8 @@ void McpServer::HandleInitialize(const json& request)
         }},
         {"serverInfo", {
             {"name", "gearsystem-mcp-server"},
-            {"title", "Gearsystem MCP Server"},
-            {"description", "Debug/control Gearsystem SMS/Game Gear/SG-1000: execution, breakpoints, memory, Z80 CPU, VDP, SN76489 PSG, YM2413 FM, disassembly, symbols, sprites, save states, rewind, input, screenshots."},
+            {"title", GS_TITLE " MCP Server"},
+            {"description", "Debug/control " GS_TITLE " SMS/Game Gear/SG-1000: execution, breakpoints, memory, Z80 CPU, VDP, SN76489 PSG, YM2413 FM, disassembly, symbols, sprites, save states, rewind, input, screenshots."},
             {"version", GS_VERSION}
         }}
     };
