@@ -125,7 +125,7 @@ After hitting a breakpoint or pausing:
 | Step Into | `debug_step_into` | Execute one Z80 instruction, enter subroutines |
 | Step Over | `debug_step_over` | Execute one instruction, skip CALL subroutines |
 | Step Out | `debug_step_out` | Run until RET returns from current subroutine |
-| Step Frame | `debug_step_frame` | Execute until next frame |
+| Step Frame | `debug_step_frame` | Execute until next frame; use `mode: "sync"` before dependent calls |
 | Run To | `debug_run_to_cursor` | Continue until PC reaches target address |
 | Continue | `debug_continue` | Resume normal execution |
 
