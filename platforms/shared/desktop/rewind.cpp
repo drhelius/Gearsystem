@@ -315,23 +315,23 @@ static void restore_screenshot(const u8* slot, size_t size)
     if (size <= sizeof(GS_SaveState_Header))
         return;
 
-    const GS_SaveState_Header* header = reinterpret_cast<const GS_SaveState_Header*>(
-        slot + size - sizeof(GS_SaveState_Header));
+    GS_SaveState_Header header;
+    memcpy(&header, slot + size - sizeof(GS_SaveState_Header), sizeof(header));
 
-    if (header->magic != GS_SAVESTATE_MAGIC)
+    if (header.magic != GS_SAVESTATE_MAGIC)
         return;
-    if (header->screenshot_size == 0)
+    if (header.screenshot_size == 0)
         return;
 
     size_t max_screenshot_size = (size_t)512 * 512 * 4;
-    if (header->screenshot_size > max_screenshot_size)
+    if (header.screenshot_size > max_screenshot_size)
         return;
 
-    if (header->screenshot_size > (size - sizeof(GS_SaveState_Header)))
+    if (header.screenshot_size > (size - sizeof(GS_SaveState_Header)))
         return;
 
-    size_t screenshot_offset = size - sizeof(GS_SaveState_Header) - header->screenshot_size;
+    size_t screenshot_offset = size - sizeof(GS_SaveState_Header) - header.screenshot_size;
     const u8* screenshot_data = slot + screenshot_offset;
 
-    memcpy(emu_frame_buffer, screenshot_data, header->screenshot_size);
+    memcpy(emu_frame_buffer, screenshot_data, header.screenshot_size);
 }
