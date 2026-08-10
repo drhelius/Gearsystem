@@ -546,7 +546,7 @@ bool Cartridge::LoadFromFile(const char* path)
 
 bool Cartridge::LoadFromBuffer(const u8* buffer, int size, const char* path)
 {
-    if (IsValidPointer(buffer))
+    if (IsValidPointer(buffer) && (size > 0))
     {
         SetROMPath(path);
 
