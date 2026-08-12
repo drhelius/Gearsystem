@@ -21,7 +21,9 @@
 #include <algorithm>
 #include <ctype.h>
 #include "Cartridge.h"
+#define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #include "miniz.h"
+#undef MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #include "log.h"
 #include "common.h"
 

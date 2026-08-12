@@ -34,7 +34,9 @@
 #endif
 #include "definitions.h"
 #include "log.h"
+#define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #include <miniz.h>
+#undef MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 
 inline u16 read_u16_le(const u8* p)
 {
