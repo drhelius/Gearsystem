@@ -47,6 +47,9 @@ to do:
 #include <math.h>
 #include "emu2413.h"
 
+#ifdef M_PI
+#undef M_PI
+#endif
 #define M_PI    3.14159265358979323846264338327950288
 
 #define FREQ_SH 16  /* 16.16 fixed point (frequency calculations) */
