@@ -29,7 +29,7 @@ private:
 private:
     int m_iCycleCounter;
     int m_iSampleCounter;
-    int m_iCyclesPerSample;
+    int m_iSampleRateFactor;
     s16* m_pBuffer;
     int m_iBufferIndex;
     int m_ElapsedCycles;
@@ -38,5 +38,7 @@ private:
     s16 m_CurrentSample;
     bool m_bEnabled;
 };
+
+const int kYM2413SampleAccuracy = 16;
 
 #endif	/* YM2413_H */

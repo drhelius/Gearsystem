@@ -30,7 +30,7 @@ YM2413::YM2413()
     m_RegisterF2 = 0;
     m_CurrentSample = 0;
     m_bEnabled = false;
-    m_iCyclesPerSample = 0;
+    m_iSampleRateFactor = 0;
 }
 
 YM2413::~YM2413()
@@ -48,7 +48,7 @@ void YM2413::Init(int clockRate)
 void YM2413::Reset(int clockRate)
 {
     m_iClockRate = clockRate;
-    m_iCyclesPerSample = m_iClockRate / GS_AUDIO_SAMPLE_RATE;
+    m_iSampleRateFactor = (int)(((s64)GS_AUDIO_SAMPLE_RATE * (1 << kYM2413SampleAccuracy) + (m_iClockRate / 2)) / m_iClockRate);
     m_ElapsedCycles = 0;
     m_CurrentSample = 0;
     m_iCycleCounter = 0;
@@ -88,12 +88,6 @@ void YM2413::Tick(unsigned int clockCycles)
 
 int YM2413::EndFrame(s16* pSampleBuffer)
 {
-    if (!m_bEnabled)
-    {
-        m_iBufferIndex = 0;
-        return 0;
-    }
-
     Sync();
 
     int ret = 0;
@@ -115,33 +109,35 @@ int YM2413::EndFrame(s16* pSampleBuffer)
 
 void YM2413::Enable(bool bEnabled)
 {
+    if (m_bEnabled == bEnabled)
+        return;
+
+    Sync();
     m_bEnabled = bEnabled;
 }
 
 void YM2413::Sync()
 {
-    if (!m_bEnabled)
-    {
-        m_ElapsedCycles = 0;
-        return;
-    }
-
     for (int i = 0; i < m_ElapsedCycles; i++)
     {
-        m_iCycleCounter ++;
-        if (m_iCycleCounter >= 72)
+        if (m_bEnabled)
         {
-            m_iCycleCounter -= 72;
-            m_CurrentSample = YM2413Update();
+            m_iCycleCounter ++;
+            if (m_iCycleCounter >= 72)
+            {
+                m_iCycleCounter -= 72;
+                m_CurrentSample = YM2413Update();
+            }
         }
 
-        m_iSampleCounter++;
-        if (m_iSampleCounter >= m_iCyclesPerSample)
+        m_iSampleCounter += m_iSampleRateFactor;
+        if (m_iSampleCounter >= (1 << kYM2413SampleAccuracy))
         {
-            m_iSampleCounter -= m_iCyclesPerSample;
+            m_iSampleCounter -= (1 << kYM2413SampleAccuracy);
 
-            m_pBuffer[m_iBufferIndex] = m_CurrentSample;
-            m_pBuffer[m_iBufferIndex + 1] = m_CurrentSample;
+            s16 sample = m_bEnabled ? m_CurrentSample : 0;
+            m_pBuffer[m_iBufferIndex] = sample;
+            m_pBuffer[m_iBufferIndex + 1] = sample;
             m_iBufferIndex += 2;
 
             if (m_iBufferIndex >= GS_AUDIO_BUFFER_SIZE)
@@ -165,7 +161,7 @@ void YM2413::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*>(&m_RegisterF2), sizeof(u8));
     stream.write(reinterpret_cast<const char*>(&m_CurrentSample), sizeof(s16));
     stream.write(reinterpret_cast<const char*>(&m_bEnabled), sizeof(bool));
-    stream.write(reinterpret_cast<const char*>(&m_iCyclesPerSample), sizeof(int));
+    stream.write(reinterpret_cast<const char*>(&m_iSampleRateFactor), sizeof(int));
     stream.write(reinterpret_cast<const char*>(m_pBuffer), sizeof(s16) * GS_AUDIO_BUFFER_SIZE);
 
     unsigned char* context = YM2413GetContextPtr();
@@ -183,12 +179,14 @@ void YM2413::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*>(&m_RegisterF2), sizeof(u8));
     stream.read(reinterpret_cast<char*>(&m_CurrentSample), sizeof(s16));
     stream.read(reinterpret_cast<char*>(&m_bEnabled), sizeof(bool));
-    stream.read(reinterpret_cast<char*>(&m_iCyclesPerSample), sizeof(int));
+    stream.read(reinterpret_cast<char*>(&m_iSampleRateFactor), sizeof(int));
     stream.read(reinterpret_cast<char*>(m_pBuffer), sizeof(s16) * GS_AUDIO_BUFFER_SIZE);
 
     unsigned char* context = YM2413GetContextPtr();
     unsigned int context_size = YM2413GetContextSize();
     stream.read(reinterpret_cast<char*>(context), context_size);
+
+    m_iSampleRateFactor = (int)(((s64)GS_AUDIO_SAMPLE_RATE * (1 << kYM2413SampleAccuracy) + (m_iClockRate / 2)) / m_iClockRate);
 }
 
 void YM2413::LoadStateV1(std::istream& stream)
@@ -201,11 +199,13 @@ void YM2413::LoadStateV1(std::istream& stream)
     stream.read(reinterpret_cast<char*>(&m_RegisterF2), sizeof(u8));
     stream.read(reinterpret_cast<char*>(&m_CurrentSample), sizeof(s16));
     stream.read(reinterpret_cast<char*>(&m_bEnabled), sizeof(bool));
-    stream.read(reinterpret_cast<char*>(&m_iCyclesPerSample), sizeof(int));
+    stream.read(reinterpret_cast<char*>(&m_iSampleRateFactor), sizeof(int));
     stream.seekg(sizeof(s16) * GS_AUDIO_BUFFER_SIZE_V1, std::ios::cur);
     memset(m_pBuffer, 0, sizeof(s16) * GS_AUDIO_BUFFER_SIZE);
 
     unsigned char* context = YM2413GetContextPtr();
     unsigned int context_size = YM2413GetContextSize();
     stream.read(reinterpret_cast<char*>(context), context_size);
+
+    m_iSampleRateFactor = (int)(((s64)GS_AUDIO_SAMPLE_RATE * (1 << kYM2413SampleAccuracy) + (m_iClockRate / 2)) / m_iClockRate);
 }
