@@ -92,6 +92,10 @@ inline void Audio::Tick(unsigned int clockCycles)
 {
     m_ElapsedCycles += clockCycles;
     m_pYM2413->Tick(clockCycles);
+#ifndef GS_DISABLE_VGMRECORDER
+    if (m_bVgmRecordingEnabled)
+        m_VgmRecorder.UpdateTiming(clockCycles);
+#endif
 }
 
 inline void Audio::WriteAudioRegister(u8 value)

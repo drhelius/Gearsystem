@@ -26,6 +26,7 @@ VgmRecorder::VgmRecorder()
     m_PendingWait = 0;
     m_TotalSamples = 0;
     m_ClockRate = 0;
+    m_TimingRemainder = 0;
     m_bPAL = false;
     m_bHasYM2413 = false;
     m_YM2413Register = 0;
@@ -53,6 +54,7 @@ void VgmRecorder::Start(const char* file_path, int clock_rate, bool is_pal, bool
     m_bRecording = true;
     m_PendingWait = 0;
     m_TotalSamples = 0;
+    m_TimingRemainder = 0;
     m_YM2413Register = 0;
     m_CommandBuffer.clear();
     m_CommandBuffer.reserve(1024 * 1024); // Reserve 1MB
@@ -212,15 +214,6 @@ void VgmRecorder::WriteYM2413(u8 port, u8 data)
         // 0x51 aa dd - YM2413, write value dd to register aa
         WriteCommand(0x51, m_YM2413Register, data);
     }
-}
-
-void VgmRecorder::UpdateTiming(int elapsed_samples)
-{
-    if (!m_bRecording)
-        return;
-
-    m_PendingWait += elapsed_samples;
-    m_TotalSamples += elapsed_samples;
 }
 
 void VgmRecorder::WriteCommand(u8 command)
