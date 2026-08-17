@@ -107,6 +107,7 @@ public:
     bool IsValidROM() const;
     bool IsReady() const;
     bool IsInGameDatabase() const;
+    const char* GetGameDatabaseName() const;
     bool HasRAMWithoutBattery() const;
     CartridgeTypes GetType() const;
     CartridgeZones GetZone() const;
@@ -140,6 +141,7 @@ private:
     bool m_bValidROM;
     bool m_bReady;
     bool m_bInGameDatabase;
+    const char* m_pGameDatabaseName;
     char m_szFilePath[512];
     char m_szFileName[512];
     char m_szFileDirectory[512];

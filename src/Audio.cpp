@@ -248,12 +248,12 @@ void Audio::LoadStateV1(std::istream& stream)
     SyncYM2413State();
 }
 
-bool Audio::StartVgmRecording(const char* file_path, int clock_rate, bool is_pal, bool has_ym2413)
+bool Audio::StartVgmRecording(const char* file_path, int clock_rate, bool is_pal, bool has_ym2413, const VgmMetadata& metadata)
 {
     if (m_bVgmRecordingEnabled)
         return false;
 
-    m_VgmRecorder.Start(file_path, clock_rate, is_pal, has_ym2413);
+    m_VgmRecorder.Start(file_path, clock_rate, is_pal, has_ym2413, metadata);
     m_bVgmRecordingEnabled = m_VgmRecorder.IsRecording();
     return m_bVgmRecordingEnabled;
 }

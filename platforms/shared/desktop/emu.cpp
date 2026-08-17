@@ -1512,12 +1512,24 @@ void emu_start_vgm_recording(const char* file_path)
     GS_RuntimeInfo runtime;
     gearsystem->GetRuntimeInfo(runtime);
 
+    Cartridge* cartridge = gearsystem->GetCartridge();
     bool is_pal = (runtime.region == Region_PAL);
-    bool is_sg = gearsystem->GetCartridge()->IsSG1000();
+    bool is_sg = cartridge->IsSG1000();
     int clock_rate = is_pal ? (is_sg ? GS_MASTER_CLOCK_PAL_SG1000 : GS_MASTER_CLOCK_PAL) : GS_MASTER_CLOCK_NTSC;
     bool has_ym2413 = (gearsystem->GetAudio()->YM2413Read() != 0xFF);
+    VgmMetadata metadata;
+    metadata.system_name = "Sega Master System";
+    if (cartridge->IsGameGear())
+        metadata.system_name = "Sega Game Gear";
+    else if (cartridge->IsSG1000II())
+        metadata.system_name = "Sega SG-1000 II";
+    else if (is_sg)
+        metadata.system_name = "Sega SG-1000";
 
-    if (gearsystem->GetAudio()->StartVgmRecording(file_path, clock_rate, is_pal, has_ym2413))
+    metadata.game_name = cartridge->IsInGameDatabase() ? cartridge->GetGameDatabaseName() : cartridge->GetFileName();
+    metadata.comment = "Created with " GS_TITLE " " GS_VERSION;
+
+    if (gearsystem->GetAudio()->StartVgmRecording(file_path, clock_rate, is_pal, has_ym2413, metadata))
     {
         Log("VGM recording started: %s", file_path);
     }
@@ -1580,4 +1592,3 @@ void emu_mcp_pump_commands(void)
     if (mcp_manager && mcp_manager->IsRunning())
         mcp_manager->PumpCommands(gearsystem);
 }
-
