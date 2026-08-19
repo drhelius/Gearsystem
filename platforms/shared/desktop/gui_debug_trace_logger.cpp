@@ -56,7 +56,7 @@ static bool trace_logger_choose_output_path = false;
 static const GS_Trace_Entry* trace_logger_previous_entry = NULL;
 static const u32 k_trace_logger_capacities[] = {100000, 500000, 1000000, 2000000, 5000000};
 static const char* const k_trace_logger_capacity_names[] = {"100K", "500K", "1M", "2M", "5M"};
-static const char* const k_trace_logger_capacity_labels[] = {"100K (5 MB)", "500K (25 MB)", "1M (50 MB)", "2M (100 MB)", "5M (250 MB)"};
+static const char* const k_trace_logger_capacity_labels[] = {"100K (10 MB)", "500K (50 MB)", "1M (100 MB)", "2M (200 MB)", "5M (500 MB)"};
 static const char* const k_trace_logger_disk_size_names[] = {"10MB", "50MB", "100MB", "250MB", "500MB", "1GB", "unbounded"};
 static const u64 k_trace_logger_disk_sizes[] = {10ULL * 1024 * 1024, 50ULL * 1024 * 1024, 100ULL * 1024 * 1024,
     250ULL * 1024 * 1024, 500ULL * 1024 * 1024, 1024ULL * 1024 * 1024, 0};
@@ -294,7 +294,7 @@ void gui_debug_trace_logger_update(void)
             options.previous = &logger->GetEntry(index - 1);
         char entry_text[GS_TRACE_FORMAT_BUFFER_SIZE];
         char line[GS_TRACE_FORMAT_BUFFER_SIZE + 64];
-        trace_logger_format_entry(entry, emu_get_core()->GetMemory(), options, entry_text, sizeof(entry_text));
+        trace_logger_format_entry(entry, options, entry_text, sizeof(entry_text));
         if (config_debug.trace_counter)
             snprintf(line, sizeof(line), "%06llu %s", (unsigned long long)trace_logger_disk_entries, entry_text);
         else
@@ -882,7 +882,7 @@ static void format_entry_text(const GS_Trace_Entry& entry, bool cycles,
     options.bytes = config_debug.trace_bytes;
     options.cycles = cycles;
     options.previous = previous;
-    trace_logger_format_entry(entry, emu_get_core()->GetMemory(), options, buf, (size_t)buf_size);
+    trace_logger_format_entry(entry, options, buf, (size_t)buf_size);
 }
 
 static void format_entry_text(const GS_Trace_Entry& entry, char* buf, int buf_size)
@@ -892,8 +892,6 @@ static void format_entry_text(const GS_Trace_Entry& entry, char* buf, int buf_si
 
 static void render_cpu_entry_colored(const GS_Trace_Entry& entry, int prefix_length)
 {
-    GS_Disassembler_Record* record = trace_log_get_cpu_record(emu_get_core()->GetMemory(), entry);
-
     if (config_debug.trace_bank)
     {
         ImGui::TextColored(violet, "%03X:", entry.cpu.bank);
@@ -961,9 +959,9 @@ static void render_cpu_entry_colored(const GS_Trace_Entry& entry, int prefix_len
                  (f & FLAG_CARRY) ? 'C' : 'c');
     }
 
-    if (IsValidPointer(record))
+    if (entry.cpu.name[0] != 0)
     {
-        std::string instr = record->name;
+        std::string instr = entry.cpu.name;
         size_t pos;
         pos = instr.find("{n}");
         if (pos != std::string::npos)

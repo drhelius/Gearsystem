@@ -311,6 +311,9 @@ void Processor::LogInstructionEvent(u16 pc)
     for (u8 i = 0; i < sizeof(e.cpu.opcodes); i++)
         e.cpu.opcodes[i] = m_pMemory->DebugRetrieve((u16)(pc + i));
 
+    if (IsValidPointer(record))
+        strncpy_fit(e.cpu.name, record->name, sizeof(e.cpu.name));
+
     m_pTraceLogger->TraceLog(e);
 #else
     UNUSED(pc);
