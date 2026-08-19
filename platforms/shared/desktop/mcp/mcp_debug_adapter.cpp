@@ -451,7 +451,7 @@ std::vector<DisasmLine> DebugAdapter::GetDisassembly(u16 start_address, u16 end_
         {
             DisasmLine line;
             line.address = (u16)addr;
-            line.bank = record->bank;
+            line.bank = (u8)record->bank;
             line.name = record->name;
             strip_color_tags(line.name);
             line.bytes = record->bytes;
@@ -459,7 +459,7 @@ std::vector<DisasmLine> DebugAdapter::GetDisassembly(u16 start_address, u16 end_
             line.size = record->size;
             line.jump = record->jump;
             line.jump_address = record->jump_address;
-            line.jump_bank = record->jump_bank;
+            line.jump_bank = (u8)record->jump_bank;
             line.has_operand_address = record->has_operand_address;
             line.operand_address = record->operand_address;
             line.subroutine = record->subroutine;

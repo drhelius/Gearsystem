@@ -80,7 +80,7 @@ static std::string shader_preset_section_name(const char* preset_file);
 
 void config_init(bool force_portable)
 {
-    UNUSED(process_float_array);
+    UNUSED(&process_float_array);
 
     const char* root_path = NULL;
     char* portable_path = get_portable_path(force_portable);

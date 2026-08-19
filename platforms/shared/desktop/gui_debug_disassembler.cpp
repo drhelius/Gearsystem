@@ -1262,7 +1262,7 @@ static bool can_replace_relative_jump_in_export(GS_Disassembler_Record* record)
     if (!get_record_operand(record, &lookup_address, &is_zp))
         return false;
 
-    u8 bank = record->jump_bank;
+    u8 bank = (u8)record->jump_bank;
     DebugSymbol* fixed_symbol = fixed_symbols[bank][lookup_address];
     if (IsValidPointer(fixed_symbol) && symbol_label_is_exported(fixed_symbol->text, lookup_address, bank))
         return true;
@@ -1319,7 +1319,7 @@ bool gui_debug_resolve_symbol(GS_Disassembler_Record* record, std::string& instr
     if (!get_record_operand(record, &lookup_address, &is_zp))
         return false;
 
-    u8 bank = record->jump ? record->jump_bank : emu_get_core()->GetMemory()->GetBank(lookup_address);
+    u8 bank = record->jump ? (u8)record->jump_bank : (u8)emu_get_core()->GetMemory()->GetBank(lookup_address);
     DebugSymbol* symbol = fixed_symbols[bank][lookup_address];
     if (IsValidPointer(symbol))
     {
@@ -1427,7 +1427,7 @@ static bool collect_assembler_symbol_definition(DisassemblerLine* line, std::vec
     {
         if (is_relative_jump_record(line->record))
             return true;
-        u8 bank = line->record->jump ? line->record->jump_bank : emu_get_core()->GetMemory()->GetBank(resolved_address);
+        u8 bank = line->record->jump ? (u8)line->record->jump_bank : (u8)emu_get_core()->GetMemory()->GetBank(resolved_address);
         if (!symbol_label_is_exported(resolved_name, resolved_address, bank))
             add_assembler_definition(definitions, resolved_name, resolved_address, false);
         return true;
@@ -1463,7 +1463,7 @@ static bool collect_assembler_symbol_definition(DisassemblerLine* line, std::vec
     {
         if (replace_operand_in_string(line->record, instr, auto_symbol_text))
         {
-            if (!symbol_label_is_exported(auto_symbol_text, lookup_address, line->record->jump_bank))
+            if (!symbol_label_is_exported(auto_symbol_text, lookup_address, (u8)line->record->jump_bank))
                 add_assembler_definition(definitions, auto_symbol_text, lookup_address, false);
             return true;
         }
