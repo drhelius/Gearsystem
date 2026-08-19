@@ -32,6 +32,130 @@ static const char* mapper_name(u8 mapper)
     return mapper < sizeof(names) / sizeof(names[0]) ? names[mapper] : "UNKNOWN";
 }
 
+static const char* vdp_register_name(u8 reg)
+{
+    static const char* names[] = {
+        "CONTROL 1", "CONTROL 2", "NAME TABLE", "COLOR TABLE", "PATTERN TABLE",
+        "SPRITE ATTR", "SPRITE PATTERN", "BACKDROP COLOR", "H SCROLL", "V SCROLL",
+        "V INTERRUPT"
+    };
+    return reg < sizeof(names) / sizeof(names[0]) ? names[reg] : "UNKNOWN";
+}
+
+static const char* vdp_code_name(u8 code)
+{
+    static const char* names[] = {"VRAM READ", "VRAM WRITE", "REGISTER WRITE", "CRAM WRITE"};
+    return code < sizeof(names) / sizeof(names[0]) ? names[code] : "UNKNOWN";
+}
+
+static const char* input_device_name(u8 device)
+{
+    static const char* names[] = {"Joypad", "Light Phaser", "Paddle"};
+    return device < sizeof(names) / sizeof(names[0]) ? names[device] : "Unknown";
+}
+
+static const char* input_key_name(u8 key)
+{
+    switch (key)
+    {
+        case Key_Up:    return "UP";
+        case Key_Down:  return "DOWN";
+        case Key_Left:  return "LEFT";
+        case Key_Right: return "RIGHT";
+        case Key_1:     return "BUTTON 1";
+        case Key_2:     return "BUTTON 2";
+        case Key_Start: return "START";
+        default:        return "UNKNOWN";
+    }
+}
+
+static const char* input_port_name(u8 port)
+{
+    if (port == 0x00)
+        return "START";
+    if (port >= 0xC0)
+        return (port & 0x01) ? "PORT B" : "PORT A";
+    return "PORT";
+}
+
+static const char* game_gear_register_name(u8 port)
+{
+    static const char* names[] = {
+        "START", "SERIAL DATA", "SERIAL DIRECTION", "SERIAL TX", "SERIAL RX", "SERIAL STATUS"
+    };
+    return port < sizeof(names) / sizeof(names[0]) ? names[port] : "REGISTER";
+}
+
+static const char* eeprom_state_name(u8 state)
+{
+    static const char* names[] = {"START", "OPCODE", "READ", "WRITE"};
+    return state < sizeof(names) / sizeof(names[0]) ? names[state] : "UNKNOWN";
+}
+
+static void format_mapper_banks(const GS_Trace_Entry& entry, char* buffer, size_t size)
+{
+    snprintf(buffer, size, "$%03X/$%03X/$%03X/$%03X/$%03X/$%03X",
+             entry.mapper.banks[0], entry.mapper.banks[1], entry.mapper.banks[2],
+             entry.mapper.banks[3], entry.mapper.banks[4], entry.mapper.banks[5]);
+}
+
+static void format_ym2413_register(u8 reg, u8 value, bool write, char* buffer, size_t size)
+{
+    if (reg <= 0x07)
+    {
+        static const char* names[] = {
+            "USER MOD CONTROL", "USER CAR CONTROL", "USER MOD LEVEL", "USER WAVE/FEEDBACK",
+            "USER MOD ENVELOPE", "USER CAR ENVELOPE", "USER MOD SUSTAIN", "USER CAR SUSTAIN"
+        };
+        if (!write)
+            snprintf(buffer, size, "%s", names[reg]);
+        else if (reg <= 0x01)
+            snprintf(buffer, size, "%s AM:%s VIB:%s EG:%s KSR:%s MULT:$%X", names[reg],
+                     value & 0x80 ? "on" : "off", value & 0x40 ? "on" : "off",
+                     value & 0x20 ? "on" : "off", value & 0x10 ? "on" : "off", value & 0x0F);
+        else if (reg == 0x02)
+            snprintf(buffer, size, "%s KSL:%u TL:$%02X", names[reg], (value >> 6) & 0x03, value & 0x3F);
+        else if (reg == 0x03)
+            snprintf(buffer, size, "%s KSL:%u C-WF:%u M-WF:%u FB:%u", names[reg],
+                     (value >> 6) & 0x03, (value >> 4) & 0x01, (value >> 3) & 0x01, value & 0x07);
+        else if (reg <= 0x05)
+            snprintf(buffer, size, "%s AR:$%X DR:$%X", names[reg], (value >> 4) & 0x0F, value & 0x0F);
+        else
+            snprintf(buffer, size, "%s SL:$%X RR:$%X", names[reg], (value >> 4) & 0x0F, value & 0x0F);
+    }
+    else if (reg == 0x0E)
+    {
+        if (write)
+            snprintf(buffer, size, "RHYTHM Mode:%s BD:%s SD:%s TOM:%s CYM:%s HH:%s",
+                     value & 0x20 ? "on" : "off", value & 0x10 ? "on" : "off",
+                     value & 0x08 ? "on" : "off", value & 0x04 ? "on" : "off",
+                     value & 0x02 ? "on" : "off", value & 0x01 ? "on" : "off");
+        else
+            snprintf(buffer, size, "RHYTHM CONTROL");
+    }
+    else if (reg >= 0x10 && reg <= 0x18)
+        snprintf(buffer, size, "F-NUM LOW Ch:%u", reg - 0x10);
+    else if (reg >= 0x20 && reg <= 0x28)
+    {
+        if (write)
+            snprintf(buffer, size, "KEY/BLOCK Ch:%u FHi:%u Block:%u Key:%s Sustain:%s",
+                     reg - 0x20, value & 0x01, (value >> 1) & 0x07,
+                     value & 0x10 ? "on" : "off", value & 0x20 ? "on" : "off");
+        else
+            snprintf(buffer, size, "KEY/BLOCK Ch:%u", reg - 0x20);
+    }
+    else if (reg >= 0x30 && reg <= 0x38)
+    {
+        if (write)
+            snprintf(buffer, size, "INSTRUMENT/VOLUME Ch:%u Instrument:$%X Volume:$%X",
+                     reg - 0x30, (value >> 4) & 0x0F, value & 0x0F);
+        else
+            snprintf(buffer, size, "INSTRUMENT/VOLUME Ch:%u", reg - 0x30);
+    }
+    else
+        snprintf(buffer, size, "UNUSED");
+}
+
 void trace_log_format_cycle_prefix(const GS_Trace_Entry& entry, const GS_Trace_Entry* previous,
                                    char* buffer, size_t buffer_size)
 {
@@ -106,76 +230,382 @@ void trace_logger_format_entry(const GS_Trace_Entry& entry,
             format_cpu(entry, options, text, sizeof(text));
             break;
         case TRACE_CPU_IRQ:
-            snprintf(text, sizeof(text), "[CPU] %s PC:$%04X Vector:$%04X",
+            snprintf(text, sizeof(text), "[CPU] %s PC:$%04X -> $%04X",
                      entry.irq.type == 2 ? "NMI" : "IRQ", entry.irq.pc, entry.irq.vector);
             break;
         case TRACE_VDP:
         {
-            static const char* names[] = {"REG", "VINT", "HINT", "VFLAG", "STATUS", "SPR OVR", "SPR COL",
-                "DISPLAY", "SCROLL X", "SCROLL Y", "MODE", "TIMING", "CONTROL", "DATA RD", "DATA WR", "CRAM"};
-            const char* name = entry.vdp.event < 16 ? names[entry.vdp.event] : "???";
-            if (entry.vdp.event == TRACE_VDP_STATUS_READ)
+            switch (entry.vdp.event)
             {
-                snprintf(text, sizeof(text), "[VDP] %-8s Line:%u H:%u Before:$%02X Result:$%02X After:$%02X",
-                         name, entry.vdp.line, entry.vdp.hpos, entry.vdp.status_before,
-                         entry.vdp.effective, entry.vdp.status_after);
-            }
-            else if (entry.vdp.event == TRACE_VDP_CRAM_WRITE)
-            {
-                snprintf(text, sizeof(text), "[VDP] %-8s Line:%u H:%u Index:$%02X Raw:$%02X Color:$%03X",
-                         name, entry.vdp.line, entry.vdp.hpos, entry.vdp.address,
-                         entry.vdp.raw, entry.vdp.auxiliary);
-            }
-            else
-            {
-                snprintf(text, sizeof(text), "[VDP] %-8s Line:%u H:%u Raw:$%02X Effective:$%02X Addr:$%04X Code:%u Aux:$%04X",
-                         name, entry.vdp.line, entry.vdp.hpos, entry.vdp.raw, entry.vdp.effective,
-                         entry.vdp.address, entry.vdp.code, entry.vdp.auxiliary);
+                case TRACE_VDP_REG_WRITE:
+                    snprintf(text, sizeof(text), "[VDP] REG R%02u %s <- $%02X Line:%u H:%u",
+                             entry.vdp.reg, vdp_register_name(entry.vdp.reg), entry.vdp.effective,
+                             entry.vdp.line, entry.vdp.hpos);
+                    break;
+                case TRACE_VDP_VINT_REQUEST:
+                    snprintf(text, sizeof(text), "[VDP] VINT IRQ %s Line:%u H:%u",
+                             entry.vdp.effective ? "ASSERTED" : "CLEARED", entry.vdp.line, entry.vdp.hpos);
+                    break;
+                case TRACE_VDP_HINT_REQUEST:
+                    snprintf(text, sizeof(text), "[VDP] HINT IRQ %s Line:%u H:%u",
+                             entry.vdp.effective ? "ASSERTED" : "CLEARED", entry.vdp.line, entry.vdp.hpos);
+                    break;
+                case TRACE_VDP_VINT_FLAG:
+                    snprintf(text, sizeof(text), "[VDP] VINT FLAG Status:$%02X->$%02X Line:%u H:%u",
+                             entry.vdp.status_before, entry.vdp.status_after, entry.vdp.line, entry.vdp.hpos);
+                    break;
+                case TRACE_VDP_STATUS_READ:
+                    snprintf(text, sizeof(text), "[VDP] STATUS READ -> $%02X Status:$%02X->$%02X Line:%u H:%u",
+                             entry.vdp.effective, entry.vdp.status_before, entry.vdp.status_after,
+                             entry.vdp.line, entry.vdp.hpos);
+                    break;
+                case TRACE_VDP_SPRITE_OVERFLOW:
+                    if (entry.vdp.auxiliary)
+                    {
+                        snprintf(text, sizeof(text), "[VDP] SPRITE OVERFLOW Sprite:%u Status:$%02X->$%02X Line:%u H:%u",
+                                 entry.vdp.auxiliary, entry.vdp.status_before, entry.vdp.status_after,
+                                 entry.vdp.line, entry.vdp.hpos);
+                    }
+                    else
+                    {
+                        snprintf(text, sizeof(text), "[VDP] SPRITE OVERFLOW Status:$%02X->$%02X Line:%u H:%u",
+                                 entry.vdp.status_before, entry.vdp.status_after,
+                                 entry.vdp.line, entry.vdp.hpos);
+                    }
+                    break;
+                case TRACE_VDP_SPRITE_COLLISION:
+                    snprintf(text, sizeof(text), "[VDP] SPRITE COLLISION X:%u Status:$%02X->$%02X Line:%u H:%u",
+                             entry.vdp.auxiliary, entry.vdp.status_before, entry.vdp.status_after,
+                             entry.vdp.line, entry.vdp.hpos);
+                    break;
+                case TRACE_VDP_DISPLAY_LATCH:
+                    snprintf(text, sizeof(text), "[VDP] DISPLAY %s R1:$%02X Line:%u H:%u",
+                             entry.vdp.effective ? "ON" : "OFF", entry.vdp.raw,
+                             entry.vdp.line, entry.vdp.hpos);
+                    break;
+                case TRACE_VDP_SCROLL_X_LATCH:
+                    snprintf(text, sizeof(text), "[VDP] SCROLL X LATCH $%02X Line:%u H:%u",
+                             entry.vdp.effective, entry.vdp.line, entry.vdp.hpos);
+                    break;
+                case TRACE_VDP_SCROLL_Y_LATCH:
+                    snprintf(text, sizeof(text), "[VDP] SCROLL Y LATCH $%02X Line:%u H:%u",
+                             entry.vdp.effective, entry.vdp.line, entry.vdp.hpos);
+                    break;
+                case TRACE_VDP_MODE_CHANGE:
+                    snprintf(text, sizeof(text), "[VDP] MODE %u->%u Line:%u H:%u",
+                             entry.vdp.raw, entry.vdp.effective, entry.vdp.line, entry.vdp.hpos);
+                    break;
+                case TRACE_VDP_TIMING:
+                    snprintf(text, sizeof(text), "[VDP] H COUNTER LATCH $%02X Line:%u H:%u",
+                             entry.vdp.effective, entry.vdp.line, entry.vdp.hpos);
+                    break;
+                case TRACE_VDP_CONTROL:
+                    if (entry.vdp.auxiliary == 1)
+                    {
+                        snprintf(text, sizeof(text), "[VDP] CONTROL BYTE 1 $%02X Address:$%04X Line:%u H:%u",
+                                 entry.vdp.raw, entry.vdp.address, entry.vdp.line, entry.vdp.hpos);
+                    }
+                    else
+                    {
+                        snprintf(text, sizeof(text), "[VDP] CONTROL BYTE 2 $%02X %s Address:$%04X Line:%u H:%u",
+                                 entry.vdp.raw, vdp_code_name(entry.vdp.code), entry.vdp.address,
+                                 entry.vdp.line, entry.vdp.hpos);
+                    }
+                    break;
+                case TRACE_VDP_DATA_READ:
+                    snprintf(text, sizeof(text), "[VDP] DATA READ VRAM[$%04X] -> $%02X Line:%u H:%u",
+                             entry.vdp.address, entry.vdp.effective, entry.vdp.line, entry.vdp.hpos);
+                    break;
+                case TRACE_VDP_DATA_WRITE:
+                    snprintf(text, sizeof(text), "[VDP] DATA WRITE VRAM[$%04X] <- $%02X Line:%u H:%u",
+                             entry.vdp.address, entry.vdp.effective, entry.vdp.line, entry.vdp.hpos);
+                    break;
+                case TRACE_VDP_CRAM_WRITE:
+                    snprintf(text, sizeof(text), "[VDP] CRAM[$%02X] <- $%02X Color:$%03X Line:%u H:%u",
+                             entry.vdp.address, entry.vdp.raw, entry.vdp.auxiliary,
+                             entry.vdp.line, entry.vdp.hpos);
+                    break;
+                default:
+                    snprintf(text, sizeof(text), "[VDP] UNKNOWN Event:%u Line:%u H:%u",
+                             entry.vdp.event, entry.vdp.line, entry.vdp.hpos);
+                    break;
             }
             break;
         }
         case TRACE_INPUT:
-            snprintf(text, sizeof(text), "[INP] %-6s Port:$%02X Player:%u Raw:$%02X Effective:$%02X Control:$%02X Device:%u",
-                     entry.input.event == TRACE_INPUT_READ ? "READ" : "CHANGE",
-                     entry.input.port, entry.input.player, entry.input.raw, entry.input.effective,
-                     entry.input.control, entry.input.device);
+            if (entry.input.event == TRACE_INPUT_READ)
+            {
+                if (entry.input.raw != entry.input.effective)
+                {
+                    snprintf(text, sizeof(text), "[INP] READ P%u %s %s ($%02X) -> $%02X Raw:$%02X Control:$%02X",
+                             entry.input.player, input_device_name(entry.input.device), input_port_name(entry.input.port),
+                             entry.input.port, entry.input.effective, entry.input.raw, entry.input.control);
+                }
+                else
+                {
+                    snprintf(text, sizeof(text), "[INP] READ P%u %s %s ($%02X) -> $%02X Control:$%02X",
+                             entry.input.player, input_device_name(entry.input.device), input_port_name(entry.input.port),
+                             entry.input.port, entry.input.effective, entry.input.control);
+                }
+            }
+            else if (entry.input.event == TRACE_INPUT_CHANGE)
+            {
+                bool pressed = entry.input.player == 0 ? entry.input.effective == 0 :
+                    (entry.input.effective & entry.input.port) == 0;
+                if (entry.input.player == 0)
+                {
+                    snprintf(text, sizeof(text), "[INP] CHANGE RESET %s State:$%02X->$%02X",
+                             pressed ? "PRESSED" : "RELEASED", entry.input.raw, entry.input.effective);
+                }
+                else
+                {
+                    snprintf(text, sizeof(text), "[INP] CHANGE P%u %s %s %s State:$%02X->$%02X",
+                             entry.input.player, input_device_name(entry.input.device), input_key_name(entry.input.port),
+                             pressed ? "PRESSED" : "RELEASED", entry.input.raw, entry.input.effective);
+                }
+            }
+            else
+                snprintf(text, sizeof(text), "[INP] UNKNOWN Event:%u", entry.input.event);
             break;
         case TRACE_IO:
         {
-            static const char* names[] = {"CONTROL", "COUNTER", "LATCH", "GG READ", "GG WRITE"};
-            const char* name = entry.io.event < 5 ? names[entry.io.event] : "???";
-            snprintf(text, sizeof(text), "[IO] %-8s Port:$%02X Raw:$%02X Effective:$%02X Previous:$%02X Aux:$%02X",
-                     name, entry.io.port, entry.io.raw, entry.io.effective, entry.io.previous, entry.io.auxiliary);
+            switch (entry.io.event)
+            {
+                case TRACE_IO_CONTROL:
+                    if (entry.io.port & 0x01)
+                    {
+                        snprintf(text, sizeof(text), "[IO] CONTROL Port:$%02X $%02X->$%02X",
+                                 entry.io.port, entry.io.previous, entry.io.effective);
+                    }
+                    else
+                    {
+                        snprintf(text, sizeof(text), "[IO] MEMORY CONTROL Port:$%02X <- $%02X",
+                                 entry.io.port, entry.io.effective);
+                    }
+                    break;
+                case TRACE_IO_COUNTER_READ:
+                    snprintf(text, sizeof(text), "[IO] %c COUNTER READ Port:$%02X -> $%02X",
+                             entry.io.auxiliary ? 'H' : 'V', entry.io.port, entry.io.effective);
+                    break;
+                case TRACE_IO_COUNTER_LATCH:
+                {
+                    const char* trigger = entry.io.auxiliary == 1 ? "TH-A" :
+                        (entry.io.auxiliary == 2 ? "TH-B" : "TH-A/TH-B");
+                    snprintf(text, sizeof(text), "[IO] H COUNTER LATCH $%02X Trigger:%s Control:$%02X->$%02X",
+                             entry.io.effective, trigger, entry.io.previous, entry.io.raw);
+                    break;
+                }
+                case TRACE_IO_GAMEGEAR_READ:
+                    if (entry.io.raw != entry.io.effective)
+                    {
+                        snprintf(text, sizeof(text), "[IO] GG READ %s ($%02X) -> $%02X Raw:$%02X",
+                                 game_gear_register_name(entry.io.port), entry.io.port,
+                                 entry.io.effective, entry.io.raw);
+                    }
+                    else
+                    {
+                        snprintf(text, sizeof(text), "[IO] GG READ %s ($%02X) -> $%02X",
+                                 game_gear_register_name(entry.io.port), entry.io.port, entry.io.effective);
+                    }
+                    break;
+                case TRACE_IO_GAMEGEAR_WRITE:
+                    snprintf(text, sizeof(text), "[IO] GG WRITE %s ($%02X) $%02X->$%02X",
+                             game_gear_register_name(entry.io.port), entry.io.port,
+                             entry.io.previous, entry.io.effective);
+                    break;
+                default:
+                    snprintf(text, sizeof(text), "[IO] UNKNOWN Event:%u Port:$%02X",
+                             entry.io.event, entry.io.port);
+                    break;
+            }
             break;
         }
         case TRACE_PSG:
         {
-            static const char* names[] = {"TONE", "VOLUME", "NOISE", "STEREO"};
-            const char* name = entry.psg.event < 4 ? names[entry.psg.event] : "???";
-            snprintf(text, sizeof(text), "[PSG] %-7s Raw:$%02X Channel:%u Latch:$%02X Period:$%04X Attenuation:%u",
-                     name, entry.psg.value, entry.psg.channel, entry.psg.latch,
-                     entry.psg.period, entry.psg.attenuation);
+            switch (entry.psg.event)
+            {
+                case TRACE_PSG_TONE:
+                    snprintf(text, sizeof(text), "[PSG] TONE Ch:%u %s:$%02X Period:$%03X",
+                             entry.psg.channel, entry.psg.value & 0x80 ? "LATCH" : "DATA",
+                             entry.psg.value, entry.psg.period >> 4);
+                    break;
+                case TRACE_PSG_VOLUME:
+                    if (entry.psg.attenuation == 0)
+                    {
+                        snprintf(text, sizeof(text), "[PSG] VOLUME Ch:%u Data:$%02X Att:$0 MAX",
+                                 entry.psg.channel, entry.psg.value);
+                    }
+                    else if (entry.psg.attenuation == 0x0F)
+                    {
+                        snprintf(text, sizeof(text), "[PSG] VOLUME Ch:%u Data:$%02X Att:$F OFF",
+                                 entry.psg.channel, entry.psg.value);
+                    }
+                    else
+                    {
+                        snprintf(text, sizeof(text), "[PSG] VOLUME Ch:%u Data:$%02X Att:$%X -%u dB",
+                                 entry.psg.channel, entry.psg.value, entry.psg.attenuation,
+                                 entry.psg.attenuation * 2);
+                    }
+                    break;
+                case TRACE_PSG_NOISE:
+                {
+                    static const char* rates[] = {"N/512", "N/1024", "N/2048", "TONE 3"};
+                    u8 rate = (u8)(entry.psg.period & 0x03);
+                    snprintf(text, sizeof(text), "[PSG] NOISE Data:$%02X Mode:%s Rate:%s Att:$%X",
+                             entry.psg.value, entry.psg.period & 0x80 ? "White" : "Periodic",
+                             rates[rate], entry.psg.attenuation);
+                    break;
+                }
+                case TRACE_PSG_STEREO:
+                    snprintf(text, sizeof(text), "[PSG] STEREO Data:$%02X Left:$%X Right:$%X",
+                             entry.psg.value, (entry.psg.value >> 4) & 0x0F, entry.psg.value & 0x0F);
+                    break;
+                default:
+                    snprintf(text, sizeof(text), "[PSG] UNKNOWN Event:%u Data:$%02X",
+                             entry.psg.event, entry.psg.value);
+                    break;
+            }
             break;
         }
         case TRACE_YM2413:
-            snprintf(text, sizeof(text), "[YM] %s Port:$%02X Reg:$%02X Raw:$%02X Effective:$%02X Accepted:%s PSG:%s FM:%s",
-                     entry.ym2413.event == TRACE_YM2413_MIXER ? "MIXER" : "REGISTER",
-                     entry.ym2413.port, entry.ym2413.reg, entry.ym2413.value, entry.ym2413.effective,
-                     entry.ym2413.accepted ? "yes" : "no", entry.ym2413.psg_enabled ? "on" : "off",
-                     entry.ym2413.fm_enabled ? "on" : "off");
+            if (entry.ym2413.event == TRACE_YM2413_MIXER)
+            {
+                snprintf(text, sizeof(text), "[YM] MIXER Data:$%02X PSG:%s FM:%s%s",
+                         entry.ym2413.value, entry.ym2413.psg_enabled ? "on" : "off",
+                         entry.ym2413.fm_enabled ? "on" : "off", entry.ym2413.accepted ? "" : " IGNORED");
+            }
+            else if (entry.ym2413.event == TRACE_YM2413_REGISTER)
+            {
+                u8 reg = entry.ym2413.port == 0xF0 ? entry.ym2413.value : entry.ym2413.reg;
+                char description[128];
+                format_ym2413_register(reg, entry.ym2413.value, entry.ym2413.port != 0xF0,
+                                       description, sizeof(description));
+                if (entry.ym2413.port == 0xF0)
+                {
+                    snprintf(text, sizeof(text), "[YM] REGISTER SELECT R:$%02X %s%s",
+                             reg, description, entry.ym2413.accepted ? "" : " IGNORED");
+                }
+                else
+                {
+                    snprintf(text, sizeof(text), "[YM] REGISTER R:$%02X <- $%02X %s%s",
+                             reg, entry.ym2413.value, description,
+                             entry.ym2413.accepted ? "" : " IGNORED");
+                }
+            }
+            else
+                snprintf(text, sizeof(text), "[YM] UNKNOWN Event:%u", entry.ym2413.event);
             break;
         case TRACE_MAPPER:
         {
-            static const char* names[] = {"ROM", "RAM", "CONTROL", "EEPROM", "FLASH"};
-            const char* name = entry.mapper.event < 5 ? names[entry.mapper.event] : "???";
-            char state[32] = "";
-            if (entry.mapper.flags_valid)
-                snprintf(state, sizeof(state), " Flags:$%02X", entry.mapper.flags);
-            snprintf(text, sizeof(text), "[MAP] %s %-7s Addr:$%04X Raw:$%02X Banks:%03X/%03X/%03X/%03X/%03X/%03X RAM:%d%s Aux:$%04X",
-                     mapper_name(entry.mapper.mapper), name, entry.mapper.address, entry.mapper.value,
-                     entry.mapper.banks[0], entry.mapper.banks[1], entry.mapper.banks[2],
-                     entry.mapper.banks[3], entry.mapper.banks[4], entry.mapper.banks[5],
-                     entry.mapper.ram_bank, state, entry.mapper.auxiliary);
+            char banks[80];
+            format_mapper_banks(entry, banks, sizeof(banks));
+            switch (entry.mapper.event)
+            {
+                case TRACE_MAPPER_ROM:
+                    snprintf(text, sizeof(text), "[MAP] %s ROM Addr:$%04X Value:$%02X Banks:%s",
+                             mapper_name(entry.mapper.mapper), entry.mapper.address, entry.mapper.value, banks);
+                    break;
+                case TRACE_MAPPER_RAM:
+                    if (entry.mapper.ram_bank >= 0)
+                    {
+                        snprintf(text, sizeof(text), "[MAP] %s RAM Addr:$%04X Value:$%02X %s Bank:$%03X Banks:%s",
+                                 mapper_name(entry.mapper.mapper), entry.mapper.address, entry.mapper.value,
+                                 entry.mapper.flags & 0x01 ? "ENABLED" : "DISABLED",
+                                 (u16)entry.mapper.ram_bank, banks);
+                    }
+                    else
+                    {
+                        snprintf(text, sizeof(text), "[MAP] %s RAM Addr:$%04X Value:$%02X %s Banks:%s",
+                                 mapper_name(entry.mapper.mapper), entry.mapper.address, entry.mapper.value,
+                                 entry.mapper.flags & 0x01 ? "ENABLED" : "DISABLED", banks);
+                    }
+                    break;
+                case TRACE_MAPPER_CONTROL:
+                    if (entry.mapper.mapper == Cartridge::CartridgeCodemastersMapper)
+                    {
+                        snprintf(text, sizeof(text), "[MAP] CODEMASTERS CONTROL Addr:$%04X Value:$%02X RAM:%s ROM Bank:$%03X Banks:%s",
+                                 entry.mapper.address, entry.mapper.value,
+                                 entry.mapper.flags & 0x01 ? "on" : "off", entry.mapper.auxiliary, banks);
+                    }
+                    else if (entry.mapper.mapper == Cartridge::CartridgeJanggunMapper)
+                    {
+                        snprintf(text, sizeof(text), "[MAP] JANGGUN CONTROL Addr:$%04X Value:$%02X Page:%u Reverse:%s Banks:%s",
+                                 entry.mapper.address, entry.mapper.value, entry.mapper.auxiliary,
+                                 entry.mapper.flags & 0x01 ? "on" : "off", banks);
+                    }
+                    else
+                    {
+                        snprintf(text, sizeof(text), "[MAP] %s CONTROL Addr:$%04X Value:$%02X Flags:$%02X Data:$%04X Banks:%s",
+                                 mapper_name(entry.mapper.mapper), entry.mapper.address, entry.mapper.value,
+                                 entry.mapper.flags, entry.mapper.auxiliary, banks);
+                    }
+                    break;
+                case TRACE_MAPPER_EEPROM:
+                {
+                    u8 lines = entry.mapper.flags >> 4;
+                    u8 state = (entry.mapper.flags >> 2) & 0x03;
+                    const char* write_state = entry.mapper.flags & 0x02 ? "locked" : "enabled";
+                    if (entry.mapper.address >= 0x8008 && entry.mapper.address < 0x8088)
+                    {
+                        snprintf(text, sizeof(text), "[MAP] 93C46 EEPROM DIRECT[$%02X] <- $%02X State:%s Write:%s",
+                                 entry.mapper.auxiliary, entry.mapper.value, eeprom_state_name(state), write_state);
+                    }
+                    else if (entry.mapper.address == 0x8000)
+                    {
+                        snprintf(text, sizeof(text), "[MAP] 93C46 EEPROM LINES Data:$%02X CS:%u CLK:%u DI:%u DO:%u State:%s Opcode:$%04X",
+                                 entry.mapper.value, (lines >> 2) & 0x01, (lines >> 1) & 0x01,
+                                 lines & 0x01, (lines >> 3) & 0x01, eeprom_state_name(state),
+                                 entry.mapper.auxiliary);
+                    }
+                    else
+                    {
+                        snprintf(text, sizeof(text), "[MAP] 93C46 EEPROM CONTROL Addr:$%04X Value:$%02X %s Write:%s State:%s Opcode:$%04X",
+                                 entry.mapper.address, entry.mapper.value,
+                                 entry.mapper.flags & 0x01 ? "ENABLED" : "DISABLED", write_state,
+                                 eeprom_state_name(state), entry.mapper.auxiliary);
+                    }
+                    break;
+                }
+                case TRACE_MAPPER_FLASH:
+                    if (entry.mapper.flags == 0)
+                    {
+                        snprintf(text, sizeof(text), "[MAP] IRATA FLASH %s ID Addr:$%04X Value:$%02X",
+                                 entry.mapper.address == 0x5555 && entry.mapper.value == 0x90 ? "ENTER" : "EXIT",
+                                 entry.mapper.address, entry.mapper.value);
+                    }
+                    else if (entry.mapper.flags == 1)
+                    {
+                        if (entry.mapper.address == 0x5555 && entry.mapper.value == 0x80)
+                        {
+                            snprintf(text, sizeof(text), "[MAP] IRATA FLASH BEGIN ERASE Addr:$%04X Value:$%02X",
+                                     entry.mapper.address, entry.mapper.value);
+                        }
+                        else
+                        {
+                            snprintf(text, sizeof(text), "[MAP] IRATA FLASH ERASE SECTOR Addr:$%04X Value:$%02X Bank:$%03X",
+                                     entry.mapper.address, entry.mapper.value, entry.mapper.auxiliary);
+                        }
+                    }
+                    else
+                    {
+                        if (entry.mapper.address == 0x5555 && entry.mapper.value == 0xA0)
+                        {
+                            snprintf(text, sizeof(text), "[MAP] IRATA FLASH BEGIN PROGRAM Addr:$%04X Value:$%02X",
+                                     entry.mapper.address, entry.mapper.value);
+                        }
+                        else
+                        {
+                            snprintf(text, sizeof(text), "[MAP] IRATA FLASH PROGRAM Addr:$%04X Value:$%02X Bank:$%03X",
+                                     entry.mapper.address, entry.mapper.value, entry.mapper.auxiliary);
+                        }
+                    }
+                    break;
+                default:
+                    snprintf(text, sizeof(text), "[MAP] %s UNKNOWN Event:%u Addr:$%04X Value:$%02X",
+                             mapper_name(entry.mapper.mapper), entry.mapper.event,
+                             entry.mapper.address, entry.mapper.value);
+                    break;
+            }
             break;
         }
         default:

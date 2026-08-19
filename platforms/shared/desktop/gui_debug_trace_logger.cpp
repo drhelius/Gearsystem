@@ -1047,7 +1047,7 @@ static void render_entry_colored(const GS_Trace_Entry& entry, u64 index)
             break;
         case TRACE_IO:
             format_entry_text(entry, false, NULL, buf, sizeof(buf));
-            ImGui::TextColored(yellow, "%s", buf);
+            ImGui::TextColored(orange, "%s", buf);
             break;
         case TRACE_MAPPER:
             format_entry_text(entry, false, NULL, buf, sizeof(buf));
