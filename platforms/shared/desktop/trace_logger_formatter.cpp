@@ -32,28 +32,20 @@ static const char* mapper_name(u8 mapper)
     return mapper < sizeof(names) / sizeof(names[0]) ? names[mapper] : "UNKNOWN";
 }
 
-static void format_cycles(const GS_Trace_Entry& entry, const GS_Trace_Format_Options& options,
-                          char* buffer, size_t size)
+void trace_log_format_cycle_prefix(const GS_Trace_Entry& entry, const GS_Trace_Entry* previous,
+                                   char* buffer, size_t buffer_size)
 {
-    if (!options.cycles)
-    {
-        buffer[0] = 0;
-        return;
-    }
-
-    if (!options.previous)
-        snprintf(buffer, size, "@%012llu                ", (unsigned long long)entry.cycle);
-    else if (entry.cycle < options.previous->cycle)
-        snprintf(buffer, size, "@%012llu RESET          ", (unsigned long long)entry.cycle);
+    if (!previous)
+        snprintf(buffer, buffer_size, "@%012llu                ", (unsigned long long)entry.cycle);
+    else if (entry.cycle < previous->cycle)
+        snprintf(buffer, buffer_size, "@%012llu RESET          ", (unsigned long long)entry.cycle);
     else
-        snprintf(buffer, size, "@%012llu +%-12llu ", (unsigned long long)entry.cycle,
-                 (unsigned long long)(entry.cycle - options.previous->cycle));
+        snprintf(buffer, buffer_size, "@%012llu +%-12llu ", (unsigned long long)entry.cycle,
+                 (unsigned long long)(entry.cycle - previous->cycle));
 }
 
-static void format_cpu(const GS_Trace_Entry& entry, Memory* memory,
-                       const GS_Trace_Format_Options& options, char* buffer, size_t size)
+GS_Disassembler_Record* trace_log_get_cpu_record(Memory* memory, const GS_Trace_Entry& entry)
 {
-    char mnemonic[80] = "???";
     GS_Disassembler_Record* record = memory->GetDisassemblerRecord(entry.cpu.pc, entry.cpu.bank);
     bool valid = IsValidPointer(record) && record->bank == entry.cpu.bank &&
                  record->size == entry.cpu.size && entry.cpu.size <= sizeof(entry.cpu.opcodes);
@@ -68,7 +60,23 @@ static void format_cpu(const GS_Trace_Entry& entry, Memory* memory,
             }
         }
     }
-    if (valid)
+    return valid ? record : NULL;
+}
+
+void trace_log_format_cpu_bytes(const GS_Trace_Entry& entry, char* buffer, size_t buffer_size)
+{
+    size_t offset = 0;
+    buffer[0] = 0;
+    for (u8 i = 0; i < entry.cpu.size && offset + 4 < buffer_size; i++)
+        offset += (size_t)snprintf(buffer + offset, buffer_size - offset, "%02X ", entry.cpu.opcodes[i]);
+}
+
+static void format_cpu(const GS_Trace_Entry& entry, Memory* memory,
+                       const GS_Trace_Format_Options& options, char* buffer, size_t size)
+{
+    char mnemonic[80] = "???";
+    GS_Disassembler_Record* record = trace_log_get_cpu_record(memory, entry);
+    if (IsValidPointer(record))
         strip_tags(record->name, mnemonic, sizeof(mnemonic));
 
     char bank[16] = "";
@@ -97,11 +105,7 @@ static void format_cpu(const GS_Trace_Entry& entry, Memory* memory,
 
     char bytes[32] = "";
     if (options.bytes)
-    {
-        size_t offset = 0;
-        for (u8 i = 0; i < entry.cpu.size && offset + 4 < sizeof(bytes); i++)
-            offset += (size_t)snprintf(bytes + offset, sizeof(bytes) - offset, "%02X ", entry.cpu.opcodes[i]);
-    }
+        trace_log_format_cpu_bytes(entry, bytes, sizeof(bytes));
 
     snprintf(buffer, size, "[CPU] %s%04X  %s%s%-24s %s", bank, entry.cpu.pc,
              registers, flags, mnemonic, bytes);
@@ -113,7 +117,9 @@ void trace_logger_format_entry(const GS_Trace_Entry& entry, Memory* memory,
 {
     char cycles[48];
     char text[GS_TRACE_FORMAT_BUFFER_SIZE];
-    format_cycles(entry, options, cycles, sizeof(cycles));
+    cycles[0] = 0;
+    if (options.cycles)
+        trace_log_format_cycle_prefix(entry, options.previous, cycles, sizeof(cycles));
 
     switch (entry.type)
     {

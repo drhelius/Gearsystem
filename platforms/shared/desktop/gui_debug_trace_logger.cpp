@@ -49,11 +49,14 @@ static u64 trace_logger_disk_next_sequence = 0;
 static u64 trace_logger_last_flush = 0;
 static bool trace_logger_draining = false;
 static bool trace_logger_disk_error = false;
-static bool trace_logger_follow = true;
+static bool trace_logger_follow_latest = true;
+static bool trace_logger_scroll_to_bottom = false;
 static bool trace_logger_wait_for_scroll_away = false;
+static bool trace_logger_choose_output_path = false;
 static const GS_Trace_Entry* trace_logger_previous_entry = NULL;
 static const u32 k_trace_logger_capacities[] = {100000, 500000, 1000000, 2000000, 5000000};
 static const char* const k_trace_logger_capacity_names[] = {"100K", "500K", "1M", "2M", "5M"};
+static const char* const k_trace_logger_capacity_labels[] = {"100K (5 MB)", "500K (25 MB)", "1M (50 MB)", "2M (100 MB)", "5M (250 MB)"};
 static const char* const k_trace_logger_disk_size_names[] = {"10MB", "50MB", "100MB", "250MB", "500MB", "1GB", "unbounded"};
 static const u64 k_trace_logger_disk_sizes[] = {10ULL * 1024 * 1024, 50ULL * 1024 * 1024, 100ULL * 1024 * 1024,
     250ULL * 1024 * 1024, 500ULL * 1024 * 1024, 1024ULL * 1024 * 1024, 0};
@@ -62,14 +65,17 @@ static void trace_logger_menu(void);
 static void trace_logger_sync_flags(void);
 static u32 trace_logger_get_config_flags(void);
 static void trace_logger_set_config_flags(u32 flags);
+static void trace_logger_menu_event_filter(const char* label, int* filter, u32 mask);
 static bool trace_logger_apply_capacity(void);
 static bool trace_logger_start(u32 flags, bool update_config);
 static bool trace_logger_start_disk(const char* directory, char* error, size_t error_size);
 static bool trace_logger_stop(bool show_status);
 static bool trace_logger_stop_disk(bool show_status, bool flush_entries);
+static void format_entry_text(const GS_Trace_Entry& entry, bool cycles,
+    const GS_Trace_Entry* previous, char* buf, int buf_size);
 static void format_entry_text(const GS_Trace_Entry& entry, char* buf, int buf_size);
 static void render_entry_colored(const GS_Trace_Entry& entry, u64 index);
-static void render_cpu_entry_colored(const GS_Trace_Entry& entry);
+static void render_cpu_entry_colored(const GS_Trace_Entry& entry, int prefix_length);
 
 static const char* trace_logger_directory(void)
 {
@@ -84,15 +90,15 @@ static const char* trace_logger_directory(void)
     return config_root_path;
 }
 
-static void trace_logger_event_menu(const char* label, int* events, u32 mask)
+static void trace_logger_menu_event_filter(const char* label, int* filter, u32 mask)
 {
-    bool selected = (*events & mask) == mask;
-    if (ImGui::MenuItem(label, "", &selected))
+    bool enabled = ((u32)*filter & mask) != 0;
+    if (ImGui::MenuItem(label, "", &enabled))
     {
-        if (selected)
-            *events |= mask;
+        if (enabled)
+            *filter |= (int)mask;
         else
-            *events &= ~mask;
+            *filter &= ~(int)mask;
     }
 }
 
@@ -251,7 +257,8 @@ static bool trace_logger_start(u32 flags, bool update_config)
         return false;
 
     trace_logger_enabled = true;
-    trace_logger_follow = true;
+    trace_logger_follow_latest = true;
+    trace_logger_scroll_to_bottom = true;
     trace_logger_wait_for_scroll_away = false;
     trace_logger_sync_flags();
     gui_set_status_message("Trace recording started", 3000);
@@ -341,6 +348,9 @@ static bool trace_logger_stop(bool show_status)
 {
     if (!trace_logger_enabled)
         return true;
+
+    trace_logger_scroll_to_bottom = trace_logger_follow_latest;
+
     if (trace_logger_output == gui_TraceOutput_Disk)
         return trace_logger_stop_disk(show_status, true);
 
@@ -511,89 +521,111 @@ void gui_debug_window_trace_logger(void)
     if (ImGui::Button(trace_logger_enabled ? "Stop" : "Start"))
     {
         if (trace_logger_enabled)
+        {
             gui_debug_trace_logger_stop();
+        }
         else
-            gui_debug_trace_logger_start(trace_logger_get_config_flags());
+        {
+            trace_logger_start(trace_logger_get_config_flags(), false);
+        }
     }
 
     ImGui::SameLine();
 
-    if (trace_logger_enabled && trace_logger_output == 1)
-        ImGui::BeginDisabled();
+    ImGui::BeginDisabled(trace_logger_enabled && config_debug.trace_output == gui_TraceOutput_Disk);
     if (ImGui::Button("Clear"))
     {
         gui_debug_trace_logger_clear();
     }
-    if (trace_logger_enabled && trace_logger_output == 1)
-        ImGui::EndDisabled();
+    ImGui::EndDisabled();
 
     ImGui::SameLine();
-    if (trace_logger_output == gui_TraceOutput_Memory)
-        ImGui::Text("Entries: %u / %u  Total: %llu", tl->GetCount(), tl->GetCapacity(), (unsigned long long)tl->GetSequence());
-    else
-        ImGui::Text("Disk entries: %llu  Bytes: %llu", (unsigned long long)trace_logger_disk_entries, (unsigned long long)trace_logger_disk_bytes);
 
-    if (!trace_logger_enabled)
+    ImGui::BeginDisabled(trace_logger_enabled);
+    ImGui::SetNextItemWidth(90.0f);
+    int previous_output = config_debug.trace_output;
+    if (ImGui::Combo("##trace_output", &config_debug.trace_output, "Memory\0Disk\0\0"))
     {
-        static const char* outputs[] = {"Memory", "Disk"};
-        ImGui::SetNextItemWidth(120.0f);
-        int previous_output = config_debug.trace_output;
-        if (ImGui::Combo("Output", &config_debug.trace_output, outputs, 2) && !trace_logger_apply_capacity())
+        if (!trace_logger_apply_capacity())
             config_debug.trace_output = previous_output;
-        trace_logger_output = config_debug.trace_output;
-        if (config_debug.trace_output == gui_TraceOutput_Memory)
-        {
-            char capacity_labels[IM_ARRAYSIZE(k_trace_logger_capacities)][32];
-            const char* capacity_items[IM_ARRAYSIZE(k_trace_logger_capacities)];
-            for (int i = 0; i < IM_ARRAYSIZE(k_trace_logger_capacities); i++)
-            {
-                double memory_mib = ((double)k_trace_logger_capacities[i] * sizeof(GS_Trace_Entry)) / (1024.0 * 1024.0);
-                snprintf(capacity_labels[i], sizeof(capacity_labels[i]), "%s (%.1f MiB)", k_trace_logger_capacity_names[i], memory_mib);
-                capacity_items[i] = capacity_labels[i];
-            }
-            ImGui::SetNextItemWidth(145.0f);
-            int previous_capacity = config_debug.trace_capacity;
-            if (ImGui::Combo("Capacity", &config_debug.trace_capacity, capacity_items, IM_ARRAYSIZE(capacity_items)) && !trace_logger_apply_capacity())
-                config_debug.trace_capacity = previous_capacity;
-            if (ImGui::IsItemHovered())
-            {
-                double memory_mib = ((double)k_trace_logger_capacities[config_debug.trace_capacity] * sizeof(GS_Trace_Entry)) / (1024.0 * 1024.0);
-                ImGui::SetTooltip("Preallocated memory: %.1f MiB (%u bytes per entry).", memory_mib, (u32)sizeof(GS_Trace_Entry));
-            }
-        }
-        else
-        {
-            static const char* limits[] = {"10MB", "50MB", "100MB", "250MB", "500MB", "1GB", "unbounded"};
-            static const char* directories[] = {"Default Location", "Same as ROM", "Custom Location"};
-            ImGui::SetNextItemWidth(120.0f);
-            ImGui::Combo("Maximum Size", &config_debug.trace_disk_size, limits, 7);
-            ImGui::SetNextItemWidth(160.0f);
-            ImGui::Combo("Directory", &config_debug.trace_disk_dir_option, directories, 3);
-            if (config_debug.trace_disk_dir_option == 2)
-            {
-                if (ImGui::Button("Choose Folder"))
-                    gui_file_dialog_choose_trace_path();
-                ImGui::SameLine();
-                ImGui::PushItemWidth(450.0f);
-                if (ImGui::InputText("##trace_disk_path", trace_logger_disk_directory,
-                    sizeof(trace_logger_disk_directory), ImGuiInputTextFlags_AutoSelectAll))
-                    config_debug.trace_disk_path.assign(trace_logger_disk_directory);
-                ImGui::PopItemWidth();
-            }
-        }
+    }
+    ImGui::EndDisabled();
+
+    ImGui::SameLine();
+    ImGui::BeginDisabled(trace_logger_enabled);
+    ImGui::SetNextItemWidth(145.0f);
+    if (config_debug.trace_output == gui_TraceOutput_Memory)
+    {
+        int previous_capacity = config_debug.trace_capacity;
+        if (ImGui::Combo("##trace_capacity", &config_debug.trace_capacity, k_trace_logger_capacity_labels, IM_ARRAYSIZE(k_trace_logger_capacity_labels)) && !trace_logger_apply_capacity())
+            config_debug.trace_capacity = previous_capacity;
+    }
+    else
+    {
+        ImGui::Combo("##trace_disk_size", &config_debug.trace_disk_size, "10 MB\0" "50 MB\0" "100 MB\0" "250 MB\0" "500 MB\0" "1 GB\0" "Unbounded\0\0");
+    }
+    ImGui::EndDisabled();
+    if (config_debug.trace_output == gui_TraceOutput_Memory && ImGui::IsItemHovered())
+    {
+        double memory_mib = ((double)k_trace_logger_capacities[config_debug.trace_capacity] * sizeof(GS_Trace_Entry)) / (1024.0 * 1024.0);
+        ImGui::SetTooltip("Preallocated memory: %.1f MiB (%u bytes per entry).", memory_mib, (u32)sizeof(GS_Trace_Entry));
+    }
+
+    if (config_debug.trace_output == gui_TraceOutput_Memory)
+    {
+        ImGui::SameLine();
+        ImGui::Text("Entries: %u / %u", tl->GetCount(), tl->GetCapacity());
+    }
+    if (config_debug.trace_output == gui_TraceOutput_Disk && trace_logger_file_path[0] != '\0')
+    {
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::InputText("##trace_disk_file", trace_logger_file_path, sizeof(trace_logger_file_path), ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_AutoSelectAll);
     }
 
     if (trace_logger_enabled)
         trace_logger_sync_flags();
 
+    u32 count = tl->GetCount();
+    ImGui::PushFont(gui_default_font);
+    float line_height = ImGui::GetTextLineHeightWithSpacing();
+    float content_height = (float)count * line_height;
+    ImGui::SetNextWindowContentSize(ImVec2(0.0f, content_height));
+    if ((trace_logger_enabled && trace_logger_follow_latest) || trace_logger_scroll_to_bottom)
+        ImGui::SetNextWindowScroll(ImVec2(-1.0f, content_height));
+
     if (ImGui::BeginChild("##logger", ImVec2(ImGui::GetContentRegionAvail().x, 0), true, ImGuiWindowFlags_HorizontalScrollbar))
     {
-        ImGui::PushFont(gui_default_font);
-
-        u32 count = tl->GetCount();
+        float scroll_y = ImGui::GetScrollY();
+        float scroll_max_y = ImGui::GetScrollMaxY();
+        bool at_bottom = scroll_y >= scroll_max_y - 0.5f;
+        bool user_scrolling = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) &&
+            (ImGui::GetIO().MouseWheel != 0.0f || ImGui::IsMouseDragging(ImGuiMouseButton_Left));
+        if (trace_logger_enabled)
+        {
+            if (trace_logger_scroll_to_bottom)
+            {
+                trace_logger_follow_latest = true;
+                trace_logger_wait_for_scroll_away = false;
+            }
+            else if (trace_logger_follow_latest && user_scrolling)
+            {
+                trace_logger_follow_latest = false;
+                trace_logger_wait_for_scroll_away = true;
+            }
+            else if (!trace_logger_follow_latest)
+            {
+                if (trace_logger_wait_for_scroll_away)
+                {
+                    if (!at_bottom)
+                        trace_logger_wait_for_scroll_away = false;
+                }
+                else if (at_bottom)
+                    trace_logger_follow_latest = true;
+            }
+        }
 
         ImGuiListClipper clipper;
-        clipper.Begin((int)count, ImGui::GetTextLineHeightWithSpacing());
+        clipper.Begin((int)count, line_height);
 
         while (clipper.Step())
         {
@@ -606,35 +638,20 @@ void gui_debug_window_trace_logger(void)
             }
         }
 
-        float scroll_max = ImGui::GetScrollMaxY();
-        bool at_bottom = scroll_max <= 0.0f || ImGui::GetScrollY() >= scroll_max - 1.0f;
-        bool user_scrolling = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) &&
-            (ImGui::GetIO().MouseWheel != 0.0f || ImGui::IsMouseDragging(ImGuiMouseButton_Left));
-        if (trace_logger_follow && user_scrolling)
-        {
-            trace_logger_follow = false;
-            trace_logger_wait_for_scroll_away = true;
-        }
-        else if (!trace_logger_follow)
-        {
-            if (trace_logger_wait_for_scroll_away)
-            {
-                if (!at_bottom)
-                    trace_logger_wait_for_scroll_away = false;
-            }
-            else if (at_bottom)
-                trace_logger_follow = true;
-        }
-        if (trace_logger_follow && count > 0)
-            ImGui::SetScrollHereY(1.0f);
-
-        ImGui::PopFont();
+        trace_logger_scroll_to_bottom = false;
     }
 
     ImGui::EndChild();
+    ImGui::PopFont();
 
     ImGui::End();
     ImGui::PopStyleVar();
+
+    if (trace_logger_choose_output_path)
+    {
+        trace_logger_choose_output_path = false;
+        gui_file_dialog_choose_trace_path();
+    }
 }
 
 void gui_debug_trace_logger_clear(void)
@@ -673,14 +690,10 @@ static void trace_logger_menu(void)
 
     if (ImGui::BeginMenu("File"))
     {
-        if (trace_logger_output == 1)
-            ImGui::BeginDisabled();
-        if (ImGui::MenuItem("Save Log As..."))
+        if (ImGui::MenuItem("Save Log As...", NULL, false, config_debug.trace_output == gui_TraceOutput_Memory))
         {
             gui_file_dialog_save_log();
         }
-        if (trace_logger_output == 1)
-            ImGui::EndDisabled();
 
         ImGui::EndMenu();
     }
@@ -698,6 +711,35 @@ static void trace_logger_menu(void)
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("Disk Output"))
+        {
+            ImGui::BeginDisabled(trace_logger_enabled);
+            ImGui::SetNextItemWidth(180.0f);
+            ImGui::Combo("##trace_disk_dir", &config_debug.trace_disk_dir_option, "Default Location\0Same as ROM\0Custom Location\0\0");
+
+            switch ((Directory_Location)config_debug.trace_disk_dir_option)
+            {
+                default:
+                case Directory_Location_Default:
+                    ImGui::Text("%s", config_root_path);
+                    break;
+                case Directory_Location_ROM:
+                    if (!emu_is_empty())
+                        ImGui::Text("%s", emu_get_core()->GetCartridge()->GetFileDirectory());
+                    break;
+                case Directory_Location_Custom:
+                    if (ImGui::MenuItem("Choose..."))
+                        trace_logger_choose_output_path = true;
+                    ImGui::PushItemWidth(450.0f);
+                    if (ImGui::InputText("##trace_disk_path", trace_logger_disk_directory, sizeof(trace_logger_disk_directory), ImGuiInputTextFlags_AutoSelectAll))
+                        config_debug.trace_disk_path.assign(trace_logger_disk_directory);
+                    ImGui::PopItemWidth();
+                    break;
+            }
+            ImGui::EndDisabled();
+            ImGui::EndMenu();
+        }
+
         ImGui::EndMenu();
     }
 
@@ -709,7 +751,7 @@ static void trace_logger_menu(void)
             ImGui::Separator();
             ImGui::BeginDisabled(!config_debug.trace_cpu_enabled);
             ImGui::MenuItem("Instructions", "", &config_debug.trace_cpu);
-            ImGui::MenuItem("Interrupts", "", &config_debug.trace_cpu_irq);
+            ImGui::MenuItem("IRQs", "", &config_debug.trace_cpu_irq);
             ImGui::EndDisabled();
             ImGui::EndMenu();
         }
@@ -718,13 +760,13 @@ static void trace_logger_menu(void)
             ImGui::MenuItem("Enabled", "", &config_debug.trace_vdp);
             ImGui::Separator();
             ImGui::BeginDisabled(!config_debug.trace_vdp);
-            trace_logger_event_menu("Registers", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_REGISTERS);
-            trace_logger_event_menu("Interrupts", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_INTERRUPTS);
-            trace_logger_event_menu("Status", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_STATUS);
-            trace_logger_event_menu("Sprites", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_SPRITES);
-            trace_logger_event_menu("State", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_STATE);
-            trace_logger_event_menu("Data", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_DATA);
-            trace_logger_event_menu("CRAM", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_CRAM);
+            trace_logger_menu_event_filter("Registers", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_REGISTERS);
+            trace_logger_menu_event_filter("Interrupts", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_INTERRUPTS);
+            trace_logger_menu_event_filter("Status", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_STATUS);
+            trace_logger_menu_event_filter("Sprites", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_SPRITES);
+            trace_logger_menu_event_filter("State", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_STATE);
+            trace_logger_menu_event_filter("Data", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_DATA);
+            trace_logger_menu_event_filter("CRAM", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_CRAM);
             ImGui::EndDisabled();
             ImGui::EndMenu();
         }
@@ -733,8 +775,8 @@ static void trace_logger_menu(void)
             ImGui::MenuItem("Enabled", "", &config_debug.trace_input);
             ImGui::Separator();
             ImGui::BeginDisabled(!config_debug.trace_input);
-            trace_logger_event_menu("Reads", &config_debug.trace_input_events, TRACE_INPUT_EVENT_READS);
-            trace_logger_event_menu("Changes", &config_debug.trace_input_events, TRACE_INPUT_EVENT_CHANGES);
+            trace_logger_menu_event_filter("Reads", &config_debug.trace_input_events, TRACE_INPUT_EVENT_READS);
+            trace_logger_menu_event_filter("Changes", &config_debug.trace_input_events, TRACE_INPUT_EVENT_CHANGES);
             ImGui::EndDisabled();
             ImGui::EndMenu();
         }
@@ -743,9 +785,9 @@ static void trace_logger_menu(void)
             ImGui::MenuItem("Enabled", "", &config_debug.trace_io);
             ImGui::Separator();
             ImGui::BeginDisabled(!config_debug.trace_io);
-            trace_logger_event_menu("Control", &config_debug.trace_io_events, TRACE_IO_EVENT_CONTROL);
-            trace_logger_event_menu("Counters", &config_debug.trace_io_events, TRACE_IO_EVENT_COUNTERS);
-            trace_logger_event_menu("Game Gear Registers", &config_debug.trace_io_events, TRACE_IO_EVENT_GAMEGEAR);
+            trace_logger_menu_event_filter("Control", &config_debug.trace_io_events, TRACE_IO_EVENT_CONTROL);
+            trace_logger_menu_event_filter("Counters", &config_debug.trace_io_events, TRACE_IO_EVENT_COUNTERS);
+            trace_logger_menu_event_filter("Game Gear Registers", &config_debug.trace_io_events, TRACE_IO_EVENT_GAMEGEAR);
             ImGui::EndDisabled();
             ImGui::EndMenu();
         }
@@ -754,10 +796,10 @@ static void trace_logger_menu(void)
             ImGui::MenuItem("Enabled", "", &config_debug.trace_psg);
             ImGui::Separator();
             ImGui::BeginDisabled(!config_debug.trace_psg);
-            trace_logger_event_menu("Tone", &config_debug.trace_psg_events, TRACE_PSG_EVENT_TONE);
-            trace_logger_event_menu("Volume", &config_debug.trace_psg_events, TRACE_PSG_EVENT_VOLUME);
-            trace_logger_event_menu("Noise", &config_debug.trace_psg_events, TRACE_PSG_EVENT_NOISE);
-            trace_logger_event_menu("Stereo", &config_debug.trace_psg_events, TRACE_PSG_EVENT_STEREO);
+            trace_logger_menu_event_filter("Tone", &config_debug.trace_psg_events, TRACE_PSG_EVENT_TONE);
+            trace_logger_menu_event_filter("Volume", &config_debug.trace_psg_events, TRACE_PSG_EVENT_VOLUME);
+            trace_logger_menu_event_filter("Noise", &config_debug.trace_psg_events, TRACE_PSG_EVENT_NOISE);
+            trace_logger_menu_event_filter("Stereo", &config_debug.trace_psg_events, TRACE_PSG_EVENT_STEREO);
             ImGui::EndDisabled();
             ImGui::EndMenu();
         }
@@ -766,8 +808,8 @@ static void trace_logger_menu(void)
             ImGui::MenuItem("Enabled", "", &config_debug.trace_ym2413);
             ImGui::Separator();
             ImGui::BeginDisabled(!config_debug.trace_ym2413);
-            trace_logger_event_menu("Registers", &config_debug.trace_ym2413_events, TRACE_YM2413_EVENT_REGISTERS);
-            trace_logger_event_menu("Mixer", &config_debug.trace_ym2413_events, TRACE_YM2413_EVENT_MIXER);
+            trace_logger_menu_event_filter("Registers", &config_debug.trace_ym2413_events, TRACE_YM2413_EVENT_REGISTERS);
+            trace_logger_menu_event_filter("Mixer", &config_debug.trace_ym2413_events, TRACE_YM2413_EVENT_MIXER);
             ImGui::EndDisabled();
             ImGui::EndMenu();
         }
@@ -776,11 +818,11 @@ static void trace_logger_menu(void)
             ImGui::MenuItem("Enabled", "", &config_debug.trace_mapper);
             ImGui::Separator();
             ImGui::BeginDisabled(!config_debug.trace_mapper);
-            trace_logger_event_menu("ROM", &config_debug.trace_mapper_events, TRACE_MAPPER_EVENT_ROM);
-            trace_logger_event_menu("RAM", &config_debug.trace_mapper_events, TRACE_MAPPER_EVENT_RAM);
-            trace_logger_event_menu("Control", &config_debug.trace_mapper_events, TRACE_MAPPER_EVENT_CONTROL);
-            trace_logger_event_menu("EEPROM", &config_debug.trace_mapper_events, TRACE_MAPPER_EVENT_EEPROM);
-            trace_logger_event_menu("Flash", &config_debug.trace_mapper_events, TRACE_MAPPER_EVENT_FLASH);
+            trace_logger_menu_event_filter("ROM", &config_debug.trace_mapper_events, TRACE_MAPPER_EVENT_ROM);
+            trace_logger_menu_event_filter("RAM", &config_debug.trace_mapper_events, TRACE_MAPPER_EVENT_RAM);
+            trace_logger_menu_event_filter("Control", &config_debug.trace_mapper_events, TRACE_MAPPER_EVENT_CONTROL);
+            trace_logger_menu_event_filter("EEPROM", &config_debug.trace_mapper_events, TRACE_MAPPER_EVENT_EEPROM);
+            trace_logger_menu_event_filter("Flash", &config_debug.trace_mapper_events, TRACE_MAPPER_EVENT_FLASH);
             ImGui::EndDisabled();
             ImGui::EndMenu();
         }
@@ -830,73 +872,187 @@ static void trace_logger_set_config_flags(u32 flags)
     config_debug.trace_mapper = (flags & TRACE_FLAG_MAPPER) != 0;
 }
 
-static void format_entry_text(const GS_Trace_Entry& entry, char* buf, int buf_size)
+static void format_entry_text(const GS_Trace_Entry& entry, bool cycles,
+    const GS_Trace_Entry* previous, char* buf, int buf_size)
 {
     GS_Trace_Format_Options options = {};
     options.bank = config_debug.trace_bank;
     options.registers = config_debug.trace_registers;
     options.flags = config_debug.trace_flags;
     options.bytes = config_debug.trace_bytes;
-    options.cycles = config_debug.trace_cycles;
-    options.previous = trace_logger_previous_entry;
+    options.cycles = cycles;
+    options.previous = previous;
     trace_logger_format_entry(entry, emu_get_core()->GetMemory(), options, buf, (size_t)buf_size);
 }
 
-static void render_cpu_entry_colored(const GS_Trace_Entry& entry)
+static void format_entry_text(const GS_Trace_Entry& entry, char* buf, int buf_size)
 {
-    char buffer[GS_TRACE_FORMAT_BUFFER_SIZE];
-    GS_Trace_Format_Options options = {};
-    options.bank = config_debug.trace_bank;
-    options.registers = config_debug.trace_registers;
-    options.flags = config_debug.trace_flags;
-    options.bytes = config_debug.trace_bytes;
-    options.cycles = config_debug.trace_cycles;
-    options.previous = trace_logger_previous_entry;
-    trace_logger_format_entry(entry, emu_get_core()->GetMemory(), options, buffer, sizeof(buffer));
-    ImGui::TextColored(white, "%s", buffer);
+    format_entry_text(entry, config_debug.trace_cycles, trace_logger_previous_entry, buf, buf_size);
+}
+
+static void render_cpu_entry_colored(const GS_Trace_Entry& entry, int prefix_length)
+{
+    GS_Disassembler_Record* record = trace_log_get_cpu_record(emu_get_core()->GetMemory(), entry);
+
+    if (config_debug.trace_bank)
+    {
+        ImGui::TextColored(violet, "%03X:", entry.cpu.bank);
+        ImGui::SameLine(0, 0);
+    }
+
+    ImGui::TextColored(cyan, "%04X", entry.cpu.pc);
+
+    if (config_debug.trace_registers)
+    {
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(magenta, "  AF:");
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(white, "%04X", entry.cpu.af);
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(magenta, " BC:");
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(white, "%04X", entry.cpu.bc);
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(magenta, " DE:");
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(white, "%04X", entry.cpu.de);
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(magenta, " HL:");
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(white, "%04X", entry.cpu.hl);
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(magenta, " IX:");
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(white, "%04X", entry.cpu.ix);
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(magenta, " IY:");
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(white, "%04X", entry.cpu.iy);
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(magenta, " SP:");
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(white, "%04X", entry.cpu.sp);
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(magenta, " I:");
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(white, "%02X", entry.cpu.i);
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(magenta, " R:");
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(white, "%02X", entry.cpu.r);
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(magenta, " IM:");
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(white, "%u", entry.cpu.im);
+    }
+
+    if (config_debug.trace_flags)
+    {
+        u8 f = (u8)entry.cpu.af;
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(yellow, " %c%c%c%c%c%c%c%c",
+                 (f & FLAG_SIGN) ? 'S' : 's',
+                 (f & FLAG_ZERO) ? 'Z' : 'z',
+                 (f & FLAG_Y) ? 'Y' : 'y',
+                 (f & FLAG_HALF) ? 'H' : 'h',
+                 (f & FLAG_X) ? 'X' : 'x',
+                 (f & FLAG_PARITY) ? 'P' : 'p',
+                 (f & FLAG_NEGATIVE) ? 'N' : 'n',
+                 (f & FLAG_CARRY) ? 'C' : 'c');
+    }
+
+    if (IsValidPointer(record))
+    {
+        std::string instr = record->name;
+        size_t pos;
+        pos = instr.find("{n}");
+        if (pos != std::string::npos)
+            instr.replace(pos, 3, c_white);
+        pos = instr.find("{o}");
+        if (pos != std::string::npos)
+            instr.replace(pos, 3, c_brown);
+        pos = instr.find("{e}");
+        if (pos != std::string::npos)
+            instr.replace(pos, 3, c_blue);
+
+        ImGui::SameLine(0, 0);
+        TextColoredEx("  %s%s", c_white.c_str(), instr.c_str());
+    }
+    else
+    {
+        ImGui::SameLine(0, 0);
+        ImGui::TextColored(gray, "  ???");
+    }
+
+    if (config_debug.trace_bytes)
+    {
+        char bytes[32];
+        trace_log_format_cpu_bytes(entry, bytes, sizeof(bytes));
+        float char_width = ImGui::CalcTextSize("A").x;
+        float bytes_column = char_width * 35;
+        if (config_debug.trace_bank)      bytes_column += char_width * 4;
+        if (config_debug.trace_registers) bytes_column += char_width * 80;
+        if (config_debug.trace_flags)     bytes_column += char_width * 9;
+        bytes_column += char_width * prefix_length;
+        ImGui::SameLine(bytes_column);
+        ImGui::TextColored(gray, "%s", bytes);
+    }
 }
 
 static void render_entry_colored(const GS_Trace_Entry& entry, u64 index)
 {
-    char buf[256];
+    char buf[GS_TRACE_FORMAT_BUFFER_SIZE];
+    int prefix_length = 0;
 
     if (config_debug.trace_counter)
     {
-        ImGui::TextColored(gray, "%06llu ", (unsigned long long)index);
+        char counter[32];
+        snprintf(counter, sizeof(counter), "%06llu ", (unsigned long long)index);
+        prefix_length += (int)strlen(counter);
+        ImGui::TextColored(gray, "%s", counter);
+        ImGui::SameLine(0, 0);
+    }
+
+    if (config_debug.trace_cycles)
+    {
+        char cycles[64];
+        trace_log_format_cycle_prefix(entry, trace_logger_previous_entry, cycles, sizeof(cycles));
+        prefix_length += (int)strlen(cycles);
+        ImGui::TextColored(gray, "%s", cycles);
         ImGui::SameLine(0, 0);
     }
 
     switch (entry.type)
     {
         case TRACE_CPU:
-            render_cpu_entry_colored(entry);
+            render_cpu_entry_colored(entry, prefix_length);
             break;
         case TRACE_CPU_IRQ:
-            format_entry_text(entry, buf, sizeof(buf));
+            format_entry_text(entry, false, NULL, buf, sizeof(buf));
             ImGui::TextColored(red, "%s", buf);
             break;
         case TRACE_VDP:
-            format_entry_text(entry, buf, sizeof(buf));
+            format_entry_text(entry, false, NULL, buf, sizeof(buf));
             ImGui::TextColored(green, "%s", buf);
             break;
         case TRACE_INPUT:
-            format_entry_text(entry, buf, sizeof(buf));
+            format_entry_text(entry, false, NULL, buf, sizeof(buf));
             ImGui::TextColored(yellow, "%s", buf);
             break;
         case TRACE_PSG:
-            format_entry_text(entry, buf, sizeof(buf));
+            format_entry_text(entry, false, NULL, buf, sizeof(buf));
             ImGui::TextColored(blue, "%s", buf);
             break;
         case TRACE_YM2413:
-            format_entry_text(entry, buf, sizeof(buf));
+            format_entry_text(entry, false, NULL, buf, sizeof(buf));
             ImGui::TextColored(violet, "%s", buf);
             break;
         case TRACE_IO:
-            format_entry_text(entry, buf, sizeof(buf));
+            format_entry_text(entry, false, NULL, buf, sizeof(buf));
             ImGui::TextColored(yellow, "%s", buf);
             break;
         case TRACE_MAPPER:
-            format_entry_text(entry, buf, sizeof(buf));
+            format_entry_text(entry, false, NULL, buf, sizeof(buf));
             ImGui::TextColored(magenta, "%s", buf);
             break;
         default:
