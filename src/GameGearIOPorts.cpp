@@ -39,6 +39,51 @@ void GameGearIOPorts::SetTraceLogger(TraceLogger* pTraceLogger)
     m_pTraceLogger = pTraceLogger;
 }
 
+void GameGearIOPorts::LogInputReadEvent(u8 port, u8 raw, u8 effective, u8 player)
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    GS_Trace_Entry e = {};
+    e.type = TRACE_INPUT;
+    e.input.event = TRACE_INPUT_READ;
+    e.input.port = port;
+    e.input.raw = raw;
+    e.input.effective = effective;
+    e.input.control = m_Port3F;
+    e.input.player = player;
+    e.input.device = 0;
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(port);
+    UNUSED(raw);
+    UNUSED(effective);
+    UNUSED(player);
+#endif
+}
+
+void GameGearIOPorts::LogIOEvent(u8 event, u8 port, u8 raw, u8 effective, u8 previous, u8 auxiliary)
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    if (event == TRACE_IO_COUNTER_LATCH)
+        effective = m_pVideo->GetHCounter();
+    GS_Trace_Entry e = {};
+    e.type = TRACE_IO;
+    e.io.event = event;
+    e.io.port = port;
+    e.io.raw = raw;
+    e.io.effective = effective;
+    e.io.previous = previous;
+    e.io.auxiliary = auxiliary;
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(event);
+    UNUSED(port);
+    UNUSED(raw);
+    UNUSED(effective);
+    UNUSED(previous);
+    UNUSED(auxiliary);
+#endif
+}
+
 void GameGearIOPorts::Reset()
 {
     m_Port3F = 0xFF;

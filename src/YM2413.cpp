@@ -81,6 +81,12 @@ u8 YM2413::Read()
     return YM2413Read();
 }
 
+u8 YM2413::GetSelectedRegister() const
+{
+    const YM2413_OPLL* context = reinterpret_cast<const YM2413_OPLL*>(YM2413GetContextPtr());
+    return context->address;
+}
+
 void YM2413::Tick(unsigned int clockCycles)
 {
     m_ElapsedCycles += clockCycles;

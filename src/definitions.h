@@ -81,6 +81,14 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define CLAMP(value, min, max) MIN(MAX(value, min), max)
 
+#if defined(__GNUC__) || defined(__clang__)
+    #define likely(x)   __builtin_expect(!!(x), 1)
+    #define unlikely(x) __builtin_expect(!!(x), 0)
+#else
+    #define likely(x)   (x)
+    #define unlikely(x) (x)
+#endif
+
 typedef uint8_t u8;
 typedef int8_t s8;
 typedef uint16_t u16;
@@ -235,7 +243,7 @@ struct GS_SaveState_Screenshot
 struct GS_Disassembler_Record
 {
     u32 address;
-    u8 bank;
+    u16 bank;
     char name[64];
     char bytes[25];
     char segment[8];
@@ -243,7 +251,7 @@ struct GS_Disassembler_Record
     int size;
     bool jump;
     u16 jump_address;
-    u8 jump_bank;
+    u16 jump_bank;
     bool subroutine;
     int irq;
     bool has_operand_address;

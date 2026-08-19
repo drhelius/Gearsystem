@@ -31,6 +31,7 @@ Audio::Audio(Cartridge * pCartridge)
     InitPointer(m_pBuffer);
     InitPointer(m_pSampleBuffer);
     InitPointer(m_pYM2413Buffer);
+    InitPointer(m_pTraceLogger);
     m_bPAL = false;
     m_bYM2413Enabled = false;
     m_bPSGEnabled = true;
@@ -46,6 +47,77 @@ Audio::Audio(Cartridge * pCartridge)
         InitPointer(m_pDebugChannelBuffer[i]);
         m_iDebugChannelSamples[i] = 0;
     }
+}
+
+void Audio::SetTraceLogger(TraceLogger* pTraceLogger)
+{
+    m_pTraceLogger = pTraceLogger;
+}
+
+void Audio::LogPSGEvent(u8 value)
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    Sms_Apu_State state = m_pApu->GetState();
+    u8 channel = (state.latch >> 5) & 0x03;
+    u8 event = (state.latch & 0x10) ? TRACE_PSG_VOLUME : ((channel == 3) ? TRACE_PSG_NOISE : TRACE_PSG_TONE);
+    if (!m_pTraceLogger->IsEventEnabled(TRACE_PSG, event))
+        return;
+    GS_Trace_Entry e = {};
+    e.type = TRACE_PSG;
+    e.psg.value = value;
+    e.psg.event = event;
+    e.psg.channel = channel;
+    e.psg.latch = state.latch;
+    e.psg.attenuation = (u8)state.channels[channel].volume_reg;
+    e.psg.period = (u16)state.channels[channel].period;
+    if (event == TRACE_PSG_NOISE)
+        e.psg.period = (u16)((state.noise_white ? 0x80 : 0) | state.noise_rate);
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(value);
+#endif
+}
+
+void Audio::LogPSGStereoEvent(u8 value)
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    Sms_Apu_State state = m_pApu->GetState();
+    GS_Trace_Entry e = {};
+    e.type = TRACE_PSG;
+    e.psg.value = value;
+    e.psg.event = TRACE_PSG_STEREO;
+    e.psg.channel = (state.latch >> 5) & 0x03;
+    e.psg.latch = state.latch;
+    e.psg.attenuation = (u8)state.channels[e.psg.channel].volume_reg;
+    e.psg.period = (u16)state.ggstereo;
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(value);
+#endif
+}
+
+void Audio::LogYM2413Event(u8 port, u8 value, bool accepted)
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    u8 event = (port == 0xF2) ? TRACE_YM2413_MIXER : TRACE_YM2413_REGISTER;
+    if (!m_pTraceLogger->IsEventEnabled(TRACE_YM2413, event))
+        return;
+    GS_Trace_Entry e = {};
+    e.type = TRACE_YM2413;
+    e.ym2413.port = port;
+    e.ym2413.value = value;
+    e.ym2413.event = event;
+    e.ym2413.reg = m_pYM2413->GetSelectedRegister();
+    e.ym2413.effective = value;
+    e.ym2413.accepted = accepted;
+    e.ym2413.psg_enabled = m_bPSGEnabled;
+    e.ym2413.fm_enabled = m_bYM2413Enabled;
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(port);
+    UNUSED(value);
+    UNUSED(accepted);
+#endif
 }
 
 Audio::~Audio()

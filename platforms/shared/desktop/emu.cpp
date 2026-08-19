@@ -29,6 +29,7 @@
 #include "rewind.h"
 #include "runahead.h"
 #include "events.h"
+#include "gui_debug_trace_logger.h"
 #include "mcp/mcp_manager.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -155,6 +156,8 @@ void emu_load_media_async(const char* file_path, Cartridge::ForceConfiguration c
 {
     if (loading_state.load() != Loading_State_None)
         return;
+
+    gui_debug_trace_logger_reset();
 
     emu_debug_command = Debug_Command_None;
     reset_buffers();
@@ -466,6 +469,7 @@ bool emu_is_empty(void)
 
 void emu_reset(Cartridge::ForceConfiguration config)
 {
+    gui_debug_trace_logger_reset();
     emu_debug_command = Debug_Command_None;
     emu_debug_halt_step_frames_pending = 0;
     emu_debug_step_frames_pending = 0;
@@ -527,6 +531,7 @@ void emu_load_ram(const char* file_path, Cartridge::ForceConfiguration config)
 {
     if (!emu_is_empty())
     {
+        gui_debug_trace_logger_reset();
         save_ram();
         gearsystem->ResetROM(&config);
         gearsystem->LoadRam(file_path, true);

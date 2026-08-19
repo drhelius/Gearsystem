@@ -88,12 +88,14 @@ void Eeprom93C46MemoryRule::PerformWrite(u16 address, u8 value)
             if (m_EEPROM.Enabled)
             {
                 EEPROM_93c46_SetLines(value);
+                TraceEEPROMEvent(address, value, m_EEPROM.Opcode);
                 return;
             }
             break;
         case 0xFFFC:
             // 93c46 Control Register
             EEPROM_93c46_Control(value);
+            TraceEEPROMEvent(address, value, m_EEPROM.Opcode);
             m_pMemory->Load(address, value);
             m_pMemory->Load(address - 0x2000, value);
             return;
@@ -103,7 +105,7 @@ void Eeprom93C46MemoryRule::PerformWrite(u16 address, u8 value)
             int romBankCount = m_pCartridge->GetROMBankCount();
             m_iMapperSlot[0] = value & (romBankCount - 1);
             m_iMapperSlotAddress[0] = m_iMapperSlot[0] * 0x4000;
-            TraceBankSwitch(address, value);
+            TraceBankSwitchEvent(address, value);
             m_pMemory->Load(address, value);
             m_pMemory->Load(address - 0x2000, value);
             return;
@@ -114,7 +116,7 @@ void Eeprom93C46MemoryRule::PerformWrite(u16 address, u8 value)
             int romBankCount = m_pCartridge->GetROMBankCount();
             m_iMapperSlot[1] = value & (romBankCount - 1);
             m_iMapperSlotAddress[1] = m_iMapperSlot[1] * 0x4000;
-            TraceBankSwitch(address, value);
+            TraceBankSwitchEvent(address, value);
             m_pMemory->Load(address, value);
             m_pMemory->Load(address - 0x2000, value);
             return;
@@ -125,7 +127,7 @@ void Eeprom93C46MemoryRule::PerformWrite(u16 address, u8 value)
             int romBankCount = m_pCartridge->GetROMBankCount();
             m_iMapperSlot[2] = value & (romBankCount - 1);
             m_iMapperSlotAddress[2] = m_iMapperSlot[2] * 0x4000;
-            TraceBankSwitch(address, value);
+            TraceBankSwitchEvent(address, value);
             m_pMemory->Load(address, value);
             m_pMemory->Load(address - 0x2000, value);
             return;
@@ -136,6 +138,7 @@ void Eeprom93C46MemoryRule::PerformWrite(u16 address, u8 value)
     if (m_EEPROM.Enabled && (address >> 13) == 4 && address >= 0x8008 && address < 0x8088)
     {
         EEPROM_93c46_DirectWrite(address - 0x8008, value);
+        TraceEEPROMEvent(address, value, address - 0x8008);
         return;
     }
 
@@ -155,6 +158,21 @@ void Eeprom93C46MemoryRule::PerformWrite(u16 address, u8 value)
     }
 
     Debug("--> ** Attempting to write on ROM address $%X %X", address, value);
+}
+
+void Eeprom93C46MemoryRule::LogEEPROMEvent(u16 address, u8 value, u16 auxiliary)
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    u8 flags = (m_EEPROM.Enabled ? 0x01 : 0) | (m_EEPROM.ReadOnly ? 0x02 : 0) |
+        ((m_EEPROM.Status & 0x03) << 2) | ((m_EEPROM.Lines & 0x0F) << 4);
+    GS_Trace_Entry e = {};
+    PopulateMapperTraceEntry(e, TRACE_MAPPER_EEPROM, address, value, flags, auxiliary, true);
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(address);
+    UNUSED(value);
+    UNUSED(auxiliary);
+#endif
 }
 
 void Eeprom93C46MemoryRule::Reset()

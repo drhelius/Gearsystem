@@ -92,7 +92,7 @@ void Memory::SetProcessor(Processor* pProcessor)
 void Memory::Init()
 {
     m_pMap = new u8[0x10000];
-#ifndef GS_DISABLE_DISASSEMBLER
+#if !defined(GS_DISABLE_DISASSEMBLER)
     m_pDisassembledMap = new GS_Disassembler_Record*[0x10000];
     for (int i = 0; i < 0x10000; i++)
     {
@@ -467,7 +467,7 @@ Memory::MediaSlots Memory::GetCurrentSlot()
 
 void Memory::ResetDisassemblerRecords()
 {
-#ifndef GS_DISABLE_DISASSEMBLER
+#if !defined(GS_DISABLE_DISASSEMBLER)
     if (IsValidPointer(m_pDisassembledROMMap))
     {
         for (int i = 0; i < MAX_ROM_SIZE; i++)

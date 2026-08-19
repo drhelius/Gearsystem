@@ -77,11 +77,19 @@ private:
     u8 EEPROM_93c46_Read();
     void EEPROM_93c46_DirectWrite(int addr, u8 data);
     u8 EEPROM_93c46_DirectRead(int addr);
+    INLINE void TraceEEPROMEvent(u16 address, u8 value, u16 auxiliary = 0);
+    void LogEEPROMEvent(u16 address, u8 value, u16 auxiliary);
 
 private:
     int m_iMapperSlot[3];
     int m_iMapperSlotAddress[3];
     EEPROM93C46 m_EEPROM;
 };
+
+INLINE void Eeprom93C46MemoryRule::TraceEEPROMEvent(u16 address, u8 value, u16 auxiliary)
+{
+    if (m_pTraceLogger->IsEventEnabled(TRACE_MAPPER, TRACE_MAPPER_EEPROM))
+        LogEEPROMEvent(address, value, auxiliary);
+}
 
 #endif	/* EEPROM93C46MEMORYRULE_H */

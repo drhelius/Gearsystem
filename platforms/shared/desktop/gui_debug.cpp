@@ -37,6 +37,7 @@
 
 void gui_debug_init(void)
 {
+    gui_debug_trace_logger_init();
     gui_debug_disassembler_init();
     gui_debug_psg_init();
     gui_debug_ym2413_init();
@@ -45,6 +46,7 @@ void gui_debug_init(void)
 
 void gui_debug_destroy(void)
 {
+    gui_debug_trace_logger_shutdown();
     gui_debug_disassembler_destroy();
     gui_debug_psg_destroy();
     gui_debug_memory_destroy();
@@ -52,14 +54,21 @@ void gui_debug_destroy(void)
 
 void gui_debug_reset(void)
 {
+    gui_debug_trace_logger_reset();
     gui_debug_disassembler_reset();
     gui_debug_memory_reset();
     gui_debug_reset_breakpoints();
     gui_debug_reset_symbols();
 }
 
+void gui_debug_update(void)
+{
+    gui_debug_trace_logger_update();
+}
+
 void gui_debug_windows(void)
 {
+    gui_debug_update();
     emu_get_core()->GetAudio()->EnablePSGDebug(config_debug.debug && config_debug.show_psg);
 
     if (config_debug.debug)

@@ -78,7 +78,7 @@ void MSXMemoryRule::PerformWrite(u16 address, u8 value)
     {
         m_iMapperSlot[address] = value & (m_pCartridge->GetROMBankCount8k() - 1);
         m_iMapperSlotAddress[address] = m_iMapperSlot[address] * 0x2000;
-        TraceBankSwitch(address, value);
+        TraceBankSwitchEvent(address, value);
     }
     else if (address < 0xC000)
     {

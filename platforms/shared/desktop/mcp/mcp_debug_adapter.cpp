@@ -28,6 +28,8 @@
 #include "../gui_debug_memory.h"
 #include "../gui_debug_memeditor.h"
 #include "../gui_debug_rewind.h"
+#include "../gui_debug_trace_logger.h"
+#include "../trace_logger_formatter.h"
 #include "../config.h"
 #include "../events.h"
 #include "../rewind.h"
@@ -2555,7 +2557,7 @@ json DebugAdapter::MemoryFindBytes(int area, const std::string& hex_bytes)
     return result;
 }
 
-json DebugAdapter::GetTraceLog(int start, int count)
+json DebugAdapter::GetTraceLog(s64 start, int count)
 {
     json result;
 
@@ -2566,154 +2568,80 @@ json DebugAdapter::GetTraceLog(int start, int count)
         return result;
     }
 
-    u32 total = tl->GetCount();
+    u32 retained = tl->GetCount();
+    u64 total = tl->GetSequence();
+    u64 oldest = total - retained;
 
     if (count < 1) count = 100;
     if (count > 1000) count = 1000;
 
-    u32 actual_start;
+    u64 actual_start;
+    bool overrun = false;
     if (start < 0)
-        actual_start = (total > (u32)count) ? (total - (u32)count) : 0;
+    {
+        u64 tail = (u64)(-(start + 1)) + 1;
+        actual_start = (total - oldest > tail) ? (total - tail) : oldest;
+    }
     else
-        actual_start = (u32)start;
+    {
+        actual_start = (u64)start;
+        if (actual_start < oldest)
+        {
+            actual_start = oldest;
+            overrun = true;
+        }
+    }
 
     if (actual_start >= total)
     {
-        result["total_entries"] = total;
+        result["total_entries"] = retained;
+        result["total_logged"] = total;
+        result["oldest_sequence"] = oldest;
         result["start"] = actual_start;
+        result["next_sequence"] = actual_start;
         result["count"] = 0;
+        result["overrun"] = overrun;
         result["lines"] = json::array();
         return result;
     }
 
     u32 actual_count = (u32)count;
-    if (actual_start + actual_count > total)
-        actual_count = total - actual_start;
+    if ((u64)actual_count > total - actual_start)
+        actual_count = (u32)(total - actual_start);
+    u32 buffer_start = (u32)(actual_start - oldest);
 
     Memory* memory = m_core->GetMemory();
 
     json lines = json::array();
-
     for (u32 i = 0; i < actual_count; i++)
     {
-        const GS_Trace_Entry& entry = tl->GetEntry(actual_start + i);
-        char buf[256];
+        const GS_Trace_Entry& entry = tl->GetEntry(buffer_start + i);
+        char buf[GS_TRACE_FORMAT_BUFFER_SIZE];
 
-        switch (entry.type)
-        {
-            case TRACE_CPU:
-            {
-                GS_Disassembler_Record* record = memory->GetDisassemblerRecord(entry.cpu.pc, entry.cpu.bank);
-                char instr[64] = "???";
-                char bytes[25] = "";
-                if (IsValidPointer(record))
-                {
-                    strncpy(instr, record->name, sizeof(instr) - 1);
-                    instr[sizeof(instr) - 1] = '\0';
-                    char* p = instr;
-                    while (*p)
-                    {
-                        if (*p == '{')
-                        {
-                            char* end = strchr(p, '}');
-                            if (end)
-                                memmove(p, end + 1, strlen(end + 1) + 1);
-                            else
-                                break;
-                        }
-                        else
-                            p++;
-                    }
-                    strncpy(bytes, record->bytes, sizeof(bytes) - 1);
-                    bytes[sizeof(bytes) - 1] = '\0';
-                }
-                u8 a = (entry.cpu.af >> 8) & 0xFF;
-                u8 f = entry.cpu.af & 0xFF;
-                snprintf(buf, sizeof(buf), "%02X:%04X  A:%02X  BC:%04X  DE:%04X  HL:%04X  SP:%04X  %c%c%c%c%c%c%c%c  %-24s %s",
-                         entry.cpu.bank, entry.cpu.pc, a, entry.cpu.bc, entry.cpu.de, entry.cpu.hl, entry.cpu.sp,
-                         (f & FLAG_SIGN) ? 'S' : 's', (f & FLAG_ZERO) ? 'Z' : 'z',
-                         (f & FLAG_Y) ? 'Y' : 'y', (f & FLAG_HALF) ? 'H' : 'h',
-                         (f & FLAG_X) ? 'X' : 'x', (f & FLAG_PARITY) ? 'P' : 'p',
-                         (f & FLAG_NEGATIVE) ? 'N' : 'n', (f & FLAG_CARRY) ? 'C' : 'c',
-                         instr, bytes);
-                break;
-            }
-            case TRACE_CPU_IRQ:
-                snprintf(buf, sizeof(buf), "  [CPU]  %s       PC:$%04X  Vector:$%04X",
-                         entry.irq.type == 2 ? "NMI" : "IRQ",
-                         entry.irq.pc, entry.irq.vector);
-                break;
-            case TRACE_VDP_WRITE:
-                snprintf(buf, sizeof(buf), "  [VDP]  REG %02d   Value:$%02X",
-                         entry.vdp_write.reg, entry.vdp_write.value);
-                break;
-            case TRACE_VDP_STATUS:
-            {
-                static const char* k_vdp_events[] = {"VINT", "HINT", "VFLAG", "DISPLAY", "SCROLL X", "SCROLL Y", "SPR OVR", "SPR COL"};
-                const char* event_name = (entry.vdp_status.event < 8) ? k_vdp_events[entry.vdp_status.event] : "???";
-                switch (entry.vdp_status.event)
-                {
-                    case GS_VDP_EVENT_VINT:
-                    case GS_VDP_EVENT_HINT:
-                    case GS_VDP_EVENT_VINT_FLAG:
-                    case GS_VDP_EVENT_SPRITE_OVR:
-                        snprintf(buf, sizeof(buf), "  [VDP]  %-9s Line:%d",
-                                 event_name, entry.vdp_status.line);
-                        break;
-                    case GS_VDP_EVENT_DISPLAY:
-                        snprintf(buf, sizeof(buf), "  [VDP]  %-9s Line:%d  %s",
-                                 event_name, entry.vdp_status.line,
-                                 entry.vdp_status.value ? "ON" : "OFF");
-                        break;
-                    case GS_VDP_EVENT_SCROLL_X:
-                    case GS_VDP_EVENT_SCROLL_Y:
-                        snprintf(buf, sizeof(buf), "  [VDP]  %-9s Line:%d  Value:$%02X",
-                                 event_name, entry.vdp_status.line, entry.vdp_status.value);
-                        break;
-                    case GS_VDP_EVENT_SPRITE_COL:
-                        snprintf(buf, sizeof(buf), "  [VDP]  %-9s Line:%d  X:%d",
-                                 event_name, entry.vdp_status.line, entry.vdp_status.value);
-                        break;
-                    default:
-                        snprintf(buf, sizeof(buf), "  [VDP]  %-9s Line:%d",
-                                 event_name, entry.vdp_status.line);
-                        break;
-                }
-                break;
-            }
-            case TRACE_PSG:
-                snprintf(buf, sizeof(buf), "  [PSG]  WRITE    Value:$%02X",
-                         entry.psg.value);
-                break;
-            case TRACE_YM2413:
-                snprintf(buf, sizeof(buf), "  [FM]   WRITE    Port:$%02X  Value:$%02X",
-                         entry.ym2413.port, entry.ym2413.value);
-                break;
-            case TRACE_IO_PORT:
-                snprintf(buf, sizeof(buf), "  [IO]   %s     Port:$%02X  Value:$%02X",
-                         entry.io_port.is_write ? "OUT" : "IN ",
-                         entry.io_port.port, entry.io_port.value);
-                break;
-            case TRACE_BANK_SWITCH:
-                snprintf(buf, sizeof(buf), "  [MAP]  BANK     Addr:$%04X  Value:$%02X",
-                         entry.bank_switch.address, entry.bank_switch.value);
-                break;
-            default:
-                snprintf(buf, sizeof(buf), "  [???]");
-                break;
-        }
-
+        GS_Trace_Format_Options options = {};
+        options.bank = true;
+        options.registers = true;
+        options.flags = true;
+        options.bytes = true;
+        options.cycles = true;
+        if (buffer_start + i > 0)
+            options.previous = &tl->GetEntry(buffer_start + i - 1);
+        trace_logger_format_entry(entry, memory, options, buf, sizeof(buf));
         lines.push_back(buf);
     }
 
-    result["total_entries"] = total;
+    result["total_entries"] = retained;
+    result["total_logged"] = total;
+    result["oldest_sequence"] = oldest;
     result["start"] = actual_start;
+    result["next_sequence"] = actual_start + actual_count;
     result["count"] = actual_count;
+    result["overrun"] = overrun;
     result["lines"] = lines;
     return result;
 }
 
-json DebugAdapter::SetTraceLog(bool enabled, u32 flags)
+json DebugAdapter::SetTraceLog(const json& arguments)
 {
     json result;
 
@@ -2724,33 +2652,117 @@ json DebugAdapter::SetTraceLog(bool enabled, u32 flags)
         return result;
     }
 
-    if (enabled)
+    bool enabled = arguments["enabled"].get<bool>();
+    if (!enabled)
     {
-        if (flags == 0)
-            flags = TRACE_FLAG_CPU;
-
-        tl->SetEnabledFlags(flags);
-
-        result["status"] = "started";
-        result["enabled_flags"] = flags;
-
-        json enabled_list = json::array();
-        if (flags & TRACE_FLAG_CPU) enabled_list.push_back("cpu");
-        if (flags & TRACE_FLAG_CPU_IRQ) enabled_list.push_back("cpu_irq");
-        if (flags & TRACE_FLAG_VDP_WRITE) enabled_list.push_back("vdp_write");
-        if (flags & TRACE_FLAG_VDP_STATUS) enabled_list.push_back("vdp_status");
-        if (flags & TRACE_FLAG_PSG) enabled_list.push_back("psg");
-        if (flags & TRACE_FLAG_YM2413) enabled_list.push_back("ym2413");
-        if (flags & TRACE_FLAG_IO_PORT) enabled_list.push_back("io_port");
-        if (flags & TRACE_FLAG_BANK_SWITCH) enabled_list.push_back("bank_switch");
-        result["enabled"] = enabled_list;
+        if (!gui_debug_trace_logger_stop())
+            return {{"error", "Unable to stop trace logger cleanly"}};
+        result["status"] = "stopped";
+        result["total_entries"] = tl->GetCount();
+        return result;
     }
+
+    u32 flags = 0;
+    u32 masks[TRACE_TYPE_COUNT] = {};
+    json filters = arguments.contains("filters") ? arguments["filters"] : json::array({"cpu.instructions", "cpu.interrupts"});
+    if (filters.empty())
+        return {{"error", "filters must not be empty"}};
+    for (size_t i = 0; i < filters.size(); i++)
+    {
+        for (size_t j = i + 1; j < filters.size(); j++)
+        {
+            if (filters[i] == filters[j])
+                return {{"error", "filters must contain unique values"}};
+        }
+    }
+    for (json::const_iterator it = filters.begin(); it != filters.end(); ++it)
+    {
+        std::string filter = it->get<std::string>();
+        if (filter == "cpu.instructions") flags |= TRACE_FLAG_CPU;
+        else if (filter == "cpu.interrupts") flags |= TRACE_FLAG_CPU_IRQ;
+        else if (filter == "vdp.registers") { flags |= TRACE_FLAG_VDP; masks[TRACE_VDP] |= TRACE_VDP_EVENT_REGISTERS; }
+        else if (filter == "vdp.interrupts") { flags |= TRACE_FLAG_VDP; masks[TRACE_VDP] |= TRACE_VDP_EVENT_INTERRUPTS; }
+        else if (filter == "vdp.status") { flags |= TRACE_FLAG_VDP; masks[TRACE_VDP] |= TRACE_VDP_EVENT_STATUS; }
+        else if (filter == "vdp.sprites") { flags |= TRACE_FLAG_VDP; masks[TRACE_VDP] |= TRACE_VDP_EVENT_SPRITES; }
+        else if (filter == "vdp.state") { flags |= TRACE_FLAG_VDP; masks[TRACE_VDP] |= TRACE_VDP_EVENT_STATE; }
+        else if (filter == "vdp.data") { flags |= TRACE_FLAG_VDP; masks[TRACE_VDP] |= TRACE_VDP_EVENT_DATA; }
+        else if (filter == "vdp.cram") { flags |= TRACE_FLAG_VDP; masks[TRACE_VDP] |= TRACE_VDP_EVENT_CRAM; }
+        else if (filter == "input.reads") { flags |= TRACE_FLAG_INPUT; masks[TRACE_INPUT] |= TRACE_INPUT_EVENT_READS; }
+        else if (filter == "input.changes") { flags |= TRACE_FLAG_INPUT; masks[TRACE_INPUT] |= TRACE_INPUT_EVENT_CHANGES; }
+        else if (filter == "io.control") { flags |= TRACE_FLAG_IO; masks[TRACE_IO] |= TRACE_IO_EVENT_CONTROL; }
+        else if (filter == "io.counters") { flags |= TRACE_FLAG_IO; masks[TRACE_IO] |= TRACE_IO_EVENT_COUNTERS; }
+        else if (filter == "io.gamegear") { flags |= TRACE_FLAG_IO; masks[TRACE_IO] |= TRACE_IO_EVENT_GAMEGEAR; }
+        else if (filter == "psg.tone") { flags |= TRACE_FLAG_PSG; masks[TRACE_PSG] |= TRACE_PSG_EVENT_TONE; }
+        else if (filter == "psg.volume") { flags |= TRACE_FLAG_PSG; masks[TRACE_PSG] |= TRACE_PSG_EVENT_VOLUME; }
+        else if (filter == "psg.noise") { flags |= TRACE_FLAG_PSG; masks[TRACE_PSG] |= TRACE_PSG_EVENT_NOISE; }
+        else if (filter == "psg.stereo") { flags |= TRACE_FLAG_PSG; masks[TRACE_PSG] |= TRACE_PSG_EVENT_STEREO; }
+        else if (filter == "ym2413.registers") { flags |= TRACE_FLAG_YM2413; masks[TRACE_YM2413] |= TRACE_YM2413_EVENT_REGISTERS; }
+        else if (filter == "ym2413.mixer") { flags |= TRACE_FLAG_YM2413; masks[TRACE_YM2413] |= TRACE_YM2413_EVENT_MIXER; }
+        else if (filter == "mapper.rom") { flags |= TRACE_FLAG_MAPPER; masks[TRACE_MAPPER] |= TRACE_MAPPER_EVENT_ROM; }
+        else if (filter == "mapper.ram") { flags |= TRACE_FLAG_MAPPER; masks[TRACE_MAPPER] |= TRACE_MAPPER_EVENT_RAM; }
+        else if (filter == "mapper.control") { flags |= TRACE_FLAG_MAPPER; masks[TRACE_MAPPER] |= TRACE_MAPPER_EVENT_CONTROL; }
+        else if (filter == "mapper.eeprom") { flags |= TRACE_FLAG_MAPPER; masks[TRACE_MAPPER] |= TRACE_MAPPER_EVENT_EEPROM; }
+        else if (filter == "mapper.flash") { flags |= TRACE_FLAG_MAPPER; masks[TRACE_MAPPER] |= TRACE_MAPPER_EVENT_FLASH; }
+        else return {{"error", "unknown trace filter: " + filter}};
+    }
+
+    bool was_enabled = gui_debug_trace_logger_is_enabled();
+    std::string output = arguments.value("output", "");
+    int output_value;
+    if (output.empty())
+        output_value = was_enabled ? config_debug.trace_output : gui_TraceOutput_Memory;
+    else if (output == "memory")
+        output_value = gui_TraceOutput_Memory;
+    else if (output == "disk")
+        output_value = gui_TraceOutput_Disk;
+    else
+        return {{"error", "Invalid trace output"}};
+
+    int memory_size_value = config_debug.trace_capacity;
+    if (arguments.contains("memory_size"))
+    {
+        memory_size_value = gui_debug_trace_logger_memory_size_index(arguments["memory_size"].get<std::string>().c_str());
+        if (memory_size_value < 0)
+            return {{"error", "Invalid trace memory size"}};
+    }
+
+    int disk_size_value = config_debug.trace_disk_size;
+    if (arguments.contains("disk_size"))
+    {
+        disk_size_value = gui_debug_trace_logger_disk_size_index(arguments["disk_size"].get<std::string>().c_str());
+        if (disk_size_value < 0)
+            return {{"error", "Invalid trace disk size"}};
+    }
+
+    std::string output_path = arguments.value("output_path", "");
+    bool configuration_changed = output_value != config_debug.trace_output;
+    if (output_value == gui_TraceOutput_Memory)
+        configuration_changed = configuration_changed || memory_size_value != config_debug.trace_capacity;
     else
     {
-        tl->SetEnabledFlags(0);
-        result["status"] = "stopped";
+        configuration_changed = configuration_changed || disk_size_value != config_debug.trace_disk_size;
+        if (!output_path.empty())
+            configuration_changed = configuration_changed || config_debug.trace_disk_dir_option != Directory_Location_Custom || output_path != config_debug.trace_disk_path;
     }
 
+    if (was_enabled && configuration_changed && !gui_debug_trace_logger_stop())
+        return {{"error", "Unable to stop trace logger cleanly"}};
+
+    if (!gui_debug_trace_logger_is_enabled() &&
+        !gui_debug_trace_logger_configure(output_value, memory_size_value, disk_size_value, output_path.c_str()))
+        return {{"error", "Unable to configure trace logger"}};
+
+    gui_debug_trace_logger_set_event_filters(masks);
+    if (!gui_debug_trace_logger_start(flags))
+        return {{"error", "Unable to start trace logger"}};
+
+    result["status"] = "started";
+    result["output"] = config_debug.trace_output == gui_TraceOutput_Disk ? "disk" : "memory";
+    result["memory_size"] = gui_debug_trace_logger_memory_size_name(config_debug.trace_capacity);
+    result["disk_size"] = gui_debug_trace_logger_disk_size_name(config_debug.trace_disk_size);
+    result["filters"] = filters;
+    if (config_debug.trace_output == gui_TraceOutput_Disk)
+        result["output_path"] = gui_debug_trace_logger_get_output_path();
     result["total_entries"] = tl->GetCount();
     return result;
 }

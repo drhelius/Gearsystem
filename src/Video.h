@@ -21,6 +21,7 @@
 #define	VIDEO_H
 
 #include "definitions.h"
+#include "TraceLogger.h"
 
 class Memory;
 class Processor;
@@ -111,6 +112,8 @@ private:
     void InitPalettes(const u8* src, u16* dest_565_rgb, u16* dest_555_rgb, u16* dest_565_bgr, u16* dest_555_bgr);
     int CalculateVideoMode();
     void CheckPhaser();
+    INLINE void TraceVDPEvent(u8 event, u8 raw = 0, u8 effective = 0, u16 auxiliary = 0, u8 reg = 0, u8 status_before = 0, u8 status_after = 0, u16 address = 0xFFFF);
+    void LogVDPEvent(u8 event, u8 raw, u8 effective, u16 auxiliary, u8 reg, u8 status_before, u8 status_after, u16 address);
 
 private:
     Memory* m_pMemory;
@@ -124,6 +127,9 @@ private:
     u8 m_VdpRegister[16];
     u8 m_VdpCode;
     u8 m_VdpBuffer;
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    u16 m_VdpBufferAddress;
+#endif
     u16 m_VdpAddress;
     int m_iVCounter;
     int m_iHCounter;
@@ -207,6 +213,12 @@ private:
     u16 m_SG1000_palette_555_bgr_sg1000ii[16];
     TraceLogger* m_pTraceLogger;
 };
+
+INLINE void Video::TraceVDPEvent(u8 event, u8 raw, u8 effective, u16 auxiliary, u8 reg, u8 status_before, u8 status_after, u16 address)
+{
+    if (m_pTraceLogger->IsEventEnabled(TRACE_VDP, event))
+        LogVDPEvent(event, raw, effective, auxiliary, reg, status_before, status_after, address);
+}
 
 inline u8* Video::GetVRAM()
 {

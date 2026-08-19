@@ -192,15 +192,7 @@ u32 Processor::RunFor(u32 tstates)
 #if !defined(GS_DISABLE_DISASSEMBLER)
                 m_debug_next_irq = 2;
                 PushCallStack(pc, 0x0066, pc, 0);
-                if (m_pTraceLogger->IsEnabled(TRACE_CPU_IRQ))
-                {
-                    GS_Trace_Entry e = {};
-                    e.type = TRACE_CPU_IRQ;
-                    e.irq.pc = pc;
-                    e.irq.vector = 0x0066;
-                    e.irq.type = 2;
-                    m_pTraceLogger->TraceLog(e);
-                }
+                TraceIRQEvent(pc, 0x0066, 2);
 #endif
                 DisassembleNextOPCode();
                 return m_iTStates;
@@ -235,15 +227,7 @@ u32 Processor::RunFor(u32 tstates)
 #if !defined(GS_DISABLE_DISASSEMBLER)
                 m_debug_next_irq = 3;
                 PushCallStack(pc, interrupt_vector, pc, m_pMemory->GetBank(interrupt_vector));
-                if (m_pTraceLogger->IsEnabled(TRACE_CPU_IRQ))
-                {
-                    GS_Trace_Entry e = {};
-                    e.type = TRACE_CPU_IRQ;
-                    e.irq.pc = pc;
-                    e.irq.vector = interrupt_vector;
-                    e.irq.type = 3;
-                    m_pTraceLogger->TraceLog(e);
-                }
+                TraceIRQEvent(pc, interrupt_vector, 3);
 #endif
                 DisassembleNextOPCode();
                 return m_iTStates;
@@ -262,32 +246,14 @@ u32 Processor::RunFor(u32 tstates)
             return 1;
         }
 
-#if !defined(GS_DISABLE_DISASSEMBLER)
-        u16 prev_pc = PC.GetValue();
-#endif
+        if (!m_bInputLastCycle && !m_bHalt)
+            TraceInstructionEvent(PC.GetValue());
 
         if (m_bInputLastCycle)
             ExecuteInputLastCycle();
         else
             ExecuteOPCode();
         DisassembleNextOPCode();
-
-#if !defined(GS_DISABLE_DISASSEMBLER)
-        if (m_pTraceLogger->IsEnabled(TRACE_CPU))
-        {
-            GS_Trace_Entry e = {};
-            e.type = TRACE_CPU;
-            e.cpu.pc = prev_pc;
-            GS_Disassembler_Record* record = m_pMemory->GetDisassemblerRecord(prev_pc);
-            e.cpu.bank = IsValidPointer(record) ? record->bank : 0;
-            e.cpu.af = AF.GetValue();
-            e.cpu.bc = BC.GetValue();
-            e.cpu.de = DE.GetValue();
-            e.cpu.hl = HL.GetValue();
-            e.cpu.sp = SP.GetValue();
-            m_pTraceLogger->TraceLog(e);
-        }
-#endif
 
         executed += m_iTStates;
 
@@ -299,6 +265,72 @@ u32 Processor::RunFor(u32 tstates)
     }
 
     return executed;
+}
+
+void Processor::LogInstructionEvent(u16 pc)
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    GS_Disassembler_Record* record = m_pMemory->GetOrCreateDisassemblerRecord(pc);
+    bool changed = !IsValidPointer(record) || record->size <= 0;
+
+    if (!changed)
+    {
+        int size = std::min(record->size, (int)sizeof(record->opcodes));
+        for (int i = 0; i < size; i++)
+        {
+            if (record->opcodes[i] != m_pMemory->DebugRetrieve((u16)(pc + i)))
+            {
+                changed = true;
+                break;
+            }
+        }
+    }
+
+    if (changed && IsValidPointer(record))
+        PopulateDisassemblerRecord(record, pc);
+
+    GS_Trace_Entry e = {};
+    e.type = TRACE_CPU;
+    e.cpu.pc = pc;
+    e.cpu.bank = m_pMemory->GetBank(pc);
+    e.cpu.af = AF.GetValue();
+    e.cpu.bc = BC.GetValue();
+    e.cpu.de = DE.GetValue();
+    e.cpu.hl = HL.GetValue();
+    e.cpu.ix = IX.GetValue();
+    e.cpu.iy = IY.GetValue();
+    e.cpu.sp = SP.GetValue();
+    e.cpu.i = I;
+    e.cpu.r = R;
+    e.cpu.im = (u8)m_iInterruptMode;
+    e.cpu.iff1 = m_bIFF1;
+    e.cpu.iff2 = m_bIFF2;
+    e.cpu.halt = m_bHalt;
+    e.cpu.size = IsValidPointer(record) ? (u8)std::min(record->size, (int)sizeof(e.cpu.opcodes)) : 1;
+
+    for (u8 i = 0; i < sizeof(e.cpu.opcodes); i++)
+        e.cpu.opcodes[i] = m_pMemory->DebugRetrieve((u16)(pc + i));
+
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(pc);
+#endif
+}
+
+void Processor::LogIRQEvent(u16 pc, u16 vector, u8 irq_type)
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    GS_Trace_Entry e = {};
+    e.type = TRACE_CPU_IRQ;
+    e.irq.pc = pc;
+    e.irq.vector = vector;
+    e.irq.type = irq_type;
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(pc);
+    UNUSED(vector);
+    UNUSED(irq_type);
+#endif
 }
 
 u32 Processor::RunInstruction()
@@ -468,7 +500,7 @@ void Processor::UndocumentedOPCode()
 
 void Processor::DisassembleNextOPCode()
 {
-#ifndef GS_DISABLE_DISASSEMBLER
+#if !defined(GS_DISABLE_DISASSEMBLER)
 
     CheckBreakpoints();
 
@@ -548,7 +580,7 @@ void Processor::SetDisassemblerOperand(GS_Disassembler_Record* record, u16 addre
 
 void Processor::PopulateDisassemblerRecord(GS_Disassembler_Record* record, u16 address)
 {
-#ifndef GS_DISABLE_DISASSEMBLER
+#if !defined(GS_DISABLE_DISASSEMBLER)
 
     record->address = m_pMemory->GetPhysicalAddress(address);
     record->bank = m_pMemory->GetBank(address);
@@ -802,7 +834,7 @@ void Processor::PopulateDisassemblerRecord(GS_Disassembler_Record* record, u16 a
 
 void Processor::InvalidateOverlappingRecords(u16 address, u8 opcode_size)
 {
-#ifndef GS_DISABLE_DISASSEMBLER
+#if !defined(GS_DISABLE_DISASSEMBLER)
     for (int back = 1; back < 7; ++back)
     {
         int prev_start = (int)address - back;
@@ -849,7 +881,7 @@ void Processor::DisassembleAhead(int count)
 
 void Processor::DisassembleAhead(u16 start_address, int count, int depth)
 {
-#ifndef GS_DISABLE_DISASSEMBLER
+#if !defined(GS_DISABLE_DISASSEMBLER)
     if (depth > 3)
         return;
 
@@ -890,7 +922,7 @@ void Processor::DisassembleAhead(u16 start_address, int count, int depth)
 
         if (record->jump)
         {
-            u8 jump_bank = m_pMemory->GetBank(record->jump_address);
+            u16 jump_bank = m_pMemory->GetBank(record->jump_address);
             if (jump_bank != 0xFF)
                 DisassembleAhead(record->jump_address, count / 2, depth + 1);
         }
@@ -932,7 +964,7 @@ void Processor::DisassembleAhead(u16 start_address, int count, int depth)
 
 void Processor::CheckBreakpoints()
 {
-#ifndef GS_DISABLE_DISASSEMBLER
+#if !defined(GS_DISABLE_DISASSEMBLER)
 
     m_cpu_breakpoint_hit = (m_breakpoints_irq_enabled && m_debug_next_irq > 0);
     m_run_to_breakpoint_hit = false;
@@ -1160,7 +1192,7 @@ void Processor::ClearDisassemblerCallStack()
 
 void Processor::CheckMemoryBreakpoints(int type, u16 address, bool read)
 {
-#ifndef GS_DISABLE_DISASSEMBLER
+#if !defined(GS_DISABLE_DISASSEMBLER)
 
     if (!m_breakpoints_enabled)
         return;

@@ -16,6 +16,7 @@ public:
     void Reset(int clockRate);
     void Write(u8 port, u8 value);
     u8 Read();
+    u8 GetSelectedRegister() const;
     void Tick(unsigned int clockCycles);
     int EndFrame(s16* pSampleBuffer);
     void Enable(bool bEnabled);

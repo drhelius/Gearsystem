@@ -56,7 +56,7 @@ public:
     u8 DebugRetrieve(u16 address);
     void Load(u16 address, u8 value);
     GS_Disassembler_Record* GetDisassemblerRecord(u16 address);
-    GS_Disassembler_Record* GetDisassemblerRecord(u16 address, u8 bank);
+    GS_Disassembler_Record* GetDisassemblerRecord(u16 address, u16 bank);
     GS_Disassembler_Record* GetOrCreateDisassemblerRecord(u16 address);
     void ResetDisassemblerRecords();
     GS_Disassembler_Record** GetAllDisassemblerRecords();
@@ -81,7 +81,7 @@ public:
     void SetMediaSlot(MediaSlots slot);
     MediaSlots GetCurrentSlot();
     u32 GetPhysicalAddress(u16 address);
-    u8 GetBank(u16 address);
+    u16 GetBank(u16 address);
 
 private:
     void LoadBootroom(const char* szFilePath, bool gg);

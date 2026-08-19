@@ -22,9 +22,9 @@
 
 #include "definitions.h"
 #include "TraceLogger.h"
+#include "Cartridge.h"
 
 class Memory;
-class Cartridge;
 class Input;
 
 class MemoryRule
@@ -50,7 +50,11 @@ public:
     virtual void LoadState(std::istream& stream, int version = GS_SAVESTATE_VERSION);
 
 protected:
-    INLINE void TraceBankSwitch(u16 address, u8 value);
+    INLINE void TraceBankSwitchEvent(u16 address, u8 value, u8 flags = 0, u16 auxiliary = 0, bool flags_valid = false);
+    INLINE void TraceMapperEvent(u8 event, u16 address, u8 value, u8 flags = 0, u16 auxiliary = 0, bool flags_valid = false);
+    void LogBankSwitchEvent(u16 address, u8 value, u8 flags, u16 auxiliary, bool flags_valid);
+    void LogMapperEvent(u8 event, u16 address, u8 value, u8 flags, u16 auxiliary, bool flags_valid);
+    void PopulateMapperTraceEntry(GS_Trace_Entry& entry, u8 event, u16 address, u8 value, u8 flags, u16 auxiliary, bool flags_valid);
 
     Memory* m_pMemory;
     Cartridge* m_pCartridge;
@@ -59,21 +63,16 @@ protected:
     TraceLogger* m_pTraceLogger;
 };
 
-INLINE void MemoryRule::TraceBankSwitch(u16 address, u8 value)
+INLINE void MemoryRule::TraceBankSwitchEvent(u16 address, u8 value, u8 flags, u16 auxiliary, bool flags_valid)
 {
-#if !defined(GS_DISABLE_DISASSEMBLER)
-    if (m_pTraceLogger && m_pTraceLogger->IsEnabled(TRACE_BANK_SWITCH))
-    {
-        GS_Trace_Entry e = {};
-        e.type = TRACE_BANK_SWITCH;
-        e.bank_switch.address = address;
-        e.bank_switch.value = value;
-        m_pTraceLogger->TraceLog(e);
-    }
-#else
-    UNUSED(address);
-    UNUSED(value);
-#endif
+    if (m_pTraceLogger->IsEnabled(TRACE_MAPPER))
+        LogBankSwitchEvent(address, value, flags, auxiliary, flags_valid);
+}
+
+INLINE void MemoryRule::TraceMapperEvent(u8 event, u16 address, u8 value, u8 flags, u16 auxiliary, bool flags_valid)
+{
+    if (m_pTraceLogger->IsEventEnabled(TRACE_MAPPER, event))
+        LogMapperEvent(event, address, value, flags, auxiliary, flags_valid);
 }
 
 #endif	/* MEMORYRULE_H */

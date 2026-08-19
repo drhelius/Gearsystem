@@ -121,6 +121,7 @@ public:
     Input* GetInput();
     void SetGlassesConfig(GlassesConfig config);
     u64 GetMasterClockCycles();
+    void SetMasterClockCycles(u64 cycles);
     TraceLogger* GetTraceLogger();
 
 private:

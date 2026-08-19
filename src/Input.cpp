@@ -21,11 +21,13 @@
 #include "Input.h"
 #include "Memory.h"
 #include "Processor.h"
+#include "TraceLogger.h"
 
 Input::Input(Processor* pProcessor, Video* pVideo)
 {
     m_pProccesor = pProcessor;
     m_pVideo = pVideo;
+    InitPointer(m_pTraceLogger);
     m_bGameGear = false;
     m_Joypad1 = 0;
     m_Joypad2 = 0;
@@ -63,11 +65,15 @@ void Input::Reset(bool bGameGear)
 
 void Input::SetReset(bool pressed)
 {
+    bool previous = m_bResetPressed;
     m_bResetPressed = pressed;
+    if (previous != pressed)
+        TraceInputChangeEvent(0, Key_Start, previous ? 0 : 1, pressed ? 0 : 1);
 }
 
 void Input::KeyPressed(GS_Joypads joypad, GS_Keys key)
 {
+    u8 previous = joypad == Joypad_1 ? m_Joypad1 : m_Joypad2;
     if (joypad == Joypad_1)
     {
         if (!m_bGameGear && (key == Key_Start) && (m_Joypad1 & Key_Start))
@@ -77,6 +83,8 @@ void Input::KeyPressed(GS_Joypads joypad, GS_Keys key)
     else
         m_Joypad2 &= ~key;
 
+    TraceInputChangeEvent((u8)joypad + 1, (u8)key, previous, joypad == Joypad_1 ? m_Joypad1 : m_Joypad2);
+
     if (!m_bGameGear && m_bPhaser && (key == Key_1))
     {
         m_pVideo->SetPhaserCoordinates(m_Phaser.x + m_PhaserOffset.x, m_Phaser.y + m_PhaserOffset.y);
@@ -85,10 +93,39 @@ void Input::KeyPressed(GS_Joypads joypad, GS_Keys key)
 
 void Input::KeyReleased(GS_Joypads joypad, GS_Keys key)
 {
+    u8 previous = joypad == Joypad_1 ? m_Joypad1 : m_Joypad2;
     if (joypad == Joypad_1)
         m_Joypad1 |= key;
     else
         m_Joypad2 |= key;
+    TraceInputChangeEvent((u8)joypad + 1, (u8)key, previous, joypad == Joypad_1 ? m_Joypad1 : m_Joypad2);
+}
+
+void Input::SetTraceLogger(TraceLogger* pTraceLogger)
+{
+    m_pTraceLogger = pTraceLogger;
+}
+
+void Input::LogInputChangeEvent(u8 player, u8 key, u8 previous, u8 effective)
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    if (previous == effective)
+        return;
+    GS_Trace_Entry e = {};
+    e.type = TRACE_INPUT;
+    e.input.event = TRACE_INPUT_CHANGE;
+    e.input.port = key;
+    e.input.raw = previous;
+    e.input.effective = effective;
+    e.input.player = player;
+    e.input.device = m_bPaddle ? 2 : (m_bPhaser ? 1 : 0);
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(player);
+    UNUSED(key);
+    UNUSED(previous);
+    UNUSED(effective);
+#endif
 }
 
 bool Input::IsKeyPressed(GS_Joypads joypad, GS_Keys key) const

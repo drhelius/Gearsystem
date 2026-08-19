@@ -91,6 +91,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pFrameBuffer);
     InitPointer(m_pIratahackMemoryRule);
     InitPointer(m_trace_logger);
+    m_master_clock_cycles = 0;
     m_bPaused = true;
     m_pixelFormat = GS_PIXEL_RGBA8888;
     m_GlassesConfig = GearsystemCore::GlassesBothEyes;
@@ -147,7 +148,6 @@ void GearsystemCore::Init(GS_Color_Format pixelFormat)
     m_pAudio = new Audio(m_pCartridge);
     m_pSmsIOPorts = new SmsIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge, m_pMemory, m_pProcessor);
     m_pGameGearIOPorts = new GameGearIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge, m_pMemory);
-    m_trace_logger = new TraceLogger();
 
     m_pMemory->Init();
     m_pProcessor->Init();
@@ -156,10 +156,15 @@ void GearsystemCore::Init(GS_Color_Format pixelFormat)
     m_pInput->Init();
     m_pCartridge->Init();
 
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    m_trace_logger = new TraceLogger(&m_master_clock_cycles);
     m_pProcessor->SetTraceLogger(m_trace_logger);
     m_pVideo->SetTraceLogger(m_trace_logger);
+    m_pAudio->SetTraceLogger(m_trace_logger);
+    m_pInput->SetTraceLogger(m_trace_logger);
     m_pSmsIOPorts->SetTraceLogger(m_trace_logger);
     m_pGameGearIOPorts->SetTraceLogger(m_trace_logger);
+#endif
 
     InitMemoryRules();
 }
@@ -186,9 +191,9 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
         {
             unsigned int clockCycles = debug_enable && debug->step_debugger ? m_pProcessor->RunInstruction() : m_pProcessor->RunFor(1);
             instruction_completed = true;
+            m_master_clock_cycles += clockCycles;
             vblank = m_pVideo->Tick(clockCycles);
             m_pAudio->Tick(clockCycles);
-            m_master_clock_cycles += clockCycles;
             totalClocks += clockCycles;
 
             if (debug_enable)
@@ -226,9 +231,9 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
         do
         {
             unsigned int clockCycles = m_pProcessor->RunFor(1);
+            m_master_clock_cycles += clockCycles;
             vblank = m_pVideo->Tick(clockCycles);
             m_pAudio->Tick(clockCycles);
-            m_master_clock_cycles += clockCycles;
             totalClocks += clockCycles;
 
             if (totalClocks > 702240)
@@ -416,6 +421,11 @@ void GearsystemCore::SetGlassesConfig(GlassesConfig config)
 u64 GearsystemCore::GetMasterClockCycles()
 {
     return m_master_clock_cycles;
+}
+
+void GearsystemCore::SetMasterClockCycles(u64 cycles)
+{
+    m_master_clock_cycles = cycles;
 }
 
 TraceLogger* GearsystemCore::GetTraceLogger()

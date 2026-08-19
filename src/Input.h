@@ -25,6 +25,7 @@
 class Memory;
 class Processor;
 class Video;
+class TraceLogger;
 
 class Input
 {
@@ -58,6 +59,7 @@ public:
     void EnablePaddle(bool enable);
     void SetPaddle(float x);
     bool IsPaddleEnabled();
+    void SetTraceLogger(TraceLogger* pTraceLogger);
     u8 GetPortDC();
     u8 GetPortDD();
     u8 GetPort00();
@@ -67,8 +69,11 @@ public:
     void LoadState(std::istream& stream);
 
 private:
+    INLINE void TraceInputChangeEvent(u8 player, u8 key, u8 previous, u8 effective);
+    void LogInputChangeEvent(u8 player, u8 key, u8 previous, u8 effective);
     Processor* m_pProccesor;
     Video* m_pVideo;
+    TraceLogger* m_pTraceLogger;
     u8 m_Joypad1;
     u8 m_Joypad2;
     u8 m_GlassesRegistry;
@@ -82,6 +87,13 @@ private:
 };
 
 #include "Video.h"
+#include "TraceLogger.h"
+
+INLINE void Input::TraceInputChangeEvent(u8 player, u8 key, u8 previous, u8 effective)
+{
+    if (m_pTraceLogger->IsEventEnabled(TRACE_INPUT, TRACE_INPUT_CHANGE))
+        LogInputChangeEvent(player, key, previous, effective);
+}
 
 inline u8 Input::GetPortDC()
 {

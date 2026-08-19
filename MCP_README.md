@@ -56,7 +56,7 @@ This server provides tools for game development, rom hacking, reverse engineerin
 - **Input State**: Inspect effective pressed buttons and pending tap releases
 - **Bookmarks**: Memory and disassembler bookmarks for navigation
 - **Call Stack**: View function call hierarchy
-- **Trace Logger**: CPU instruction trace with interleaved hardware events (VDP, PSG, YM2413, I/O, bank switching)
+- **Trace Logger**: CPU instructions, VDP, input, I/O, PSG, YM2413, mapper, EEPROM, and flash events
 - **Rewind**: Time-travel debugging with snapshot status and seek tools
 - **Screenshot Capture**: Get current frame as PNG image
 - **GUI Integration**: MCP server runs alongside the emulator GUI, sharing the same state
@@ -376,8 +376,10 @@ The server exposes tools organized in the following categories:
 - `remove_disassembler_bookmark` - Remove disassembler bookmark
 - `list_disassembler_bookmarks` - List all disassembler bookmarks
 - `get_call_stack` - View function call hierarchy
-- `get_trace_log` - Read trace logger entries (CPU + hardware events). Start the trace logger from the debugger window first
-- `set_trace_log` - Start or stop trace logging with event filters
+- `get_trace_log` - Read retained entries using absolute sequence pagination. Results include `total_entries`, monotonic `total_logged`, `oldest_sequence`, actual `start`, `next_sequence`, `count`, `overrun`, and formatted `lines`. Omit `start` for the latest 100 retained entries, or use a negative value to start that many entries from the retained tail; expired starts clamp to the oldest retained entry with `overrun=true`
+- `set_trace_log` - Start, stop, or reconfigure shared GUI/MCP capture. `output` is `memory` or `disk`; `memory_size` is `100K`, `500K`, `1M`, `2M`, or `5M`; `disk_size` is `10MB`, `50MB`, `100MB`, `250MB`, `500MB`, `1GB`, or `unbounded`; `output_path` is a directory. Omitting `filters` selects CPU instructions and interrupts
+
+Exact trace filters are `cpu.instructions`, `cpu.interrupts`, `vdp.registers`, `vdp.interrupts`, `vdp.status`, `vdp.sprites`, `vdp.state`, `vdp.data`, `vdp.cram`, `input.reads`, `input.changes`, `io.control`, `io.counters`, `io.gamegear`, `psg.tone`, `psg.volume`, `psg.noise`, `psg.stereo`, `ym2413.registers`, `ym2413.mixer`, `mapper.rom`, `mapper.ram`, `mapper.control`, `mapper.eeprom`, and `mapper.flash`. Game Gear `$00-$05` accesses are register events; no serial-transfer events are advertised because Gearsystem has no serial engine. Trace cycle values are Z80 T-states, and a `RESET` marker denotes a reset clock discontinuity while absolute sequence identity remains monotonic.
 
 ### Breakpoints
 - `set_breakpoint` - Set execution, read, or write breakpoint (supports 4 memory areas: rom_ram, vram, cram, vdp_reg)

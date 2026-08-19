@@ -45,6 +45,7 @@ enum FileDialogID
     FileDialog_SaveState,
     FileDialog_ChooseSavestatePath,
     FileDialog_ChooseScreenshotPath,
+    FileDialog_ChooseTracePath,
     FileDialog_ChooseSavesPath,
     FileDialog_LoadSymbols,
     FileDialog_SaveScreenshot,
@@ -160,6 +161,15 @@ void gui_file_dialog_choose_screenshot_path(void)
 
     const char* default_path = config_emulator.screenshots_path.empty() ? NULL : config_emulator.screenshots_path.c_str();
     SDL_ShowOpenFolderDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_ChooseScreenshotPath, application_sdl_window, default_path, false);
+}
+
+void gui_file_dialog_choose_trace_path(void)
+{
+    if (!begin_dialog())
+        return;
+
+    const char* default_path = config_debug.trace_disk_path.empty() ? NULL : config_debug.trace_disk_path.c_str();
+    SDL_ShowOpenFolderDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_ChooseTracePath, application_sdl_window, default_path, false);
 }
 
 void gui_file_dialog_load_symbols(void)
@@ -404,6 +414,11 @@ static void process_dialog_result(FileDialogID id, const char* path)
             strncpy_fit(gui_savestates_path, path, sizeof(gui_savestates_path));
             config_emulator.savestates_path.assign(path);
             update_savestates_data();
+            break;
+        }
+        case FileDialog_ChooseTracePath:
+        {
+            gui_debug_trace_logger_set_output_directory(path);
             break;
         }
         case FileDialog_ChooseScreenshotPath:

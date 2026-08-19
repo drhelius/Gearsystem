@@ -55,6 +55,8 @@ private:
     bool AdvanceSequence(int seqIndex, int* steps, u16 address, u8 value);
     void ProcessFlashAccess(u16 address, u8 value);
     void ResetFlashState();
+    INLINE void TraceFlashEvent(u16 address, u8 value, u16 auxiliary = 0);
+    void LogFlashEvent(u16 address, u8 value, u16 auxiliary);
 
 private:
     int m_iMapperSlot[3];
@@ -64,5 +66,11 @@ private:
     FlashSeqMode m_iFlashMode;
     int m_iFlashStep[3];
 };
+
+INLINE void IratahackMemoryRule::TraceFlashEvent(u16 address, u8 value, u16 auxiliary)
+{
+    if (m_pTraceLogger->IsEventEnabled(TRACE_MAPPER, TRACE_MAPPER_FLASH))
+        LogFlashEvent(address, value, auxiliary);
+}
 
 #endif	/* IRATAHACKMEMORYRULE_H */

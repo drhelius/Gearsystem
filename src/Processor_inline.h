@@ -25,6 +25,18 @@
 #include "Processor.h"
 #include "IOPorts.h"
 
+INLINE void Processor::TraceInstructionEvent(u16 pc)
+{
+    if (m_pTraceLogger->IsEnabled(TRACE_CPU))
+        LogInstructionEvent(pc);
+}
+
+INLINE void Processor::TraceIRQEvent(u16 pc, u16 vector, u8 irq_type)
+{
+    if (m_pTraceLogger->IsEnabled(TRACE_CPU_IRQ))
+        LogIRQEvent(pc, vector, irq_type);
+}
+
 inline u8 Processor::FetchOPCode()
 {
     u8 opcode = m_pMemory->Read(PC.GetValue());
@@ -1313,7 +1325,7 @@ inline std::stack<Processor::GS_CallStackEntry>* Processor::GetDisassemblerCallS
     return &m_disassembler_call_stack;
 }
 
-inline void Processor::PushCallStack(u16 src, u16 dest, u16 back, u8 bank)
+inline void Processor::PushCallStack(u16 src, u16 dest, u16 back, u16 bank)
 {
 #if !defined(GS_DISABLE_DISASSEMBLER)
     GS_CallStackEntry entry;
@@ -1340,4 +1352,3 @@ inline void Processor::PopCallStack()
 }
 
 #endif	/* PROCESSOR_INLINE_H */
-

@@ -48,18 +48,31 @@ static inline void process(config_Operation operation)
 
     // Trace logger
     CONFIG_BOOL("Debug", "TraceCounter", config_debug.trace_counter, true);
+    CONFIG_BOOL("Debug", "TraceCycles", config_debug.trace_cycles, false);
     CONFIG_BOOL("Debug", "TraceBank", config_debug.trace_bank, true);
     CONFIG_BOOL("Debug", "TraceRegisters", config_debug.trace_registers, true);
     CONFIG_BOOL("Debug", "TraceFlags", config_debug.trace_flags, true);
     CONFIG_BOOL("Debug", "TraceBytes", config_debug.trace_bytes, true);
+    CONFIG_BOOL("Debug", "TraceCpuEnabled", config_debug.trace_cpu_enabled, true);
     CONFIG_BOOL("Debug", "TraceCpu", config_debug.trace_cpu, true);
     CONFIG_BOOL("Debug", "TraceCpuIrq", config_debug.trace_cpu_irq, true);
-    CONFIG_BOOL("Debug", "TraceVdpWrite", config_debug.trace_vdp_write, true);
-    CONFIG_BOOL("Debug", "TraceVdpStatus", config_debug.trace_vdp_status, true);
-    CONFIG_BOOL("Debug", "TracePsg", config_debug.trace_psg, true);
-    CONFIG_BOOL("Debug", "TraceYm2413", config_debug.trace_ym2413, true);
-    CONFIG_BOOL("Debug", "TraceIoPort", config_debug.trace_io_port, true);
-    CONFIG_BOOL("Debug", "TraceBankSwitch", config_debug.trace_bank_switch, true);
+    CONFIG_BOOL("Debug", "TraceVdp", config_debug.trace_vdp, false);
+    CONFIG_BOOL("Debug", "TraceInput", config_debug.trace_input, false);
+    CONFIG_BOOL("Debug", "TraceIo", config_debug.trace_io, false);
+    CONFIG_BOOL("Debug", "TracePsg", config_debug.trace_psg, false);
+    CONFIG_BOOL("Debug", "TraceYm2413", config_debug.trace_ym2413, false);
+    CONFIG_BOOL("Debug", "TraceMapper", config_debug.trace_mapper, false);
+    CONFIG_INT_RANGE("Debug", "TraceVdpEvents", config_debug.trace_vdp_events, TRACE_VDP_EVENT_ALL, 0, TRACE_VDP_EVENT_ALL);
+    CONFIG_INT_RANGE("Debug", "TraceInputEvents", config_debug.trace_input_events, TRACE_INPUT_EVENT_ALL, 0, TRACE_INPUT_EVENT_ALL);
+    CONFIG_INT_RANGE("Debug", "TraceIoEvents", config_debug.trace_io_events, TRACE_IO_EVENT_ALL, 0, TRACE_IO_EVENT_ALL);
+    CONFIG_INT_RANGE("Debug", "TracePsgEvents", config_debug.trace_psg_events, TRACE_PSG_EVENT_ALL, 0, TRACE_PSG_EVENT_ALL);
+    CONFIG_INT_RANGE("Debug", "TraceYm2413Events", config_debug.trace_ym2413_events, TRACE_YM2413_EVENT_ALL, 0, TRACE_YM2413_EVENT_ALL);
+    CONFIG_INT_RANGE("Debug", "TraceMapperEvents", config_debug.trace_mapper_events, TRACE_MAPPER_EVENT_ALL, 0, TRACE_MAPPER_EVENT_ALL);
+    CONFIG_INT_RANGE("Debug", "TraceOutput", config_debug.trace_output, 0, 0, 1);
+    CONFIG_INT_RANGE("Debug", "TraceCapacity", config_debug.trace_capacity, 0, 0, 4);
+    CONFIG_INT_RANGE("Debug", "TraceDiskDirOption", config_debug.trace_disk_dir_option, 0, 0, 2);
+    CONFIG_INT_RANGE("Debug", "TraceDiskSize", config_debug.trace_disk_size, 2, 0, 6);
+    CONFIG_STRING_NOT_EMPTY("Debug", "TraceDiskPath", config_debug.trace_disk_path, config_root_path);
 
     // Disassembler
     CONFIG_BOOL("Debug", "DisMem", config_debug.dis_show_mem, true);
@@ -364,12 +377,43 @@ static void migrate(int file_version)
         parse_int_string(stored, &sync_mode) && sync_mode >= config_VideoSync_Disabled &&
         sync_mode <= config_VideoSync_VRR;
 
-    if (file_version < config_version || !valid_sync_mode)
+    if (file_version < 4 || !valid_sync_mode)
     {
         bool sync = read_bool("Video", "Sync", true);
         bool vrr = read_bool("Video", "VRR", false);
         sync_mode = sync ? (vrr ? config_VideoSync_VRR : config_VideoSync_Fixed) : config_VideoSync_Disabled;
         write_int("Video", "SyncMode", sync_mode);
+    }
+
+    if (file_version < 5)
+    {
+        bool cpu = read_bool("Debug", "TraceCpu", true);
+        bool cpu_irq = read_bool("Debug", "TraceCpuIrq", true);
+        bool vdp_write = read_bool("Debug", "TraceVdpWrite", true);
+        bool vdp_status = read_bool("Debug", "TraceVdpStatus", true);
+        bool psg = read_bool("Debug", "TracePsg", true);
+        bool ym2413 = read_bool("Debug", "TraceYm2413", true);
+        bool io = read_bool("Debug", "TraceIoPort", true);
+        bool mapper = read_bool("Debug", "TraceBankSwitch", true);
+        bool old_default = cpu && cpu_irq && vdp_write && vdp_status && psg && ym2413 && io && mapper;
+
+        write_bool("Debug", "TraceCpuEnabled", cpu || cpu_irq);
+        write_bool("Debug", "TraceCpu", cpu);
+        write_bool("Debug", "TraceCpuIrq", cpu_irq);
+        write_bool("Debug", "TraceVdp", !old_default && (vdp_write || vdp_status));
+        write_bool("Debug", "TraceInput", false);
+        write_bool("Debug", "TraceIo", false);
+        write_bool("Debug", "TracePsg", !old_default && psg);
+        write_bool("Debug", "TraceYm2413", !old_default && ym2413);
+        write_bool("Debug", "TraceMapper", !old_default && mapper);
+        write_int("Debug", "TraceVdpEvents", (vdp_write ? TRACE_VDP_EVENT_REGISTERS : 0) |
+              (vdp_status ? TRACE_VDP_EVENT_INTERRUPTS | TRACE_VDP_EVENT_STATUS | TRACE_VDP_EVENT_SPRITES | TRACE_VDP_EVENT_STATE : 0));
+        write_int("Debug", "TraceInputEvents", TRACE_INPUT_EVENT_ALL);
+        write_int("Debug", "TraceIoEvents", TRACE_IO_EVENT_ALL);
+        write_int("Debug", "TracePsgEvents", TRACE_PSG_EVENT_ALL);
+        write_int("Debug", "TraceYm2413Events", TRACE_YM2413_EVENT_ALL);
+        write_int("Debug", "TraceMapperEvents", TRACE_MAPPER_EVENT_ALL);
+        write_bool("Debug", "TraceCycles", false);
     }
 
     int scale = 0;

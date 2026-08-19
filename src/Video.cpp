@@ -38,6 +38,9 @@ Video::Video(Memory* pMemory, Processor* pProcessor, Cartridge* pCartridge)
         m_VdpRegister[i] = 0;
     m_VdpCode = 0;
     m_VdpBuffer = 0;
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    m_VdpBufferAddress = 0;
+#endif
     m_VdpAddress = 0;
     m_iVCounter = 0;
     m_iHCounter = 0;
@@ -116,6 +119,48 @@ void Video::SetTraceLogger(TraceLogger* pTraceLogger)
     m_pTraceLogger = pTraceLogger;
 }
 
+void Video::LogVDPEvent(u8 event, u8 raw, u8 effective, u16 auxiliary, u8 reg, u8 status_before, u8 status_after, u16 address)
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    if (event == TRACE_VDP_CRAM_WRITE)
+    {
+        effective = m_pVdpCRAM[address & ((m_bGameGear && !m_bGameGearSMSMode) ? 0x3F : 0x1F)];
+        if (m_bGameGear && !m_bGameGearSMSMode)
+        {
+            u16 color_addr = address & 0x3E;
+            auxiliary = m_pVdpCRAM[color_addr] | ((m_pVdpCRAM[color_addr + 1] & 0x0F) << 8);
+        }
+        else
+            auxiliary = raw & 0x3F;
+    }
+    else if (event == TRACE_VDP_DATA_WRITE)
+        effective = m_pVdpVRAM[address & 0x3FFF];
+    GS_Trace_Entry e = {};
+    e.type = TRACE_VDP;
+    e.vdp.event = event;
+    e.vdp.reg = reg;
+    e.vdp.raw = raw;
+    e.vdp.effective = effective;
+    e.vdp.code = m_VdpCode;
+    e.vdp.status_before = status_before;
+    e.vdp.status_after = status_after;
+    e.vdp.address = address == 0xFFFF ? m_VdpAddress : address;
+    e.vdp.line = (u16)m_iRenderLine;
+    e.vdp.hpos = (u16)m_iCycleCounter;
+    e.vdp.auxiliary = auxiliary;
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(event);
+    UNUSED(raw);
+    UNUSED(effective);
+    UNUSED(auxiliary);
+    UNUSED(reg);
+    UNUSED(status_before);
+    UNUSED(status_after);
+    UNUSED(address);
+#endif
+}
+
 void Video::SetNoSpriteLimit(bool noSpriteLimit)
 {
     m_bNoSpriteLimit = noSpriteLimit;
@@ -134,6 +179,9 @@ void Video::Reset(bool bGameGear, bool bPAL, int iGGASIC, bool bGameGearSMSMode)
     m_iHCounter = 0;
     m_VdpCode = 0;
     m_VdpBuffer = 0;
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    m_VdpBufferAddress = 0;
+#endif
     m_VdpAddress = 0;
     m_VdpStatus = 0;
     m_ScrollX = 0;
@@ -256,14 +304,7 @@ bool Video::Tick(unsigned int clockCycles)
         {
             m_pProcessor->RequestINT(true);
 #if !defined(GS_DISABLE_DISASSEMBLER)
-            if (m_pTraceLogger->IsEnabled(TRACE_VDP_STATUS))
-            {
-                GS_Trace_Entry e = {};
-                e.type = TRACE_VDP_STATUS;
-                e.vdp_status.event = GS_VDP_EVENT_VINT;
-                e.vdp_status.line = (u16)m_iRenderLine;
-                m_pTraceLogger->TraceLog(e);
-            }
+            TraceVDPEvent(TRACE_VDP_VINT_REQUEST, 0, 1);
 #endif
         }
     }
@@ -274,15 +315,7 @@ bool Video::Tick(unsigned int clockCycles)
         m_LineEvents.display = true;
         m_bDisplayEnabled = IsSetBit(m_VdpRegister[1], 6);
 #if !defined(GS_DISABLE_DISASSEMBLER)
-        if (m_pTraceLogger->IsEnabled(TRACE_VDP_STATUS))
-        {
-            GS_Trace_Entry e = {};
-            e.type = TRACE_VDP_STATUS;
-            e.vdp_status.event = GS_VDP_EVENT_DISPLAY;
-            e.vdp_status.line = (u16)m_iRenderLine;
-            e.vdp_status.value = m_bDisplayEnabled ? 1 : 0;
-            m_pTraceLogger->TraceLog(e);
-        }
+        TraceVDPEvent(TRACE_VDP_DISPLAY_LATCH, m_VdpRegister[1], m_bDisplayEnabled ? 1 : 0);
 #endif
     }
 
@@ -292,15 +325,7 @@ bool Video::Tick(unsigned int clockCycles)
         m_LineEvents.scrollx = true;
         m_ScrollX = m_VdpRegister[8];   // latch scroll X
 #if !defined(GS_DISABLE_DISASSEMBLER)
-        if (m_pTraceLogger->IsEnabled(TRACE_VDP_STATUS))
-        {
-            GS_Trace_Entry e = {};
-            e.type = TRACE_VDP_STATUS;
-            e.vdp_status.event = GS_VDP_EVENT_SCROLL_X;
-            e.vdp_status.line = (u16)m_iRenderLine;
-            e.vdp_status.value = m_ScrollX;
-            m_pTraceLogger->TraceLog(e);
-        }
+        TraceVDPEvent(TRACE_VDP_SCROLL_X_LATCH, m_VdpRegister[8], m_ScrollX);
 #endif
     }
 
@@ -320,14 +345,7 @@ bool Video::Tick(unsigned int clockCycles)
                     {
                         m_pProcessor->RequestINT(true);
 #if !defined(GS_DISABLE_DISASSEMBLER)
-                        if (m_pTraceLogger->IsEnabled(TRACE_VDP_STATUS))
-                        {
-                            GS_Trace_Entry e = {};
-                            e.type = TRACE_VDP_STATUS;
-                            e.vdp_status.event = GS_VDP_EVENT_HINT;
-                            e.vdp_status.line = (u16)m_iRenderLine;
-                            m_pTraceLogger->TraceLog(e);
-                        }
+                        TraceVDPEvent(TRACE_VDP_HINT_REQUEST, 0, 1, (u16)m_iVdpRegister10Counter);
 #endif
                     }
                 }
@@ -351,15 +369,7 @@ bool Video::Tick(unsigned int clockCycles)
             m_ScrollY = m_VdpRegister[9];   // latch scroll Y
             m_iVCounter = 0;
 #if !defined(GS_DISABLE_DISASSEMBLER)
-            if (m_pTraceLogger->IsEnabled(TRACE_VDP_STATUS))
-            {
-                GS_Trace_Entry e = {};
-                e.type = TRACE_VDP_STATUS;
-                e.vdp_status.event = GS_VDP_EVENT_SCROLL_Y;
-                e.vdp_status.line = (u16)m_iRenderLine;
-                e.vdp_status.value = m_ScrollY;
-                m_pTraceLogger->TraceLog(e);
-            }
+            TraceVDPEvent(TRACE_VDP_SCROLL_Y_LATCH, m_VdpRegister[9], m_ScrollY);
 #endif
         }
     }
@@ -370,16 +380,12 @@ bool Video::Tick(unsigned int clockCycles)
         m_LineEvents.vintFlag = true;
         if (m_iRenderLine == (max_height + 1))
         {
+#if !defined(GS_DISABLE_DISASSEMBLER)
+            u8 status_before = m_VdpStatus;
+#endif
             m_VdpStatus = SetBit(m_VdpStatus, 7);
 #if !defined(GS_DISABLE_DISASSEMBLER)
-            if (m_pTraceLogger->IsEnabled(TRACE_VDP_STATUS))
-            {
-                GS_Trace_Entry e = {};
-                e.type = TRACE_VDP_STATUS;
-                e.vdp_status.event = GS_VDP_EVENT_VINT_FLAG;
-                e.vdp_status.line = (u16)m_iRenderLine;
-                m_pTraceLogger->TraceLog(e);
-            }
+            TraceVDPEvent(TRACE_VDP_VINT_FLAG, 0, 1, 0, 0, status_before, m_VdpStatus);
 #endif
         }
     }
@@ -393,17 +399,12 @@ bool Video::Tick(unsigned int clockCycles)
         if (m_iCycleCounter >= col_cycle)
         {
             m_bSpriteCollisionRequest = false;
+#if !defined(GS_DISABLE_DISASSEMBLER)
+            u8 status_before = m_VdpStatus;
+#endif
             m_VdpStatus = SetBit(m_VdpStatus, 5);
 #if !defined(GS_DISABLE_DISASSEMBLER)
-            if (m_pTraceLogger->IsEnabled(TRACE_VDP_STATUS))
-            {
-                GS_Trace_Entry e = {};
-                e.type = TRACE_VDP_STATUS;
-                e.vdp_status.event = GS_VDP_EVENT_SPRITE_COL;
-                e.vdp_status.line = (u16)m_iRenderLine;
-                e.vdp_status.value = (u8)m_iSpriteCollisionX;
-                m_pTraceLogger->TraceLog(e);
-            }
+            TraceVDPEvent(TRACE_VDP_SPRITE_COLLISION, (u8)m_iSpriteCollisionX, 1, (u16)m_iSpriteCollisionX, 0, status_before, m_VdpStatus);
 #endif
         }
     }
@@ -416,16 +417,12 @@ bool Video::Tick(unsigned int clockCycles)
         if (m_bSpriteOvrRequest)
         {
             m_bSpriteOvrRequest = false;
+#if !defined(GS_DISABLE_DISASSEMBLER)
+            u8 status_before = m_VdpStatus;
+#endif
             m_VdpStatus = SetBit(m_VdpStatus, 6);
 #if !defined(GS_DISABLE_DISASSEMBLER)
-            if (m_pTraceLogger->IsEnabled(TRACE_VDP_STATUS))
-            {
-                GS_Trace_Entry e = {};
-                e.type = TRACE_VDP_STATUS;
-                e.vdp_status.event = GS_VDP_EVENT_SPRITE_OVR;
-                e.vdp_status.line = (u16)m_iRenderLine;
-                m_pTraceLogger->TraceLog(e);
-            }
+            TraceVDPEvent(TRACE_VDP_SPRITE_OVERFLOW, 0, 1, 0, 0, status_before, m_VdpStatus);
 #endif
         }
     }
@@ -477,6 +474,9 @@ bool Video::Tick(unsigned int clockCycles)
 void Video::LatchHCounter()
 {
     m_iHCounter = kVdpHCounter[m_iCycleCounter % GS_CYCLES_PER_LINE];
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    TraceVDPEvent(TRACE_VDP_TIMING, 0, (u8)m_iHCounter);
+#endif
 }
 
 u8 Video::GetVCounter()
@@ -531,13 +531,22 @@ u8 Video::GetHCounter()
 
 u8 Video::GetDataPort()
 {
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    u16 returned_address = m_VdpBufferAddress;
+#endif
     m_bFirstByteInSequence = true;
     u8 ret = m_VdpBuffer;
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    m_VdpBufferAddress = m_VdpAddress;
+#endif
     m_VdpBuffer = m_pVdpVRAM[m_VdpAddress];
-#ifndef GS_DISABLE_DISASSEMBLER
+#if !defined(GS_DISABLE_DISASSEMBLER)
     m_pProcessor->CheckMemoryBreakpoints(Processor::GS_BREAKPOINT_TYPE_VRAM, m_VdpAddress, true);
 #endif
     m_VdpAddress = (m_VdpAddress + 1) & 0x3FFF;
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    TraceVDPEvent(TRACE_VDP_DATA_READ, ret, ret, 0, 0, 0, 0, returned_address);
+#endif
     return ret;
 }
 
@@ -550,6 +559,8 @@ u8 Video::GetStatusFlags()
     if (IsSetBit(ret, 7))
         m_LineEvents.vint = true;
     m_pProcessor->RequestINT(false);
+    u8 status_before = ret & (m_bTMS9918 ? 0xFF : 0xE0);
+    TraceVDPEvent(TRACE_VDP_STATUS_READ, status_before, ret, 0, 0, status_before, m_VdpStatus);
     return ret;
 }
 
@@ -571,22 +582,27 @@ bool Video::IsSG1000Mode()
 void Video::WriteData(u8 data)
 {
     m_bFirstByteInSequence = true;
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    m_VdpBufferAddress = m_VdpAddress;
+#endif
     m_VdpBuffer = data;
 
     if (m_VdpCode == 0x03)
     {
         u16 cram_addr = m_VdpAddress & ((m_bGameGear && !m_bGameGearSMSMode) ? 0x3F : 0x1F);
         m_pVdpCRAM[cram_addr] = data;
-#ifndef GS_DISABLE_DISASSEMBLER
+#if !defined(GS_DISABLE_DISASSEMBLER)
         m_pProcessor->CheckMemoryBreakpoints(Processor::GS_BREAKPOINT_TYPE_CRAM, cram_addr, false);
 #endif
+        TraceVDPEvent(TRACE_VDP_CRAM_WRITE, data, 0, 0, 0, 0, 0, cram_addr);
     }
     else
     {
         m_pVdpVRAM[m_VdpAddress] = data;
-#ifndef GS_DISABLE_DISASSEMBLER
+#if !defined(GS_DISABLE_DISASSEMBLER)
         m_pProcessor->CheckMemoryBreakpoints(Processor::GS_BREAKPOINT_TYPE_VRAM, m_VdpAddress, false);
 #endif
+        TraceVDPEvent(TRACE_VDP_DATA_WRITE, data, 0, 0, 0, 0, 0, m_VdpAddress);
     }
     m_VdpAddress = (m_VdpAddress + 1) & 0x3FFF;
 }
@@ -597,6 +613,9 @@ void Video::WriteControl(u8 data)
     {
         m_bFirstByteInSequence = false;
         m_VdpAddress = (m_VdpAddress & 0x3F00) | data;
+#if !defined(GS_DISABLE_DISASSEMBLER)
+        TraceVDPEvent(TRACE_VDP_CONTROL, data, 0, 1);
+#endif
     }
     else
     {
@@ -604,13 +623,19 @@ void Video::WriteControl(u8 data)
 
         m_VdpCode = (data >> 6) & 0x03;
         m_VdpAddress = ((data & 0x3F) << 8) | (m_VdpAddress & 0x00FF);
+    #if !defined(GS_DISABLE_DISASSEMBLER)
+        TraceVDPEvent(TRACE_VDP_CONTROL, data, m_VdpCode, 2);
+    #endif
 
         switch (data & 0xC0)
         {
             case 0x00:
             {
+#if !defined(GS_DISABLE_DISASSEMBLER)
+                m_VdpBufferAddress = m_VdpAddress;
+#endif
                 m_VdpBuffer = m_pVdpVRAM[m_VdpAddress];
-#ifndef GS_DISABLE_DISASSEMBLER
+#if !defined(GS_DISABLE_DISASSEMBLER)
                 m_pProcessor->CheckMemoryBreakpoints(Processor::GS_BREAKPOINT_TYPE_VRAM, m_VdpAddress, true);
 #endif
                 m_VdpAddress = (m_VdpAddress + 1) & 0x3FFF;
@@ -620,6 +645,10 @@ void Video::WriteControl(u8 data)
             {
                 u8 reg = data & 0x0F;
                 u8 value = (m_VdpAddress & 0x00FF);
+#if !defined(GS_DISABLE_DISASSEMBLER)
+                bool previous_vint_irq = IsSetBit(m_VdpStatus, 7) && IsSetBit(m_VdpRegister[1], 5);
+                bool previous_hint_irq = !m_bTMS9918 && m_bLineInterruptPending && IsSetBit(m_VdpRegister[0], 4);
+#endif
 
                 if (reg == 1 && m_pCartridge->IsSG1000() && !m_pCartridge->IsSG1000II())
                 {
@@ -650,27 +679,35 @@ void Video::WriteControl(u8 data)
                 }
 
                 m_VdpRegister[reg] = value;
-#ifndef GS_DISABLE_DISASSEMBLER
+#if !defined(GS_DISABLE_DISASSEMBLER)
                 m_pProcessor->CheckMemoryBreakpoints(Processor::GS_BREAKPOINT_TYPE_VDP_REGISTER, reg, false);
-                if (m_pTraceLogger->IsEnabled(TRACE_VDP_WRITE))
-                {
-                    GS_Trace_Entry e = {};
-                    e.type = TRACE_VDP_WRITE;
-                    e.vdp_write.reg = reg;
-                    e.vdp_write.value = value;
-                    m_pTraceLogger->TraceLog(e);
-                }
+                TraceVDPEvent(TRACE_VDP_REG_WRITE, value, m_VdpRegister[reg], 0, reg);
 #endif
 
                 if (reg < 2)
                 {
+#if !defined(GS_DISABLE_DISASSEMBLER)
+                    int previous_mode = m_iTMS9918Mode;
+#endif
                     m_bExtendedMode224 = ((m_VdpRegister[0] & 0x06) == 0x06) && ((m_VdpRegister[1] & 0x18) == 0x10);
                     m_iTMS9918Mode = CalculateVideoMode();
                     m_bTMS9918 = !m_bGameGear && (m_iTMS9918Mode != 4);
+#if !defined(GS_DISABLE_DISASSEMBLER)
+                    if (previous_mode != m_iTMS9918Mode)
+                        TraceVDPEvent(TRACE_VDP_MODE_CHANGE, (u8)previous_mode, (u8)m_iTMS9918Mode);
+#endif
 
                     bool vint_irq = IsSetBit(m_VdpStatus, 7) && IsSetBit(m_VdpRegister[1], 5);
                     bool hint_irq = !m_bTMS9918 && m_bLineInterruptPending && IsSetBit(m_VdpRegister[0], 4);
                     m_pProcessor->RequestINT(vint_irq || hint_irq);
+#if !defined(GS_DISABLE_DISASSEMBLER)
+                    if ((previous_vint_irq || previous_hint_irq) != (vint_irq || hint_irq))
+                    {
+                        u8 event = (vint_irq || (!hint_irq && previous_vint_irq)) ?
+                            TRACE_VDP_VINT_REQUEST : TRACE_VDP_HINT_REQUEST;
+                        TraceVDPEvent(event, 0, (vint_irq || hint_irq) ? 1 : 0);
+                    }
+#endif
                 }
                 else if (reg > 10)
                 {
@@ -1171,8 +1208,14 @@ void Video::RenderSpritesTMS9918(int line)
         sprite_count++;
         if (!IsSetBit(m_VdpStatus, 6) && (sprite_count > 4))
         {
+#if !defined(GS_DISABLE_DISASSEMBLER)
+            u8 status_before = m_VdpStatus;
+#endif
             m_VdpStatus = SetBit(m_VdpStatus, 6);
             m_VdpStatus = (m_VdpStatus & 0xE0) | sprite;
+#if !defined(GS_DISABLE_DISASSEMBLER)
+            TraceVDPEvent(TRACE_VDP_SPRITE_OVERFLOW, (u8)sprite, 1, (u16)sprite, 0, status_before, m_VdpStatus);
+#endif
         }
 
         int sprite_color = m_pVdpVRAM[sprite_attribute_offset + 3] & 0x0F;
@@ -1220,7 +1263,15 @@ void Video::RenderSpritesTMS9918(int line)
 
                 if (IsSetBit(m_pInfoBuffer[pixel], 1))
                 {
-                     m_VdpStatus = SetBit(m_VdpStatus, 5);
+#if !defined(GS_DISABLE_DISASSEMBLER)
+                    bool collision_set = IsSetBit(m_VdpStatus, 5);
+                    u8 status_before = m_VdpStatus;
+#endif
+                    m_VdpStatus = SetBit(m_VdpStatus, 5);
+#if !defined(GS_DISABLE_DISASSEMBLER)
+                    if (!collision_set)
+                        TraceVDPEvent(TRACE_VDP_SPRITE_COLLISION, (u8)sprite_pixel_x, 1, (u16)sprite_pixel_x, 0, status_before, m_VdpStatus);
+#endif
                 }
                 else
                 {
@@ -1735,4 +1786,7 @@ void Video::LoadState(std::istream& stream, int version)
         m_bSpriteCollisionRequest = false;
         m_iSpriteCollisionX = 0;
     }
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    m_VdpBufferAddress = (m_VdpAddress - 1) & 0x3FFF;
+#endif
 }

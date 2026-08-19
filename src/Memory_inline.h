@@ -25,7 +25,7 @@
 
 inline u8 Memory::Read(u16 address)
 {
-    #ifndef GS_DISABLE_DISASSEMBLER
+    #if !defined(GS_DISABLE_DISASSEMBLER)
     m_pProcessor->CheckMemoryBreakpoints(Processor::GS_BREAKPOINT_TYPE_ROMRAM, address, true);
     #endif
 
@@ -43,7 +43,7 @@ inline u8 Memory::Read(u16 address)
 
 inline void Memory::Write(u16 address, u8 value)
 {
-    #ifndef GS_DISABLE_DISASSEMBLER
+    #if !defined(GS_DISABLE_DISASSEMBLER)
     m_pProcessor->CheckMemoryBreakpoints(Processor::GS_BREAKPOINT_TYPE_ROMRAM, address, false);
     #endif
 
@@ -99,7 +99,7 @@ inline u32 Memory::GetPhysicalAddress(u16 address)
     }
 }
 
-inline u8 Memory::GetBank(u16 address)
+inline u16 Memory::GetBank(u16 address)
 {
     if (address >= 0xC000)
         return 0;
@@ -109,12 +109,12 @@ inline u8 Memory::GetBank(u16 address)
     if (rule->Has8kBanks())
     {
         int slot = (address >> 13) & 0x07;
-        return (u8)rule->GetBank(slot);
+        return (u16)rule->GetBank(slot);
     }
     else
     {
         int slot = (address >> 14) & 0x03;
-        return (u8)rule->GetBank(slot);
+        return (u16)rule->GetBank(slot);
     }
 }
 
@@ -135,7 +135,7 @@ inline GS_Disassembler_Record* Memory::GetDisassemblerRecord(u16 address)
     }
 }
 
-inline GS_Disassembler_Record* Memory::GetDisassemblerRecord(u16 address, u8 bank)
+inline GS_Disassembler_Record* Memory::GetDisassemblerRecord(u16 address, u16 bank)
 {
     if (address >= 0xC000)
         return m_pDisassembledMap[address];

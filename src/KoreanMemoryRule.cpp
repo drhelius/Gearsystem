@@ -62,7 +62,7 @@ void KoreanMemoryRule::PerformWrite(u16 address, u8 value)
         {
             m_iMapperSlot2 = value & m_iROMBankMask;
             m_iMapperSlot2Address = m_iMapperSlot2 * 0x4000;
-            TraceBankSwitch(address, value);
+            TraceBankSwitchEvent(address, value);
         }
         else
         {

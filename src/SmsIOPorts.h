@@ -43,6 +43,10 @@ public:
     void SetTraceLogger(TraceLogger* pTraceLogger);
 
 private:
+    INLINE void TraceInputReadEvent(u8 port, u8 raw, u8 effective, u8 player);
+    INLINE void TraceIOEvent(u8 event, u8 port, u8 raw, u8 effective, u8 previous = 0, u8 auxiliary = 0);
+    void LogInputReadEvent(u8 port, u8 raw, u8 effective, u8 player);
+    void LogIOEvent(u8 event, u8 port, u8 raw, u8 effective, u8 previous, u8 auxiliary);
     Audio* m_pAudio;
     Video* m_pVideo;
     Input* m_pInput;
@@ -62,6 +66,18 @@ private:
 #include "YM2413.h"
 #include "TraceLogger.h"
 
+INLINE void SmsIOPorts::TraceInputReadEvent(u8 port, u8 raw, u8 effective, u8 player)
+{
+    if (m_pTraceLogger->IsEventEnabled(TRACE_INPUT, TRACE_INPUT_READ))
+        LogInputReadEvent(port, raw, effective, player);
+}
+
+INLINE void SmsIOPorts::TraceIOEvent(u8 event, u8 port, u8 raw, u8 effective, u8 previous, u8 auxiliary)
+{
+    if (m_pTraceLogger->IsEventEnabled(TRACE_IO, event))
+        LogIOEvent(event, port, raw, effective, previous, auxiliary);
+}
+
 inline u8 SmsIOPorts::DoInput(u8 port)
 {
     if (port < 0x40)
@@ -73,10 +89,18 @@ inline u8 SmsIOPorts::DoInput(u8 port)
     {
         // Reads from even addresses return the V counter
         if ((port & 0x01) == 0x00)
-            return m_pVideo->GetVCounter();
+        {
+            u8 value = m_pVideo->GetVCounter();
+            TraceIOEvent(TRACE_IO_COUNTER_READ, port, value, value, 0, 0);
+            return value;
+        }
         // Reads from odd addresses return the H counter
         else
-            return m_pVideo->GetHCounter();
+        {
+            u8 value = m_pVideo->GetHCounter();
+            TraceIOEvent(TRACE_IO_COUNTER_READ, port, value, value, 0, 1);
+            return value;
+        }
     }
     else if (port < 0xC0)
     {
@@ -99,17 +123,20 @@ inline u8 SmsIOPorts::DoInput(u8 port)
             if ((port & 0x01) == 0x00)
             {
                 u8 ret_dc = m_pInput->GetPortDC();
+                u8 raw = ret_dc;
                 if (!(m_Port3F & 0x01))
                 {
                     ret_dc &= 0xDF;
                     ret_dc |= (m_Port3F & 0x10) << 1;
                 }
+                TraceInputReadEvent(port, raw, ret_dc, 1);
                 return ret_dc;
             }
             // Reads from odd address return the I/O port B/misc. register
             else
             {
                 u8 ret_dd = m_pInput->GetPortDD();
+                u8 raw = ret_dd;
 
                 if (m_pCartridge->GetZone() != Cartridge::CartridgeJapanSMS)
                 {
@@ -131,6 +158,7 @@ inline u8 SmsIOPorts::DoInput(u8 port)
                     ret_dd |= (m_Port3F & 0x40) >> 3;
                 }
 
+                TraceInputReadEvent(port, raw, ret_dd, 2);
                 return ret_dd;
             }
         }
@@ -146,17 +174,23 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
         {
             Debug("--> ** Output to memory control port $%02X: %02X", port, value);
             m_pMemory->SetPort3E(value);
+            TraceIOEvent(TRACE_IO_CONTROL, port, value, value);
         }
         // Writes to odd addresses go to I/O control register.
         else
         {
+            u8 previous = m_Port3F;
             bool th_changed_a = (value & 0x02) && (value & 0x20) && !(m_Port3F & 0x20);
             bool th_changed_b = (value & 0x08) && (value & 0x80) && !(m_Port3F & 0x80);
 
             if (th_changed_a || th_changed_b)
+            {
                 m_pVideo->LatchHCounter();
+                TraceIOEvent(TRACE_IO_COUNTER_LATCH, port, value, 0, previous, (th_changed_a ? 1 : 0) | (th_changed_b ? 2 : 0));
+            }
 
             m_Port3F = value;
+            TraceIOEvent(TRACE_IO_CONTROL, port, value, m_Port3F, previous);
         }
     }
     else if (port < 0x80)
@@ -165,15 +199,6 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
         m_pAudio->WriteAudioRegister(value);
         if (m_pCartridge->IsSG1000())
             m_pProcessor->InjectTStates(32);
-#if !defined(GS_DISABLE_DISASSEMBLER)
-        if (m_pTraceLogger->IsEnabled(TRACE_PSG))
-        {
-            GS_Trace_Entry e = {};
-            e.type = TRACE_PSG;
-            e.psg.value = value;
-            m_pTraceLogger->TraceLog(e);
-        }
-#endif
     }
     else if (port < 0xC0)
     {
@@ -187,16 +212,6 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
     else if (port >= 0xF0)
     {
         m_pAudio->YM2413Write(port, value);
-#if !defined(GS_DISABLE_DISASSEMBLER)
-        if (m_pTraceLogger->IsEnabled(TRACE_YM2413))
-        {
-            GS_Trace_Entry e = {};
-            e.type = TRACE_YM2413;
-            e.ym2413.port = port;
-            e.ym2413.value = value;
-            m_pTraceLogger->TraceLog(e);
-        }
-#endif
     }
 #if 0
     else if ((port == 0xDE) || (port == 0xDF))

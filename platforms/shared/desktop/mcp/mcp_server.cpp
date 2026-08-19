@@ -1573,8 +1573,7 @@ json McpServer::BuildToolList()
             {"properties", {
                 {"start", {
                     {"type", "integer"},
-                    {"description", "Start index (0=oldest, omit for latest)"},
-                    {"minimum", 0}
+                    {"description", "Absolute trace sequence, or a negative value to read that many entries from the retained tail (omit for latest 100)"}
                 }},
                 {"count", {
                     {"type", "integer"},
@@ -1590,42 +1589,41 @@ json McpServer::BuildToolList()
     tools.push_back({
         {"name", "set_trace_log"},
         {"title", "Set Trace Logger"},
-        {"description", "Enable/disable trace log; CPU always traced; filter IRQ, VDP, PSG, YM2413, IO, bank switch events."},
+        {"description", "Configure memory or disk trace capture with exact native event filters."},
         {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", true}, {"openWorldHint", false}}},
         {"inputSchema", {
             {"type", "object"},
             {"properties", {
                 {"enabled", {
                     {"type", "boolean"},
-                    {"description", "true starts logging, false stops; preserves entries."}
+                    {"description", "true starts logging, false stops; preserves memory entries."}
                 }},
-                {"cpu_irq", {
-                    {"type", "boolean"},
-                    {"description", "Trace IRQ events (default true)"}
+                {"output", {
+                    {"type", "string"},
+                    {"enum", json::array({"memory", "disk"})}
                 }},
-                {"vdp_write", {
-                    {"type", "boolean"},
-                    {"description", "Trace VDP register writes (default true)"}
+                {"memory_size", {
+                    {"type", "string"},
+                    {"enum", json::array({"100K", "500K", "1M", "2M", "5M"})}
                 }},
-                {"vdp_status", {
-                    {"type", "boolean"},
-                    {"description", "Trace VDP status events (default true)"}
+                {"disk_size", {
+                    {"type", "string"},
+                    {"enum", json::array({"10MB", "50MB", "100MB", "250MB", "500MB", "1GB", "unbounded"})}
                 }},
-                {"psg", {
-                    {"type", "boolean"},
-                    {"description", "Trace PSG writes (default true)"}
+                {"output_path", {
+                    {"type", "string"},
+                    {"description", "Output directory for disk capture."}
                 }},
-                {"ym2413", {
-                    {"type", "boolean"},
-                    {"description", "Trace YM2413 FM writes (default true)"}
-                }},
-                {"io_port", {
-                    {"type", "boolean"},
-                    {"description", "Trace I/O port reads/writes (default true)"}
-                }},
-                {"bank_switch", {
-                    {"type", "boolean"},
-                    {"description", "Trace bank switching (default true)"}
+                {"filters", {
+                    {"type", "array"},
+                    {"minItems", 1},
+                    {"uniqueItems", true},
+                    {"items", {{"type", "string"}, {"enum", json::array({
+                        "cpu.instructions", "cpu.interrupts", "vdp.registers", "vdp.interrupts", "vdp.status",
+                        "vdp.sprites", "vdp.state", "vdp.data", "vdp.cram", "input.reads", "input.changes",
+                        "io.control", "io.counters", "io.gamegear", "psg.tone", "psg.volume", "psg.noise",
+                        "psg.stereo", "ym2413.registers", "ym2413.mixer", "mapper.rom", "mapper.ram",
+                        "mapper.control", "mapper.eeprom", "mapper.flash"})}}}
                 }}
             }},
             {"required", json::array({"enabled"})},
@@ -2655,25 +2653,13 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
     }
     else if (normalizedTool == "get_trace_log")
     {
-        int start = arguments.value("start", -1);
+        s64 start = arguments.value("start", (s64)-100);
         int count = arguments.value("count", 100);
         return m_debugAdapter.GetTraceLog(start, count);
     }
     else if (normalizedTool == "set_trace_log")
     {
-        bool enabled = arguments["enabled"];
-        u32 flags = TRACE_FLAG_CPU;
-        if (enabled)
-        {
-            if (arguments.value("cpu_irq", true)) flags |= TRACE_FLAG_CPU_IRQ;
-            if (arguments.value("vdp_write", true)) flags |= TRACE_FLAG_VDP_WRITE;
-            if (arguments.value("vdp_status", true)) flags |= TRACE_FLAG_VDP_STATUS;
-            if (arguments.value("psg", true)) flags |= TRACE_FLAG_PSG;
-            if (arguments.value("ym2413", true)) flags |= TRACE_FLAG_YM2413;
-            if (arguments.value("io_port", true)) flags |= TRACE_FLAG_IO_PORT;
-            if (arguments.value("bank_switch", true)) flags |= TRACE_FLAG_BANK_SWITCH;
-        }
-        return m_debugAdapter.SetTraceLog(enabled, flags);
+        return m_debugAdapter.SetTraceLog(arguments);
     }
     else
     {
@@ -2923,4 +2909,3 @@ void McpServer::HandleResourcesRead(const json& request)
 
     SendResponse(response);
 }
-

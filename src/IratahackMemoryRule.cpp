@@ -88,6 +88,7 @@ void IratahackMemoryRule::PerformWrite(u16 address, u8 value)
                 if (m_iFlashMode == FlashSeqID)
                 {
                     Debug("Exiting Flash ID mode");
+                    TraceFlashEvent(address, value, FlashSeqID);
                     ResetFlashState();
                 }
                 else if (m_iFlashMode == FlashSeqErase)
@@ -106,6 +107,7 @@ void IratahackMemoryRule::PerformWrite(u16 address, u8 value)
                         if (sectorBase + 0x4000 <= 0x80000u)
                         {
                             memset(m_pFlash + sectorBase, 0xFF, 0x4000);
+                            TraceFlashEvent(address, value, (u16)(sectorBase >> 14));
                         }
                     }
                     ResetFlashState();
@@ -123,6 +125,7 @@ void IratahackMemoryRule::PerformWrite(u16 address, u8 value)
                     if (flashIndex < 0x80000u)
                     {
                         m_pFlash[flashIndex] = value;
+                        TraceFlashEvent(address, value, (u16)(flashIndex >> 14));
                     }
                     ResetFlashState();
                 }
@@ -151,14 +154,14 @@ void IratahackMemoryRule::PerformWrite(u16 address, u8 value)
                         m_iMapperSlotAddress[0] = (m_iGameSlot << 17);
                         m_iMapperSlotAddress[1] = (m_iGameSlot << 17) + 0x4000;
                         m_iMapperSlotAddress[2] = (m_iGameSlot << 17) + (m_iMapperSlot[2] * 0x4000);
-                        TraceBankSwitch(address, value);
+                        TraceBankSwitchEvent(address, value);
                         break;
                     }
                     case 0xFFFF:
                     {
                         m_iMapperSlot[2] = value & 7;
                         m_iMapperSlotAddress[2] = (m_iGameSlot << 17) + (m_iMapperSlot[2] * 0x4000);
-                        TraceBankSwitch(address, value);
+                        TraceBankSwitchEvent(address, value);
                         break;
                     }
                 }
@@ -173,19 +176,36 @@ void IratahackMemoryRule::ProcessFlashAccess(u16 address, u8 value)
     {
         m_iFlashMode = FlashSeqWrite;
         Debug("Entering Flash Write mode");
+        TraceFlashEvent(address, value, FlashSeqWrite);
     }
 
     if (AdvanceSequence(FlashSeqErase, m_iFlashStep, address, value))
     {
         m_iFlashMode = FlashSeqErase;
         Debug("Entering Flash Erase mode");
+        TraceFlashEvent(address, value, FlashSeqErase);
     }
 
     if (AdvanceSequence(FlashSeqID, m_iFlashStep, address, value))
     {
         m_iFlashMode = FlashSeqID;
         Debug("Entering Flash ID mode");
+        TraceFlashEvent(address, value, FlashSeqID);
     }
+}
+
+void IratahackMemoryRule::LogFlashEvent(u16 address, u8 value, u16 auxiliary)
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    u8 flags = (u8)m_iFlashMode;
+    GS_Trace_Entry e = {};
+    PopulateMapperTraceEntry(e, TRACE_MAPPER_FLASH, address, value, flags, auxiliary, true);
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(address);
+    UNUSED(value);
+    UNUSED(auxiliary);
+#endif
 }
 
 const int IratahackMemoryRule::kFlashSeqs[FlashSeqCount][11] =

@@ -59,7 +59,7 @@ public:
         u16 src;
         u16 dest;
         u16 back;
-        u8 bank;
+        u16 bank;
     };
 
     struct ProcessorState
@@ -210,11 +210,15 @@ private:
     void StackPop(SixteenBitRegister* reg);
     void SetInterruptMode(int mode);
     void IncreaseR();
+    INLINE void TraceInstructionEvent(u16 pc);
+    INLINE void TraceIRQEvent(u16 pc, u16 vector, u8 irq_type);
+    void LogInstructionEvent(u16 pc);
+    void LogIRQEvent(u16 pc, u16 vector, u8 irq_type);
     void UpdateProActionReplay();
     void InvalidOPCode();
     void UndocumentedOPCode();
     void CheckBreakpoints();
-    void PushCallStack(u16 src, u16 dest, u16 back, u8 bank);
+    void PushCallStack(u16 src, u16 dest, u16 back, u16 bank);
     void PopCallStack();
     void FormatDisassemblerDataBytes(char* text, size_t text_size, const u8* bytes, int size);
     void SetDisassemblerOperandText(GS_Disassembler_Record* record, const char* text);
@@ -917,6 +921,7 @@ const bool kZ80ParityTable[256] = {
 };
 
 #include "Memory.h"
+#include "TraceLogger.h"
 #include "Processor_inline.h"
 
 #endif	/* PROCESSOR_H */

@@ -58,6 +58,8 @@ void Korean2000XOR1FMemoryRule::PerformWrite(u16 address, u8 value)
         {
             Debug("--> ** Writing to register $%X %X", address, value);
 
+            u8 raw_value = value;
+
             value = ((value ^ 0x1F) & m_iROMBankMask) ^ 0x1F;
 
             m_iPage[2] = (value ^ 0x1F) & m_iROMBankMask;
@@ -69,7 +71,7 @@ void Korean2000XOR1FMemoryRule::PerformWrite(u16 address, u8 value)
             m_iPageAddress[3] = 0x2000 * m_iPage[3];
             m_iPageAddress[4] = 0x2000 * m_iPage[4];
             m_iPageAddress[5] = 0x2000 * m_iPage[5];
-            TraceBankSwitch(address, value);
+            TraceBankSwitchEvent(address, raw_value);
         }
         else
         {

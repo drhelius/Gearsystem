@@ -53,6 +53,7 @@ u8 KoreanMDFFF5MemoryRule::PerformRead(u16 address)
 void KoreanMDFFF5MemoryRule::PerformWrite(u16 address, u8 value)
 {
     int mask = (m_iRegister >= 0x10) ? 0x1F : 0x0F;
+    bool mapper_write = true;
 
     switch (address | 0x4010)
     {
@@ -85,15 +86,21 @@ void KoreanMDFFF5MemoryRule::PerformWrite(u16 address, u8 value)
             m_iPage[5] = (bank + ((value & mask) << 1) + 1) & (m_pCartridge->GetROMBankCount8k() - 1);
             break;
         }
+        default:
+            mapper_write = false;
+            break;
     }
 
-    m_iPageAddress[0] = 0x2000 * m_iPage[0];
-    m_iPageAddress[1] = 0x2000 * m_iPage[1];
-    m_iPageAddress[2] = 0x2000 * m_iPage[2];
-    m_iPageAddress[3] = 0x2000 * m_iPage[3];
-    m_iPageAddress[4] = 0x2000 * m_iPage[4];
-    m_iPageAddress[5] = 0x2000 * m_iPage[5];
-    TraceBankSwitch(address, value);
+    if (mapper_write)
+    {
+        m_iPageAddress[0] = 0x2000 * m_iPage[0];
+        m_iPageAddress[1] = 0x2000 * m_iPage[1];
+        m_iPageAddress[2] = 0x2000 * m_iPage[2];
+        m_iPageAddress[3] = 0x2000 * m_iPage[3];
+        m_iPageAddress[4] = 0x2000 * m_iPage[4];
+        m_iPageAddress[5] = 0x2000 * m_iPage[5];
+        TraceBankSwitchEvent(address, value);
+    }
 
     if (address >= 0xC000)
     {

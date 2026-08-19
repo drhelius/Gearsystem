@@ -24,8 +24,7 @@
 #include <string>
 #include "gearsystem.h"
 
-static const char* config_application_name = GS_TITLE;
-static const int config_version = 4;
+static const int config_version = 5;
 static const int config_minimum_version = 2;
 static const int config_max_recent_roms = 10;
 static const int config_memory_editor_count = 18;
@@ -225,18 +224,31 @@ struct config_Debug
     bool show_trace_logger;
     bool show_rewind;
     bool trace_counter;
+    bool trace_cycles;
     bool trace_bank;
     bool trace_registers;
     bool trace_flags;
     bool trace_bytes;
+    bool trace_cpu_enabled;
     bool trace_cpu;
     bool trace_cpu_irq;
-    bool trace_vdp_write;
-    bool trace_vdp_status;
+    bool trace_vdp;
+    bool trace_input;
+    bool trace_io;
     bool trace_psg;
     bool trace_ym2413;
-    bool trace_io_port;
-    bool trace_bank_switch;
+    bool trace_mapper;
+    int trace_vdp_events;
+    int trace_input_events;
+    int trace_io_events;
+    int trace_psg_events;
+    int trace_ym2413_events;
+    int trace_mapper_events;
+    int trace_output;
+    int trace_capacity;
+    int trace_disk_dir_option;
+    int trace_disk_size;
+    std::string trace_disk_path;
     bool dis_show_mem;
     bool dis_show_symbols;
     bool dis_show_segment;

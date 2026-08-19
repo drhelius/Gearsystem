@@ -36,6 +36,85 @@ void MemoryRule::SetTraceLogger(TraceLogger* pTraceLogger)
     m_pTraceLogger = pTraceLogger;
 }
 
+void MemoryRule::LogBankSwitchEvent(u16 address, u8 value, u8 flags, u16 auxiliary, bool flags_valid)
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    u8 event = TRACE_MAPPER_ROM;
+    if (m_pCartridge->GetType() == Cartridge::CartridgeEeprom93C46Mapper &&
+        (address == 0x8000 || address == 0xFFFC || (address >= 0x8008 && address < 0x8088)))
+        event = TRACE_MAPPER_EEPROM;
+    else if (m_pCartridge->GetType() == Cartridge::CartridgeIratahackMapper && address < 0xC000)
+        event = TRACE_MAPPER_FLASH;
+
+    if (m_pTraceLogger->IsEventEnabled(TRACE_MAPPER, event))
+    {
+        GS_Trace_Entry e = {};
+        PopulateMapperTraceEntry(e, event, address, value, flags, auxiliary, flags_valid);
+        m_pTraceLogger->TraceLog(e);
+    }
+#else
+    UNUSED(address);
+    UNUSED(value);
+    UNUSED(flags);
+    UNUSED(auxiliary);
+    UNUSED(flags_valid);
+#endif
+}
+
+void MemoryRule::LogMapperEvent(u8 event, u16 address, u8 value, u8 flags, u16 auxiliary, bool flags_valid)
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    GS_Trace_Entry e = {};
+    PopulateMapperTraceEntry(e, event, address, value, flags, auxiliary, flags_valid);
+    m_pTraceLogger->TraceLog(e);
+#else
+    UNUSED(event);
+    UNUSED(address);
+    UNUSED(value);
+    UNUSED(flags);
+    UNUSED(auxiliary);
+    UNUSED(flags_valid);
+#endif
+}
+
+void MemoryRule::PopulateMapperTraceEntry(GS_Trace_Entry& e, u8 event, u16 address,
+    u8 value, u8 flags, u16 auxiliary, bool flags_valid)
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    e.type = TRACE_MAPPER;
+    e.mapper.event = event;
+    e.mapper.mapper = (u8)m_pCartridge->GetType();
+    e.mapper.address = address;
+    e.mapper.value = value;
+    e.mapper.flags = flags;
+    e.mapper.flags_valid = flags_valid ? 1 : 0;
+    if (Has8kBanks())
+    {
+        for (int i = 0; i < 6; i++)
+            e.mapper.banks[i] = (u16)GetBank(i);
+    }
+    else
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            u16 bank = (u16)GetBank(i);
+            e.mapper.banks[i * 2] = bank * 2;
+            e.mapper.banks[i * 2 + 1] = bank * 2 + 1;
+        }
+    }
+    e.mapper.ram_bank = (s16)GetRamBank();
+    e.mapper.auxiliary = auxiliary;
+#else
+    UNUSED(e);
+    UNUSED(event);
+    UNUSED(address);
+    UNUSED(value);
+    UNUSED(flags);
+    UNUSED(auxiliary);
+    UNUSED(flags_valid);
+#endif
+}
+
 void MemoryRule::SaveRam(std::ostream&)
 {
 }
