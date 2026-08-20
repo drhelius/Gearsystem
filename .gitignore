@@ -57,6 +57,7 @@ desktop.ini
 *.sav
 *.tmp
 *.state*
+docs/
 
 # Qt Ignores
 moc_*.cpp
