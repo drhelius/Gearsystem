@@ -788,7 +788,8 @@ void Video::ScanLine(int line)
 void Video::RenderBackgroundSMSGG(int line)
 {
     int y_offset = m_bExtendedMode224 ? GS_RESOLUTION_GG_Y_OFFSET_EXTENDED : GS_RESOLUTION_GG_Y_OFFSET;
-    int scy_adjust = (m_bGameGear && !m_bGameGearSMSMode) ? y_offset : 0;
+    bool game_gear = m_bGameGear && !m_bGameGearSMSMode;
+    int scy_adjust = game_gear ? y_offset : 0;
     int scy = line;
     int line_width_info = line * (m_iScreenWidth - m_iHideLeftBarOffset);
     int line_width_screen = (line - scy_adjust) * (m_iScreenWidth - m_iHideLeftBarOffset);
@@ -811,83 +812,105 @@ void Video::RenderBackgroundSMSGG(int line)
     int tile_y = map_y >> 3;
     int tile_y_offset = map_y & 7;
 
-    int palette_color = 0;
-
-    int scx_begin = (m_bGameGear && !m_bGameGearSMSMode) ? GS_RESOLUTION_GG_X_OFFSET : m_iHideLeftBarOffset;
+    int scx_begin = game_gear ? GS_RESOLUTION_GG_X_OFFSET : m_iHideLeftBarOffset;
     int scx_end = scx_begin + m_iScreenWidth - m_iHideLeftBarOffset;
-
     int max_height = m_bExtendedMode224 ? 224 : 192;
+    bool mask_left = IsSetBit(m_VdpRegister[0], 5);
+    bool lock_right = IsSetBit(m_VdpRegister[0], 7);
+    bool render_line = !game_gear || ((line >= y_offset) && (line < (y_offset + GS_RESOLUTION_GG_HEIGHT)));
 
-    for (int scx = scx_begin; scx < scx_end; scx++)
+    if (line >= max_height)
+    {
+        for (int scx = scx_begin; scx < scx_end; scx++)
+            m_pInfoBuffer[line_width_info + scx - scx_begin] = 0;
+        return;
+    }
+
+    int scx = scx_begin;
+    while (scx < scx_end)
     {
         int scx_diff = scx - scx_begin;
         int pixel_screen = line_width_screen + scx_diff;
         int pixel_info = line_width_info + scx_diff;
 
-        if (line < max_height)
+        if (mask_left && (scx < 8))
         {
-            if (IsSetBit(m_VdpRegister[0], 5) && scx < 8)
+            int span = MIN(8 - scx, scx_end - scx);
+            int palette_color = (m_VdpRegister[7] & 0x0F) + 16;
+
+            for (int pixel = 0; pixel < span; pixel++)
             {
-                palette_color = (m_VdpRegister[7] & 0x0F) + 16;
-            }
-            else
-            {
-                if (IsSetBit(m_VdpRegister[0], 7) && (scx >= 192))
-                {
-                    map_y = scy;
-                    tile_y = map_y >> 3;
-                    tile_y_offset = map_y & 7;
-                }
-                u8 map_x = scx - origin_x;
-
-                int tile_x = map_x >> 3;
-                int tile_x_offset = map_x & 7;
-
-                int tile_addr = map_address + (((tile_y << 5) + tile_x) << 1);
-                int tile_index = m_pVdpVRAM[tile_addr];
-                int tile_info = m_pVdpVRAM[tile_addr + 1];
-                if (IsSetBit(tile_info, 0))
-                    tile_index = (tile_index | 0x0100) & 0x1FF;
-
-                bool hflip = IsSetBit(tile_info, 1);
-                bool vflip = IsSetBit(tile_info, 2);
-                int palette_offset = IsSetBit(tile_info, 3) ? 16 : 0;
-                bool priority = IsSetBit(tile_info, 4);
-
-                int tile_data_addr = tile_index << 5;
-                tile_data_addr += ((vflip ? 7 - tile_y_offset : tile_y_offset) << 2);
-
-                int tile_pixel_x = 7 - tile_x_offset;
-                if (hflip)
-                    tile_pixel_x = tile_x_offset;
-
-                palette_color = ((m_pVdpVRAM[tile_data_addr] >> tile_pixel_x) & 0x01) +
-                        (((m_pVdpVRAM[tile_data_addr + 1] >> tile_pixel_x) & 0x01) << 1) +
-                        (((m_pVdpVRAM[tile_data_addr + 2] >> tile_pixel_x) & 0x01) << 2) +
-                        (((m_pVdpVRAM[tile_data_addr + 3] >> tile_pixel_x) & 0x01) << 3) +
-                        palette_offset;
-
-                bool final_priority = priority && ((palette_color - palette_offset) != 0);
-
-                if ((m_pInfoBuffer[pixel_info] & 0x01) && !final_priority)
-                {
-                    m_pInfoBuffer[pixel_info] = 0;
-                    continue;
-                }
-            }
-
-            if (m_bGameGear && !m_bGameGearSMSMode)
-            {
-                if ((line >= y_offset) && (line < (y_offset + GS_RESOLUTION_GG_HEIGHT)))
+                if (render_line)
                     m_pFrameBuffer[pixel_screen] = CachedColorFromPalette(palette_color);
+                m_pInfoBuffer[pixel_info] = 0;
+                pixel_screen++;
+                pixel_info++;
             }
-            else
-            {
-                m_pFrameBuffer[pixel_screen] = CachedColorFromPalette(palette_color);
-            }
+
+            scx += span;
+            continue;
         }
 
-        m_pInfoBuffer[pixel_info] = 0;
+        int current_tile_y = tile_y;
+        int current_tile_y_offset = tile_y_offset;
+
+        if (lock_right && (scx >= 192))
+        {
+            current_tile_y = scy >> 3;
+            current_tile_y_offset = scy & 7;
+        }
+
+        u8 map_x = scx - origin_x;
+        int tile_x = map_x >> 3;
+        int tile_x_offset = map_x & 7;
+        int span = 8 - tile_x_offset;
+
+        if (lock_right && (scx < 192) && ((scx + span) > 192))
+            span = 192 - scx;
+        if ((scx + span) > scx_end)
+            span = scx_end - scx;
+
+        int tile_addr = map_address + (((current_tile_y << 5) + tile_x) << 1);
+        int tile_index = m_pVdpVRAM[tile_addr];
+        int tile_info = m_pVdpVRAM[tile_addr + 1];
+        if (IsSetBit(tile_info, 0))
+            tile_index = (tile_index | 0x0100) & 0x1FF;
+
+        bool hflip = IsSetBit(tile_info, 1);
+        bool vflip = IsSetBit(tile_info, 2);
+        int palette_offset = IsSetBit(tile_info, 3) ? 16 : 0;
+        bool priority = IsSetBit(tile_info, 4);
+
+        int tile_data_addr = tile_index << 5;
+        tile_data_addr += ((vflip ? 7 - current_tile_y_offset : current_tile_y_offset) << 2);
+
+        u8 pattern_0 = m_pVdpVRAM[tile_data_addr];
+        u8 pattern_1 = m_pVdpVRAM[tile_data_addr + 1];
+        u8 pattern_2 = m_pVdpVRAM[tile_data_addr + 2];
+        u8 pattern_3 = m_pVdpVRAM[tile_data_addr + 3];
+        int tile_pixel_x = hflip ? tile_x_offset : 7 - tile_x_offset;
+        int tile_pixel_step = hflip ? 1 : -1;
+
+        for (int pixel = 0; pixel < span; pixel++)
+        {
+            int palette_color = ((pattern_0 >> tile_pixel_x) & 0x01) +
+                    (((pattern_1 >> tile_pixel_x) & 0x01) << 1) +
+                    (((pattern_2 >> tile_pixel_x) & 0x01) << 2) +
+                    (((pattern_3 >> tile_pixel_x) & 0x01) << 3) +
+                    palette_offset;
+            bool final_priority = priority && ((palette_color - palette_offset) != 0);
+
+            if ((((m_pInfoBuffer[pixel_info] & 0x01) == 0) || final_priority) && render_line)
+                m_pFrameBuffer[pixel_screen] = CachedColorFromPalette(palette_color);
+
+            m_pInfoBuffer[pixel_info] = 0;
+
+            pixel_screen++;
+            pixel_info++;
+            tile_pixel_x += tile_pixel_step;
+        }
+
+        scx += span;
     }
 }
 
