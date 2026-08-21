@@ -122,34 +122,55 @@ void YM2413::Enable(bool bEnabled)
     m_bEnabled = bEnabled;
 }
 
+INLINE void YM2413::WriteSample(s16 sample)
+{
+    m_pBuffer[m_iBufferIndex] = sample;
+    m_pBuffer[m_iBufferIndex + 1] = sample;
+    m_iBufferIndex += 2;
+
+    if (m_iBufferIndex >= GS_AUDIO_BUFFER_SIZE)
+    {
+        Debug("YM2413 Audio buffer overflow");
+        m_iBufferIndex = 0;
+    }
+}
+
 void YM2413::Sync()
 {
-    for (int i = 0; i < m_ElapsedCycles; i++)
+    if (!m_bEnabled)
     {
-        if (m_bEnabled)
+        s64 total = (s64)m_iSampleCounter + ((s64)m_ElapsedCycles * m_iSampleRateFactor);
+        int sample_count = (int)(total >> kYM2413SampleAccuracy);
+        m_iSampleCounter = (int)(total & ((1 << kYM2413SampleAccuracy) - 1));
+
+        for (int i = 0; i < sample_count; i++)
+            WriteSample(0);
+    }
+    else
+    {
+        while (m_ElapsedCycles > 0)
         {
-            m_iCycleCounter ++;
+            int cycles_to_update = 72 - m_iCycleCounter;
+            int cycles_to_sample = ((1 << kYM2413SampleAccuracy) - m_iSampleCounter + m_iSampleRateFactor - 1) / m_iSampleRateFactor;
+            int cycles = cycles_to_update < cycles_to_sample ? cycles_to_update : cycles_to_sample;
+
+            if (cycles > m_ElapsedCycles)
+                cycles = m_ElapsedCycles;
+
+            m_iCycleCounter += cycles;
+            m_iSampleCounter += cycles * m_iSampleRateFactor;
+            m_ElapsedCycles -= cycles;
+
             if (m_iCycleCounter >= 72)
             {
                 m_iCycleCounter -= 72;
                 m_CurrentSample = YM2413Update();
             }
-        }
 
-        m_iSampleCounter += m_iSampleRateFactor;
-        if (m_iSampleCounter >= (1 << kYM2413SampleAccuracy))
-        {
-            m_iSampleCounter -= (1 << kYM2413SampleAccuracy);
-
-            s16 sample = m_bEnabled ? m_CurrentSample : 0;
-            m_pBuffer[m_iBufferIndex] = sample;
-            m_pBuffer[m_iBufferIndex + 1] = sample;
-            m_iBufferIndex += 2;
-
-            if (m_iBufferIndex >= GS_AUDIO_BUFFER_SIZE)
+            if (m_iSampleCounter >= (1 << kYM2413SampleAccuracy))
             {
-                Debug("YM2413 Audio buffer overflow");
-                m_iBufferIndex = 0;
+                m_iSampleCounter -= (1 << kYM2413SampleAccuracy);
+                WriteSample(m_CurrentSample);
             }
         }
     }

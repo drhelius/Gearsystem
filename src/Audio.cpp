@@ -221,6 +221,10 @@ void Audio::EndFrame(s16* pSampleBuffer, int* pSampleCount)
         {
             memset(pSampleBuffer, 0, sizeof(s16) * count);
         }
+        else if (m_bPSGEnabled && !ym2413_output_enabled && m_master_volume == 1.0f && m_psg_volume == 1.0f)
+        {
+            memcpy(pSampleBuffer, m_pSampleBuffer, sizeof(s16) * psg_count);
+        }
         else
         {
             for (int i=0; i<count; i++)

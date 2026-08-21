@@ -25,6 +25,7 @@ public:
     void LoadStateV1(std::istream& stream);
 
 private:
+    INLINE void WriteSample(s16 sample);
     void Sync();
 
 private:
