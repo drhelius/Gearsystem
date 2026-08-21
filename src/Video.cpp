@@ -33,6 +33,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor, Cartridge* pCartridge)
     InitPointer(m_pVdpVRAM);
     InitPointer(m_pVdpCRAM);
     InitPointer(m_pTraceLogger);
+    m_bGGPaletteExternalAccess = false;
     m_bFirstByteInSequence = false;
     for (int i = 0; i < 16; i++)
         m_VdpRegister[i] = 0;
@@ -196,6 +197,8 @@ void Video::Reset(bool bGameGear, bool bPAL, int iGGASIC, bool bGameGearSMSMode)
     for (int i = 0; i < 0x40; i++)
         m_pVdpCRAM[i] = 0;
 
+    RebuildGGPalette();
+
     m_VdpRegister[0] = 0x36;
     m_VdpRegister[1] = (m_pCartridge->GetFeatures() & GS_DB_FEATURE_INITIAL_VINT) ? 0xA0 : 0x80;
     m_VdpRegister[2] = 0xFF; // Screen Map Table Base
@@ -281,6 +284,12 @@ void Video::Reset(bool bGameGear, bool bPAL, int iGGASIC, bool bGameGearSMSMode)
     {
         m_NextLineSprites[i] = -1;
     }
+}
+
+void Video::RebuildGGPalette()
+{
+    for (int i = 0; i < 32; i++)
+        UpdateGGPalette(i);
 }
 
 bool Video::Tick(unsigned int clockCycles)
@@ -591,6 +600,8 @@ void Video::WriteData(u8 data)
     {
         u16 cram_addr = m_VdpAddress & ((m_bGameGear && !m_bGameGearSMSMode) ? 0x3F : 0x1F);
         m_pVdpCRAM[cram_addr] = data;
+        if (m_bGameGear && !m_bGameGearSMSMode)
+            UpdateGGPalette(cram_addr >> 1);
 #if !defined(GS_DISABLE_DISASSEMBLER)
         m_pProcessor->CheckMemoryBreakpoints(Processor::GS_BREAKPOINT_TYPE_CRAM, cram_addr, false);
 #endif
@@ -721,6 +732,9 @@ void Video::WriteControl(u8 data)
 
 void Video::ScanLine(int line)
 {
+    if (m_bGameGear && !m_bGameGearSMSMode && m_bGGPaletteExternalAccess)
+        RebuildGGPalette();
+
     int max_height = m_bExtendedMode224 ? 224 : 192;
     int next_line = line + 1;
     next_line %= m_iLinesPerFrame;
@@ -756,7 +770,7 @@ void Video::ScanLine(int line)
             if (m_bTMS9918)
                 color = m_VdpRegister[7] & 0x0F;
             else
-                color = ColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
+                color = CachedColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
 
             int line_width = line * m_iScreenWidth;
 
@@ -864,11 +878,11 @@ void Video::RenderBackgroundSMSGG(int line)
             if (m_bGameGear && !m_bGameGearSMSMode)
             {
                 if ((line >= y_offset) && (line < (y_offset + GS_RESOLUTION_GG_HEIGHT)))
-                    m_pFrameBuffer[pixel_screen] = ColorFromPalette(palette_color);
+                    m_pFrameBuffer[pixel_screen] = CachedColorFromPalette(palette_color);
             }
             else
             {
-                m_pFrameBuffer[pixel_screen] = ColorFromPalette(palette_color);
+                m_pFrameBuffer[pixel_screen] = CachedColorFromPalette(palette_color);
             }
         }
 
@@ -1015,12 +1029,12 @@ void Video::RenderSpritesSMSGG(int line)
             if (m_bGameGear && !m_bGameGearSMSMode)
             {
                 if ((line >= y_offset) && (line < (y_offset + GS_RESOLUTION_GG_HEIGHT)))
-                    m_pFrameBuffer[pixel_screen] = ColorFromPalette(palette_color);
+                    m_pFrameBuffer[pixel_screen] = CachedColorFromPalette(palette_color);
             }
             else
             {
                 if (line < max_height)
-                    m_pFrameBuffer[pixel_screen] = ColorFromPalette(palette_color);
+                    m_pFrameBuffer[pixel_screen] = CachedColorFromPalette(palette_color);
             }
 
             if ((m_pInfoBuffer[pixel_info] & 0x01) != 0)
@@ -1293,7 +1307,7 @@ void Video::Render32bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
     int overscan_total_width = GS_RESOLUTION_MAX_WIDTH - m_iHideLeftBarOffset;
     int overscan_total_height = 0;
     bool overscan_enabled = false;
-    int overscan_color = m_bTMS9918 ? m_VdpRegister[7] & 0x0F : ColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
+    int overscan_color = m_bTMS9918 ? m_VdpRegister[7] & 0x0F : CachedColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
     int buffer_size = size * 4;    
     bool use_gg_palette = m_bGameGear && !m_bGameGearSMSMode;
     int shift_g = use_gg_palette ? 4 : 2;
@@ -1382,7 +1396,7 @@ void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
     int overscan_total_width = GS_RESOLUTION_MAX_WIDTH - m_iHideLeftBarOffset;
     int overscan_total_height = 0;
     bool overscan_enabled = false;
-    int overscan_color = m_bTMS9918 ? m_VdpRegister[7] & 0x0F : ColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
+    int overscan_color = m_bTMS9918 ? m_VdpRegister[7] & 0x0F : CachedColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
     int buffer_size = size * 2;    
     bool use_gg_palette = m_bGameGear && !m_bGameGearSMSMode;
     int shift_g = use_gg_palette ? 4 : 2;
@@ -1789,4 +1803,6 @@ void Video::LoadState(std::istream& stream, int version)
 #if !defined(GS_DISABLE_DISASSEMBLER)
     m_VdpBufferAddress = (m_VdpAddress - 1) & 0x3FFF;
 #endif
+
+    RebuildGGPalette();
 }
