@@ -111,6 +111,7 @@ private:
     void RenderSpritesTMS9918(int line);
     void RebuildGGPalette();
     void InitPalettes(const u8* src, u16* dest_565_rgb, u16* dest_555_rgb, u16* dest_565_bgr, u16* dest_555_bgr);
+    void InitOutputPalettes();
     int CalculateVideoMode();
     void CheckPhaser();
     INLINE void UpdateGGPalette(int palette_color);
@@ -217,6 +218,10 @@ private:
     u16 m_GGPalette[32];
     bool m_bGGPaletteExternalAccess;
     TraceLogger* m_pTraceLogger;
+    u32 m_SMSOutputPalette32[2][64];
+    u32 m_GGOutputPalette32[2][4096];
+    u16 m_SMSOutputPalette16[4][64];
+    u16 m_GGOutputPalette16[4][4096];
 };
 
 INLINE void Video::TraceVDPEvent(u8 event, u8 raw, u8 effective, u16 auxiliary, u8 reg, u8 status_before, u8 status_after, u16 address)

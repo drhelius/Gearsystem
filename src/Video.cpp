@@ -112,6 +112,7 @@ void Video::Init()
         m_SG1000_palette_555_rgb_sms,
         m_SG1000_palette_565_bgr_sms,
         m_SG1000_palette_555_bgr_sms);
+    InitOutputPalettes();
     Reset(false, false);
 }
 
@@ -1310,11 +1311,9 @@ void Video::Render32bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
     int overscan_color = m_bTMS9918 ? m_VdpRegister[7] & 0x0F : CachedColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
     int buffer_size = size * 4;    
     bool use_gg_palette = m_bGameGear && !m_bGameGearSMSMode;
-    int shift_g = use_gg_palette ? 4 : 2;
-    int shift_b = use_gg_palette ? 8 : 4;
-    int mask = use_gg_palette ? 0x0F : 0x03;
     bool bgr = (pixelFormat == GS_PIXEL_BGRA8888);
-    const u8* lut = use_gg_palette ? k4bitTo8bit : k2bitTo8bit;
+    int color_mask = use_gg_palette ? 0x0FFF : 0x003F;
+    const u32* output_palette = use_gg_palette ? m_GGOutputPalette32[bgr ? 1 : 0] : m_SMSOutputPalette32[bgr ? 1 : 0];
     const u8* sg1000_palette = m_pCartridge->IsSG1000II() ? kSG1000_palette_888_sg1000ii : (m_pCartridge->IsSG1000() ? kSG1000_palette_888_normal : kSG1000_palette_888_sms);
 
     if (m_bGameGear)
@@ -1377,10 +1376,8 @@ void Video::Render32bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
         }
         else
         {
-            dstFrameBuffer[j + 0] = lut[bgr ? (src_color >> shift_b) & mask : src_color & mask];
-            dstFrameBuffer[j + 1] = lut[(src_color >> shift_g) & mask];
-            dstFrameBuffer[j + 2] = lut[bgr ? src_color & mask : (src_color >> shift_b) & mask];
-            dstFrameBuffer[j + 3] = 0xFF;
+            u32 output_color = output_palette[src_color & color_mask];
+            memcpy(&dstFrameBuffer[j], &output_color, sizeof(output_color));
         }
     }
 }
@@ -1399,14 +1396,11 @@ void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
     int overscan_color = m_bTMS9918 ? m_VdpRegister[7] & 0x0F : CachedColorFromPalette((m_VdpRegister[7] & 0x0F) + 16);
     int buffer_size = size * 2;    
     bool use_gg_palette = m_bGameGear && !m_bGameGearSMSMode;
-    int shift_g = use_gg_palette ? 4 : 2;
-    int shift_b = use_gg_palette ? 8 : 4;
-    int mask = use_gg_palette ? 0x0F : 0x03;
     bool bgr = ((pixelFormat == GS_PIXEL_BGR555) || (pixelFormat == GS_PIXEL_BGR565));
     bool green_6bit = (pixelFormat == GS_PIXEL_RGB565) || (pixelFormat == GS_PIXEL_BGR565);
-    const u8* lut = use_gg_palette ? k4bitTo5bit : k2bitTo5bit;
-    const u8* lut_g = use_gg_palette ? (green_6bit ? k4bitTo6bit : k4bitTo5bit) : (green_6bit ? k2bitTo6bit : k2bitTo5bit);
-    int shift = green_6bit ? 11 : 10;
+    int format = (bgr ? 2 : 0) + (green_6bit ? 0 : 1);
+    int color_mask = use_gg_palette ? 0x0FFF : 0x003F;
+    const u16* output_palette = use_gg_palette ? m_GGOutputPalette16[format] : m_SMSOutputPalette16[format];
     const u16* pal;
 
     if (m_pCartridge->IsSG1000II())
@@ -1488,13 +1482,8 @@ void Video::Render16bit(u16* srcFrameBuffer, u8* dstFrameBuffer, GS_Color_Format
         }
         else
         {
-            u8 red, green, blue;
-
-            red = bgr ? (src_color >> shift_b) & mask : src_color & mask;
-            green = (src_color >> shift_g) & mask;
-            blue = bgr ? src_color & mask : (src_color >> shift_b) & mask;
-
-            *(u16*)(&dstFrameBuffer[j]) = (lut[red] << shift) | (lut_g[green] << 5) | lut[blue];
+            u16 output_color = output_palette[src_color & color_mask];
+            memcpy(&dstFrameBuffer[j], &output_color, sizeof(output_color));
         }
     }
 }
@@ -1661,6 +1650,55 @@ void Video::InitPalettes(const u8* src, u16* dest_565_rgb, u16* dest_555_rgb, u1
         dest_555_rgb[i] = red_5 << 10 | green_5 << 5 | blue_5;
         dest_565_bgr[i] = blue_5 << 11 | green_6 << 5 | red_5;
         dest_555_bgr[i] = blue_5 << 10 | green_5 << 5 | red_5;
+    }
+}
+
+void Video::InitOutputPalettes()
+{
+    for (int color = 0; color < 64; color++)
+    {
+        u8 red = color & 0x03;
+        u8 green = (color >> 2) & 0x03;
+        u8 blue = (color >> 4) & 0x03;
+        u8* rgba = (u8*)&m_SMSOutputPalette32[0][color];
+        u8* bgra = (u8*)&m_SMSOutputPalette32[1][color];
+
+        rgba[0] = k2bitTo8bit[red];
+        rgba[1] = k2bitTo8bit[green];
+        rgba[2] = k2bitTo8bit[blue];
+        rgba[3] = 0xFF;
+        bgra[0] = k2bitTo8bit[blue];
+        bgra[1] = k2bitTo8bit[green];
+        bgra[2] = k2bitTo8bit[red];
+        bgra[3] = 0xFF;
+
+        m_SMSOutputPalette16[0][color] = (k2bitTo5bit[red] << 11) | (k2bitTo6bit[green] << 5) | k2bitTo5bit[blue];
+        m_SMSOutputPalette16[1][color] = (k2bitTo5bit[red] << 10) | (k2bitTo5bit[green] << 5) | k2bitTo5bit[blue];
+        m_SMSOutputPalette16[2][color] = (k2bitTo5bit[blue] << 11) | (k2bitTo6bit[green] << 5) | k2bitTo5bit[red];
+        m_SMSOutputPalette16[3][color] = (k2bitTo5bit[blue] << 10) | (k2bitTo5bit[green] << 5) | k2bitTo5bit[red];
+    }
+
+    for (int color = 0; color < 4096; color++)
+    {
+        u8 red = color & 0x0F;
+        u8 green = (color >> 4) & 0x0F;
+        u8 blue = (color >> 8) & 0x0F;
+        u8* rgba = (u8*)&m_GGOutputPalette32[0][color];
+        u8* bgra = (u8*)&m_GGOutputPalette32[1][color];
+
+        rgba[0] = k4bitTo8bit[red];
+        rgba[1] = k4bitTo8bit[green];
+        rgba[2] = k4bitTo8bit[blue];
+        rgba[3] = 0xFF;
+        bgra[0] = k4bitTo8bit[blue];
+        bgra[1] = k4bitTo8bit[green];
+        bgra[2] = k4bitTo8bit[red];
+        bgra[3] = 0xFF;
+
+        m_GGOutputPalette16[0][color] = (k4bitTo5bit[red] << 11) | (k4bitTo6bit[green] << 5) | k4bitTo5bit[blue];
+        m_GGOutputPalette16[1][color] = (k4bitTo5bit[red] << 10) | (k4bitTo5bit[green] << 5) | k4bitTo5bit[blue];
+        m_GGOutputPalette16[2][color] = (k4bitTo5bit[blue] << 11) | (k4bitTo6bit[green] << 5) | k4bitTo5bit[red];
+        m_GGOutputPalette16[3][color] = (k4bitTo5bit[blue] << 10) | (k4bitTo5bit[green] << 5) | k4bitTo5bit[red];
     }
 }
 
