@@ -101,25 +101,25 @@ public:
     bool IsGameGear() const;
     bool IsGameGearInSMSMode() const;
     int GetGameGearASIC() const;
-    bool IsSG1000() const;
+    INLINE bool IsSG1000() const;
     bool IsSG1000II() const;
     bool IsPAL() const;
     bool IsValidROM() const;
     bool IsReady() const;
     bool IsInGameDatabase() const;
     const char* GetGameDatabaseName() const;
-    bool HasRAMWithoutBattery() const;
+    INLINE bool HasRAMWithoutBattery() const;
     CartridgeTypes GetType() const;
     CartridgeZones GetZone() const;
     void ForceConfig(ForceConfiguration config);
     int GetFeatures() const;
-    int GetROMSize() const;
-    int GetROMBankCount() const;
-    int GetROMBankCount8k() const;
+    INLINE int GetROMSize() const;
+    INLINE int GetROMBankCount() const;
+    INLINE int GetROMBankCount8k() const;
     const char* GetFilePath() const;
     const char* GetFileName() const;
     const char* GetFileDirectory() const;
-    u8* GetROM() const;
+    INLINE u8* GetROM() const;
     bool LoadFromFile(const char* path);
     bool LoadFromBuffer(const u8* buffer, int size, const char* path = NULL);
     void SetGameGenieCheat(const char* szCheat);
@@ -166,5 +166,35 @@ private:
 
     std::list<GameGenieCode> m_GameGenieList;
 };
+
+INLINE bool Cartridge::IsSG1000() const
+{
+    return m_bSG1000;
+}
+
+INLINE bool Cartridge::HasRAMWithoutBattery() const
+{
+    return m_bRAMWithoutBattery;
+}
+
+INLINE int Cartridge::GetROMSize() const
+{
+    return m_iROMSize;
+}
+
+INLINE int Cartridge::GetROMBankCount() const
+{
+    return m_iROMBankCount16k;
+}
+
+INLINE int Cartridge::GetROMBankCount8k() const
+{
+    return m_iROMBankCount8k;
+}
+
+INLINE u8* Cartridge::GetROM() const
+{
+    return m_pROM;
+}
 
 #endif	/* CARTRIDGE_H */

@@ -112,11 +112,6 @@ int Cartridge::GetGameGearASIC() const
     return m_iGameGearASIC;
 }
 
-bool Cartridge::IsSG1000() const
-{
-    return m_bSG1000;
-}
-
 bool Cartridge::IsSG1000II() const
 {
     return m_bSG1000II;
@@ -145,11 +140,6 @@ bool Cartridge::IsInGameDatabase() const
 const char* Cartridge::GetGameDatabaseName() const
 {
     return m_pGameDatabaseName;
-}
-
-bool Cartridge::HasRAMWithoutBattery() const
-{
-    return m_bRAMWithoutBattery;
 }
 
 Cartridge::CartridgeTypes Cartridge::GetType() const
@@ -382,21 +372,6 @@ int Cartridge::GetFeatures() const
     return m_iFeatures;
 }
 
-int Cartridge::GetROMSize() const
-{
-    return m_iROMSize;
-}
-
-int Cartridge::GetROMBankCount() const
-{
-    return m_iROMBankCount16k;
-}
-
-int Cartridge::GetROMBankCount8k() const
-{
-    return m_iROMBankCount8k;
-}
-
 const char* Cartridge::GetFilePath() const
 {
     return m_szFilePath;
@@ -410,11 +385,6 @@ const char* Cartridge::GetFileName() const
 const char* Cartridge::GetFileDirectory() const
 {
     return m_szFileDirectory;
-}
-
-u8* Cartridge::GetROM() const
-{
-    return m_pROM;
 }
 
 bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
