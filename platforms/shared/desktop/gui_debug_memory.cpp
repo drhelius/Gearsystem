@@ -33,10 +33,15 @@ static MemEditor mem_edit[MEMORY_EDITOR_MAX];
 static int mem_edit_select = -1;
 static int current_mem_edit = 0;
 static char set_value_buffer[5] = { };
+static const int DEBUG_MEMORY_MAX_SETTINGS_RECORDS = 0x10000;
 
 static void memory_editor_menu(void);
 static void draw_tabs(void);
 static void draw_single_tab(int i);
+static bool memory_settings_read_data(std::istream& stream, void* data, size_t size);
+static bool memory_settings_read_count(std::istream& stream, int& count, size_t record_size);
+static bool memory_settings_read_editor(std::istream& stream, std::vector<MemEditor::Bookmark>& bookmarks,
+    std::vector<MemEditor::Watch>& watches, u32& total_records);
 
 void gui_debug_memory_init(void)
 {
@@ -644,10 +649,102 @@ void gui_debug_memory_save_settings(std::ostream& stream)
     }
 }
 
-void gui_debug_memory_load_settings(std::istream& stream)
+bool gui_debug_memory_load_settings(std::istream& stream)
 {
+    std::vector<MemEditor::Bookmark> bookmarks[MEMORY_EDITOR_MAX];
+    std::vector<MemEditor::Watch> watches[MEMORY_EDITOR_MAX];
+    u32 total_records = 0;
+
     for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
     {
-        mem_edit[i].LoadSettings(stream);
+        if (!memory_settings_read_editor(stream, bookmarks[i], watches[i], total_records))
+            return false;
     }
+
+    for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
+    {
+        mem_edit[i].GetBookmarks()->swap(bookmarks[i]);
+        mem_edit[i].GetWatches()->swap(watches[i]);
+    }
+
+    return true;
+}
+
+static bool memory_settings_read_data(std::istream& stream, void* data, size_t size)
+{
+    stream.read((char*)data, (std::streamsize)size);
+    return !stream.fail() && stream.gcount() == (std::streamsize)size;
+}
+
+static bool memory_settings_read_count(std::istream& stream, int& count, size_t record_size)
+{
+    if (!memory_settings_read_data(stream, &count, sizeof(count)))
+        return false;
+    if (count < 0 || count > DEBUG_MEMORY_MAX_SETTINGS_RECORDS || record_size == 0)
+        return false;
+
+    std::streampos position = stream.tellg();
+    if (position == std::streampos(-1))
+        return false;
+
+    stream.seekg(0, std::ios::end);
+    std::streampos end = stream.tellg();
+    if (end == std::streampos(-1))
+        return false;
+
+    stream.seekg(position);
+    if (stream.fail() || end < position)
+        return false;
+
+    u64 remaining = (u64)(end - position);
+    return (u64)count <= remaining / record_size;
+}
+
+static bool memory_settings_read_editor(std::istream& stream, std::vector<MemEditor::Bookmark>& bookmarks,
+    std::vector<MemEditor::Watch>& watches, u32& total_records)
+{
+    MemEditor::Bookmark bookmark = {};
+    size_t bookmark_size = sizeof(bookmark.address) + sizeof(bookmark.name);
+    int bookmark_count = 0;
+    if (!memory_settings_read_count(stream, bookmark_count, bookmark_size) ||
+        (u32)bookmark_count > DEBUG_MEMORY_MAX_SETTINGS_RECORDS - total_records)
+        return false;
+
+    total_records += (u32)bookmark_count;
+    bookmarks.reserve((size_t)bookmark_count);
+    for (int i = 0; i < bookmark_count; i++)
+    {
+        MemEditor::Bookmark item = {};
+        if (!memory_settings_read_data(stream, &item.address, sizeof(item.address)) ||
+            !memory_settings_read_data(stream, item.name, sizeof(item.name)))
+            return false;
+
+        item.name[sizeof(item.name) - 1] = 0;
+        bookmarks.push_back(item);
+    }
+
+    MemEditor::Watch watch = {};
+    size_t watch_size = sizeof(watch.address) + sizeof(watch.notes) +
+        sizeof(watch.size) + sizeof(watch.format);
+    int watch_count = 0;
+    if (!memory_settings_read_count(stream, watch_count, watch_size) ||
+        (u32)watch_count > DEBUG_MEMORY_MAX_SETTINGS_RECORDS - total_records)
+        return false;
+
+    total_records += (u32)watch_count;
+    watches.reserve((size_t)watch_count);
+    for (int i = 0; i < watch_count; i++)
+    {
+        MemEditor::Watch item = {};
+        if (!memory_settings_read_data(stream, &item.address, sizeof(item.address)) ||
+            !memory_settings_read_data(stream, item.notes, sizeof(item.notes)) ||
+            !memory_settings_read_data(stream, &item.size, sizeof(item.size)) ||
+            !memory_settings_read_data(stream, &item.format, sizeof(item.format)))
+            return false;
+
+        item.notes[sizeof(item.notes) - 1] = 0;
+        watches.push_back(item);
+    }
+
+    return true;
 }
