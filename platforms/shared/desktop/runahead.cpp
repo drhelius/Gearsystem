@@ -59,11 +59,14 @@ void runahead_run(int frames, u8* frame_buffer, s16* sample_buffer, int* sample_
     GearsystemCore* core = emu_get_core();
 
     // Run the authoritative frame, keeping its audio while the real state advances.
-    core->RunToVBlank(frame_buffer, sample_buffer, sample_count);
+    core->RunToVBlank(frame_buffer, sample_buffer, sample_count, NULL, false);
 
     // Allocate the reusable snapshot buffer on first use.
     if (!IsValidPointer(runahead_buffer) && !ensure_buffer())
+    {
+        core->RenderFrameBuffer(frame_buffer);
         return;
+    }
 
     size_t saved_size = runahead_buffer_size;
     if (!core->SaveState(runahead_buffer, saved_size, false))
@@ -71,6 +74,7 @@ void runahead_run(int frames, u8* frame_buffer, s16* sample_buffer, int* sample_
         // The state outgrew the buffer. Grow it once and skip speculation this
         // frame; later frames reuse the larger buffer.
         ensure_buffer();
+        core->RenderFrameBuffer(frame_buffer);
         return;
     }
 
@@ -79,7 +83,8 @@ void runahead_run(int frames, u8* frame_buffer, s16* sample_buffer, int* sample_
     for (int i = 0; i < frames; i++)
     {
         int discarded_samples = 0;
-        core->RunToVBlank(frame_buffer, runahead_audio, &discarded_samples);
+        bool render = (i == (frames - 1));
+        core->RunToVBlank(frame_buffer, runahead_audio, &discarded_samples, NULL, render);
     }
 
     // Roll back to the authoritative frame. If restoring ever fails, the

@@ -169,7 +169,7 @@ void GearsystemCore::Init(GS_Color_Format pixelFormat)
     InitMemoryRules();
 }
 
-bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, GS_Debug_Run* debug)
+bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, GS_Debug_Run* debug, bool render)
 {
     m_pFrameBuffer = pFrameBuffer;
 
@@ -220,7 +220,8 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
         while (!vblank);
 
         m_pAudio->EndFrame(pSampleBuffer, pSampleCount);
-        RenderFrameBuffer(pFrameBuffer);
+        if (render)
+            RenderFrameBuffer(pFrameBuffer);
 
         return m_pProcessor->BreakpointHit() || m_pProcessor->RunToBreakpointHit();
 #else
@@ -242,7 +243,8 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
         while (!vblank);
 
         m_pAudio->EndFrame(pSampleBuffer, pSampleCount);
-        RenderFrameBuffer(pFrameBuffer);
+        if (render)
+            RenderFrameBuffer(pFrameBuffer);
 
         return false;
 #endif
