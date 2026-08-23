@@ -76,6 +76,7 @@ static bool was_exclusive_fullscreen = false;
 #endif
 
 static void SDLCALL file_dialog_callback(void* userdata, const char* const* filelist, int filter);
+static const char* get_save_file_extension(FileDialogID id);
 static void process_dialog_result(FileDialogID id, const char* path);
 
 static bool begin_dialog(void)
@@ -93,6 +94,35 @@ static bool begin_dialog(void)
 #endif
 
     return true;
+}
+
+static const char* get_save_file_extension(FileDialogID id)
+{
+    switch (id)
+    {
+        case FileDialog_SaveRAM:
+            return ".sav";
+        case FileDialog_SaveState:
+            return ".state";
+        case FileDialog_SaveScreenshot:
+        case FileDialog_SaveSprite:
+        case FileDialog_SaveBackground:
+        case FileDialog_SaveTiles:
+            return ".png";
+        case FileDialog_SaveVGM:
+            return ".vgm";
+        case FileDialog_SaveMemoryDumpBinary:
+            return ".bin";
+        case FileDialog_SaveMemoryDumpText:
+        case FileDialog_SaveDisassemblerFull:
+        case FileDialog_SaveDisassemblerVisible:
+        case FileDialog_SaveLog:
+            return ".txt";
+        case FileDialog_SaveDebugSettings:
+            return ".ggdebug";
+        default:
+            return NULL;
+    }
 }
 
 void gui_file_dialog_open_rom(void)
@@ -369,6 +399,9 @@ static void SDLCALL file_dialog_callback(void* userdata, const char* const* file
 
     pending_dialog_id = id;
     pending_dialog_path = filelist[0];
+    const char* extension = get_save_file_extension(id);
+    if (extension)
+        append_extension_if_missing(pending_dialog_path, extension);
 }
 
 static void process_dialog_result(FileDialogID id, const char* path)
