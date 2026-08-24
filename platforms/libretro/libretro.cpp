@@ -23,6 +23,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include <math.h>
+#include <string>
+#include <vector>
 
 #include "libretro.h"
 #include "../../src/gearsystem.h"
@@ -80,6 +82,7 @@ static u8* frame_buffer;
 static Cartridge::ForceConfiguration config;
 static GearsystemCore::GlassesConfig glasses_config;
 static const retro_vfs_interface* vfs_interface = NULL;
+static std::vector<std::string> libretro_cheats;
 
 static void load_bootroms(void);
 static void set_controller_info(void);
@@ -89,6 +92,24 @@ static void apply_controller_device(unsigned port, unsigned device, bool log_dev
 static void release_controller_input(unsigned port);
 static void update_input(void);
 static void check_variables(void);
+
+static void apply_cheats(void)
+{
+    core->ClearCheats();
+
+    for (size_t i = 0; i < libretro_cheats.size(); i++)
+    {
+        if (!libretro_cheats[i].empty())
+            core->SetCheat(libretro_cheats[i].c_str());
+    }
+}
+
+static void clear_cheats(void)
+{
+    libretro_cheats.clear();
+    if (IsValidPointer(core))
+        core->ClearCheats();
+}
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 {
@@ -190,6 +211,7 @@ void retro_init(void)
 
 void retro_deinit(void)
 {
+    clear_cheats();
     SafeDeleteArray(frame_buffer);
     SafeDelete(core);
     vfs_interface = NULL;
@@ -350,6 +372,7 @@ bool retro_load_game(const struct retro_game_info *info)
     if (!info)
         return false;
 
+    clear_cheats();
     core->GetCartridge()->Reset();
     check_variables();
     load_bootroms();
@@ -397,6 +420,7 @@ bool retro_load_game(const struct retro_game_info *info)
 
 void retro_unload_game(void)
 {
+    clear_cheats();
 }
 
 unsigned retro_get_region(void)
@@ -457,16 +481,24 @@ size_t retro_get_memory_size(unsigned id)
 
 void retro_cheat_reset(void)
 {
-    core->ClearCheats();
+    clear_cheats();
 }
 
 void retro_cheat_set(unsigned index, bool enabled, const char *code)
 {
-    if (code == NULL)
-        return;
-
     if (enabled)
-        core->SetCheat(code);
+    {
+        if (index >= libretro_cheats.size())
+            libretro_cheats.resize(index + 1);
+
+        libretro_cheats[index] = code ? code : "";
+    }
+    else if (index < libretro_cheats.size())
+    {
+        libretro_cheats[index].clear();
+    }
+
+    apply_cheats();
 }
 
 static bool load_bootrom_file(const char* path, bool gg)
