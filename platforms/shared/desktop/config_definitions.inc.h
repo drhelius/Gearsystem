@@ -20,6 +20,20 @@
 #include "config_macros.h"
 #include "shader_preset.h"
 
+#if defined(_WIN32)
+static const int config_geartogear_stall_default_us = 5000;
+static const int config_geartogear_stall_min_us = 1000;
+static const int config_geartogear_stall_max_us = 10000;
+#elif defined(__APPLE__)
+static const int config_geartogear_stall_default_us = 100;
+static const int config_geartogear_stall_min_us = 50;
+static const int config_geartogear_stall_max_us = 1000;
+#else
+static const int config_geartogear_stall_default_us = 250;
+static const int config_geartogear_stall_min_us = 50;
+static const int config_geartogear_stall_max_us = 2000;
+#endif
+
 static inline void process(config_Operation operation)
 {
     //**************************************
@@ -44,6 +58,9 @@ static inline void process(config_Operation operation)
     CONFIG_BOOL("Debug", "PSG", config_debug.show_psg, false);
     CONFIG_BOOL("Debug", "YM2413", config_debug.show_ym2413, false);
     CONFIG_BOOL("Debug", "TraceLogger", config_debug.show_trace_logger, false);
+    CONFIG_BOOL("Debug", "GameGearSerialRegisters", config_debug.show_geartogear_serial_registers, false);
+    CONFIG_BOOL("Debug", "GameGearSerialStatus", config_debug.show_geartogear_serial_status, false);
+    CONFIG_BOOL("Debug", "GearToGearTransport", config_debug.show_geartogear_transport, false);
     CONFIG_BOOL("Debug", "Rewind", config_debug.show_rewind, false);
 
     // Trace logger
@@ -59,12 +76,14 @@ static inline void process(config_Operation operation)
     CONFIG_BOOL("Debug", "TraceVdp", config_debug.trace_vdp, false);
     CONFIG_BOOL("Debug", "TraceInput", config_debug.trace_input, false);
     CONFIG_BOOL("Debug", "TraceIo", config_debug.trace_io, false);
+    CONFIG_BOOL("Debug", "TraceGearToGear", config_debug.trace_geartogear, false);
     CONFIG_BOOL("Debug", "TracePsg", config_debug.trace_psg, false);
     CONFIG_BOOL("Debug", "TraceYm2413", config_debug.trace_ym2413, false);
     CONFIG_BOOL("Debug", "TraceMapper", config_debug.trace_mapper, false);
     CONFIG_INT_RANGE("Debug", "TraceVdpEvents", config_debug.trace_vdp_events, TRACE_VDP_EVENT_ALL, 0, TRACE_VDP_EVENT_ALL);
     CONFIG_INT_RANGE("Debug", "TraceInputEvents", config_debug.trace_input_events, TRACE_INPUT_EVENT_ALL, 0, TRACE_INPUT_EVENT_ALL);
     CONFIG_INT_RANGE("Debug", "TraceIoEvents", config_debug.trace_io_events, TRACE_IO_EVENT_ALL, 0, TRACE_IO_EVENT_ALL);
+    CONFIG_INT_RANGE("Debug", "TraceGearToGearEvents", config_debug.trace_geartogear_events, TRACE_GEARTOGEAR_EVENT_ALL, 0, TRACE_GEARTOGEAR_EVENT_ALL);
     CONFIG_INT_RANGE("Debug", "TracePsgEvents", config_debug.trace_psg_events, TRACE_PSG_EVENT_ALL, 0, TRACE_PSG_EVENT_ALL);
     CONFIG_INT_RANGE("Debug", "TraceYm2413Events", config_debug.trace_ym2413_events, TRACE_YM2413_EVENT_ALL, 0, TRACE_YM2413_EVENT_ALL);
     CONFIG_INT_RANGE("Debug", "TraceMapperEvents", config_debug.trace_mapper_events, TRACE_MAPPER_EVENT_ALL, 0, TRACE_MAPPER_EVENT_ALL);
@@ -159,6 +178,9 @@ static inline void process(config_Operation operation)
     // Services
     CONFIG_INT("Emulator", "MCPTCPPort", config_emulator.mcp_tcp_port, 7777);
     CONFIG_STRING_NOT_EMPTY("Emulator", "MCPHTTPAddress", config_emulator.mcp_http_address, "127.0.0.1");
+    CONFIG_INT_RANGE("Emulator", "GearToGearSession", config_emulator.geartogear_session, 1, 1, 255);
+    CONFIG_INT_RANGE("Emulator", "GearToGearStallUs", config_emulator.geartogear_stall_us,
+        config_geartogear_stall_default_us, config_geartogear_stall_min_us, config_geartogear_stall_max_us);
 
     //**************************************
     // Video
@@ -414,6 +436,27 @@ static void migrate(int file_version)
         write_int("Debug", "TraceYm2413Events", TRACE_YM2413_EVENT_ALL);
         write_int("Debug", "TraceMapperEvents", TRACE_MAPPER_EVENT_ALL);
         write_bool("Debug", "TraceCycles", false);
+    }
+
+    if (file_version < 7)
+    {
+        if (read_bool("Debug", "GearToGear", false))
+        {
+            write_bool("Debug", "GameGearSerial", true);
+            write_bool("Debug", "GearToGearTransport", true);
+        }
+
+        if (read_int("Emulator", "GearToGearStallUs", 0) == 0)
+        {
+            write_int("Emulator", "GearToGearStallUs",
+                config_geartogear_stall_default_us);
+        }
+    }
+
+    if (file_version < 8 && read_bool("Debug", "GameGearSerial", false))
+    {
+        write_bool("Debug", "GameGearSerialRegisters", true);
+        write_bool("Debug", "GameGearSerialStatus", true);
     }
 
     int scale = 0;

@@ -313,14 +313,14 @@ void McpServer::HandleInitialize(const json& request)
         {"serverInfo", {
             {"name", "gearsystem-mcp-server"},
             {"title", GS_TITLE " MCP Server"},
-            {"description", "Debug/control " GS_TITLE " SMS/Game Gear/SG-1000: execution, breakpoints, memory, Z80 CPU, VDP, SN76489 PSG, YM2413 FM, disassembly, symbols, sprites, save states, rewind, input, screenshots."},
+            {"description", "Debug/control " GS_TITLE " SMS/Game Gear/SG-1000: execution, breakpoints, memory, Z80 CPU, VDP, SN76489 PSG, YM2413 FM, Gear-to-Gear link cable, disassembly, symbols, sprites, save states, rewind, input, screenshots."},
             {"version", GS_VERSION}
         }}
     };
 
     response["result"]["instructions"] =
         "Use this server for Master System, Game Gear, and SG-1000 game debugging, reverse engineering, "
-        "memory inspection, Z80 tracing, breakpoints, VDP, SN76489 PSG, YM2413 FM, sprites, save states, "
+        "memory inspection, Z80 tracing, breakpoints, VDP, SN76489 PSG, YM2413 FM, Gear-to-Gear link cable, sprites, save states, "
         "rewind, input, and screenshots.";
 
     if (g_mcp_router_enabled)
@@ -779,6 +779,28 @@ json McpServer::BuildToolList()
         {"inputSchema", {
             {"type", "object"},
             {"properties", json::object()},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "get_serial_status"},
+        {"title", "Get Serial / Gear-to-Gear Status"},
+        {"description", "Read Game Gear serial, parallel/NMI, physical-wire, and Gear-to-Gear transport status."},
+        {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"additionalProperties", false}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "reset_geartogear_metrics"},
+        {"title", "Reset Gear-to-Gear Metrics"},
+        {"description", "Reset Gear-to-Gear transport and stall diagnostics."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
             {"additionalProperties", false}
         }}
     });
@@ -1622,6 +1644,8 @@ json McpServer::BuildToolList()
                         "cpu.instructions", "cpu.interrupts", "vdp.registers", "vdp.interrupts", "vdp.status",
                         "vdp.sprites", "vdp.state", "vdp.data", "vdp.cram", "input.reads", "input.changes",
                         "io.control", "io.counters", "io.gamegear", "psg.tone", "psg.volume", "psg.noise",
+                        "geartogear.cable", "geartogear.transfers",
+                        "geartogear.interrupts", "geartogear.wire",
                         "psg.stereo", "ym2413.registers", "ym2413.mixer", "mapper.rom", "mapper.ram",
                         "mapper.control", "mapper.eeprom", "mapper.flash"})}}}
                 }}
@@ -2380,6 +2404,14 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
     else if (normalizedTool == "get_ym2413_status")
     {
         return m_debugAdapter.GetYM2413Status();
+    }
+    else if (normalizedTool == "get_serial_status")
+    {
+        return m_debugAdapter.GetSerialStatus();
+    }
+    else if (normalizedTool == "reset_geartogear_metrics")
+    {
+        return m_debugAdapter.ResetGearToGearMetrics();
     }
     else if (normalizedTool == "get_screenshot")
     {

@@ -24,7 +24,7 @@
 #include <string>
 #include "gearsystem.h"
 
-static const int config_version = 5;
+static const int config_version = 8;
 static const int config_minimum_version = 2;
 static const int config_max_recent_roms = 10;
 static const int config_memory_editor_count = 18;
@@ -96,6 +96,8 @@ struct config_Emulator
     bool capture_mouse;
     int mcp_tcp_port;
     std::string mcp_http_address;
+    int geartogear_session;
+    int geartogear_stall_us;
 };
 
 struct config_Video
@@ -222,6 +224,9 @@ struct config_Debug
     bool show_psg;
     bool show_ym2413;
     bool show_trace_logger;
+    bool show_geartogear_serial_registers;
+    bool show_geartogear_serial_status;
+    bool show_geartogear_transport;
     bool show_rewind;
     bool trace_counter;
     bool trace_cycles;
@@ -235,12 +240,14 @@ struct config_Debug
     bool trace_vdp;
     bool trace_input;
     bool trace_io;
+    bool trace_geartogear;
     bool trace_psg;
     bool trace_ym2413;
     bool trace_mapper;
     int trace_vdp_events;
     int trace_input_events;
     int trace_io_events;
+    int trace_geartogear_events;
     int trace_psg_events;
     int trace_ym2413_events;
     int trace_mapper_events;

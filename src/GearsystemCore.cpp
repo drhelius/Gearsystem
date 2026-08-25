@@ -92,6 +92,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pIratahackMemoryRule);
     InitPointer(m_trace_logger);
     m_master_clock_cycles = 0;
+    m_geartogear_cycles = 0;
     m_bPaused = true;
     m_pixelFormat = GS_PIXEL_RGBA8888;
     m_GlassesConfig = GearsystemCore::GlassesBothEyes;
@@ -147,7 +148,7 @@ void GearsystemCore::Init(GS_Color_Format pixelFormat)
     m_pInput = new Input(m_pProcessor, m_pVideo);
     m_pAudio = new Audio(m_pCartridge);
     m_pSmsIOPorts = new SmsIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge, m_pMemory, m_pProcessor);
-    m_pGameGearIOPorts = new GameGearIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge, m_pMemory);
+    m_pGameGearIOPorts = new GameGearIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge, m_pMemory, m_pProcessor);
 
     m_pMemory->Init();
     m_pProcessor->Init();
@@ -189,9 +190,18 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
 
         do
         {
+            u64 link_start_cycle = m_geartogear_cycles;
+            if (IsNativeGameGearMode())
+                m_pGameGearIOPorts->BeginInstruction(link_start_cycle);
+
             unsigned int clockCycles = debug_enable && debug->step_debugger ? m_pProcessor->RunInstruction() : m_pProcessor->RunFor(1);
             instruction_completed = true;
             m_master_clock_cycles += clockCycles;
+            m_geartogear_cycles += clockCycles;
+
+            if (IsNativeGameGearMode())
+                m_pGameGearIOPorts->EndInstruction(m_geartogear_cycles);
+
             vblank = m_pVideo->Tick(clockCycles);
             m_pAudio->Tick(clockCycles);
             totalClocks += clockCycles;
@@ -231,8 +241,17 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
 
         do
         {
+            u64 link_start_cycle = m_geartogear_cycles;
+            if (IsNativeGameGearMode())
+                m_pGameGearIOPorts->BeginInstruction(link_start_cycle);
+
             unsigned int clockCycles = m_pProcessor->RunFor(1);
             m_master_clock_cycles += clockCycles;
+            m_geartogear_cycles += clockCycles;
+
+            if (IsNativeGameGearMode())
+                m_pGameGearIOPorts->EndInstruction(m_geartogear_cycles);
+
             vblank = m_pVideo->Tick(clockCycles);
             m_pAudio->Tick(clockCycles);
             totalClocks += clockCycles;
@@ -428,6 +447,44 @@ u64 GearsystemCore::GetMasterClockCycles()
 void GearsystemCore::SetMasterClockCycles(u64 cycles)
 {
     m_master_clock_cycles = cycles;
+}
+
+void GearsystemCore::SetGearToGearCallbacks(
+    GS_GearToGear_Publish_Callback publish_callback,
+    GS_GearToGear_Sample_Callback sample_callback,
+    GS_GearToGear_Poll_Callback poll_callback,
+    GS_GearToGear_Fence_Callback fence_callback,
+    GS_GearToGear_Sync_Callback sync_callback,
+    void* user_data)
+{
+    m_pGameGearIOPorts->SetGearToGearCallbacks(publish_callback,
+        sample_callback, poll_callback, fence_callback, sync_callback, user_data);
+}
+
+void GearsystemCore::SetGearToGearTransportActive(bool active, u64 cycle)
+{
+    m_pGameGearIOPorts->SetGearToGearTransportActive(active, cycle);
+}
+
+void GearsystemCore::SetGearToGearCableConnected(bool connected, u64 cycle)
+{
+    m_pGameGearIOPorts->SetGearToGearCableConnected(connected, cycle);
+}
+
+bool GearsystemCore::IsNativeGameGearMode() const
+{
+    return m_pCartridge->IsReady() && m_pCartridge->IsGameGear() &&
+        !m_pCartridge->IsGameGearInSMSMode();
+}
+
+u64 GearsystemCore::GetGearToGearCycles() const
+{
+    return m_geartogear_cycles;
+}
+
+GameGearIOPorts* GearsystemCore::GetGameGearIOPorts()
+{
+    return m_pGameGearIOPorts;
 }
 
 TraceLogger* GearsystemCore::GetTraceLogger()
@@ -1027,7 +1084,7 @@ bool GearsystemCore::LoadState(std::istream& stream)
     m_pMemory->GetCurrentRule()->LoadState(stream, header.version);
     if (header.version >= 104)
         m_pMemory->GetBootromRule()->LoadState(stream, header.version);
-    m_pProcessor->GetIOPOrts()->LoadState(stream);
+    m_pProcessor->GetIOPOrts()->LoadState(stream, header.version);
 
     return true;
 }
@@ -1082,7 +1139,7 @@ bool GearsystemCore::LoadStateV1(std::istream& stream, size_t size)
     m_pVideo->LoadState(stream);
     m_pInput->LoadState(stream);
     m_pMemory->GetCurrentRule()->LoadState(stream, GS_SAVESTATE_VERSION_V1);
-    m_pProcessor->GetIOPOrts()->LoadState(stream);
+    m_pProcessor->GetIOPOrts()->LoadState(stream, GS_SAVESTATE_VERSION_V1);
 
     return true;
 }
@@ -1463,6 +1520,7 @@ void GearsystemCore::Reset()
     m_pEeprom93C46MemoryRule->Reset();
     m_pBootromMemoryRule->Reset();
     m_pGameGearIOPorts->Reset();
+    m_pGameGearIOPorts->RebaseGearToGear(m_geartogear_cycles);
     m_pSmsIOPorts->Reset();
     m_bPaused = false;
     m_master_clock_cycles = 0;

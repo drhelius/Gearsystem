@@ -31,7 +31,7 @@ public:
     virtual u8 DoInput(u8 port) = 0;
     virtual void DoOutput(u8 port, u8 value) = 0;
     virtual void SaveState(std::ostream& stream) = 0;
-    virtual void LoadState(std::istream& stream) = 0;
+    virtual void LoadState(std::istream& stream, int version) = 0;
 };
 
 #endif	/* IOPORTS_H */

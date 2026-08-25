@@ -77,6 +77,13 @@ void gui_action_pause(void)
 
 void gui_action_ffwd(void)
 {
+    if (emu_geartogear_is_active())
+    {
+        config_emulator.ffwd = false;
+        gui_set_status_message("Fast forward is disabled while Gear-to-Gear is active", 3000);
+        return;
+    }
+
     config_audio.sync = !config_emulator.ffwd;
 
     if (config_emulator.ffwd)
@@ -94,6 +101,12 @@ void gui_action_ffwd(void)
 
 void gui_action_rewind_pressed(void)
 {
+    if (emu_geartogear_is_active())
+    {
+        gui_set_status_message("Rewind is disabled while Gear-to-Gear is active", 3000);
+        return;
+    }
+
     if (emu_is_empty() || !config_rewind.enabled)
         return;
     if (rewind_get_snapshot_count() < 1)

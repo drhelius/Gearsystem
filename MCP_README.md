@@ -50,7 +50,7 @@ This server provides tools for game development, rom hacking, reverse engineerin
 - **Full Debugger Access**: CPU registers, memory inspection, breakpoints, and execution control
 - **Multiple Memory Areas**: Access RAM, VRAM, CRAM, ROM banks, external RAM, BIOS, and more
 - **Disassembly**: View disassembled Z80 code around PC or any address
-- **Hardware Inspection**: Z80 CPU, VDP, PSG, YM2413 FM synthesis
+- **Hardware Inspection**: Z80 CPU, VDP, PSG, YM2413 FM synthesis, and Game Gear link cable
 - **Sprite Viewer**: List and inspect all 64 sprites with images
 - **Symbol Support**: Add, remove, list, and look up debug symbols
 - **Input State**: Inspect effective pressed buttons and pending tap releases
@@ -379,7 +379,7 @@ The server exposes tools organized in the following categories:
 - `get_trace_log` - Read retained entries using absolute sequence pagination. Results include `total_entries`, monotonic `total_logged`, `oldest_sequence`, actual `start`, `next_sequence`, `count`, `overrun`, and formatted `lines`. Omit `start` for the latest 100 retained entries, or use a negative value to start that many entries from the retained tail; expired starts clamp to the oldest retained entry with `overrun=true`
 - `set_trace_log` - Start, stop, or reconfigure shared GUI/MCP capture. `output` is `memory` or `disk`; `memory_size` is `100K`, `500K`, `1M`, `2M`, or `5M`; `disk_size` is `10MB`, `50MB`, `100MB`, `250MB`, `500MB`, `1GB`, or `unbounded`; `output_path` is a directory. Omitting `filters` selects CPU instructions and interrupts
 
-Exact trace filters are `cpu.instructions`, `cpu.interrupts`, `vdp.registers`, `vdp.interrupts`, `vdp.status`, `vdp.sprites`, `vdp.state`, `vdp.data`, `vdp.cram`, `input.reads`, `input.changes`, `io.control`, `io.counters`, `io.gamegear`, `psg.tone`, `psg.volume`, `psg.noise`, `psg.stereo`, `ym2413.registers`, `ym2413.mixer`, `mapper.rom`, `mapper.ram`, `mapper.control`, `mapper.eeprom`, and `mapper.flash`. Game Gear `$00-$05` accesses are register events; no serial-transfer events are advertised because Gearsystem has no serial engine. Trace cycle values are Z80 T-states, and a `RESET` marker denotes a reset clock discontinuity while absolute sequence identity remains monotonic.
+Exact trace filters are `cpu.instructions`, `cpu.interrupts`, `vdp.registers`, `vdp.interrupts`, `vdp.status`, `vdp.sprites`, `vdp.state`, `vdp.data`, `vdp.cram`, `input.reads`, `input.changes`, `io.control`, `io.counters`, `io.gamegear`, `geartogear.cable`, `geartogear.transfers`, `geartogear.interrupts`, `geartogear.wire`, `psg.tone`, `psg.volume`, `psg.noise`, `psg.stereo`, `ym2413.registers`, `ym2413.mixer`, `mapper.rom`, `mapper.ram`, `mapper.control`, `mapper.eeprom`, and `mapper.flash`. Trace cycle values are Z80 T-states, and a `RESET` marker denotes a reset clock discontinuity while absolute sequence identity remains monotonic.
 
 ### Breakpoints
 - `set_breakpoint` - Set execution, read, or write breakpoint (supports 4 memory areas: rom_ram, vram, cram, vdp_reg)
@@ -393,6 +393,8 @@ Exact trace filters are `cpu.instructions`, `cpu.interrupts`, `vdp.registers`, `
 - `get_vdp_status` - Get VDP status (flags, counters, mode, SG-1000 mode, extended mode 224)
 - `get_psg_status` - Get SN76489 PSG status for all 4 channels (3 tone + 1 noise): volume, period, frequency, GG stereo
 - `get_ym2413_status` - Get YM2413 FM synth status: 9 channels, instruments, key-on, f-number, block, envelope, rhythm mode, user instrument
+- `get_serial_status` - Get Game Gear serial registers and engine state, parallel/NMI state, physical pins, peer readiness, synchronization diagnostics, and Gear-to-Gear transport metrics
+- `reset_geartogear_metrics` - Reset Gear-to-Gear transport and stall diagnostics
 
 ### Sprites
 - `list_sprites` - List all 64 sprites with position, size, pattern index

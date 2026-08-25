@@ -1,5 +1,5 @@
-; CRT Consumer + NTSC + Ghosting preset for Geargrafx.
-; Combines the Geargrafx NTSC color artifact pass, CRT Consumer, and feedback ghosting.
+; CRT Consumer + NTSC + Ghosting preset.
+; Combines the NTSC color artifact pass, CRT Consumer, and feedback ghosting.
 
 [Preset]
 Name=CRT Consumer + NTSC + Ghosting

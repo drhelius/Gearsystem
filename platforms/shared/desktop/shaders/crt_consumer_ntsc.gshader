@@ -1,4 +1,4 @@
-; CRT Consumer + NTSC preset for Geargrafx.
+; CRT Consumer + NTSC preset.
 ; Adds a color-only NTSC YIQ pass before the CRT Consumer pass.
 
 [Preset]

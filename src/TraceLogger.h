@@ -31,6 +31,7 @@ enum GS_Trace_Type : u8
     TRACE_VDP,
     TRACE_INPUT,
     TRACE_IO,
+    TRACE_GEARTOGEAR,
     TRACE_PSG,
     TRACE_YM2413,
     TRACE_MAPPER,
@@ -49,6 +50,7 @@ static_assert(TRACE_TYPE_COUNT < 32, "Trace category flags exceed 32 bits");
 #define TRACE_FLAG_VDP          (1U << TRACE_VDP)
 #define TRACE_FLAG_INPUT        (1U << TRACE_INPUT)
 #define TRACE_FLAG_IO           (1U << TRACE_IO)
+#define TRACE_FLAG_GEARTOGEAR   (1U << TRACE_GEARTOGEAR)
 #define TRACE_FLAG_PSG          (1U << TRACE_PSG)
 #define TRACE_FLAG_YM2413       (1U << TRACE_YM2413)
 #define TRACE_FLAG_MAPPER       (1U << TRACE_MAPPER)
@@ -111,6 +113,36 @@ enum GS_Trace_IO_Event : u8
 #define TRACE_IO_EVENT_COUNTERS ((1U << TRACE_IO_COUNTER_READ) | (1U << TRACE_IO_COUNTER_LATCH))
 #define TRACE_IO_EVENT_GAMEGEAR ((1U << TRACE_IO_GAMEGEAR_READ) | (1U << TRACE_IO_GAMEGEAR_WRITE))
 #define TRACE_IO_EVENT_ALL      (TRACE_IO_EVENT_CONTROL | TRACE_IO_EVENT_COUNTERS | TRACE_IO_EVENT_GAMEGEAR)
+
+enum GS_Trace_GearToGear_Event : u8
+{
+    TRACE_GEARTOGEAR_CABLE = 0,
+    TRACE_GEARTOGEAR_TX_START,
+    TRACE_GEARTOGEAR_TX_END,
+    TRACE_GEARTOGEAR_TX_ABORT,
+    TRACE_GEARTOGEAR_RX_START,
+    TRACE_GEARTOGEAR_RX_END,
+    TRACE_GEARTOGEAR_RX_ERROR,
+    TRACE_GEARTOGEAR_NMI,
+    TRACE_GEARTOGEAR_LOCAL_WIRE,
+    TRACE_GEARTOGEAR_REMOTE_WIRE,
+};
+
+#define TRACE_GEARTOGEAR_EVENT_CABLE      (1U << TRACE_GEARTOGEAR_CABLE)
+#define TRACE_GEARTOGEAR_EVENT_TRANSFERS  \
+    ((1U << TRACE_GEARTOGEAR_TX_START) | (1U << TRACE_GEARTOGEAR_TX_END) | \
+     (1U << TRACE_GEARTOGEAR_TX_ABORT) | (1U << TRACE_GEARTOGEAR_RX_START) | \
+     (1U << TRACE_GEARTOGEAR_RX_END) | (1U << TRACE_GEARTOGEAR_RX_ERROR))
+#define TRACE_GEARTOGEAR_EVENT_INTERRUPTS (1U << TRACE_GEARTOGEAR_NMI)
+#define TRACE_GEARTOGEAR_EVENT_WIRE       ((1U << TRACE_GEARTOGEAR_LOCAL_WIRE) | (1U << TRACE_GEARTOGEAR_REMOTE_WIRE))
+#define TRACE_GEARTOGEAR_EVENT_ALL        \
+    (TRACE_GEARTOGEAR_EVENT_CABLE | TRACE_GEARTOGEAR_EVENT_TRANSFERS | \
+     TRACE_GEARTOGEAR_EVENT_INTERRUPTS | TRACE_GEARTOGEAR_EVENT_WIRE)
+
+#define TRACE_GEARTOGEAR_FLAG_PARALLEL_NMI 0x01
+#define TRACE_GEARTOGEAR_FLAG_SERIAL_NMI   0x02
+#define TRACE_GEARTOGEAR_FLAG_NMI_ASSERTED 0x04
+#define TRACE_GEARTOGEAR_FLAG_NINT_ARMED   0x08
 
 enum GS_Trace_PSG_Event : u8
 {
@@ -244,6 +276,22 @@ struct GS_Trace_Entry
             u8 previous;
             u8 auxiliary;
         } io;
+
+        struct
+        {
+            u64 link_cycle;
+            u32 bit_cycles;
+            u8 event;
+            u8 data;
+            u8 control;
+            u8 flags;
+            u8 local_drive_mask;
+            u8 local_levels;
+            u8 remote_drive_mask;
+            u8 remote_levels;
+            u8 resolved_pins;
+            u8 contention_mask;
+        } geartogear;
 
         struct
         {

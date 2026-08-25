@@ -46,6 +46,9 @@
     <ClCompile Include="..\shared\desktop\gui_debug_psg.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
+    <ClCompile Include="..\shared\desktop\gui_debug_geartogear.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
     <ClCompile Include="..\shared\desktop\gui_debug_rewind.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
@@ -108,6 +111,9 @@
     </ClCompile>
     <ClCompile Include="..\shared\desktop\single_instance.cpp">
       <Filter>desktop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\desktop\geartogear\geartogear_manager.cpp">
+      <Filter>desktop\Gear-to-Gear</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Audio.cpp">
       <Filter>src</Filter>
@@ -330,6 +336,9 @@
     <ClInclude Include="..\shared\desktop\gui_debug_psg.h">
       <Filter>desktop</Filter>
     </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_debug_geartogear.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
     <ClInclude Include="..\shared\desktop\gui_debug_rewind.h">
       <Filter>desktop</Filter>
     </ClInclude>
@@ -410,6 +419,15 @@
     </ClInclude>
     <ClInclude Include="..\shared\desktop\single_instance.h">
       <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\geartogear\geartogear_manager.h">
+      <Filter>desktop\Gear-to-Gear</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\geartogear\geartogear_wire.h">
+      <Filter>desktop\Gear-to-Gear</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\geartogear.h">
+      <Filter>desktop\Gear-to-Gear</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\keyboard.h">
       <Filter>desktop</Filter>
@@ -665,6 +683,9 @@
     </Filter>
     <Filter Include="desktop">
       <UniqueIdentifier>{b305c14e-49f4-4f2f-9d40-5b15a839fbb7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="desktop\Gear-to-Gear">
+      <UniqueIdentifier>{f5ca7f39-e70f-4e2e-8ef8-b25d63b25aa2}</UniqueIdentifier>
     </Filter>
     <Filter Include="dependencies\miniz">
       <UniqueIdentifier>{466b2296-06dc-4afd-a898-3c4ed168681e}</UniqueIdentifier>

@@ -23,6 +23,7 @@
 #include "definitions.h"
 #include "Cartridge.h"
 #include "Video.h"
+#include "geartogear.h"
 
 class Memory;
 class Processor;
@@ -122,6 +123,18 @@ public:
     void SetGlassesConfig(GlassesConfig config);
     u64 GetMasterClockCycles();
     void SetMasterClockCycles(u64 cycles);
+    void SetGearToGearCallbacks(
+        GS_GearToGear_Publish_Callback publish_callback,
+        GS_GearToGear_Sample_Callback sample_callback,
+        GS_GearToGear_Poll_Callback poll_callback,
+        GS_GearToGear_Fence_Callback fence_callback,
+        GS_GearToGear_Sync_Callback sync_callback,
+        void* user_data);
+    void SetGearToGearTransportActive(bool active, u64 cycle);
+    void SetGearToGearCableConnected(bool connected, u64 cycle);
+    bool IsNativeGameGearMode() const;
+    u64 GetGearToGearCycles() const;
+    GameGearIOPorts* GetGameGearIOPorts();
     TraceLogger* GetTraceLogger();
 
 private:
@@ -171,6 +184,7 @@ private:
     GS_Color_Format m_pixelFormat;
     GlassesConfig m_GlassesConfig;
     u64 m_master_clock_cycles;
+    u64 m_geartogear_cycles;
     TraceLogger* m_trace_logger;
     u8* m_pFrameBuffer;
 };

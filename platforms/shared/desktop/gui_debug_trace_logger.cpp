@@ -501,6 +501,7 @@ void gui_debug_trace_logger_set_event_filters(const u32* filters)
     config_debug.trace_vdp_events = (int)filters[TRACE_VDP];
     config_debug.trace_input_events = (int)filters[TRACE_INPUT];
     config_debug.trace_io_events = (int)filters[TRACE_IO];
+    config_debug.trace_geartogear_events = (int)filters[TRACE_GEARTOGEAR];
     config_debug.trace_psg_events = (int)filters[TRACE_PSG];
     config_debug.trace_ym2413_events = (int)filters[TRACE_YM2413];
     config_debug.trace_mapper_events = (int)filters[TRACE_MAPPER];
@@ -791,6 +792,18 @@ static void trace_logger_menu(void)
             ImGui::EndDisabled();
             ImGui::EndMenu();
         }
+        if (ImGui::BeginMenu("Gear-to-Gear"))
+        {
+            ImGui::MenuItem("Enabled", "", &config_debug.trace_geartogear);
+            ImGui::Separator();
+            ImGui::BeginDisabled(!config_debug.trace_geartogear);
+            trace_logger_menu_event_filter("Cable", &config_debug.trace_geartogear_events, TRACE_GEARTOGEAR_EVENT_CABLE);
+            trace_logger_menu_event_filter("Transfers", &config_debug.trace_geartogear_events, TRACE_GEARTOGEAR_EVENT_TRANSFERS);
+            trace_logger_menu_event_filter("Interrupts", &config_debug.trace_geartogear_events, TRACE_GEARTOGEAR_EVENT_INTERRUPTS);
+            trace_logger_menu_event_filter("Wire", &config_debug.trace_geartogear_events, TRACE_GEARTOGEAR_EVENT_WIRE);
+            ImGui::EndDisabled();
+            ImGui::EndMenu();
+        }
         if (ImGui::BeginMenu("PSG"))
         {
             ImGui::MenuItem("Enabled", "", &config_debug.trace_psg);
@@ -840,6 +853,7 @@ static void trace_logger_sync_flags(void)
     logger->SetEventFilter(TRACE_VDP, (u32)config_debug.trace_vdp_events);
     logger->SetEventFilter(TRACE_INPUT, (u32)config_debug.trace_input_events);
     logger->SetEventFilter(TRACE_IO, (u32)config_debug.trace_io_events);
+    logger->SetEventFilter(TRACE_GEARTOGEAR, (u32)config_debug.trace_geartogear_events);
     logger->SetEventFilter(TRACE_PSG, (u32)config_debug.trace_psg_events);
     logger->SetEventFilter(TRACE_YM2413, (u32)config_debug.trace_ym2413_events);
     logger->SetEventFilter(TRACE_MAPPER, (u32)config_debug.trace_mapper_events);
@@ -853,6 +867,7 @@ static u32 trace_logger_get_config_flags(void)
     if (config_debug.trace_vdp)           flags |= TRACE_FLAG_VDP;
     if (config_debug.trace_input)         flags |= TRACE_FLAG_INPUT;
     if (config_debug.trace_io)            flags |= TRACE_FLAG_IO;
+    if (config_debug.trace_geartogear)    flags |= TRACE_FLAG_GEARTOGEAR;
     if (config_debug.trace_psg)           flags |= TRACE_FLAG_PSG;
     if (config_debug.trace_ym2413)        flags |= TRACE_FLAG_YM2413;
     if (config_debug.trace_mapper)        flags |= TRACE_FLAG_MAPPER;
@@ -867,6 +882,7 @@ static void trace_logger_set_config_flags(u32 flags)
     config_debug.trace_vdp = (flags & TRACE_FLAG_VDP) != 0;
     config_debug.trace_input = (flags & TRACE_FLAG_INPUT) != 0;
     config_debug.trace_io = (flags & TRACE_FLAG_IO) != 0;
+    config_debug.trace_geartogear = (flags & TRACE_FLAG_GEARTOGEAR) != 0;
     config_debug.trace_psg = (flags & TRACE_FLAG_PSG) != 0;
     config_debug.trace_ym2413 = (flags & TRACE_FLAG_YM2413) != 0;
     config_debug.trace_mapper = (flags & TRACE_FLAG_MAPPER) != 0;
@@ -1048,6 +1064,10 @@ static void render_entry_colored(const GS_Trace_Entry& entry, u64 index)
         case TRACE_IO:
             format_entry_text(entry, false, NULL, buf, sizeof(buf));
             ImGui::TextColored(orange, "%s", buf);
+            break;
+        case TRACE_GEARTOGEAR:
+            format_entry_text(entry, false, NULL, buf, sizeof(buf));
+            ImGui::TextColored(cyan, "%s", buf);
             break;
         case TRACE_MAPPER:
             format_entry_text(entry, false, NULL, buf, sizeof(buf));

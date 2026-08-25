@@ -78,12 +78,24 @@ static const char* input_port_name(u8 port)
     return "PORT";
 }
 
-static const char* game_gear_register_name(u8 port)
+static const char* game_gear_register_name(u8 port, bool write)
 {
-    static const char* names[] = {
-        "START", "SERIAL DATA", "SERIAL DIRECTION", "SERIAL TX", "SERIAL RX", "SERIAL STATUS"
-    };
-    return port < sizeof(names) / sizeof(names[0]) ? names[port] : "REGISTER";
+    switch (port)
+    {
+        case 0x00: return "START";
+        case 0x01: return "PDR";
+        case 0x02: return "DDR/NINT";
+        case 0x03: return "TX DATA";
+        case 0x04: return "RX DATA";
+        case 0x05: return write ? "SCTRL" : "SSTATUS";
+        default: return "REGISTER";
+    }
+}
+
+static u32 geartogear_baud_rate(u8 control)
+{
+    static const u32 rates[4] = { 4800, 2400, 1200, 300 };
+    return rates[(control >> 6) & 0x03];
 }
 
 static const char* eeprom_state_name(u8 state)
@@ -399,23 +411,124 @@ void trace_logger_format_entry(const GS_Trace_Entry& entry,
                     if (entry.io.raw != entry.io.effective)
                     {
                         snprintf(text, sizeof(text), "[IO] GG READ %s ($%02X) -> $%02X Raw:$%02X",
-                                 game_gear_register_name(entry.io.port), entry.io.port,
+                                 game_gear_register_name(entry.io.port, false), entry.io.port,
                                  entry.io.effective, entry.io.raw);
                     }
                     else
                     {
                         snprintf(text, sizeof(text), "[IO] GG READ %s ($%02X) -> $%02X",
-                                 game_gear_register_name(entry.io.port), entry.io.port, entry.io.effective);
+                                 game_gear_register_name(entry.io.port, false), entry.io.port, entry.io.effective);
                     }
                     break;
                 case TRACE_IO_GAMEGEAR_WRITE:
-                    snprintf(text, sizeof(text), "[IO] GG WRITE %s ($%02X) $%02X->$%02X",
-                             game_gear_register_name(entry.io.port), entry.io.port,
-                             entry.io.previous, entry.io.effective);
+                    if (entry.io.raw != entry.io.effective)
+                    {
+                        snprintf(text, sizeof(text),
+                                 "[IO] GG WRITE %s ($%02X) Raw:$%02X "
+                                 "Effective:$%02X Previous:$%02X",
+                                 game_gear_register_name(entry.io.port, true), entry.io.port,
+                                 entry.io.raw, entry.io.effective, entry.io.previous);
+                    }
+                    else
+                    {
+                        snprintf(text, sizeof(text), "[IO] GG WRITE %s ($%02X) $%02X->$%02X",
+                                 game_gear_register_name(entry.io.port, true), entry.io.port,
+                                 entry.io.previous, entry.io.effective);
+                    }
                     break;
                 default:
                     snprintf(text, sizeof(text), "[IO] UNKNOWN Event:%u Port:$%02X",
                              entry.io.event, entry.io.port);
+                    break;
+            }
+            break;
+        }
+        case TRACE_GEARTOGEAR:
+        {
+            const char* state = entry.geartogear.data ? "CONNECTED" :
+                "DISCONNECTED";
+            u32 baud = geartogear_baud_rate(entry.geartogear.control);
+            switch (entry.geartogear.event)
+            {
+                case TRACE_GEARTOGEAR_CABLE:
+                    snprintf(text, sizeof(text),
+                             "[G2G] CABLE %s Link:%llu", state,
+                             (unsigned long long)entry.geartogear.link_cycle);
+                    break;
+                case TRACE_GEARTOGEAR_TX_START:
+                    snprintf(text, sizeof(text),
+                             "[G2G] TX START Data:$%02X Baud:%u Bit:%u Link:%llu",
+                             entry.geartogear.data, baud,
+                             entry.geartogear.bit_cycles,
+                             (unsigned long long)entry.geartogear.link_cycle);
+                    break;
+                case TRACE_GEARTOGEAR_TX_END:
+                    snprintf(text, sizeof(text),
+                             "[G2G] TX END Data:$%02X Baud:%u Link:%llu",
+                             entry.geartogear.data, baud,
+                             (unsigned long long)entry.geartogear.link_cycle);
+                    break;
+                case TRACE_GEARTOGEAR_TX_ABORT:
+                    snprintf(text, sizeof(text),
+                             "[G2G] TX ABORT Data:$%02X Baud:%u Link:%llu",
+                             entry.geartogear.data, baud,
+                             (unsigned long long)entry.geartogear.link_cycle);
+                    break;
+                case TRACE_GEARTOGEAR_RX_START:
+                    snprintf(text, sizeof(text),
+                             "[G2G] RX START Baud:%u Bit:%u Link:%llu",
+                             baud, entry.geartogear.bit_cycles,
+                             (unsigned long long)entry.geartogear.link_cycle);
+                    break;
+                case TRACE_GEARTOGEAR_RX_END:
+                    snprintf(text, sizeof(text),
+                             "[G2G] RX END Data:$%02X Baud:%u Link:%llu",
+                             entry.geartogear.data, baud,
+                             (unsigned long long)entry.geartogear.link_cycle);
+                    break;
+                case TRACE_GEARTOGEAR_RX_ERROR:
+                    snprintf(text, sizeof(text),
+                             "[G2G] RX FRAME ERROR Shift:$%02X Baud:%u Link:%llu",
+                             entry.geartogear.data, baud,
+                             (unsigned long long)entry.geartogear.link_cycle);
+                    break;
+                case TRACE_GEARTOGEAR_NMI:
+                    snprintf(text, sizeof(text),
+                             "[G2G] NMI Parallel:%u Serial:%u Asserted:%u Armed:%u Link:%llu",
+                             (entry.geartogear.flags &
+                                 TRACE_GEARTOGEAR_FLAG_PARALLEL_NMI) ? 1 : 0,
+                             (entry.geartogear.flags &
+                                 TRACE_GEARTOGEAR_FLAG_SERIAL_NMI) ? 1 : 0,
+                             (entry.geartogear.flags &
+                                 TRACE_GEARTOGEAR_FLAG_NMI_ASSERTED) ? 1 : 0,
+                             (entry.geartogear.flags &
+                                 TRACE_GEARTOGEAR_FLAG_NINT_ARMED) ? 1 : 0,
+                             (unsigned long long)entry.geartogear.link_cycle);
+                    break;
+                case TRACE_GEARTOGEAR_LOCAL_WIRE:
+                case TRACE_GEARTOGEAR_REMOTE_WIRE:
+                    snprintf(text, sizeof(text),
+                             "[G2G] %s WIRE Drive:$%02X Level:$%02X Pins:$%02X Contention:$%02X Link:%llu",
+                             entry.geartogear.event ==
+                                 TRACE_GEARTOGEAR_LOCAL_WIRE ?
+                                 "LOCAL" : "REMOTE MAPPED",
+                             entry.geartogear.event ==
+                                 TRACE_GEARTOGEAR_LOCAL_WIRE ?
+                                 entry.geartogear.local_drive_mask :
+                                 entry.geartogear.remote_drive_mask,
+                             entry.geartogear.event ==
+                                 TRACE_GEARTOGEAR_LOCAL_WIRE ?
+                                 entry.geartogear.local_levels :
+                                 entry.geartogear.remote_levels,
+                             entry.geartogear.resolved_pins,
+                             entry.geartogear.contention_mask,
+                             (unsigned long long)entry.geartogear.link_cycle);
+                    break;
+                default:
+                    snprintf(text, sizeof(text),
+                             "[G2G] UNKNOWN Event:%u Link:%llu",
+                             entry.geartogear.event,
+                             (unsigned long long)entry.geartogear.link_cycle);
                     break;
             }
             break;

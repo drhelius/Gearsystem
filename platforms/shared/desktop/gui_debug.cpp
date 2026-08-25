@@ -28,6 +28,7 @@
 #include "gui_debug_processor.h"
 #include "gui_debug_psg.h"
 #include "gui_debug_ym2413.h"
+#include "gui_debug_geartogear.h"
 #include "gui_debug_rewind.h"
 #include "gui_debug_video.h"
 #include "gui_debug_trace_logger.h"
@@ -97,6 +98,12 @@ void gui_debug_windows(void)
             gui_debug_window_psg();
         if (config_debug.show_ym2413)
             gui_debug_window_ym2413();
+        if (config_debug.show_geartogear_serial_registers)
+            gui_debug_window_geartogear_serial_registers();
+        if (config_debug.show_geartogear_serial_status)
+            gui_debug_window_geartogear_serial_status();
+        if (config_debug.show_geartogear_transport)
+            gui_debug_window_geartogear_transport();
         if (config_debug.show_rewind)
             gui_debug_window_rewind();
         if (config_debug.show_video_nametable)
