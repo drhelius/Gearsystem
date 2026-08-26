@@ -19,7 +19,9 @@
 
 #define GUI_MENUS_IMPORT
 #include "gui_menus.h"
+
 #include "gui.h"
+#include "gui_cheats.h"
 #include "gui_filedialogs.h"
 #include "gui_popups.h"
 #include "gui_actions.h"
@@ -53,6 +55,8 @@ static bool open_sms_bootrom = false;
 static bool open_gg_bootrom = false;
 static bool save_debug_settings = false;
 static bool load_debug_settings = false;
+static const ImVec4 service_mcp_http_color(0.10f, 0.90f, 0.10f, 1.0f);
+static const ImVec4 service_mcp_stdio_color(0.90f, 0.70f, 0.10f, 1.0f);
 static ShaderPresetInfo shader_presets[SHADER_PRESET_MAX_DISCOVERED];
 static int shader_preset_count = 0;
 
@@ -461,7 +465,7 @@ static void menu_emulator(void)
                 ImGui::Separator();
                 if (strlen(gui_sms_bootrom_path) > 0)
                 {
-                    ImGui::TextColored(ImVec4(0.10f, 0.90f, 0.10f, 1.0f), "SMS Bootrom loaded");
+                    ImGui::TextColored(service_mcp_http_color, "SMS Bootrom loaded");
                 }
                 else
                 {
@@ -494,7 +498,7 @@ static void menu_emulator(void)
                 ImGui::Separator();
                 if (strlen(gui_gg_bootrom_path) > 0)
                 {
-                    ImGui::TextColored(ImVec4(0.10f, 0.90f, 0.10f, 1.0f), "GG Bootrom loaded");
+                    ImGui::TextColored(service_mcp_http_color, "GG Bootrom loaded");
                 }
                 else
                 {
@@ -584,60 +588,8 @@ static void menu_emulator(void)
 
         ImGui::Separator();
 
-        ImGui::SetNextWindowSizeConstraints({300.0f, 200.0f}, {300.0f, 500.0f});
-        if (ImGui::BeginMenu("Cheats"))
-        {
-            ImGui::Text("Game Genie or Pro Action Replay codes\n(one code per line):");
-
-            ImGui::Columns(2, "cheats", false);
-
-            static char cheat_buffer[20*50] = "";
-            ImGui::PushItemWidth(150);
-            ImGui::InputTextMultiline("##cheats_input", cheat_buffer, IM_ARRAYSIZE(cheat_buffer));
-            ImGui::PopItemWidth();
-
-            ImGui::NextColumn();
-
-            if (ImGui::Button("Add Cheat Code"))
-            {
-                std::string cheats = cheat_buffer;
-                std::istringstream ss(cheats);
-                std::string cheat;
-
-                while (getline(ss, cheat))
-                {
-                    if ((gui_cheat_list.size() < 50) && ((cheat.length() == 7) || (cheat.length() == 11) || (cheat.length() == 8) || (cheat.length() == 9)))
-                    {
-                        gui_cheat_list.push_back(cheat);
-                        emu_add_cheat(cheat.c_str());
-                        cheat_buffer[0] = 0;
-                    }
-                }
-            }
-
-            if (gui_cheat_list.size() > 0)
-            {
-                if (ImGui::Button("Clear All"))
-                {
-                    gui_cheat_list.clear();
-                    emu_clear_cheats();
-                }
-            }
-
-            ImGui::Columns(1);
-
-            std::list<std::string>::iterator it;
-
-            for (it = gui_cheat_list.begin(); it != gui_cheat_list.end(); it++)
-            {
-                if ((it->length() == 7) || (it->length() == 11))
-                    ImGui::Text("Game Genie: %s", it->c_str());
-                else
-                    ImGui::Text("Pro Action Replay: %s", it->c_str());
-            }
-
-            ImGui::EndMenu();
-        }
+        if (ImGui::MenuItem("Cheats...", "", false, !emu_is_empty()))
+            gui_cheats_show();
 
         ImGui::MenuItem("Show ROM info", "", &config_emulator.show_info);
         ImGui::MenuItem("Status Messages", "", &config_emulator.status_messages);
@@ -1567,9 +1519,9 @@ static void menu_debug(void)
             ImGui::Separator();
 
             if (stdio_running)
-                ImGui::TextColored(ImVec4(0.90f, 0.70f, 0.10f, 1.0f), "STDIO mode active");
+                ImGui::TextColored(service_mcp_stdio_color, "STDIO mode active");
             else if (http_running)
-                ImGui::TextColored(ImVec4(0.10f, 0.90f, 0.10f, 1.0f), "Listening on %s:%d",
+                ImGui::TextColored(service_mcp_http_color, "Listening on %s:%d",
                     emu_mcp_get_http_address(), emu_mcp_get_http_port());
             else
                 ImGui::TextColored(ImVec4(0.98f, 0.15f, 0.45f, 1.0f), "Stopped");
@@ -1698,13 +1650,13 @@ static void draw_mcp_status(void)
         return;
 
     char status[128];
-    ImVec4 color(0.10f, 0.90f, 0.10f, 1.0f);
+    ImVec4 color = service_mcp_http_color;
 
     int transport_mode = emu_mcp_get_transport_mode();
     if (transport_mode == 0)
     {
         snprintf(status, sizeof(status), "MCP: STDIO");
-        color = ImVec4(0.90f, 0.70f, 0.10f, 1.0f);
+        color = service_mcp_stdio_color;
     }
     else if (transport_mode == 1)
     {

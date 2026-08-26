@@ -17,25 +17,20 @@
  *
  */
 
-#ifndef GUI_MENUS_H
-#define GUI_MENUS_H
+#ifndef GUI_CHEATS_H
+#define GUI_CHEATS_H
 
-#ifdef GUI_MENUS_IMPORT
+#ifdef GUI_CHEATS_IMPORT
     #define EXTERN
 #else
     #define EXTERN extern
 #endif
 
-EXTERN char gui_savefiles_path[4096];
-EXTERN char gui_savestates_path[4096];
-EXTERN char gui_screenshots_path[4096];
-EXTERN char gui_sms_bootrom_path[4096];
-EXTERN char gui_gg_bootrom_path[4096];
-EXTERN char gui_mcp_http_address[64];
+EXTERN void gui_cheats_init(void);
+EXTERN void gui_cheats_show(void);
+EXTERN void gui_cheats_window(void);
+EXTERN void gui_cheats_clear(void);
 
-EXTERN void gui_init_menus(void);
-EXTERN void gui_main_menu(void);
-
-#undef GUI_MENUS_IMPORT
+#undef GUI_CHEATS_IMPORT
 #undef EXTERN
-#endif /* GUI_MENUS_H */
+#endif /* GUI_CHEATS_H */

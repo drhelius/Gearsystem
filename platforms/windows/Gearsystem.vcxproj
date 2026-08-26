@@ -77,6 +77,7 @@
     <ClCompile Include="..\shared\desktop\runahead.cpp" />
     <ClCompile Include="..\shared\desktop\gui.cpp" />
     <ClCompile Include="..\shared\desktop\gui_actions.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_cheats.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_disassembler.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_memeditor.cpp" />
@@ -229,6 +230,7 @@
     <ClInclude Include="..\shared\desktop\emu.h" />
     <ClInclude Include="..\shared\desktop\gui.h" />
     <ClInclude Include="..\shared\desktop\gui_actions.h" />
+    <ClInclude Include="..\shared\desktop\gui_cheats.h" />
     <ClInclude Include="..\shared\desktop\gui_debug.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_constants.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_disassembler.h" />
