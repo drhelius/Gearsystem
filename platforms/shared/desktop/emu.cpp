@@ -24,6 +24,7 @@
 #include <atomic>
 #include <string.h>
 #include "gearsystem.h"
+#include "GameGearIOPorts.h"
 #include "sound_queue.h"
 #include "config.h"
 #include "rewind.h"
@@ -31,6 +32,7 @@
 #include "events.h"
 #include "gui_debug_trace_logger.h"
 #include "mcp/mcp_manager.h"
+#include "geartogear/geartogear_manager.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #if defined(_WIN32)
@@ -42,6 +44,10 @@ static GearsystemCore* gearsystem;
 static s16* audio_buffer;
 static bool audio_enabled;
 static McpManager* mcp_manager;
+static GearToGearManager* geartogear_manager;
+static bool geartogear_transport_applied;
+static bool geartogear_cable_applied;
+static bool geartogear_hardware_suspended;
 static Uint64 rewind_last_counter = 0;
 static double rewind_pop_accumulator = 0.0;
 
@@ -87,6 +93,13 @@ static void update_debug_sprite_buffers_sg1000(void);
 static void debug_step_instruction(void);
 static void reset_rewind_timing(void);
 static int get_rewind_pop_budget(void);
+static void geartogear_publish_callback(u64 cycle, const GS_GearToGear_WireState* state, void* user_data);
+static bool geartogear_sample_callback(u64 cycle, GS_GearToGear_WireState* state, void* user_data);
+static bool geartogear_poll_callback(u64 through_cycle, GS_GearToGear_WireEvent* event, void* user_data);
+static void geartogear_fence_callback(u64 cycle, void* user_data);
+static void geartogear_sync_callback(u64 cycle, u32 lead_cycles, void* user_data);
+static void geartogear_suspend_hardware(void);
+static void geartogear_resume_hardware(void);
 
 bool emu_init(void)
 {
@@ -98,6 +111,16 @@ bool emu_init(void)
 
     gearsystem = new GearsystemCore();
     gearsystem->Init();
+
+    geartogear_manager = new GearToGearManager();
+    geartogear_manager->SetNormalBarrierStallUs((u32)config_emulator.geartogear_stall_us);
+    geartogear_transport_applied = false;
+    geartogear_cable_applied = false;
+    geartogear_hardware_suspended = false;
+    gearsystem->SetGearToGearCallbacks(geartogear_publish_callback,
+        geartogear_sample_callback, geartogear_poll_callback,
+        geartogear_fence_callback, geartogear_sync_callback,
+        geartogear_manager);
 
     sound_queue_init();
 
@@ -136,6 +159,8 @@ void emu_destroy(void)
     save_ram();
     rewind_destroy();
     runahead_destroy();
+    emu_geartogear_stop();
+    SafeDelete(geartogear_manager);
     SafeDelete(mcp_manager);
     SafeDeleteArray(audio_buffer);
     sound_queue_destroy();
@@ -158,6 +183,7 @@ void emu_load_media_async(const char* file_path, Cartridge::ForceConfiguration c
     if (loading_state.load() != Loading_State_None)
         return;
 
+    geartogear_suspend_hardware();
     gui_debug_trace_logger_reset();
 
     emu_debug_command = Debug_Command_None;
@@ -194,6 +220,7 @@ bool emu_finish_media_loading(void)
     }
 
     loading_state.store(Loading_State_None);
+    geartogear_resume_hardware();
 
     if (!loading_result)
         return false;
@@ -228,6 +255,8 @@ void emu_reset_rewind_timing(void)
 
 void emu_update(void)
 {
+    emu_geartogear_pump();
+
     if (loading_state.load() != Loading_State_None)
         return;
 
@@ -240,7 +269,7 @@ void emu_update(void)
     bool frame_executed = false;
     bool frame_completed = false;
 
-    if (rewind_is_active())
+    if (!emu_geartogear_is_active() && rewind_is_active())
     {
         int to_pop = get_rewind_pop_budget();
 
@@ -329,7 +358,7 @@ void emu_update(void)
         {
             rewind_commit_seek();
 
-            int runahead = runahead_get_frames();
+            int runahead = emu_geartogear_is_active() ? 0 : runahead_get_frames();
             if (runahead > 0)
                 runahead_run(runahead, emu_frame_buffer, audio_buffer, &sampleCount);
             else
@@ -344,12 +373,17 @@ void emu_update(void)
     {
         if (frame_completed)
             emu_frame_counter++;
-        rewind_push();
+        if (!emu_geartogear_is_active())
+            rewind_push();
     }
 
     if ((sampleCount > 0) && !gearsystem->IsPaused())
     {
-        sound_queue_write(audio_buffer, sampleCount, emu_audio_sync);
+        bool sync_audio = emu_audio_sync &&
+            (!emu_geartogear_is_active() ||
+                !emu_geartogear_is_cable_connected() ||
+                emu_geartogear_is_pacing_peer());
+        sound_queue_write(audio_buffer, sampleCount, sync_audio);
     }
     else if (gearsystem->IsPaused())
     {
@@ -533,6 +567,7 @@ void emu_load_ram(const char* file_path, Cartridge::ForceConfiguration config)
 {
     if (!emu_is_empty())
     {
+        emu_geartogear_stop();
         gui_debug_trace_logger_reset();
         save_ram();
         gearsystem->ResetROM(&config);
@@ -555,6 +590,7 @@ void emu_load_state_slot(int index)
 {
     if (!emu_is_empty())
     {
+        emu_geartogear_stop();
         const char* dir = get_configurated_dir(config_emulator.savestates_dir_option, config_emulator.savestates_path.c_str());
         if (gearsystem->LoadState(dir, index))
         {
@@ -574,6 +610,7 @@ void emu_load_state_file(const char* file_path)
 {
     if (!emu_is_empty())
     {
+        emu_geartogear_stop();
         if (gearsystem->LoadState(file_path))
         {
             events_sync_input();
@@ -1598,4 +1635,190 @@ void emu_mcp_pump_commands(void)
 {
     if (mcp_manager && mcp_manager->IsRunning())
         mcp_manager->PumpCommands(gearsystem);
+}
+
+bool emu_geartogear_connect(int session)
+{
+    if (!geartogear_manager || !gearsystem)
+        return false;
+
+    if (session < 1 || session > 255)
+    {
+        Error("Gear-to-Gear session must be between 1 and 255");
+        return false;
+    }
+
+    config_emulator.ffwd = false;
+    config_audio.sync = true;
+
+    rewind_reset();
+
+    geartogear_manager->SetNormalBarrierStallUs(
+        (u32)config_emulator.geartogear_stall_us);
+    u64 cycle = gearsystem->GetGearToGearCycles();
+
+    bool started = geartogear_manager->Connect((u8)session, cycle);
+
+    emu_geartogear_pump();
+
+    return started;
+}
+
+void emu_geartogear_stop(void)
+{
+    u64 cycle = gearsystem ? gearsystem->GetGearToGearCycles() : 0;
+
+    if (geartogear_manager)
+        geartogear_manager->Stop();
+
+    if (gearsystem && geartogear_cable_applied)
+        gearsystem->SetGearToGearCableConnected(false, cycle);
+
+    if (gearsystem && geartogear_transport_applied)
+        gearsystem->SetGearToGearTransportActive(false, cycle);
+
+    geartogear_cable_applied = false;
+    geartogear_transport_applied = false;
+}
+
+void emu_geartogear_pump(void)
+{
+    if (!geartogear_manager || !gearsystem)
+        return;
+
+    u64 cycle = gearsystem->GetGearToGearCycles();
+    geartogear_manager->Pump(cycle);
+
+    bool emulation_running = !gearsystem->IsPaused() &&
+        (!config_debug.debug || emu_debug_command != Debug_Command_None);
+    bool hardware_ready = !geartogear_hardware_suspended &&
+        gearsystem->IsNativeGameGearMode() && emulation_running;
+    geartogear_manager->SetHardwareReady(hardware_ready, cycle);
+
+    bool local_changed = geartogear_manager->ConsumeLocalAttachmentChanged();
+    bool remote_changed = geartogear_manager->ConsumeRemoteIdentityChanged();
+    bool active = geartogear_manager->IsActive();
+    bool transport_active = active && geartogear_manager->IsHardwareReady();
+    bool cable_connected = geartogear_manager->IsCableConnected();
+
+    if (!active)
+    {
+        if (geartogear_cable_applied)
+            gearsystem->SetGearToGearCableConnected(false, cycle);
+        if (geartogear_transport_applied)
+            gearsystem->SetGearToGearTransportActive(false, cycle);
+        geartogear_cable_applied = false;
+        geartogear_transport_applied = false;
+        return;
+    }
+
+    if ((local_changed || remote_changed) && geartogear_cable_applied)
+    {
+        gearsystem->SetGearToGearCableConnected(false, cycle);
+        geartogear_cable_applied = false;
+    }
+
+    if (transport_active != geartogear_transport_applied || local_changed)
+    {
+        gearsystem->SetGearToGearTransportActive(transport_active, cycle);
+        geartogear_transport_applied = transport_active;
+    }
+
+    if (cable_connected != geartogear_cable_applied)
+    {
+        gearsystem->SetGearToGearCableConnected(cable_connected, cycle);
+        geartogear_cable_applied = cable_connected;
+    }
+}
+
+bool emu_geartogear_is_active(void)
+{
+    return geartogear_manager && geartogear_manager->IsActive();
+}
+
+bool emu_geartogear_is_cable_connected(void)
+{
+    return geartogear_manager && geartogear_manager->IsCableConnected();
+}
+
+bool emu_geartogear_is_pacing_peer(void)
+{
+    return geartogear_manager && geartogear_manager->IsPacingPeer();
+}
+
+GearToGearStatus emu_geartogear_get_status(void)
+{
+    if (geartogear_manager)
+        return geartogear_manager->GetStatus();
+
+    GearToGearStatus status = {};
+    status.mode = GearToGearModeDisabled;
+    return status;
+}
+
+GS_GearToGear_DebugState emu_geartogear_get_debug_state(void)
+{
+    GS_GearToGear_DebugState state = {};
+    if (gearsystem && gearsystem->GetGameGearIOPorts())
+        state = gearsystem->GetGameGearIOPorts()->GetGearToGearDebugState();
+    return state;
+}
+
+void emu_geartogear_reset_metrics(void)
+{
+    if (geartogear_manager)
+        geartogear_manager->ResetMetrics();
+}
+
+void emu_geartogear_set_normal_barrier_stall_us(u32 stall_us)
+{
+    if (geartogear_manager)
+        geartogear_manager->SetNormalBarrierStallUs(stall_us);
+}
+
+static void geartogear_suspend_hardware(void)
+{
+    geartogear_hardware_suspended = true;
+    emu_geartogear_pump();
+}
+
+static void geartogear_resume_hardware(void)
+{
+    geartogear_hardware_suspended = false;
+    emu_geartogear_pump();
+}
+
+static void geartogear_publish_callback(u64 cycle, const GS_GearToGear_WireState* state, void* user_data)
+{
+    GearToGearManager* manager = (GearToGearManager*)user_data;
+    if (manager && state)
+        manager->PublishState(cycle, *state);
+}
+
+static bool geartogear_sample_callback(u64 cycle, GS_GearToGear_WireState* state, void* user_data)
+{
+    GearToGearManager* manager = (GearToGearManager*)user_data;
+    return manager && state ? manager->SampleRemoteState(cycle, *state) :
+        false;
+}
+
+static bool geartogear_poll_callback(u64 through_cycle, GS_GearToGear_WireEvent* event, void* user_data)
+{
+    GearToGearManager* manager = (GearToGearManager*)user_data;
+    return manager && event ? manager->PollRemoteEvent(through_cycle,
+        *event) : false;
+}
+
+static void geartogear_fence_callback(u64 cycle, void* user_data)
+{
+    GearToGearManager* manager = (GearToGearManager*)user_data;
+    if (manager)
+        manager->Fence(cycle);
+}
+
+static void geartogear_sync_callback(u64 cycle, u32 lead_cycles, void* user_data)
+{
+    GearToGearManager* manager = (GearToGearManager*)user_data;
+    if (manager)
+        manager->Synchronize(cycle, lead_cycles);
 }

@@ -120,6 +120,8 @@ public:
     json GetVDPStatus();
     json GetPSGStatus();
     json GetYM2413Status();
+    json GetSerialStatus();
+    json ResetGearToGearMetrics();
     json GetScreenshot();
     json ListSprites();
     json GetSpriteImage(int sprite_index);

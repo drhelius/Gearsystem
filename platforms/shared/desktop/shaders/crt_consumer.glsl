@@ -1,4 +1,4 @@
-// Geargrafx port of crt-consumer from libretro slang-shaders.
+// Port of crt-consumer from libretro slang-shaders.
 // Original shader licensed GPL v2 or later.
 
 in vec2 vTexCoord;

@@ -1,4 +1,4 @@
-; CRT Consumer preset for Geargrafx.
+; CRT Consumer preset.
 ; This is a derivative work based on crt-consumer from libretro slang-shaders.
 ; Original shader licensed GPL v2 or later.
 

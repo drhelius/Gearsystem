@@ -84,6 +84,7 @@
     <ClCompile Include="..\shared\desktop\gui_debug_memory.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_processor.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_psg.cpp" />
+    <ClCompile Include="..\shared\desktop\gui_debug_geartogear.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_rewind.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_video.cpp" />
     <ClCompile Include="..\shared\desktop\gui_debug_ym2413.cpp" />
@@ -104,6 +105,7 @@
     <ClCompile Include="..\shared\desktop\mcp\mcp_tool_registry.cpp" />
     <ClCompile Include="..\shared\desktop\mcp\mcp_server.cpp" />
     <ClCompile Include="..\shared\desktop\single_instance.cpp" />
+    <ClCompile Include="..\shared\desktop\geartogear\geartogear_manager.cpp" />
     <ClCompile Include="..\shared\dependencies\imgui\imgui.cpp">
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
     </ClCompile>
@@ -219,6 +221,9 @@
     <ClInclude Include="..\shared\desktop\keyboard.h" />
     <ClInclude Include="..\shared\desktop\sound_queue.h" />
     <ClInclude Include="..\shared\desktop\single_instance.h" />
+    <ClInclude Include="..\shared\desktop\geartogear\geartogear_manager.h" />
+    <ClInclude Include="..\shared\desktop\geartogear\geartogear_wire.h" />
+    <ClInclude Include="..\..\src\geartogear.h" />
     <ClInclude Include="..\shared\desktop\application.h" />
     <ClInclude Include="..\shared\desktop\application_headless.h" />
     <ClInclude Include="..\shared\desktop\backers.h" />
@@ -238,6 +243,7 @@
     <ClInclude Include="..\shared\desktop\gui_debug_memory.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_processor.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_psg.h" />
+    <ClInclude Include="..\shared\desktop\gui_debug_geartogear.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_rewind.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_text.h" />
     <ClInclude Include="..\shared\desktop\gui_debug_video.h" />

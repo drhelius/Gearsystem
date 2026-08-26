@@ -1168,6 +1168,165 @@ json DebugAdapter::GetYM2413Status()
     return status;
 }
 
+json DebugAdapter::GetSerialStatus()
+{
+    static const u32 baud_rates[4] = { 4800, 2400, 1200, 300 };
+    static const char* rx_states[4] =
+    {
+        "idle", "confirm_start", "data", "stop"
+    };
+
+    GearToGearStatus link = emu_geartogear_get_status();
+    GS_GearToGear_DebugState hardware = emu_geartogear_get_debug_state();
+
+    json status;
+    std::ostringstream ss;
+    ss << std::hex << std::uppercase << std::setfill('0');
+
+    json registers;
+    ss << std::setw(2) << (int)hardware.parallel_data;
+    registers["PDR"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)hardware.direction_nint;
+    registers["DDR_NINT"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)hardware.tx_data;
+    registers["TX_DATA"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)hardware.rx_data;
+    registers["RX_DATA"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)hardware.serial_control;
+    registers["SCTRL"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)hardware.serial_status;
+    registers["SSTATUS"] = ss.str(); ss.str("");
+    status["registers"] = registers;
+    status["native_game_gear"] = m_core->IsNativeGameGearMode();
+
+    u8 baud_index = (hardware.serial_control >> 6) & 0x03;
+    json control;
+    control["baud_rate"] = baud_rates[baud_index];
+    control["serial_nmi_enabled"] = (hardware.serial_control & 0x08) != 0;
+    control["transmitter_enabled"] = (hardware.serial_control & 0x10) != 0;
+    control["receiver_enabled"] = (hardware.serial_control & 0x20) != 0;
+    status["control"] = control;
+
+    json serial_status;
+    serial_status["tx_full"] = hardware.tx_busy;
+    serial_status["rx_ready"] = hardware.rx_ready;
+    serial_status["framing_error"] = hardware.frame_error;
+    status["status"] = serial_status;
+
+    json transmitter;
+    ss << std::setw(2) << (int)hardware.tx_data;
+    transmitter["data_latch"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)hardware.tx_frame_data;
+    transmitter["frame_data"] = ss.str(); ss.str("");
+    transmitter["active"] = hardware.tx_busy;
+    transmitter["tx_pin_level"] = hardware.tx_line;
+    transmitter["phase"] = hardware.tx_phase;
+    transmitter["bit_cycles"] = hardware.tx_bit_cycles;
+    transmitter["next_edge_cycle"] = hardware.tx_next_cycle;
+    status["transmitter"] = transmitter;
+
+    json receiver;
+    receiver["state"] = hardware.rx_state < 4 ? rx_states[hardware.rx_state] : "unknown";
+    receiver["state_value"] = hardware.rx_state;
+    ss << std::setw(2) << (int)hardware.rx_shift;
+    receiver["shift_data"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)hardware.rx_data;
+    receiver["data_latch"] = ss.str(); ss.str("");
+    receiver["bit_index"] = hardware.rx_bit;
+    receiver["bit_cycles"] = hardware.rx_bit_cycles;
+    receiver["next_sample_cycle"] = hardware.rx_next_cycle;
+    receiver["rx_pin_level"] = (hardware.resolved_pins & 0x20) != 0;
+    receiver["ready"] = hardware.rx_ready;
+    receiver["framing_error"] = hardware.frame_error;
+    status["receiver"] = receiver;
+
+    json interrupt;
+    interrupt["parallel_latch"] = hardware.parallel_nmi;
+    interrupt["serial_latch"] = hardware.serial_nmi;
+    interrupt["asserted"] = hardware.nmi_asserted;
+    interrupt["parallel_armed"] = hardware.nint_armed;
+    interrupt["parallel_arm_delay"] = hardware.nint_arm_delay;
+    status["interrupt"] = interrupt;
+
+    json wire;
+    ss << std::setw(2) << (int)hardware.local_state.drive_mask;
+    wire["local_drive_mask"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)hardware.local_state.levels;
+    wire["local_levels"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)hardware.remote_state.drive_mask;
+    wire["mapped_remote_drive_mask"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)hardware.remote_state.levels;
+    wire["mapped_remote_levels"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)hardware.resolved_pins;
+    wire["resolved_pins"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)hardware.contention_mask;
+    wire["contention_mask"] = ss.str(); ss.str("");
+    status["wire"] = wire;
+    status["io_cycle"] = hardware.cycle;
+    status["link_cycle"] = m_core->GetGearToGearCycles();
+
+    const char* mode = "disabled";
+    if (link.mode == GearToGearModeConnected)
+        mode = "connected";
+    else if (link.mode == GearToGearModeFault)
+        mode = "fault";
+
+    json transport;
+    transport["transport"] = "shared_memory";
+    transport["mode"] = mode;
+    transport["active"] = link.active;
+    transport["cable_connected"] = link.cable_connected;
+    transport["session"] = link.session;
+    transport["local_peer_id"] = link.local_peer_id;
+    transport["peer_count"] = link.peer_count;
+    transport["pacing_mode"] = !link.cable_connected ? "local" : (link.pacing_peer ? "leader" : "follower");
+    transport["local_hardware_ready"] = link.local_hardware_ready;
+    transport["remote_hardware_ready"] = link.remote_hardware_ready;
+    transport["local_anchor"] = link.local_anchor;
+    transport["bus_anchor"] = link.bus_anchor;
+    transport["bus_cycle"] = link.bus_cycle;
+    transport["max_lead_cycles"] = GEARTOGEAR_MAX_LEAD_CYCLES;
+    transport["local_progress"] = link.local_progress;
+    transport["local_promise"] = link.local_promise;
+    transport["remote_progress"] = link.remote_progress;
+    transport["remote_promise"] = link.remote_promise;
+    transport["remote_generation"] = link.remote_generation;
+    transport["events_published"] = link.events_published;
+    transport["events_consumed"] = link.events_consumed;
+    transport["state_ring_overruns"] = link.state_ring_overruns;
+    transport["baseline_samples"] = link.baseline_samples;
+    transport["fence_calls"] = link.fence_calls;
+    transport["fence_waits"] = link.fence_waits;
+    transport["fence_wait_us"] = link.fence_wait_us;
+    transport["fence_wait_max_us"] = link.fence_wait_max_us;
+    transport["sync_calls"] = link.sync_calls;
+    transport["barrier_waits"] = link.barrier_waits;
+    transport["barrier_wait_us"] = link.barrier_wait_us;
+    transport["barrier_wait_max_us"] = link.barrier_wait_max_us;
+    transport["barrier_wait_over_1ms"] = link.barrier_wait_over_1ms;
+    transport["barrier_wait_over_10ms"] = link.barrier_wait_over_10ms;
+    transport["barrier_wait_over_50ms"] = link.barrier_wait_over_50ms;
+    transport["sync_gap_max_us"] = link.sync_gap_max_us;
+    transport["sync_gap_over_50ms"] = link.sync_gap_over_50ms;
+    transport["spin_iterations"] = link.spin_iterations;
+    transport["sleep_calls"] = link.sleep_calls;
+    transport["peer_detaches"] = link.peer_detaches;
+    transport["peer_detach_max_age_us"] = link.peer_detach_max_age_us;
+    transport["slot_reclaims"] = link.slot_reclaims;
+    transport["seqlock_retries"] = link.seqlock_retries;
+    transport["attachments"] = link.attachments;
+    transport["last_error"] = link.last_error;
+    status["geartogear"] = transport;
+
+    return status;
+}
+
+json DebugAdapter::ResetGearToGearMetrics()
+{
+    emu_geartogear_reset_metrics();
+    return {{"success", true}};
+}
+
 json DebugAdapter::GetScreenshot()
 {
     json result;
@@ -1437,6 +1596,7 @@ json DebugAdapter::LoadStateFile(const std::string& file_path)
         return result;
     }
 
+    emu_geartogear_stop();
     if (!m_core->LoadState(file_path.c_str()))
     {
         result["error"] = "Failed to load state file";
@@ -1483,7 +1643,7 @@ json DebugAdapter::ToggleFastForward(bool enabled)
     gui_action_ffwd();
 
     result["success"] = true;
-    result["enabled"] = enabled;
+    result["enabled"] = config_emulator.ffwd;
     result["speed"] = config_emulator.ffwd_speed;
 
     return result;
@@ -1510,6 +1670,9 @@ json DebugAdapter::GetRewindStatus()
 
 json DebugAdapter::RewindSeek(int snapshot)
 {
+    if (emu_geartogear_is_active())
+        return {{"error", "Rewind is disabled while Gear-to-Gear is active"}};
+
     bool paused = emu_is_paused() || emu_is_debug_idle();
 
     if (!paused)
@@ -2696,6 +2859,26 @@ json DebugAdapter::SetTraceLog(const json& arguments)
         else if (filter == "io.control") { flags |= TRACE_FLAG_IO; masks[TRACE_IO] |= TRACE_IO_EVENT_CONTROL; }
         else if (filter == "io.counters") { flags |= TRACE_FLAG_IO; masks[TRACE_IO] |= TRACE_IO_EVENT_COUNTERS; }
         else if (filter == "io.gamegear") { flags |= TRACE_FLAG_IO; masks[TRACE_IO] |= TRACE_IO_EVENT_GAMEGEAR; }
+        else if (filter == "geartogear.cable")
+        {
+            flags |= TRACE_FLAG_GEARTOGEAR;
+            masks[TRACE_GEARTOGEAR] |= TRACE_GEARTOGEAR_EVENT_CABLE;
+        }
+        else if (filter == "geartogear.transfers")
+        {
+            flags |= TRACE_FLAG_GEARTOGEAR;
+            masks[TRACE_GEARTOGEAR] |= TRACE_GEARTOGEAR_EVENT_TRANSFERS;
+        }
+        else if (filter == "geartogear.interrupts")
+        {
+            flags |= TRACE_FLAG_GEARTOGEAR;
+            masks[TRACE_GEARTOGEAR] |= TRACE_GEARTOGEAR_EVENT_INTERRUPTS;
+        }
+        else if (filter == "geartogear.wire")
+        {
+            flags |= TRACE_FLAG_GEARTOGEAR;
+            masks[TRACE_GEARTOGEAR] |= TRACE_GEARTOGEAR_EVENT_WIRE;
+        }
         else if (filter == "psg.tone") { flags |= TRACE_FLAG_PSG; masks[TRACE_PSG] |= TRACE_PSG_EVENT_TONE; }
         else if (filter == "psg.volume") { flags |= TRACE_FLAG_PSG; masks[TRACE_PSG] |= TRACE_PSG_EVENT_VOLUME; }
         else if (filter == "psg.noise") { flags |= TRACE_FLAG_PSG; masks[TRACE_PSG] |= TRACE_PSG_EVENT_NOISE; }

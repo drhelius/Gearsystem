@@ -39,7 +39,7 @@ public:
     u8 DoInput(u8 port);
     void DoOutput(u8 port, u8 value);
     void SaveState(std::ostream& stream);
-    void LoadState(std::istream& stream);
+    void LoadState(std::istream& stream, int version);
     void SetTraceLogger(TraceLogger* pTraceLogger);
 
 private:

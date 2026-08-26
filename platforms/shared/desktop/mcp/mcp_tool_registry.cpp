@@ -205,12 +205,13 @@ static const McpToolCategory kMcpToolCategories[] =
     {"symbols", "Symbols", "Add, remove, load, list, and look up debug symbols or labels."},
     {"hardware_video", "Video Hardware", "Inspect VDP registers, display timing, status, sprites, scanlines, and video state."},
     {"hardware_audio", "Audio Hardware", "Inspect SN76489 PSG and YM2413 FM audio state, channels, mixer, and sound registers."},
+    {"hardware_serial", "Serial Hardware", "Inspect Game Gear serial transfers, parallel/NMI state, physical pins, and Gear-to-Gear transport."},
     {"media", "Media", "Load ROMs, list recent media, load symbols, and inspect loaded cartridge/media information."},
     {"capture", "Capture", "Capture current screenshots and SMS/Game Gear sprite images or sprite metadata."},
     {"state", "Save States", "List save slots, select a slot, save emulator state, and load emulator state."},
     {"rewind", "Rewind", "Inspect rewind buffer status and seek to rewind snapshots for time-travel debugging."},
     {"input", "Input", "Inspect, press, release, tap, or macro controller input."},
-    {"trace", "Trace", "Read trace log entries and configure CPU, interrupt, video, audio, memory, and debug-message tracing."},
+    {"trace", "Trace", "Read trace log entries and configure CPU, hardware, Gear-to-Gear, and mapper tracing."},
     {"tools", "Other Tools", "Additional emulator/debugger tools that do not fit another category."}
 };
 
@@ -262,6 +263,11 @@ static const char* const kMcpAudioTools[] =
     "get_psg_status", "get_ym2413_status"
 };
 
+static const char* const kMcpSerialTools[] =
+{
+    "get_serial_status", "reset_geartogear_metrics"
+};
+
 static const char* const kMcpMediaTools[] =
 {
     "load_media", "get_media_info", "list_recent_media"
@@ -303,6 +309,7 @@ static const McpToolCategoryTools kMcpToolCategoryTools[] =
     {"symbols", kMcpSymbolTools, MCP_ARRAY_COUNT(kMcpSymbolTools)},
     {"hardware_video", kMcpVideoTools, MCP_ARRAY_COUNT(kMcpVideoTools)},
     {"hardware_audio", kMcpAudioTools, MCP_ARRAY_COUNT(kMcpAudioTools)},
+    {"hardware_serial", kMcpSerialTools, MCP_ARRAY_COUNT(kMcpSerialTools)},
     {"media", kMcpMediaTools, MCP_ARRAY_COUNT(kMcpMediaTools)},
     {"capture", kMcpCaptureTools, MCP_ARRAY_COUNT(kMcpCaptureTools)},
     {"state", kMcpStateTools, MCP_ARRAY_COUNT(kMcpStateTools)},
@@ -690,6 +697,8 @@ std::string McpToolRegistry::AliasesForTool(const std::string& tool_name) const
         StringContains(name, "audio") || StringContains(name, "ym2413") ||
         StringContains(name, "ay8910"))
         aliases += " sound audio channel tone noise volume";
+    if (StringContains(name, "serial") || StringContains(name, "geartogear"))
+        aliases += " serial link cable uart gpio pins nmi peer session shared memory game gear";
     if (StringContains(name, "breakpoint"))
         aliases += " watchpoint stop read write execute irq interrupt";
     if (StringContains(name, "memory"))

@@ -227,6 +227,11 @@ void gui_shortcut(gui_ShortCutEvent event)
     }
     case gui_ShortcutLoadState:
     {
+        if (emu_geartogear_is_active())
+        {
+            gui_set_status_message("Load state is disabled while Gear-to-Gear is active", 3000);
+            break;
+        }
         std::string message("Loading state from slot ");
         message += std::to_string(config_emulator.save_slot + 1);
         gui_set_status_message(message.c_str(), 3000);

@@ -60,7 +60,7 @@ static void draw_transport_bar(void)
     bool has_snapshots = snapshot_count > 0;
     bool is_empty = emu_is_empty();
     bool is_paused = emu_is_paused() || emu_is_debug_idle();
-    bool can_scrub = has_snapshots && is_paused && !is_empty;
+    bool can_scrub = has_snapshots && is_paused && !is_empty && !emu_geartogear_is_active();
     bool at_newest = seek_position <= 0;
     bool at_oldest = seek_position >= snapshot_count - 1;
 
@@ -134,14 +134,16 @@ static void draw_timeline(void)
     int snapshot_count = rewind_get_snapshot_count();
     bool is_empty = emu_is_empty();
     bool is_paused = emu_is_paused() || emu_is_debug_idle();
-    bool can_scrub = snapshot_count > 0 && is_paused && !is_empty;
+    bool can_scrub = snapshot_count > 0 && is_paused && !is_empty && !emu_geartogear_is_active();
 
     if (!can_scrub)
     {
         ImGui::BeginDisabled(true);
         int dummy = 0;
+        const char* label = emu_geartogear_is_active() ? "Gear-to-Gear active" :
+            (snapshot_count > 0 ? "Pause to scrub" : "No snapshots");
         ImGui::SetNextItemWidth(-1);
-        ImGui::SliderInt("##rw_timeline", &dummy, 0, 0, snapshot_count > 0 ? "Pause to scrub" : "No snapshots");
+        ImGui::SliderInt("##rw_timeline", &dummy, 0, 0, label);
         ImGui::EndDisabled();
         return;
     }
@@ -170,6 +172,9 @@ static void draw_timeline(void)
 
 bool gui_debug_rewind_seek(int age)
 {
+    if (emu_geartogear_is_active())
+        return false;
+
     int snapshot_count = rewind_get_snapshot_count();
     if (age < 0 || age >= snapshot_count)
         return false;

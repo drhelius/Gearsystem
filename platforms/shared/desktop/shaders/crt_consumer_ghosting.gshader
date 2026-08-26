@@ -1,4 +1,4 @@
-; CRT Consumer + Ghosting preset for Geargrafx.
+; CRT Consumer + Ghosting preset.
 ; Includes a derivative crt-consumer pass from libretro slang-shaders.
 ; Original crt-consumer shader licensed GPL v2 or later.
 

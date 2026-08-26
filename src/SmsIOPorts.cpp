@@ -98,9 +98,10 @@ void SmsIOPorts::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_Port3F), sizeof(m_Port3F));
 }
 
-void SmsIOPorts::LoadState(std::istream& stream)
+void SmsIOPorts::LoadState(std::istream& stream, int version)
 {
     using namespace std;
+    UNUSED(version);
 
     stream.read(reinterpret_cast<char*> (&m_Port3F), sizeof(m_Port3F));
 }
