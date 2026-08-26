@@ -648,6 +648,9 @@ json DebugAdapter::GetMediaInfo()
     info["rom_size"] = cart->GetROMSize();
     info["rom_bank_count"] = cart->GetROMBankCount();
     info["rom_bank_count_8k"] = cart->GetROMBankCount8k();
+    info["softpatch_applied"] = cart->IsSoftpatchApplied();
+    if (cart->IsSoftpatchApplied())
+        info["softpatch_path"] = cart->GetSoftpatchPath();
 
     Cartridge::CartridgeTypes type = cart->GetType();
     const char* type_names[] = {
@@ -1409,6 +1412,9 @@ json DebugAdapter::FinishLoadMedia(const std::string& file_path)
     result["rom_name"] = m_core->GetCartridge()->GetFileName();
     result["is_game_gear"] = m_core->GetCartridge()->IsGameGear();
     result["is_sg1000"] = m_core->GetCartridge()->IsSG1000();
+    result["softpatch_applied"] = m_core->GetCartridge()->IsSoftpatchApplied();
+    if (m_core->GetCartridge()->IsSoftpatchApplied())
+        result["softpatch_path"] = m_core->GetCartridge()->GetSoftpatchPath();
 
     return result;
 }

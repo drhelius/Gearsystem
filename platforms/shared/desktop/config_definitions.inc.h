@@ -145,6 +145,7 @@ static inline void process(config_Operation operation)
     CONFIG_INT_RANGE("Emulator", "SaveSlot", config_emulator.save_slot, 0, 0, 4);
     CONFIG_BOOL("Emulator", "StartPaused", config_emulator.start_paused, false);
     CONFIG_BOOL("Emulator", "PauseWhenInactive", config_emulator.pause_when_inactive, true);
+    CONFIG_BOOL("Emulator", "SoftPatching", config_emulator.softpatching, true);
     CONFIG_INT("Emulator", "System", config_emulator.system, 0);
     CONFIG_INT("Emulator", "Zone", config_emulator.zone, 0);
     CONFIG_INT("Emulator", "Mapper", config_emulator.mapper, 0);
@@ -219,9 +220,15 @@ static inline void process(config_Operation operation)
     CONFIG_FLOAT("Video", "BackgroundColorLightR", config_video.background_color[config_Theme_Light][0], 128.0f / 255.0f);
     CONFIG_FLOAT("Video", "BackgroundColorLightG", config_video.background_color[config_Theme_Light][1], 128.0f / 255.0f);
     CONFIG_FLOAT("Video", "BackgroundColorLightB", config_video.background_color[config_Theme_Light][2], 128.0f / 255.0f);
-    CONFIG_FLOAT("Video", "BackgroundColorDebuggerLightR", config_video.background_color_debugger[config_Theme_Light][0], 160.0f / 255.0f);
-    CONFIG_FLOAT("Video", "BackgroundColorDebuggerLightG", config_video.background_color_debugger[config_Theme_Light][1], 160.0f / 255.0f);
-    CONFIG_FLOAT("Video", "BackgroundColorDebuggerLightB", config_video.background_color_debugger[config_Theme_Light][2], 160.0f / 255.0f);
+    CONFIG_FLOAT("Video", "BackgroundColorDebuggerLightR",
+                 config_video.background_color_debugger[config_Theme_Light][0],
+                 233.0f / 255.0f);
+    CONFIG_FLOAT("Video", "BackgroundColorDebuggerLightG",
+                 config_video.background_color_debugger[config_Theme_Light][1],
+                 232.0f / 255.0f);
+    CONFIG_FLOAT("Video", "BackgroundColorDebuggerLightB",
+                 config_video.background_color_debugger[config_Theme_Light][2],
+                 230.0f / 255.0f);
 
     //**************************************
     // Audio
@@ -395,6 +402,29 @@ static void migrate(int file_version)
 {
     int sync_mode = -1;
     std::string stored;
+
+    if (file_version < 6)
+    {
+        float red = 0.0f;
+        float green = 0.0f;
+        float blue = 0.0f;
+        bool old_default = get_setting("Video", "BackgroundColorDebuggerLightR", &stored) &&
+                           parse_float_string(stored, &red) &&
+                           get_setting("Video", "BackgroundColorDebuggerLightG", &stored) &&
+                           parse_float_string(stored, &green) &&
+                           get_setting("Video", "BackgroundColorDebuggerLightB", &stored) &&
+                           parse_float_string(stored, &blue) &&
+                           std::fabs(red - (160.0f / 255.0f)) < 0.005f &&
+                           std::fabs(green - (160.0f / 255.0f)) < 0.005f &&
+                           std::fabs(blue - (160.0f / 255.0f)) < 0.005f;
+
+        if (old_default)
+        {
+            write_float("Video", "BackgroundColorDebuggerLightR", 233.0f / 255.0f);
+            write_float("Video", "BackgroundColorDebuggerLightG", 232.0f / 255.0f);
+            write_float("Video", "BackgroundColorDebuggerLightB", 230.0f / 255.0f);
+        }
+    }
     bool valid_sync_mode = get_setting("Video", "SyncMode", &stored) &&
         parse_int_string(stored, &sync_mode) && sync_mode >= config_VideoSync_Disabled &&
         sync_mode <= config_VideoSync_VRR;

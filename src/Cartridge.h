@@ -120,15 +120,18 @@ public:
     const char* GetFileName() const;
     const char* GetFileDirectory() const;
     INLINE u8* GetROM() const;
-    bool LoadFromFile(const char* path);
+    bool LoadFromFile(const char* path, bool softpatching = false);
     bool LoadFromBuffer(const u8* buffer, int size, const char* path = NULL);
+    bool IsSoftpatchApplied() const;
+    const char* GetSoftpatchPath() const;
     void SetGameGenieCheat(const char* szCheat);
     void ClearGameGenieCheats();
 
 private:
     bool GatherMetadata(u32 crc);
     void GetInfoFromDB(u32 crc);
-    bool LoadFromZipFile(const u8* buffer, int size);
+    bool LoadFromZipFile(const u8* buffer, int size, bool softpatching);
+    bool LoadFromBufferWithSoftpatch(const u8* buffer, int size, bool softpatching);
     bool TestValidROM(u16 location);
     void SetROMPath(const char* path);
     int CalculateROMBankCount(int romSize, int bankSize) const;
@@ -157,6 +160,8 @@ private:
     bool m_bRAMWithoutBattery;
     u32 m_iCRC;
     int m_iFeatures;
+    bool m_softpatch_applied;
+    char m_softpatch_path[4096];
 
     struct GameGenieCode
     {
