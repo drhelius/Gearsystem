@@ -81,7 +81,7 @@ public:
     void Init(GS_Color_Format pixelFormat = GS_PIXEL_RGBA8888);
     bool RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, GS_Debug_Run* debug = NULL, bool render = true);
     void RenderFrameBuffer(u8* finalFrameBuffer);
-    bool LoadROM(const char* szFilePath, Cartridge::ForceConfiguration* config = NULL);
+    bool LoadROM(const char* szFilePath, Cartridge::ForceConfiguration* config = NULL, bool softpatching = false);
     bool LoadROMFromBuffer(const u8* buffer, int size, Cartridge::ForceConfiguration* config = NULL, const char* szFilePath = NULL);
     void SaveMemoryDump();
     void SaveDisassembledROM();

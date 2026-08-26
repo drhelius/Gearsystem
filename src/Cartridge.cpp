@@ -26,6 +26,7 @@
 #undef MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #include "log.h"
 #include "common.h"
+#include "ips_patch.h"
 
 Cartridge::Cartridge()
 {
@@ -52,6 +53,8 @@ Cartridge::Cartridge()
     m_bRAMWithoutBattery = false;
     m_iCRC = 0;
     m_iFeatures = 0;
+    m_softpatch_applied = false;
+    m_softpatch_path[0] = 0;
 }
 
 Cartridge::~Cartridge()
@@ -90,6 +93,8 @@ void Cartridge::Reset()
     m_GameGenieList.clear();
     m_iCRC = 0;
     m_iFeatures = 0;
+    m_softpatch_applied = false;
+    m_softpatch_path[0] = 0;
 }
 
 u32 Cartridge::GetCRC() const
@@ -387,7 +392,17 @@ const char* Cartridge::GetFileDirectory() const
     return m_szFileDirectory;
 }
 
-bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
+bool Cartridge::IsSoftpatchApplied() const
+{
+    return m_softpatch_applied;
+}
+
+const char* Cartridge::GetSoftpatchPath() const
+{
+    return m_softpatch_path;
+}
+
+bool Cartridge::LoadFromZipFile(const u8* buffer, int size, bool softpatching)
 {
     using namespace std;
 
@@ -434,7 +449,7 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
                 return false;
             }
 
-            bool ok = LoadFromBuffer((const u8*) p, (int)uncomp_size);
+            bool ok = LoadFromBufferWithSoftpatch((const u8*) p, (int)uncomp_size, softpatching);
 
             free(p);
             mz_zip_reader_end(&zip_archive);
@@ -447,7 +462,7 @@ bool Cartridge::LoadFromZipFile(const u8* buffer, int size)
     return false;
 }
 
-bool Cartridge::LoadFromFile(const char* path)
+bool Cartridge::LoadFromFile(const char* path, bool softpatching)
 {
     using namespace std;
 
@@ -477,11 +492,11 @@ bool Cartridge::LoadFromFile(const char* path)
                 if (extension == "zip")
                 {
                     Debug("Loading from ZIP...");
-                    m_bReady = LoadFromZipFile(reinterpret_cast<u8*> (memblock), size);
+                    m_bReady = LoadFromZipFile(reinterpret_cast<u8*> (memblock), size, softpatching);
                 }
                 else
                 {
-                    m_bReady = LoadFromBuffer(reinterpret_cast<u8*> (memblock), size);
+                    m_bReady = LoadFromBufferWithSoftpatch(reinterpret_cast<u8*> (memblock), size, softpatching);
                 }
 
                 if (m_bReady)
@@ -515,12 +530,41 @@ bool Cartridge::LoadFromFile(const char* path)
         m_bReady = false;
     }
 
-    if (!m_bReady)
+    if (!m_bReady && m_softpatch_applied)
+    {
+        Error("Media rejected after applying IPS patch %s. Loading unpatched media.", m_softpatch_path);
+        return LoadFromFile(path, false);
+    }
+    else if (!m_bReady)
     {
         Reset();
     }
 
     return m_bReady;
+}
+
+bool Cartridge::LoadFromBufferWithSoftpatch(const u8* buffer, int size, bool softpatching)
+{
+    u8* patched_buffer = NULL;
+    int patched_size = 0;
+    char patch_path[4096] = {};
+    bool patched = softpatching && ips_apply_patch(m_szFilePath, buffer, size,
+        &patched_buffer, &patched_size, patch_path, sizeof(patch_path));
+
+    bool loaded;
+    if (patched)
+        loaded = LoadFromBuffer(patched_buffer, patched_size);
+    else
+        loaded = LoadFromBuffer(buffer, size);
+
+    m_softpatch_applied = patched;
+    if (m_softpatch_applied)
+        strncpy_fit(m_softpatch_path, patch_path, sizeof(m_softpatch_path));
+    else
+        m_softpatch_path[0] = 0;
+
+    SafeDeleteArray(patched_buffer);
+    return loaded;
 }
 
 bool Cartridge::LoadFromBuffer(const u8* buffer, int size, const char* path)

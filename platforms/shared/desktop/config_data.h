@@ -24,7 +24,7 @@
 #include <string>
 #include "gearsystem.h"
 
-static const int config_version = 5;
+static const int config_version = 6;
 static const int config_minimum_version = 2;
 static const int config_max_recent_roms = 10;
 static const int config_memory_editor_count = 18;
@@ -60,6 +60,7 @@ struct config_Emulator
     int save_slot;
     bool start_paused;
     bool pause_when_inactive;
+    bool softpatching;
     bool ffwd;
     int ffwd_speed;
     int runahead;

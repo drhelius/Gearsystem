@@ -253,9 +253,9 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
     return false;
 }
 
-bool GearsystemCore::LoadROM(const char* szFilePath, Cartridge::ForceConfiguration* config)
+bool GearsystemCore::LoadROM(const char* szFilePath, Cartridge::ForceConfiguration* config, bool softpatching)
 {
-    if (m_pCartridge->LoadFromFile(szFilePath))
+    if (m_pCartridge->LoadFromFile(szFilePath, softpatching))
     {
         if (IsValidPointer(config))
             m_pCartridge->ForceConfig(*config);
@@ -266,7 +266,12 @@ bool GearsystemCore::LoadROM(const char* szFilePath, Cartridge::ForceConfigurati
 
         m_pProcessor->DisassembleNextOPCode();
 
-        if (!romTypeOK)
+        if (!romTypeOK && m_pCartridge->IsSoftpatchApplied())
+        {
+            Error("Media rejected after applying IPS patch %s. Loading unpatched media.", m_pCartridge->GetSoftpatchPath());
+            return LoadROM(szFilePath, config, false);
+        }
+        else if (!romTypeOK)
         {
             Log("There was a problem with the cartridge header. File: %s...", szFilePath);
         }
