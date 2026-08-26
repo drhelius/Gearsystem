@@ -167,7 +167,7 @@ static inline void process(config_Operation operation)
 
     // Display
     CONFIG_INT("Video", "Scale", config_video.scale, 0);
-    CONFIG_INT("Video", "ScaleManual", config_video.scale_manual, 1);
+    CONFIG_INT_RANGE("Video", "ScaleManual", config_video.scale_manual, 1, 1, 20);
     CONFIG_INT("Video", "AspectRatio", config_video.ratio, 1);
     CONFIG_INT("Video", "Overscan", config_video.overscan, 1);
     CONFIG_INT("Video", "HideLeftBar", config_video.hide_left_bar, 0);
