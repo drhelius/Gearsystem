@@ -94,6 +94,8 @@ struct config_Emulator
     int light_phaser_y_offset;
     bool paddle_control;
     int paddle_sensitivity;
+    bool sports_pad;
+    int sports_pad_sensitivity;
     bool capture_mouse;
     int mcp_tcp_port;
     std::string mcp_http_address;

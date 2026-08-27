@@ -54,7 +54,7 @@ struct retro_core_option_v2_category option_cats_us[] = {
     {
         "input",
         "Input",
-        "Configure controller behavior, light gun and paddle settings."
+        "Configure controller behavior, light gun, paddle and Sports Pad settings."
     },
     { NULL, NULL, NULL },
 };
@@ -513,6 +513,33 @@ struct retro_core_option_v2_definition option_defs_us[] = {
             { NULL, NULL },
         },
         "1"
+    },
+    {
+        "gearsystem_sports_pad_sensitivity",
+        "Sports Pad Sensitivity",
+        NULL,
+        "Set the sensitivity of the Sports Pad. Higher values result in faster trackball movement.",
+        NULL,
+        "input",
+        {
+            { "1",  NULL },
+            { "2",  NULL },
+            { "3",  NULL },
+            { "4",  NULL },
+            { "5",  NULL },
+            { "6",  NULL },
+            { "7",  NULL },
+            { "8",  NULL },
+            { "9",  NULL },
+            { "10", NULL },
+            { "11", NULL },
+            { "12", NULL },
+            { "13", NULL },
+            { "14", NULL },
+            { "15", NULL },
+            { NULL, NULL },
+        },
+        "8"
     },
 
     { NULL, NULL, NULL, NULL, NULL, NULL, {{0}}, NULL },

@@ -44,6 +44,8 @@ void SmsIOPorts::LogInputReadEvent(u8 port, u8 raw, u8 effective, u8 player)
 {
 #if !defined(GS_DISABLE_DISASSEMBLER)
     u8 device = m_pInput->IsPaddleEnabled() ? 2 : (m_pInput->IsPhaserEnabled() ? 1 : 0);
+    if ((player > 0) && m_pInput->IsSportsPadEnabled((GS_Joypads)(player - 1)))
+        device = 3;
     GS_Trace_Entry e = {};
     e.type = TRACE_INPUT;
     e.input.event = TRACE_INPUT_READ;

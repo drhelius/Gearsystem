@@ -476,6 +476,16 @@ void emu_enable_paddle(bool enable)
     gearsystem->EnablePaddle(enable);
 }
 
+void emu_move_sports_pad(float x, float y)
+{
+    gearsystem->MoveSportsPad(Joypad_1, x, y);
+}
+
+void emu_enable_sports_pad(bool enable)
+{
+    gearsystem->EnableSportsPad(Joypad_1, enable);
+}
+
 void emu_pause(void)
 {
     gearsystem->Pause(true);

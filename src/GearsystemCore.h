@@ -96,6 +96,8 @@ public:
     void EnablePhaserCrosshair(bool enable, Video::LightPhaserCrosshairShape shape, Video::LightPhaserCrosshairColor color);
     void SetPaddle(float x);
     void EnablePaddle(bool enable);
+    void MoveSportsPad(GS_Joypads joypad, float x, float y);
+    void EnableSportsPad(GS_Joypads joypad, bool enable);
     void Pause(bool paused);
     bool IsPaused();
     void ResetROM(Cartridge::ForceConfiguration* config = NULL);

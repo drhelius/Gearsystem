@@ -165,6 +165,8 @@ static inline void process(config_Operation operation)
     CONFIG_INT("Emulator", "LightPhaserYOffset", config_emulator.light_phaser_y_offset, 0);
     CONFIG_BOOL("Emulator", "PaddleControl", config_emulator.paddle_control, false);
     CONFIG_INT("Emulator", "PaddleSensitivity", config_emulator.paddle_sensitivity, 5);
+    CONFIG_BOOL("Emulator", "SportsPad", config_emulator.sports_pad, false);
+    CONFIG_INT("Emulator", "SportsPadSensitivity", config_emulator.sports_pad_sensitivity, 8);
 
     // Files and paths
     CONFIG_INT("Emulator", "SaveFilesDirOption", config_emulator.savefiles_dir_option, 0);
@@ -359,7 +361,14 @@ static void after_read(int file_version)
     UNUSED(file_version);
 
     if (config_emulator.light_phaser)
+    {
         config_emulator.paddle_control = false;
+        config_emulator.sports_pad = false;
+    }
+    else if (config_emulator.paddle_control)
+    {
+        config_emulator.sports_pad = false;
+    }
 
     sync_shader_preset_parameter_defaults();
 }

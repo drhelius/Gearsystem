@@ -50,7 +50,7 @@ static const char* vdp_code_name(u8 code)
 
 static const char* input_device_name(u8 device)
 {
-    static const char* names[] = {"Joypad", "Light Phaser", "Paddle"};
+    static const char* names[] = {"Joypad", "Light Phaser", "Paddle", "Sports Pad"};
     return device < sizeof(names) / sizeof(names[0]) ? names[device] : "Unknown";
 }
 

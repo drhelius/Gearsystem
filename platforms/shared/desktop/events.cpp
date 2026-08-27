@@ -126,21 +126,38 @@ void events_handle_emu_event(const SDL_Event* event)
                 emu_set_paddle(relx);
             }
 
+            if (config_emulator.sports_pad && ((event->motion.xrel != 0.0f) || (event->motion.yrel != 0.0f)))
+            {
+                int sen = config_emulator.sports_pad_sensitivity;
+                if (sen < 1)
+                    sen = 1;
+
+                float sensitivity = (float)sen / 25.0f;
+                emu_move_sports_pad(event->motion.xrel * sensitivity, event->motion.yrel * sensitivity);
+            }
+
             break;
         }
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
         {
-            if ((config_emulator.light_phaser || config_emulator.paddle_control) && gui_main_window_hovered)
+            if ((config_emulator.light_phaser || config_emulator.paddle_control || config_emulator.sports_pad) && gui_main_window_hovered)
             {
                 if (event->button.button == SDL_BUTTON_LEFT)
                     emu_key_pressed(Joypad_1, Key_1);
+                else if (config_emulator.sports_pad && (event->button.button == SDL_BUTTON_RIGHT))
+                    emu_key_pressed(Joypad_1, Key_2);
             }
             break;
         }
         case SDL_EVENT_MOUSE_BUTTON_UP:
         {
-            if ((config_emulator.light_phaser || config_emulator.paddle_control) && event->button.button == SDL_BUTTON_LEFT)
-                emu_key_released(Joypad_1, Key_1);
+            if (config_emulator.light_phaser || config_emulator.paddle_control || config_emulator.sports_pad)
+            {
+                if (event->button.button == SDL_BUTTON_LEFT)
+                    emu_key_released(Joypad_1, Key_1);
+                else if (config_emulator.sports_pad && (event->button.button == SDL_BUTTON_RIGHT))
+                    emu_key_released(Joypad_1, Key_2);
+            }
 
             break;
         }

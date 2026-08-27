@@ -189,6 +189,9 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
                 TraceIOEvent(TRACE_IO_COUNTER_LATCH, port, value, 0, previous, (th_changed_a ? 1 : 0) | (th_changed_b ? 2 : 0));
             }
 
+            if (m_pInput->IsAnySportsPadEnabled())
+                m_pInput->WriteSportsPadControl(previous, value);
+
             m_Port3F = value;
             TraceIOEvent(TRACE_IO_CONTROL, port, value, m_Port3F, previous);
         }

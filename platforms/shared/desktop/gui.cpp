@@ -141,6 +141,7 @@ bool gui_init(void)
     emu_enable_phaser_crosshair(config_emulator.light_phaser_crosshair, config_emulator.light_phaser_crosshair_shape, config_emulator.light_phaser_crosshair_color);
     emu_set_phaser_offset(config_emulator.light_phaser_x_offset, config_emulator.light_phaser_y_offset);
     emu_enable_paddle(config_emulator.paddle_control);
+    emu_enable_sports_pad(config_emulator.sports_pad);
 
     strncpy_fit(gui_savefiles_path, config_emulator.savefiles_path.c_str(), sizeof(gui_savefiles_path));
     strncpy_fit(gui_savestates_path, config_emulator.savestates_path.c_str(), sizeof(gui_savestates_path));

@@ -43,10 +43,29 @@ public:
         bool flip;
     };
 
+    struct stSportsPad
+    {
+        bool enabled;
+        float pending_x;
+        float pending_y;
+        u8 absolute_x;
+        u8 absolute_y;
+        u8 relative_x;
+        u8 relative_y;
+        u8 relative_phase;
+        u8 absolute_phase;
+        u8 mode;
+        bool th;
+        u32 absolute_phase_cycles;
+        u64 unknown_cycles;
+        u64 th_idle_cycles;
+        u64 last_clock;
+    };
+
 public:
-    Input(Processor* pProcessor, Video* pVideo);
+    Input(Processor* pProcessor, Video* pVideo, const u64* pMasterClockCycles);
     void Init();
-    void Reset(bool bGameGear);
+    void Reset(bool bGameGear, bool bPAL = false);
     void KeyPressed(GS_Joypads joypad, GS_Keys key);
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
     bool IsKeyPressed(GS_Joypads joypad, GS_Keys key) const;
@@ -59,6 +78,11 @@ public:
     void EnablePaddle(bool enable);
     void SetPaddle(float x);
     bool IsPaddleEnabled();
+    void EnableSportsPad(GS_Joypads joypad, bool enable);
+    void MoveSportsPad(GS_Joypads joypad, float x, float y);
+    bool IsSportsPadEnabled(GS_Joypads joypad) const;
+    INLINE bool IsAnySportsPadEnabled() const;
+    void WriteSportsPadControl(u8 previous, u8 value);
     void SetTraceLogger(TraceLogger* pTraceLogger);
     u8 GetPortDC();
     u8 GetPortDD();
@@ -66,14 +90,29 @@ public:
     u8 GetGlassesRegistry();
     void SetGlassesRegistry(u8 value);
     void SaveState(std::ostream& stream);
-    void LoadState(std::istream& stream);
+    void LoadState(std::istream& stream, int version = GS_SAVESTATE_VERSION);
 
 private:
+    enum SportsPadMode
+    {
+        SportsPadModeUnknown = 0,
+        SportsPadModeRelative,
+        SportsPadModeAbsolute
+    };
+
     INLINE void TraceInputChangeEvent(u8 player, u8 key, u8 previous, u8 effective);
+    INLINE u8 GetControllerPort(u8 port);
     void LogInputChangeEvent(u8 player, u8 key, u8 previous, u8 effective);
+    void ResetSportsPad(stSportsPad* sports_pad);
+    void SyncSportsPad(stSportsPad* sports_pad);
+    void ConsumeSportsPadAbsolute(stSportsPad* sports_pad);
+    u8 ConsumeSportsPadRelative(float* pending);
+    void SportsPadTHChanged(u8 port, bool th);
+    u8 GetSportsPadPort(u8 port);
     Processor* m_pProccesor;
     Video* m_pVideo;
     TraceLogger* m_pTraceLogger;
+    const u64* m_pMasterClockCycles;
     u8 m_Joypad1;
     u8 m_Joypad2;
     u8 m_GlassesRegistry;
@@ -83,6 +122,9 @@ private:
     stPhaser m_PhaserOffset;
     bool m_bPaddle;
     stPaddle m_Paddle;
+    stSportsPad m_SportsPad[2];
+    u32 m_iSportsPadClockRate;
+    u32 m_iSportsPadCyclesPerPhase;
     bool m_bResetPressed;
 };
 
@@ -95,21 +137,39 @@ INLINE void Input::TraceInputChangeEvent(u8 player, u8 key, u8 previous, u8 effe
         LogInputChangeEvent(player, key, previous, effective);
 }
 
+INLINE bool Input::IsAnySportsPadEnabled() const
+{
+    return m_SportsPad[0].enabled || m_SportsPad[1].enabled;
+}
+
+INLINE u8 Input::GetControllerPort(u8 port)
+{
+    u8 joypad = port == 0 ? m_Joypad1 : m_Joypad2;
+
+    if (m_SportsPad[port].enabled && !m_bGameGear)
+        return GetSportsPadPort(port);
+
+    if ((port == 0) && m_bPaddle && !m_bGameGear)
+    {
+        m_Paddle.flip ^= 0x01;
+        u8 paddle_bits = (m_Paddle.flip == 0x00) ? m_Paddle.reg : (m_Paddle.reg >> 4);
+        return (joypad & 0x10) | (paddle_bits & 0x0F) | (m_Paddle.flip << 5);
+    }
+
+    return joypad & 0x3F;
+}
+
 inline u8 Input::GetPortDC()
 {
     if (m_bPhaser && !m_bGameGear)
     {
         return (m_Joypad1 & Key_1) ? 0xFF : 0xEF;
     }
-    else if (m_bPaddle && !m_bGameGear)
-    {
-        m_Paddle.flip ^= 0x01;
-        u8 paddle_bits = (m_Paddle.flip == 0x00) ? m_Paddle.reg : (m_Paddle.reg >> 4);
-        return (m_Joypad1 & 0x10) + (paddle_bits & 0x0F) + ((m_Joypad2 << 6) & 0xC0) + (m_Paddle.flip << 5);
-    }
     else
     {
-        return (m_Joypad1 & 0x3F) + ((m_Joypad2 << 6) & 0xC0);
+        u8 port_1 = GetControllerPort(0);
+        u8 port_2 = GetControllerPort(1);
+        return port_1 | ((port_2 << 6) & 0xC0);
     }
 }
 
@@ -118,14 +178,14 @@ inline u8 Input::GetPortDD()
     u8 dd;
     if (m_bPhaser && !m_bGameGear)
     {
-        dd = ((m_Joypad2 >> 2) & 0x0F) | 0xF0;
+        dd = ((GetControllerPort(1) >> 2) & 0x0F) | 0xF0;
 
         if (m_pVideo->IsPhaserDetected())
             dd = UnsetBit(dd, 6);
     }
     else
     {
-        dd = ((m_Joypad2 >> 2) & 0x0F) | 0xF0;
+        dd = ((GetControllerPort(1) >> 2) & 0x0F) | 0xF0;
     }
 
     if (!m_bGameGear && m_bResetPressed)

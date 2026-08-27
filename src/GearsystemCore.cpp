@@ -145,7 +145,7 @@ void GearsystemCore::Init(GS_Color_Format pixelFormat)
     m_pMemory = new Memory(m_pCartridge);
     m_pProcessor = new Processor(m_pMemory);
     m_pVideo = new Video(m_pMemory, m_pProcessor, m_pCartridge);
-    m_pInput = new Input(m_pProcessor, m_pVideo);
+    m_pInput = new Input(m_pProcessor, m_pVideo, &m_master_clock_cycles);
     m_pAudio = new Audio(m_pCartridge);
     m_pSmsIOPorts = new SmsIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge, m_pMemory, m_pProcessor);
     m_pGameGearIOPorts = new GameGearIOPorts(m_pAudio, m_pVideo, m_pInput, m_pCartridge, m_pMemory, m_pProcessor);
@@ -559,6 +559,16 @@ void GearsystemCore::SetPaddle(float x)
 void GearsystemCore::EnablePaddle(bool enable)
 {
     m_pInput->EnablePaddle(enable);
+}
+
+void GearsystemCore::MoveSportsPad(GS_Joypads joypad, float x, float y)
+{
+    m_pInput->MoveSportsPad(joypad, x, y);
+}
+
+void GearsystemCore::EnableSportsPad(GS_Joypads joypad, bool enable)
+{
+    m_pInput->EnableSportsPad(joypad, enable);
 }
 
 void GearsystemCore::Pause(bool paused)
@@ -1085,7 +1095,7 @@ bool GearsystemCore::LoadState(std::istream& stream)
     m_pProcessor->LoadState(stream, header.version);
     m_pAudio->LoadState(stream, header.version);
     m_pVideo->LoadState(stream, header.version);
-    m_pInput->LoadState(stream);
+    m_pInput->LoadState(stream, header.version);
     m_pMemory->GetCurrentRule()->LoadState(stream, header.version);
     if (header.version >= 104)
         m_pMemory->GetBootromRule()->LoadState(stream, header.version);
@@ -1142,7 +1152,7 @@ bool GearsystemCore::LoadStateV1(std::istream& stream, size_t size)
     m_pProcessor->LoadState(stream, GS_SAVESTATE_VERSION_V1);
     m_pAudio->LoadStateV1(stream);
     m_pVideo->LoadState(stream);
-    m_pInput->LoadState(stream);
+    m_pInput->LoadState(stream, GS_SAVESTATE_VERSION_V1);
     m_pMemory->GetCurrentRule()->LoadState(stream, GS_SAVESTATE_VERSION_V1);
     m_pProcessor->GetIOPOrts()->LoadState(stream, GS_SAVESTATE_VERSION_V1);
 
@@ -1499,7 +1509,7 @@ void GearsystemCore::Reset()
     m_pProcessor->Reset(m_pCartridge->GetGameGearASIC() == 1);
     m_pAudio->Reset(m_pCartridge->IsPAL());
     m_pVideo->Reset(m_pCartridge->IsGameGear(), m_pCartridge->IsPAL(), m_pCartridge->GetGameGearASIC(), m_pCartridge->IsGameGearInSMSMode());
-    m_pInput->Reset(m_pCartridge->IsGameGear());
+    m_pInput->Reset(m_pCartridge->IsGameGear(), m_pCartridge->IsPAL());
     m_pSegaMemoryRule->Reset();
     m_pCodemastersMemoryRule->Reset();
     m_pSG1000MemoryRule->Reset();

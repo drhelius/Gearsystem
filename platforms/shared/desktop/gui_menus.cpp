@@ -1230,6 +1230,12 @@ static void menu_input(void)
                     config_emulator.paddle_control = false;
                     emu_enable_paddle(false);
                 }
+
+                if (config_emulator.light_phaser && config_emulator.sports_pad)
+                {
+                    config_emulator.sports_pad = false;
+                    emu_enable_sports_pad(false);
+                }
             }
 
             if (ImGui::MenuItem("Enable Crosshair", "", &config_emulator.light_phaser_crosshair))
@@ -1281,6 +1287,12 @@ static void menu_input(void)
                     config_emulator.light_phaser = false;
                     emu_enable_phaser(false);
                 }
+
+                if (config_emulator.paddle_control && config_emulator.sports_pad)
+                {
+                    config_emulator.sports_pad = false;
+                    emu_enable_sports_pad(false);
+                }
             }
 
             ImGui::MenuItem("Capture Mouse", config_hotkeys[config_HotkeyIndex_CaptureMouse].str, &config_emulator.capture_mouse);
@@ -1290,6 +1302,36 @@ static void menu_input(void)
             }
 
             ImGui::SliderInt("##paddle_sensitivity", &config_emulator.paddle_sensitivity, 1, 15, "Sensitivity = %d");
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Sports Pad"))
+        {
+            if (ImGui::MenuItem("Enable Sports Pad", "", &config_emulator.sports_pad))
+            {
+                emu_enable_sports_pad(config_emulator.sports_pad);
+
+                if (config_emulator.sports_pad && config_emulator.light_phaser)
+                {
+                    config_emulator.light_phaser = false;
+                    emu_enable_phaser(false);
+                }
+
+                if (config_emulator.sports_pad && config_emulator.paddle_control)
+                {
+                    config_emulator.paddle_control = false;
+                    emu_enable_paddle(false);
+                }
+            }
+
+            ImGui::MenuItem("Capture Mouse", config_hotkeys[config_HotkeyIndex_CaptureMouse].str, &config_emulator.capture_mouse);
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::SetTooltip("When enabled, the mouse will be captured inside\nthe emulator window to use the Sports Pad freely.\nPress %s to release the mouse.", config_hotkeys[config_HotkeyIndex_CaptureMouse].str);
+            }
+
+            ImGui::SliderInt("##sports_pad_sensitivity", &config_emulator.sports_pad_sensitivity, 1, 15, "Sensitivity = %d");
 
             ImGui::EndMenu();
         }

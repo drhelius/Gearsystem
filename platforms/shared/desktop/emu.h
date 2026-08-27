@@ -77,6 +77,8 @@ EXTERN void emu_enable_phaser(bool enable);
 EXTERN void emu_enable_phaser_crosshair(bool enable, int shape, int color);
 EXTERN void emu_set_paddle(float x);
 EXTERN void emu_enable_paddle(bool enable);
+EXTERN void emu_move_sports_pad(float x, float y);
+EXTERN void emu_enable_sports_pad(bool enable);
 EXTERN void emu_pause(void);
 EXTERN void emu_resume(void);
 EXTERN bool emu_is_paused(void);
