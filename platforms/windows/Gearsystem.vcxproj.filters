@@ -148,6 +148,9 @@
     <ClCompile Include="..\..\src\GameGearIOPorts.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\MarkIIILink.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\GearsystemCore.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -481,6 +484,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\GameGearIOPorts.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\MarkIIILink.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game_db.h">

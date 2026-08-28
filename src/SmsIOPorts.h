@@ -21,6 +21,7 @@
 #define	SMSIOPORTS_H
 
 #include "IOPorts.h"
+#include "MarkIIILink.h"
 
 class Audio;
 class Video;
@@ -41,10 +42,28 @@ public:
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream, int version);
     void SetTraceLogger(TraceLogger* pTraceLogger);
+    void SetLinkCableCallbacks(
+        GS_LinkCable_Publish_Callback publish_callback,
+        GS_LinkCable_Sample_Callback sample_callback,
+        GS_LinkCable_Poll_Callback poll_callback,
+        GS_LinkCable_Fence_Callback fence_callback,
+        GS_LinkCable_Sync_Callback sync_callback,
+        void* user_data);
+    void SetMarkIIIPeripheralAttached(bool attached, u64 cycle);
+    void SetMarkIIITransportActive(bool active, u64 cycle);
+    void SetMarkIIICableConnected(bool connected, u64 cycle);
+    void BeginMarkIIIInstruction(u64 cycle);
+    void EndMarkIIIInstruction(u64 cycle);
+    void RebaseMarkIIILink(u64 cycle);
+    void MarkIIIKeyPressed(GS_MarkIII_Key key);
+    void MarkIIIKeyReleased(GS_MarkIII_Key key);
+    void ReleaseMarkIIIKeys();
+    MarkIIILink* GetMarkIIILink();
 
 private:
     INLINE void TraceInputReadEvent(u8 port, u8 raw, u8 effective, u8 player);
     INLINE void TraceIOEvent(u8 event, u8 port, u8 raw, u8 effective, u8 previous = 0, u8 auxiliary = 0);
+    INLINE u8 ReadControllerPort(u8 port);
     void LogInputReadEvent(u8 port, u8 raw, u8 effective, u8 player);
     void LogIOEvent(u8 event, u8 port, u8 raw, u8 effective, u8 previous, u8 auxiliary);
     Audio* m_pAudio;
@@ -55,6 +74,7 @@ private:
     Processor* m_pProcessor;
     TraceLogger* m_pTraceLogger;
     u8 m_Port3F;
+    MarkIIILink m_markiii_link;
 };
 
 #include "Video.h"
@@ -76,6 +96,48 @@ INLINE void SmsIOPorts::TraceIOEvent(u8 event, u8 port, u8 raw, u8 effective, u8
 {
     if (m_pTraceLogger->IsEventEnabled(TRACE_IO, event))
         LogIOEvent(event, port, raw, effective, previous, auxiliary);
+}
+
+INLINE u8 SmsIOPorts::ReadControllerPort(u8 port)
+{
+    if ((port & 0x01) == 0x00)
+    {
+        u8 ret_dc = m_pInput->GetPortDC();
+        u8 raw = ret_dc;
+        if (!(m_Port3F & 0x01))
+        {
+            ret_dc &= 0xDF;
+            ret_dc |= (m_Port3F & 0x10) << 1;
+        }
+        TraceInputReadEvent(port, raw, ret_dc, 1);
+        return ret_dc;
+    }
+
+    u8 ret_dd = m_pInput->GetPortDD();
+    u8 raw = ret_dd;
+
+    if (m_pCartridge->GetZone() != Cartridge::CartridgeJapanSMS)
+    {
+        if (!(m_Port3F & 0x02))
+        {
+            ret_dd &= 0xBF;
+            ret_dd |= (m_Port3F & 0x20) << 1;
+        }
+        if (!(m_Port3F & 0x08))
+        {
+            ret_dd &= 0x7F;
+            ret_dd |= m_Port3F & 0x80;
+        }
+    }
+
+    if (!(m_Port3F & 0x04))
+    {
+        ret_dd &= 0xF7;
+        ret_dd |= (m_Port3F & 0x40) >> 3;
+    }
+
+    TraceInputReadEvent(port, raw, ret_dd, 2);
+    return ret_dd;
 }
 
 inline u8 SmsIOPorts::DoInput(u8 port)
@@ -113,55 +175,17 @@ inline u8 SmsIOPorts::DoInput(u8 port)
     }
     else
     {
+        if (m_markiii_link.IsPeripheralAttached())
+        {
+            if (m_markiii_link.IsKeyboardSelected())
+                return m_markiii_link.DoInput(port);
+            return ReadControllerPort(port);
+        }
+
         if (port >= 0xF0)
-        {
             return m_pAudio->YM2413Read();
-        }
-        else
-        {
-            // Reads from even addresses return the I/O port A/B register
-            if ((port & 0x01) == 0x00)
-            {
-                u8 ret_dc = m_pInput->GetPortDC();
-                u8 raw = ret_dc;
-                if (!(m_Port3F & 0x01))
-                {
-                    ret_dc &= 0xDF;
-                    ret_dc |= (m_Port3F & 0x10) << 1;
-                }
-                TraceInputReadEvent(port, raw, ret_dc, 1);
-                return ret_dc;
-            }
-            // Reads from odd address return the I/O port B/misc. register
-            else
-            {
-                u8 ret_dd = m_pInput->GetPortDD();
-                u8 raw = ret_dd;
 
-                if (m_pCartridge->GetZone() != Cartridge::CartridgeJapanSMS)
-                {
-                    if (!(m_Port3F & 0x02))
-                    {
-                        ret_dd &= 0xbf;
-                        ret_dd |= (m_Port3F & 0x20) << 1;
-                    }
-                    if (!(m_Port3F & 0x08))
-                    {
-                        ret_dd &= 0x7F;
-                        ret_dd |= (m_Port3F & 0x80);
-                    }
-                }
-
-                if (!(m_Port3F & 0x04))
-                {
-                    ret_dd &= 0xF7;
-                    ret_dd |= (m_Port3F & 0x40) >> 3;
-                }
-
-                TraceInputReadEvent(port, raw, ret_dd, 2);
-                return ret_dd;
-            }
-        }
+        return ReadControllerPort(port);
     }
 }
 
@@ -211,6 +235,10 @@ inline void SmsIOPorts::DoOutput(u8 port, u8 value)
         // Writes to odd addresses go to the VDP control port.
         else
             m_pVideo->WriteControl(value);
+    }
+    else if (m_markiii_link.IsPeripheralAttached())
+    {
+        m_markiii_link.DoOutput(port, value);
     }
     else if (port >= 0xF0)
     {

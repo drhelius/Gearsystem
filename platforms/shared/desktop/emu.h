@@ -148,8 +148,12 @@ EXTERN bool emu_geartogear_is_cable_connected(void);
 EXTERN bool emu_geartogear_is_pacing_peer(void);
 EXTERN GearToGearStatus emu_geartogear_get_status(void);
 EXTERN GS_GearToGear_DebugState emu_geartogear_get_debug_state(void);
+EXTERN GS_MarkIII_LinkDebugState emu_markiii_link_get_debug_state(void);
 EXTERN void emu_geartogear_reset_metrics(void);
 EXTERN void emu_geartogear_set_normal_barrier_stall_us(u32 stall_us);
+EXTERN void emu_markiii_key_pressed(GS_MarkIII_Key key);
+EXTERN void emu_markiii_key_released(GS_MarkIII_Key key);
+EXTERN void emu_markiii_release_keys(void);
 
 #undef EMU_IMPORT
 #undef EXTERN

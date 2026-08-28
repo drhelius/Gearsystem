@@ -31,6 +31,7 @@
 
 static bool input_updated = false;
 static Uint16 input_last_state[GS_MAX_GAMEPADS] = { };
+static u8 markiii_input_last_state = 0;
 
 static bool events_check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat);
 static bool events_match_hotkey_scancode(const SDL_Event* event, const config_Hotkey& hotkey);
@@ -38,6 +39,9 @@ static Uint16 input_build_state(int controller);
 static Uint16 input_filter_opposing_directions(int controller, Uint16 state);
 static void input_apply_state(int controller, Uint16 before, Uint16 now);
 static bool input_check_reset(int controller);
+static u8 markiii_input_build_state(void);
+static void markiii_input_apply_state(u8 before, u8 now);
+static bool markiii_input_scancode_reserved(SDL_Scancode scancode);
 
 void events_shortcuts(const SDL_Event* event)
 {
@@ -166,8 +170,15 @@ void events_handle_emu_event(const SDL_Event* event)
 
 void events_emu(void)
 {
-    if (input_updated || gui_in_use)
+    if (input_updated)
         return;
+
+    if (gui_in_use)
+    {
+        markiii_input_apply_state(markiii_input_last_state, 0);
+        markiii_input_last_state = 0;
+        return;
+    }
     input_updated = true;
 
     SDL_PumpEvents();
@@ -191,6 +202,10 @@ void events_emu(void)
     }
 
     emu_set_reset(reset_pressed);
+
+    u8 markiii_state = markiii_input_build_state();
+    markiii_input_apply_state(markiii_input_last_state, markiii_state);
+    markiii_input_last_state = markiii_state;
 }
 
 void events_sync_input(void)
@@ -210,11 +225,22 @@ void events_sync_input(void)
     }
 
     emu_set_reset(reset_pressed);
+
+    u8 markiii_state = markiii_input_build_state();
+    markiii_input_apply_state(markiii_input_last_state, 0);
+    markiii_input_apply_state(0, markiii_state);
+    markiii_input_last_state = markiii_state;
 }
 
 void events_reset_input(void)
 {
     input_updated = false;
+}
+
+void events_release_markiii_input(void)
+{
+    markiii_input_apply_state(markiii_input_last_state, 0);
+    markiii_input_last_state = 0;
 }
 
 bool events_input_updated(void)
@@ -234,19 +260,26 @@ static Uint16 input_build_state(int controller)
     const bool* keyboard_state = SDL_GetKeyboardState(NULL);
     Uint16 ret = 0;
 
-    if (keyboard_state[config_input[controller].key_left])
+    if (!markiii_input_scancode_reserved(config_input[controller].key_left) &&
+        keyboard_state[config_input[controller].key_left])
         ret |= Key_Left;
-    if (keyboard_state[config_input[controller].key_right])
+    if (!markiii_input_scancode_reserved(config_input[controller].key_right) &&
+        keyboard_state[config_input[controller].key_right])
         ret |= Key_Right;
-    if (keyboard_state[config_input[controller].key_up])
+    if (!markiii_input_scancode_reserved(config_input[controller].key_up) &&
+        keyboard_state[config_input[controller].key_up])
         ret |= Key_Up;
-    if (keyboard_state[config_input[controller].key_down])
+    if (!markiii_input_scancode_reserved(config_input[controller].key_down) &&
+        keyboard_state[config_input[controller].key_down])
         ret |= Key_Down;
-    if (keyboard_state[config_input[controller].key_1])
+    if (!markiii_input_scancode_reserved(config_input[controller].key_1) &&
+        keyboard_state[config_input[controller].key_1])
         ret |= Key_1;
-    if (keyboard_state[config_input[controller].key_2])
+    if (!markiii_input_scancode_reserved(config_input[controller].key_2) &&
+        keyboard_state[config_input[controller].key_2])
         ret |= Key_2;
-    if (keyboard_state[config_input[controller].key_start])
+    if (!markiii_input_scancode_reserved(config_input[controller].key_start) &&
+        keyboard_state[config_input[controller].key_start])
         ret |= Key_Start;
 
     SDL_Gamepad* sdl_controller = gamepad_controller[controller];
@@ -360,6 +393,67 @@ static bool input_check_reset(int controller)
         return true;
 
     return false;
+}
+
+static u8 markiii_input_build_state(void)
+{
+    GearsystemCore* core = emu_get_core();
+    if (!core || core->GetLinkCableProtocol() != LinkCableProtocolMarkIII)
+        return 0;
+
+    SDL_Keymod mods = SDL_GetModState();
+    if (mods & (SDL_KMOD_CTRL | SDL_KMOD_SHIFT | SDL_KMOD_ALT |
+        SDL_KMOD_GUI))
+    {
+        return 0;
+    }
+
+    const bool* keyboard_state = SDL_GetKeyboardState(NULL);
+    u8 state = 0;
+    if (keyboard_state[SDL_SCANCODE_1])
+        state |= 0x01;
+    if (keyboard_state[SDL_SCANCODE_2])
+        state |= 0x02;
+    if (keyboard_state[SDL_SCANCODE_SPACE])
+        state |= 0x04;
+    if (keyboard_state[SDL_SCANCODE_RETURN] ||
+        keyboard_state[SDL_SCANCODE_KP_ENTER])
+    {
+        state |= 0x08;
+    }
+    return state;
+}
+
+static void markiii_input_apply_state(u8 before, u8 now)
+{
+    static const u8 masks[4] = { 0x01, 0x02, 0x04, 0x08 };
+    static const GS_MarkIII_Key keys[4] = {
+        MarkIIIKey1, MarkIIIKey2, MarkIIIKeySpace, MarkIIIKeyReturn
+    };
+
+    u8 pressed = now & (u8)~before;
+    u8 released = before & (u8)~now;
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (pressed & masks[i])
+            emu_markiii_key_pressed(keys[i]);
+        if (released & masks[i])
+            emu_markiii_key_released(keys[i]);
+    }
+}
+
+static bool markiii_input_scancode_reserved(SDL_Scancode scancode)
+{
+    GearsystemCore* core = emu_get_core();
+    if (!core || core->GetLinkCableProtocol() != LinkCableProtocolMarkIII)
+        return false;
+
+    return scancode == SDL_SCANCODE_1 ||
+        scancode == SDL_SCANCODE_2 ||
+        scancode == SDL_SCANCODE_SPACE ||
+        scancode == SDL_SCANCODE_RETURN ||
+        scancode == SDL_SCANCODE_KP_ENTER;
 }
 
 static bool events_check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat)

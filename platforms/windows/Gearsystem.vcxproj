@@ -31,6 +31,7 @@
     <ClCompile Include="..\..\src\CodemastersMemoryRule.cpp" />
     <ClCompile Include="..\..\src\Eeprom93C46MemoryRule.cpp" />
     <ClCompile Include="..\..\src\GameGearIOPorts.cpp" />
+    <ClCompile Include="..\..\src\MarkIIILink.cpp" />
     <ClCompile Include="..\..\src\GearsystemCore.cpp" />
     <ClCompile Include="..\..\src\Input.cpp" />
     <ClCompile Include="..\..\src\JanggunMemoryRule.cpp" />
@@ -152,6 +153,7 @@
     <ClInclude Include="..\..\src\definitions.h" />
     <ClInclude Include="..\..\src\Eeprom93C46MemoryRule.h" />
     <ClInclude Include="..\..\src\GameGearIOPorts.h" />
+    <ClInclude Include="..\..\src\MarkIIILink.h" />
     <ClInclude Include="..\..\src\game_db.h" />
     <ClInclude Include="..\..\src\gearsystem.h" />
     <ClInclude Include="..\..\src\GearsystemCore.h" />

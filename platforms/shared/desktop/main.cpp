@@ -89,11 +89,12 @@ int main(int argc, char* argv[])
             {
                 portable = true;
             }
-            else if (strcmp(argv[i], "--geartogear-session") == 0)
+            else if ((strcmp(argv[i], "--link-session") == 0) ||
+                (strcmp(argv[i], "--geartogear-session") == 0))
             {
                 if (i + 1 >= argc || argv[i + 1][0] == '-')
                 {
-                    fprintf(stderr, "Missing value for --geartogear-session\n");
+                    fprintf(stderr, "Missing value for %s\n", argv[i]);
                     return -1;
                 }
 
@@ -101,17 +102,19 @@ int main(int argc, char* argv[])
                 long session = strtol(argv[++i], &end, 10);
                 if (!end || *end != '\0' || session < 1 || session > 255)
                 {
-                    fprintf(stderr, "Invalid Gear-to-Gear session: %s\n", argv[i]);
+                    fprintf(stderr, "Invalid link cable session: %s\n",
+                        argv[i]);
                     return -1;
                 }
                 app_params.geartogear_session = (int)session;
                 app_params.geartogear_session_set = true;
             }
-            else if (strcmp(argv[i], "--geartogear-stall-us") == 0)
+            else if ((strcmp(argv[i], "--link-stall-us") == 0) ||
+                (strcmp(argv[i], "--geartogear-stall-us") == 0))
             {
                 if (i + 1 >= argc || argv[i + 1][0] == '-')
                 {
-                    fprintf(stderr, "Missing value for --geartogear-stall-us\n");
+                    fprintf(stderr, "Missing value for %s\n", argv[i]);
                     return -1;
                 }
 
@@ -119,7 +122,8 @@ int main(int argc, char* argv[])
                 long stall_us = strtol(argv[++i], &end, 10);
                 if (!end || *end != '\0' || stall_us < 0 || stall_us > 10000)
                 {
-                    fprintf(stderr, "Invalid Gear-to-Gear stall threshold: %s\n", argv[i]);
+                    fprintf(stderr,
+                        "Invalid link cable stall threshold: %s\n", argv[i]);
                     return -1;
                 }
                 app_params.geartogear_stall_us = (int)stall_us;
@@ -168,7 +172,9 @@ int main(int argc, char* argv[])
     {
         if ((strcmp(argv[i], "--mcp-http-port") == 0) ||
             (strcmp(argv[i], "--mcp-http-address") == 0) ||
+            (strcmp(argv[i], "--link-session") == 0) ||
             (strcmp(argv[i], "--geartogear-session") == 0) ||
+            (strcmp(argv[i], "--link-stall-us") == 0) ||
             (strcmp(argv[i], "--geartogear-stall-us") == 0))
         {
             if (i + 1 < argc)
@@ -214,9 +220,11 @@ int main(int argc, char* argv[])
         printf("      --mcp-router            Enable compact MCP tool routing\n");
         printf("      --mcp-http-address A    HTTP bind address (default: 127.0.0.1)\n");
         printf("      --mcp-http-port N       HTTP port for MCP server (default: 7777)\n");
-        printf("      --headless              Run without GUI (requires MCP or Gear-to-Gear)\n");
-        printf("      --geartogear-session N  Connect to Gear-to-Gear session 1-255\n");
-        printf("      --geartogear-stall-us N Override barrier stall threshold (0=default)\n");
+        printf("      --headless              Run without GUI (requires MCP or Link Cable)\n");
+        printf("      --link-session N        Connect to link cable session 1-255\n");
+        printf("      --geartogear-session N  Compatibility alias for --link-session\n");
+        printf("      --link-stall-us N       Override barrier stall threshold (0=default)\n");
+        printf("      --geartogear-stall-us N Compatibility alias for --link-stall-us\n");
         printf("      --portable              Store configuration and user data beside the application\n");
         printf("  -v, --version               Display version information\n");
         printf("  -h, --help                  Display this help message\n");

@@ -93,6 +93,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_trace_logger);
     m_master_clock_cycles = 0;
     m_geartogear_cycles = 0;
+    m_link_protocol = LinkCableProtocolNone;
     m_bPaused = true;
     m_pixelFormat = GS_PIXEL_RGBA8888;
     m_GlassesConfig = GearsystemCore::GlassesBothEyes;
@@ -191,16 +192,14 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
         do
         {
             u64 link_start_cycle = m_geartogear_cycles;
-            if (IsNativeGameGearMode())
-                m_pGameGearIOPorts->BeginInstruction(link_start_cycle);
+            BeginLinkInstruction(link_start_cycle);
 
             unsigned int clockCycles = debug_enable && debug->step_debugger ? m_pProcessor->RunInstruction() : m_pProcessor->RunFor(1);
             instruction_completed = true;
             m_master_clock_cycles += clockCycles;
             m_geartogear_cycles += clockCycles;
 
-            if (IsNativeGameGearMode())
-                m_pGameGearIOPorts->EndInstruction(m_geartogear_cycles);
+            EndLinkInstruction(m_geartogear_cycles);
 
             vblank = m_pVideo->Tick(clockCycles);
             m_pAudio->Tick(clockCycles);
@@ -242,15 +241,13 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
         do
         {
             u64 link_start_cycle = m_geartogear_cycles;
-            if (IsNativeGameGearMode())
-                m_pGameGearIOPorts->BeginInstruction(link_start_cycle);
+            BeginLinkInstruction(link_start_cycle);
 
             unsigned int clockCycles = m_pProcessor->RunFor(1);
             m_master_clock_cycles += clockCycles;
             m_geartogear_cycles += clockCycles;
 
-            if (IsNativeGameGearMode())
-                m_pGameGearIOPorts->EndInstruction(m_geartogear_cycles);
+            EndLinkInstruction(m_geartogear_cycles);
 
             vblank = m_pVideo->Tick(clockCycles);
             m_pAudio->Tick(clockCycles);
@@ -462,18 +459,122 @@ void GearsystemCore::SetGearToGearCallbacks(
     GS_GearToGear_Sync_Callback sync_callback,
     void* user_data)
 {
-    m_pGameGearIOPorts->SetGearToGearCallbacks(publish_callback,
-        sample_callback, poll_callback, fence_callback, sync_callback, user_data);
+    SetLinkCableCallbacks(publish_callback, sample_callback, poll_callback,
+        fence_callback, sync_callback, user_data);
 }
 
 void GearsystemCore::SetGearToGearTransportActive(bool active, u64 cycle)
 {
-    m_pGameGearIOPorts->SetGearToGearTransportActive(active, cycle);
+    if (active)
+        SetLinkCableProtocol(LinkCableProtocolGearToGear, cycle);
+    SetLinkCableTransportActive(active, cycle);
 }
 
 void GearsystemCore::SetGearToGearCableConnected(bool connected, u64 cycle)
 {
-    m_pGameGearIOPorts->SetGearToGearCableConnected(connected, cycle);
+    if (connected)
+        SetLinkCableProtocol(LinkCableProtocolGearToGear, cycle);
+    SetLinkCableConnected(connected, cycle);
+}
+
+void GearsystemCore::SetLinkCableCallbacks(
+    GS_LinkCable_Publish_Callback publish_callback,
+    GS_LinkCable_Sample_Callback sample_callback,
+    GS_LinkCable_Poll_Callback poll_callback,
+    GS_LinkCable_Fence_Callback fence_callback,
+    GS_LinkCable_Sync_Callback sync_callback,
+    void* user_data)
+{
+    m_pGameGearIOPorts->SetGearToGearCallbacks(publish_callback,
+        sample_callback, poll_callback, fence_callback, sync_callback,
+        user_data);
+    m_pSmsIOPorts->SetLinkCableCallbacks(publish_callback,
+        sample_callback, poll_callback, fence_callback, sync_callback,
+        user_data);
+}
+
+void GearsystemCore::SetLinkCableProtocol(GS_LinkCable_Protocol protocol,
+    u64 cycle)
+{
+    if (protocol == m_link_protocol)
+        return;
+
+    if (m_link_protocol == LinkCableProtocolGearToGear)
+    {
+        if (m_pGameGearIOPorts->IsGearToGearCableConnected())
+            m_pGameGearIOPorts->SetGearToGearCableConnected(false, cycle);
+        m_pGameGearIOPorts->SetGearToGearTransportActive(false, cycle);
+    }
+    else if (m_link_protocol == LinkCableProtocolMarkIII)
+    {
+        if (m_pSmsIOPorts->GetMarkIIILink()->IsCableConnected())
+            m_pSmsIOPorts->SetMarkIIICableConnected(false, cycle);
+        m_pSmsIOPorts->SetMarkIIITransportActive(false, cycle);
+        m_pSmsIOPorts->SetMarkIIIPeripheralAttached(false, cycle);
+    }
+
+    m_link_protocol = protocol;
+
+    if (m_link_protocol == LinkCableProtocolMarkIII)
+        m_pSmsIOPorts->SetMarkIIIPeripheralAttached(true, cycle);
+}
+
+void GearsystemCore::SetLinkCableTransportActive(bool active, u64 cycle)
+{
+    if (m_link_protocol == LinkCableProtocolGearToGear)
+        m_pGameGearIOPorts->SetGearToGearTransportActive(active, cycle);
+    else if (m_link_protocol == LinkCableProtocolMarkIII)
+        m_pSmsIOPorts->SetMarkIIITransportActive(active, cycle);
+}
+
+void GearsystemCore::SetLinkCableConnected(bool connected, u64 cycle)
+{
+    if (m_link_protocol == LinkCableProtocolGearToGear)
+        m_pGameGearIOPorts->SetGearToGearCableConnected(connected, cycle);
+    else if (m_link_protocol == LinkCableProtocolMarkIII)
+        m_pSmsIOPorts->SetMarkIIICableConnected(connected, cycle);
+}
+
+GS_LinkCable_Protocol GearsystemCore::GetLinkCableProtocol() const
+{
+    return m_link_protocol;
+}
+
+GS_LinkCable_Protocol GearsystemCore::GetSupportedLinkCableProtocol() const
+{
+    if (!m_pCartridge->IsReady())
+        return LinkCableProtocolNone;
+
+    if (IsNativeGameGearMode())
+        return LinkCableProtocolGearToGear;
+
+    if (!m_pCartridge->IsGameGear() && !m_pCartridge->IsSG1000() &&
+        m_pCartridge->GetZone() == Cartridge::CartridgeJapanSMS)
+    {
+        return LinkCableProtocolMarkIII;
+    }
+
+    return LinkCableProtocolNone;
+}
+
+u64 GearsystemCore::GetLinkCableCycles() const
+{
+    return m_geartogear_cycles;
+}
+
+void GearsystemCore::MarkIIIKeyPressed(GS_MarkIII_Key key)
+{
+    m_pSmsIOPorts->MarkIIIKeyPressed(key);
+}
+
+void GearsystemCore::MarkIIIKeyReleased(GS_MarkIII_Key key)
+{
+    m_pSmsIOPorts->MarkIIIKeyReleased(key);
+}
+
+void GearsystemCore::ReleaseMarkIIIKeys()
+{
+    m_pSmsIOPorts->ReleaseMarkIIIKeys();
 }
 
 bool GearsystemCore::IsNativeGameGearMode() const
@@ -490,6 +591,11 @@ u64 GearsystemCore::GetGearToGearCycles() const
 GameGearIOPorts* GearsystemCore::GetGameGearIOPorts()
 {
     return m_pGameGearIOPorts;
+}
+
+MarkIIILink* GearsystemCore::GetMarkIIILink()
+{
+    return m_pSmsIOPorts->GetMarkIIILink();
 }
 
 TraceLogger* GearsystemCore::GetTraceLogger()
@@ -1537,8 +1643,25 @@ void GearsystemCore::Reset()
     m_pGameGearIOPorts->Reset();
     m_pGameGearIOPorts->RebaseGearToGear(m_geartogear_cycles);
     m_pSmsIOPorts->Reset();
+    m_pSmsIOPorts->RebaseMarkIIILink(m_geartogear_cycles);
     m_bPaused = false;
     m_master_clock_cycles = 0;
+}
+
+void GearsystemCore::BeginLinkInstruction(u64 cycle)
+{
+    if (IsNativeGameGearMode())
+        m_pGameGearIOPorts->BeginInstruction(cycle);
+    else if (m_link_protocol == LinkCableProtocolMarkIII)
+        m_pSmsIOPorts->BeginMarkIIIInstruction(cycle);
+}
+
+void GearsystemCore::EndLinkInstruction(u64 cycle)
+{
+    if (IsNativeGameGearMode())
+        m_pGameGearIOPorts->EndInstruction(cycle);
+    else if (m_link_protocol == LinkCableProtocolMarkIII)
+        m_pSmsIOPorts->EndMarkIIIInstruction(cycle);
 }
 
 void GearsystemCore::RenderFrameBuffer(u8* finalFrameBuffer)

@@ -1178,6 +1178,26 @@ json DebugAdapter::GetSerialStatus()
 
     GearToGearStatus link = emu_geartogear_get_status();
     GS_GearToGear_DebugState hardware = emu_geartogear_get_debug_state();
+    GS_MarkIII_LinkDebugState markiii =
+        emu_markiii_link_get_debug_state();
+
+    const char* protocol = "none";
+    if (link.protocol == LinkCableProtocolGearToGear)
+        protocol = "game_gear_geartogear";
+    else if (link.protocol == LinkCableProtocolMarkIII)
+        protocol = "markiii_joyjoy";
+
+    const char* remote_protocol = "none";
+    if (link.remote_protocol == LinkCableProtocolGearToGear)
+        remote_protocol = "game_gear_geartogear";
+    else if (link.remote_protocol == LinkCableProtocolMarkIII)
+        remote_protocol = "markiii_joyjoy";
+
+    const char* selected_protocol = "none";
+    if (m_core->GetLinkCableProtocol() == LinkCableProtocolGearToGear)
+        selected_protocol = "game_gear_geartogear";
+    else if (m_core->GetLinkCableProtocol() == LinkCableProtocolMarkIII)
+        selected_protocol = "markiii_joyjoy";
 
     json status;
     std::ostringstream ss;
@@ -1198,6 +1218,7 @@ json DebugAdapter::GetSerialStatus()
     registers["SSTATUS"] = ss.str(); ss.str("");
     status["registers"] = registers;
     status["native_game_gear"] = m_core->IsNativeGameGearMode();
+    status["link_protocol"] = selected_protocol;
 
     u8 baud_index = (hardware.serial_control >> 6) & 0x03;
     json control;
@@ -1263,7 +1284,33 @@ json DebugAdapter::GetSerialStatus()
     wire["contention_mask"] = ss.str(); ss.str("");
     status["wire"] = wire;
     status["io_cycle"] = hardware.cycle;
-    status["link_cycle"] = m_core->GetGearToGearCycles();
+    status["link_cycle"] = m_core->GetLinkCableCycles();
+
+    json markiii_status;
+    markiii_status["peripheral_attached"] = markiii.peripheral_attached;
+    markiii_status["transport_active"] = markiii.transport_active;
+    markiii_status["cable_connected"] = markiii.cable_connected;
+    ss << std::setw(2) << (int)markiii.control;
+    markiii_status["control"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)markiii.port_a;
+    markiii_status["port_a"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)markiii.port_b;
+    markiii_status["port_b"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)markiii.port_c;
+    markiii_status["port_c"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)markiii.port_c_latch;
+    markiii_status["port_c_latch"] = ss.str(); ss.str("");
+    markiii_status["selected_row"] = markiii.selected_row;
+    ss << std::setw(2) << (int)markiii.local_state.drive_mask;
+    markiii_status["local_drive_mask"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)markiii.local_state.levels;
+    markiii_status["local_levels"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)markiii.remote_state.drive_mask;
+    markiii_status["remote_drive_mask"] = ss.str(); ss.str("");
+    ss << std::setw(2) << (int)markiii.remote_state.levels;
+    markiii_status["remote_levels"] = ss.str(); ss.str("");
+    markiii_status["cycle"] = markiii.cycle;
+    status["markiii"] = markiii_status;
 
     const char* mode = "disabled";
     if (link.mode == GearToGearModeConnected)
@@ -1282,6 +1329,8 @@ json DebugAdapter::GetSerialStatus()
     transport["pacing_mode"] = !link.cable_connected ? "local" : (link.pacing_peer ? "leader" : "follower");
     transport["local_hardware_ready"] = link.local_hardware_ready;
     transport["remote_hardware_ready"] = link.remote_hardware_ready;
+    transport["protocol"] = protocol;
+    transport["remote_protocol"] = remote_protocol;
     transport["local_anchor"] = link.local_anchor;
     transport["bus_anchor"] = link.bus_anchor;
     transport["bus_cycle"] = link.bus_cycle;
@@ -1316,6 +1365,7 @@ json DebugAdapter::GetSerialStatus()
     transport["seqlock_retries"] = link.seqlock_retries;
     transport["attachments"] = link.attachments;
     transport["last_error"] = link.last_error;
+    status["link_cable"] = transport;
     status["geartogear"] = transport;
 
     return status;
@@ -1671,7 +1721,7 @@ json DebugAdapter::GetRewindStatus()
 json DebugAdapter::RewindSeek(int snapshot)
 {
     if (emu_geartogear_is_active())
-        return {{"error", "Rewind is disabled while Gear-to-Gear is active"}};
+        return {{"error", "Rewind is disabled while a link cable is active"}};
 
     bool paused = emu_is_paused() || emu_is_debug_idle();
 
@@ -1763,6 +1813,57 @@ json DebugAdapter::ControllerButton(int player, const std::string& button, const
     result["button"] = button;
     result["action"] = action;
 
+    return result;
+}
+
+json DebugAdapter::MarkIIIKey(const std::string& key,
+    const std::string& action)
+{
+    json result;
+
+    if (action != "press" && action != "release")
+    {
+        result["error"] = "Invalid action (must be: press, release)";
+        return result;
+    }
+
+    std::string key_lower = key;
+    std::transform(key_lower.begin(), key_lower.end(), key_lower.begin(),
+        ::tolower);
+
+    GS_MarkIII_Key markiii_key;
+    if (key_lower == "1")
+        markiii_key = MarkIIIKey1;
+    else if (key_lower == "2")
+        markiii_key = MarkIIIKey2;
+    else if (key_lower == "space")
+        markiii_key = MarkIIIKeySpace;
+    else if (key_lower == "return" || key_lower == "cr")
+        markiii_key = MarkIIIKeyReturn;
+    else
+    {
+        result["error"] = "Invalid Mark III key";
+        return result;
+    }
+
+    if (action == "press")
+    {
+        if (!m_core || m_core->GetLinkCableProtocol() !=
+            LinkCableProtocolMarkIII)
+        {
+            result["error"] = "Mark III link keyboard is not active";
+            return result;
+        }
+        emu_markiii_key_pressed(markiii_key);
+    }
+    else
+    {
+        emu_markiii_key_released(markiii_key);
+    }
+
+    result["success"] = true;
+    result["key"] = key_lower;
+    result["action"] = action;
     return result;
 }
 

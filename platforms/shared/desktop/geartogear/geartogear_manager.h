@@ -34,6 +34,8 @@ enum GearToGearMode
 struct GearToGearStatus
 {
     GearToGearMode mode;
+    GS_LinkCable_Protocol protocol;
+    GS_LinkCable_Protocol remote_protocol;
     bool active;
     bool cable_connected;
     bool pacing_peer;
@@ -86,7 +88,8 @@ public:
     bool Connect(u8 session, u64 local_cycle);
     void Stop();
     void Pump(u64 local_cycle);
-    void SetHardwareReady(bool ready, u64 local_cycle);
+    void SetHardwareReady(bool ready, u64 local_cycle,
+        GS_LinkCable_Protocol protocol = LinkCableProtocolGearToGear);
     void PublishState(u64 local_cycle, const GS_GearToGear_WireState& state, bool force = false);
     bool SampleRemoteState(u64 local_cycle, GS_GearToGear_WireState& state);
     bool PollRemoteEvent(u64 through_local_cycle, GS_GearToGear_WireEvent& event);
@@ -142,6 +145,7 @@ private:
     bool m_local_attachment_changed;
     bool m_remote_identity_changed;
     bool m_hardware_ready;
+    GS_LinkCable_Protocol m_protocol;
     u32 m_normal_barrier_stall_us;
     GearToGearStatus m_status;
 };

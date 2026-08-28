@@ -80,7 +80,7 @@ void gui_action_ffwd(void)
     if (emu_geartogear_is_active())
     {
         config_emulator.ffwd = false;
-        gui_set_status_message("Fast forward is disabled while Gear-to-Gear is active", 3000);
+        gui_set_status_message("Fast forward is disabled while a link cable is active", 3000);
         return;
     }
 
@@ -103,7 +103,7 @@ void gui_action_rewind_pressed(void)
 {
     if (emu_geartogear_is_active())
     {
-        gui_set_status_message("Rewind is disabled while Gear-to-Gear is active", 3000);
+        gui_set_status_message("Rewind is disabled while a link cable is active", 3000);
         return;
     }
 

@@ -43,7 +43,7 @@ int application_headless_init(const ApplicationParams& params)
 
     if (params.mcp_mode < 0 && !params.geartogear_session_set)
     {
-        Error("Headless mode requires MCP or --geartogear-session");
+        Error("Headless mode requires MCP or --link-session");
         return 1;
     }
 

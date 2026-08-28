@@ -59,6 +59,7 @@ SOURCES_CXX := \
     $(SRC_DIR)/Cartridge.cpp \
     $(SRC_DIR)/CodemastersMemoryRule.cpp \
     $(SRC_DIR)/GameGearIOPorts.cpp \
+    $(SRC_DIR)/MarkIIILink.cpp \
     $(SRC_DIR)/GearsystemCore.cpp \
     $(SRC_DIR)/Input.cpp \
     $(SRC_DIR)/KoreanMemoryRule.cpp \

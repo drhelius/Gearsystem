@@ -40,6 +40,68 @@ void SmsIOPorts::SetTraceLogger(TraceLogger* pTraceLogger)
     m_pTraceLogger = pTraceLogger;
 }
 
+void SmsIOPorts::SetLinkCableCallbacks(
+    GS_LinkCable_Publish_Callback publish_callback,
+    GS_LinkCable_Sample_Callback sample_callback,
+    GS_LinkCable_Poll_Callback poll_callback,
+    GS_LinkCable_Fence_Callback fence_callback,
+    GS_LinkCable_Sync_Callback sync_callback,
+    void* user_data)
+{
+    m_markiii_link.SetCallbacks(publish_callback, sample_callback,
+        poll_callback, fence_callback, sync_callback, user_data);
+}
+
+void SmsIOPorts::SetMarkIIIPeripheralAttached(bool attached, u64 cycle)
+{
+    m_markiii_link.SetPeripheralAttached(attached, cycle);
+}
+
+void SmsIOPorts::SetMarkIIITransportActive(bool active, u64 cycle)
+{
+    m_markiii_link.SetTransportActive(active, cycle);
+}
+
+void SmsIOPorts::SetMarkIIICableConnected(bool connected, u64 cycle)
+{
+    m_markiii_link.SetCableConnected(connected, cycle);
+}
+
+void SmsIOPorts::BeginMarkIIIInstruction(u64 cycle)
+{
+    m_markiii_link.BeginInstruction(cycle);
+}
+
+void SmsIOPorts::EndMarkIIIInstruction(u64 cycle)
+{
+    m_markiii_link.EndInstruction(cycle);
+}
+
+void SmsIOPorts::RebaseMarkIIILink(u64 cycle)
+{
+    m_markiii_link.Rebase(cycle);
+}
+
+void SmsIOPorts::MarkIIIKeyPressed(GS_MarkIII_Key key)
+{
+    m_markiii_link.KeyPressed(key);
+}
+
+void SmsIOPorts::MarkIIIKeyReleased(GS_MarkIII_Key key)
+{
+    m_markiii_link.KeyReleased(key);
+}
+
+void SmsIOPorts::ReleaseMarkIIIKeys()
+{
+    m_markiii_link.ReleaseAllKeys();
+}
+
+MarkIIILink* SmsIOPorts::GetMarkIIILink()
+{
+    return &m_markiii_link;
+}
+
 void SmsIOPorts::LogInputReadEvent(u8 port, u8 raw, u8 effective, u8 player)
 {
 #if !defined(GS_DISABLE_DISASSEMBLER)
@@ -91,6 +153,7 @@ void SmsIOPorts::LogIOEvent(u8 event, u8 port, u8 raw, u8 effective, u8 previous
 void SmsIOPorts::Reset()
 {
     m_Port3F = 0xFF;
+    m_markiii_link.Reset();
 }
 
 void SmsIOPorts::SaveState(std::ostream& stream)
@@ -98,12 +161,12 @@ void SmsIOPorts::SaveState(std::ostream& stream)
     using namespace std;
 
     stream.write(reinterpret_cast<const char*> (&m_Port3F), sizeof(m_Port3F));
+    m_markiii_link.SaveState(stream);
 }
 
 void SmsIOPorts::LoadState(std::istream& stream, int version)
 {
     using namespace std;
-    UNUSED(version);
-
     stream.read(reinterpret_cast<char*> (&m_Port3F), sizeof(m_Port3F));
+    m_markiii_link.LoadState(stream, version);
 }

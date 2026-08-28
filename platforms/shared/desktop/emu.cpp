@@ -48,6 +48,7 @@ static GearToGearManager* geartogear_manager;
 static bool geartogear_transport_applied;
 static bool geartogear_cable_applied;
 static bool geartogear_hardware_suspended;
+static GS_LinkCable_Protocol link_protocol_applied;
 static Uint64 rewind_last_counter = 0;
 static double rewind_pop_accumulator = 0.0;
 
@@ -98,8 +99,8 @@ static bool geartogear_sample_callback(u64 cycle, GS_GearToGear_WireState* state
 static bool geartogear_poll_callback(u64 through_cycle, GS_GearToGear_WireEvent* event, void* user_data);
 static void geartogear_fence_callback(u64 cycle, void* user_data);
 static void geartogear_sync_callback(u64 cycle, u32 lead_cycles, void* user_data);
-static void geartogear_suspend_hardware(void);
-static void geartogear_resume_hardware(void);
+static void emu_link_cable_suspend_hardware(void);
+static void emu_link_cable_resume_hardware(void);
 
 bool emu_init(void)
 {
@@ -117,7 +118,8 @@ bool emu_init(void)
     geartogear_transport_applied = false;
     geartogear_cable_applied = false;
     geartogear_hardware_suspended = false;
-    gearsystem->SetGearToGearCallbacks(geartogear_publish_callback,
+    link_protocol_applied = LinkCableProtocolNone;
+    gearsystem->SetLinkCableCallbacks(geartogear_publish_callback,
         geartogear_sample_callback, geartogear_poll_callback,
         geartogear_fence_callback, geartogear_sync_callback,
         geartogear_manager);
@@ -183,7 +185,7 @@ void emu_load_media_async(const char* file_path, Cartridge::ForceConfiguration c
     if (loading_state.load() != Loading_State_None)
         return;
 
-    geartogear_suspend_hardware();
+    emu_link_cable_suspend_hardware();
     gui_debug_trace_logger_reset();
 
     emu_debug_command = Debug_Command_None;
@@ -220,7 +222,7 @@ bool emu_finish_media_loading(void)
     }
 
     loading_state.store(Loading_State_None);
-    geartogear_resume_hardware();
+    emu_link_cable_resume_hardware();
 
     if (!loading_result)
         return false;
@@ -1654,7 +1656,7 @@ bool emu_geartogear_connect(int session)
 
     if (session < 1 || session > 255)
     {
-        Error("Gear-to-Gear session must be between 1 and 255");
+        Error("Link cable session must be between 1 and 255");
         return false;
     }
 
@@ -1665,7 +1667,7 @@ bool emu_geartogear_connect(int session)
 
     geartogear_manager->SetNormalBarrierStallUs(
         (u32)config_emulator.geartogear_stall_us);
-    u64 cycle = gearsystem->GetGearToGearCycles();
+    u64 cycle = gearsystem->GetLinkCableCycles();
 
     bool started = geartogear_manager->Connect((u8)session, cycle);
 
@@ -1676,19 +1678,37 @@ bool emu_geartogear_connect(int session)
 
 void emu_geartogear_stop(void)
 {
-    u64 cycle = gearsystem ? gearsystem->GetGearToGearCycles() : 0;
+    u64 cycle = gearsystem ? gearsystem->GetLinkCableCycles() : 0;
 
     if (geartogear_manager)
         geartogear_manager->Stop();
 
-    if (gearsystem && geartogear_cable_applied)
-        gearsystem->SetGearToGearCableConnected(false, cycle);
-
-    if (gearsystem && geartogear_transport_applied)
-        gearsystem->SetGearToGearTransportActive(false, cycle);
+    if (gearsystem)
+        gearsystem->SetLinkCableProtocol(LinkCableProtocolNone, cycle);
 
     geartogear_cable_applied = false;
     geartogear_transport_applied = false;
+    link_protocol_applied = LinkCableProtocolNone;
+    if (gearsystem)
+        gearsystem->ReleaseMarkIIIKeys();
+}
+
+void emu_markiii_key_pressed(GS_MarkIII_Key key)
+{
+    if (gearsystem)
+        gearsystem->MarkIIIKeyPressed(key);
+}
+
+void emu_markiii_key_released(GS_MarkIII_Key key)
+{
+    if (gearsystem)
+        gearsystem->MarkIIIKeyReleased(key);
+}
+
+void emu_markiii_release_keys(void)
+{
+    if (gearsystem)
+        gearsystem->ReleaseMarkIIIKeys();
 }
 
 void emu_geartogear_pump(void)
@@ -1696,47 +1716,62 @@ void emu_geartogear_pump(void)
     if (!geartogear_manager || !gearsystem)
         return;
 
-    u64 cycle = gearsystem->GetGearToGearCycles();
+    u64 cycle = gearsystem->GetLinkCableCycles();
     geartogear_manager->Pump(cycle);
+
+    bool active = geartogear_manager->IsActive();
+    GS_LinkCable_Protocol protocol = active ?
+        gearsystem->GetSupportedLinkCableProtocol() :
+        LinkCableProtocolNone;
+
+    if (protocol != link_protocol_applied)
+    {
+        gearsystem->SetLinkCableProtocol(protocol, cycle);
+        geartogear_cable_applied = false;
+        geartogear_transport_applied = false;
+        link_protocol_applied = protocol;
+    }
 
     bool emulation_running = !gearsystem->IsPaused() &&
         (!config_debug.debug || emu_debug_command != Debug_Command_None);
     bool hardware_ready = !geartogear_hardware_suspended &&
-        gearsystem->IsNativeGameGearMode() && emulation_running;
-    geartogear_manager->SetHardwareReady(hardware_ready, cycle);
+        protocol != LinkCableProtocolNone && emulation_running;
+    geartogear_manager->SetHardwareReady(hardware_ready, cycle, protocol);
 
     bool local_changed = geartogear_manager->ConsumeLocalAttachmentChanged();
     bool remote_changed = geartogear_manager->ConsumeRemoteIdentityChanged();
-    bool active = geartogear_manager->IsActive();
     bool transport_active = active && geartogear_manager->IsHardwareReady();
     bool cable_connected = geartogear_manager->IsCableConnected();
 
     if (!active)
     {
         if (geartogear_cable_applied)
-            gearsystem->SetGearToGearCableConnected(false, cycle);
+            gearsystem->SetLinkCableConnected(false, cycle);
         if (geartogear_transport_applied)
-            gearsystem->SetGearToGearTransportActive(false, cycle);
+            gearsystem->SetLinkCableTransportActive(false, cycle);
+        if (link_protocol_applied != LinkCableProtocolNone)
+            gearsystem->SetLinkCableProtocol(LinkCableProtocolNone, cycle);
         geartogear_cable_applied = false;
         geartogear_transport_applied = false;
+        link_protocol_applied = LinkCableProtocolNone;
         return;
     }
 
     if ((local_changed || remote_changed) && geartogear_cable_applied)
     {
-        gearsystem->SetGearToGearCableConnected(false, cycle);
+        gearsystem->SetLinkCableConnected(false, cycle);
         geartogear_cable_applied = false;
     }
 
     if (transport_active != geartogear_transport_applied || local_changed)
     {
-        gearsystem->SetGearToGearTransportActive(transport_active, cycle);
+        gearsystem->SetLinkCableTransportActive(transport_active, cycle);
         geartogear_transport_applied = transport_active;
     }
 
     if (cable_connected != geartogear_cable_applied)
     {
-        gearsystem->SetGearToGearCableConnected(cable_connected, cycle);
+        gearsystem->SetLinkCableConnected(cable_connected, cycle);
         geartogear_cable_applied = cable_connected;
     }
 }
@@ -1774,6 +1809,14 @@ GS_GearToGear_DebugState emu_geartogear_get_debug_state(void)
     return state;
 }
 
+GS_MarkIII_LinkDebugState emu_markiii_link_get_debug_state(void)
+{
+    GS_MarkIII_LinkDebugState state = {};
+    if (gearsystem && gearsystem->GetMarkIIILink())
+        state = gearsystem->GetMarkIIILink()->GetDebugState();
+    return state;
+}
+
 void emu_geartogear_reset_metrics(void)
 {
     if (geartogear_manager)
@@ -1786,13 +1829,13 @@ void emu_geartogear_set_normal_barrier_stall_us(u32 stall_us)
         geartogear_manager->SetNormalBarrierStallUs(stall_us);
 }
 
-static void geartogear_suspend_hardware(void)
+static void emu_link_cable_suspend_hardware(void)
 {
     geartogear_hardware_suspended = true;
     emu_geartogear_pump();
 }
 
-static void geartogear_resume_hardware(void)
+static void emu_link_cable_resume_hardware(void)
 {
     geartogear_hardware_suspended = false;
     emu_geartogear_pump();

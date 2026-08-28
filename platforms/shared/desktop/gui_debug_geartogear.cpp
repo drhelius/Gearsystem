@@ -57,6 +57,19 @@ static void draw_metric_pair(const char* label, u64 first, u64 second)
     ImGui::TextColored(white, "%llu / %llu", (unsigned long long)first, (unsigned long long)second);
 }
 
+static const char* link_protocol_name(GS_LinkCable_Protocol protocol)
+{
+    switch (protocol)
+    {
+        case LinkCableProtocolGearToGear:
+            return "GAME GEAR";
+        case LinkCableProtocolMarkIII:
+            return "MARK III";
+        default:
+            return "NONE";
+    }
+}
+
 void gui_debug_window_geartogear_serial_registers(void)
 {
     static const u32 baud_rates[4] = { 4800, 2400, 1200, 300 };
@@ -105,7 +118,10 @@ void gui_debug_window_geartogear_serial_registers(void)
     ImGui::TextColored(white, "%d / %d / %d", hardware.tx_busy ? 1 : 0, hardware.rx_ready ? 1 : 0, hardware.frame_error ? 1 : 0);
     ImGui::TextColored(violet, " CABLE          ");
     ImGui::SameLine();
-    ImGui::TextColored(link.cable_connected ? green : gray, "%s", link.cable_connected ? "CONNECTED" : "DISCONNECTED");
+    bool game_gear_cable = link.cable_connected &&
+        link.protocol == LinkCableProtocolGearToGear;
+    ImGui::TextColored(game_gear_cable ? green : gray, "%s",
+        game_gear_cable ? "CONNECTED" : "DISCONNECTED");
 
     ImGui::PopFont();
     ImGui::End();
@@ -223,8 +239,8 @@ void gui_debug_window_geartogear_transport(void)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(300, 90), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(320, 636), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Gear-to-Gear (Transport)", &config_debug.show_geartogear_transport);
+    ImGui::SetNextWindowSize(ImVec2(320, 720), ImGuiCond_FirstUseEver);
+    ImGui::Begin("Link Cable (Transport)", &config_debug.show_geartogear_transport);
 
     GearToGearStatus link = emu_geartogear_get_status();
 
@@ -258,6 +274,11 @@ void gui_debug_window_geartogear_transport(void)
     ImGui::TextColored(link.local_hardware_ready ? green : gray, "%s", link.local_hardware_ready ? "READY" : "INACTIVE");
     ImGui::TextColored(violet, " HARDWARE REMOTE "); ImGui::SameLine();
     ImGui::TextColored(link.remote_hardware_ready ? green : gray, "%s", link.remote_hardware_ready ? "READY" : "INACTIVE");
+    ImGui::TextColored(violet, " PROTOCOL LOCAL  "); ImGui::SameLine();
+    ImGui::TextColored(white, "%s", link_protocol_name(link.protocol));
+    ImGui::TextColored(violet, " PROTOCOL REMOTE "); ImGui::SameLine();
+    ImGui::TextColored(link.remote_protocol == link.protocol ? white : yellow,
+        "%s", link_protocol_name(link.remote_protocol));
     ImGui::TextColored(violet, " PACING          "); ImGui::SameLine();
 
     if (link.mode == GearToGearModeConnected)
@@ -280,7 +301,7 @@ void gui_debug_window_geartogear_transport(void)
     ImGui::TextColored(violet, " BUS CYCLE       "); ImGui::SameLine();
     ImGui::TextColored(white, "%llu", (unsigned long long)link.bus_cycle);
     ImGui::TextColored(violet, " LINK CYCLE      "); ImGui::SameLine();
-    ImGui::TextColored(white, "%llu", (unsigned long long)emu_get_core()->GetGearToGearCycles());
+    ImGui::TextColored(white, "%llu", (unsigned long long)emu_get_core()->GetLinkCableCycles());
     ImGui::TextColored(violet, " MAX LEAD        "); ImGui::SameLine();
     ImGui::TextColored(white, "%u cycles", GEARTOGEAR_MAX_LEAD_CYCLES);
     draw_metric_pair(" LOCAL PROG/PROM ", link.local_progress, link.local_promise);
@@ -308,6 +329,28 @@ void gui_debug_window_geartogear_transport(void)
         (unsigned long long)link.barrier_wait_over_10ms,
         (unsigned long long)link.barrier_wait_over_50ms);
     draw_metric_pair(" SPIN / SLEEP    ", link.spin_iterations, link.sleep_calls);
+
+    GS_MarkIII_LinkDebugState markiii = emu_markiii_link_get_debug_state();
+    if (markiii.peripheral_attached ||
+        link.protocol == LinkCableProtocolMarkIII)
+    {
+        ImGui::Separator();
+        ImGui::TextColored(magenta, "MARK III PPI:");
+        ImGui::TextColored(violet, " CONTROL/ROW     "); ImGui::SameLine();
+        ImGui::TextColored(white, "%02X / %u", markiii.control,
+            markiii.selected_row);
+        ImGui::TextColored(violet, " PORT A/B/C      "); ImGui::SameLine();
+        ImGui::TextColored(white, "%02X / %02X / %02X", markiii.port_a,
+            markiii.port_b, markiii.port_c);
+        ImGui::TextColored(violet, " PORT C LATCH    "); ImGui::SameLine();
+        ImGui::TextColored(white, "%02X", markiii.port_c_latch);
+        ImGui::TextColored(violet, " LOCAL MASK/LEVEL"); ImGui::SameLine();
+        ImGui::TextColored(white, "%02X / %02X",
+            markiii.local_state.drive_mask, markiii.local_state.levels);
+        ImGui::TextColored(violet, " REMOTE MASK/LEVEL"); ImGui::SameLine();
+        ImGui::TextColored(white, "%02X / %02X",
+            markiii.remote_state.drive_mask, markiii.remote_state.levels);
+    }
 
     ImGui::Separator();
     ImGui::TextColored(magenta, "RECOVERY:");

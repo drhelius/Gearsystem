@@ -29,6 +29,20 @@ static const u32 kGearToGearHalfBitCycles[4] =
     373, 746, 1492, 5966
 };
 
+static u8 MapRemoteGearToGearBits(u8 value)
+{
+    static const u8 remote_to_local[7] = { 2, 3, 0, 1, 5, 4, 6 };
+    u8 mapped = 0;
+
+    for (int remote_bit = 0; remote_bit < 7; remote_bit++)
+    {
+        if (value & (1 << remote_bit))
+            mapped |= (u8)(1 << remote_to_local[remote_bit]);
+    }
+
+    return mapped & 0x7F;
+}
+
 GameGearIOPorts::GameGearIOPorts(Audio* pAudio, Video* pVideo, Input* pInput,
     Cartridge* pCartridge, Memory* pMemory, Processor* pProcessor)
 {
@@ -504,8 +518,10 @@ void GameGearIOPorts::ApplyRemoteWireState(const GS_GearToGear_WireState& state,
     bool old_pc6 = ResolveGearToGearPin(6);
 
     m_geartogear_cycle = cycle;
-    m_geartogear_remote_state.drive_mask = state.drive_mask & 0x7F;
-    m_geartogear_remote_state.levels = state.levels & 0x7F;
+    m_geartogear_remote_state.drive_mask =
+        MapRemoteGearToGearBits(state.drive_mask);
+    m_geartogear_remote_state.levels =
+        MapRemoteGearToGearBits(state.levels);
 
     bool new_pc5 = ResolveGearToGearPin(5);
     bool new_pc6 = ResolveGearToGearPin(6);

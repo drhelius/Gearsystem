@@ -50,7 +50,7 @@ This server provides tools for game development, rom hacking, reverse engineerin
 - **Full Debugger Access**: CPU registers, memory inspection, breakpoints, and execution control
 - **Multiple Memory Areas**: Access RAM, VRAM, CRAM, ROM banks, external RAM, BIOS, and more
 - **Disassembly**: View disassembled Z80 code around PC or any address
-- **Hardware Inspection**: Z80 CPU, VDP, PSG, YM2413 FM synthesis, and Game Gear link cable
+- **Hardware Inspection**: Z80 CPU, VDP, PSG, YM2413 FM synthesis, and Game Gear/Mark III link cables
 - **Sprite Viewer**: List and inspect all 64 sprites with images
 - **Symbol Support**: Add, remove, list, and look up debug symbols
 - **Input State**: Inspect effective pressed buttons and pending tap releases
@@ -95,7 +95,7 @@ By default, Gearsystem exposes every MCP tool directly. This avoids nested tool 
 
 Add `--mcp-router` to expose a compact set of high-frequency tools directly and route advanced debugger tools through lightweight discovery tools. This reduces MCP context while preserving access to the full debugger surface.
 
-Direct tools in routed mode: `load_media`, `get_media_info`, `debug_pause`, `debug_continue`, `debug_step_into`, `get_z80_status`, `read_memory`, `write_memory`, `get_disassembly`, `set_breakpoint`, `get_screenshot`, and `controller_button`.
+Direct tools in routed mode: `load_media`, `get_media_info`, `debug_pause`, `debug_continue`, `debug_step_into`, `get_z80_status`, `read_memory`, `write_memory`, `get_disassembly`, `set_breakpoint`, `get_screenshot`, `controller_button`, and `markiii_key`.
 
 Router tools:
 
@@ -393,8 +393,8 @@ Exact trace filters are `cpu.instructions`, `cpu.interrupts`, `vdp.registers`, `
 - `get_vdp_status` - Get VDP status (flags, counters, mode, SG-1000 mode, extended mode 224)
 - `get_psg_status` - Get SN76489 PSG status for all 4 channels (3 tone + 1 noise): volume, period, frequency, GG stereo
 - `get_ym2413_status` - Get YM2413 FM synth status: 9 channels, instruments, key-on, f-number, block, envelope, rhythm mode, user instrument
-- `get_serial_status` - Get Game Gear serial registers and engine state, parallel/NMI state, physical pins, peer readiness, synchronization diagnostics, and Gear-to-Gear transport metrics
-- `reset_geartogear_metrics` - Reset Gear-to-Gear transport and stall diagnostics
+- `get_serial_status` - Get Game Gear serial state, Mark III PPI state, physical pins, peer readiness, synchronization diagnostics, and link cable transport metrics
+- `reset_geartogear_metrics` - Reset link cable transport and stall diagnostics
 
 ### Sprites
 - `list_sprites` - List all 64 sprites with position, size, pattern index
@@ -421,6 +421,7 @@ Exact trace filters are `cpu.instructions`, `cpu.interrupts`, `vdp.registers`, `
 
 ### Controller Input
 - `controller_button` - Control a button on a controller (player 1-2). Use action 'press' to hold the button, 'release' to let it go, or 'press_and_release' to simulate a quick tap. Buttons: up, down, left, right, 1, 2, start
+- `markiii_key` - Press or release one of the SK-1100 keys used by Mark III link software: 1, 2, space, or return
 - `controller_macro` - Run an ordered input macro. Top-level `player` defaults to 1, and each command may override it. Supported commands are `tap`, `press`, `release`, and `wait`; timing is explicit through `wait` frame counts
 - `get_input_state` - Get effective pressed buttons and pending tap releases
 

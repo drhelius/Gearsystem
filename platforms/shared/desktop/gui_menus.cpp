@@ -1646,7 +1646,7 @@ static void menu_debug(void)
 
         ImGui::MenuItem("Show Game Gear Serial Registers", "", &config_debug.show_geartogear_serial_registers, config_debug.debug);
         ImGui::MenuItem("Show Game Gear Serial Status", "", &config_debug.show_geartogear_serial_status, config_debug.debug);
-        ImGui::MenuItem("Show Gear-to-Gear (Transport)", "", &config_debug.show_geartogear_transport, config_debug.debug);
+        ImGui::MenuItem("Show Link Cable (Transport)", "", &config_debug.show_geartogear_transport, config_debug.debug);
 
         ImGui::MenuItem("Show Rewind", "", &config_debug.show_rewind, config_debug.debug);
 
@@ -1684,7 +1684,7 @@ static void menu_debug(void)
 
 static void menu_geartogear(void)
 {
-    if (!ImGui::BeginMenu("Gear-to-Gear"))
+    if (!ImGui::BeginMenu("Link Cable"))
         return;
 
     gui_in_use = true;
@@ -1692,6 +1692,12 @@ static void menu_geartogear(void)
     bool active = emu_geartogear_is_active();
     const ImVec4 cornflower_blue(0.39f, 0.58f, 0.93f, 1.0f);
     const ImVec4 error_red(0.98f, 0.15f, 0.45f, 1.0f);
+    GS_LinkCable_Protocol local_protocol = status.protocol;
+    if (local_protocol == LinkCableProtocolNone && emu_get_core())
+        local_protocol = emu_get_core()->GetSupportedLinkCableProtocol();
+    const char* hardware_name = local_protocol ==
+        LinkCableProtocolMarkIII ? "Mark III Joy-Joy" :
+        "Game Gear Gear-to-Gear";
 
 #if defined(__APPLE__)
     if (ImGui::MenuItem("New " GS_TITLE " Window", "", false, application_can_launch_new_instance()))
@@ -1702,7 +1708,15 @@ static void menu_geartogear(void)
 #endif
 
     if (ImGui::MenuItem("Connect", NULL, false, !active))
-        emu_geartogear_connect(config_emulator.geartogear_session);
+    {
+        if (emu_geartogear_connect(config_emulator.geartogear_session) &&
+            local_protocol == LinkCableProtocolMarkIII)
+        {
+            gui_set_status_message(
+                "Mark III link hardware attached. Reset the console before use.",
+                5000);
+        }
+    }
     if (ImGui::MenuItem("Disconnect", NULL, false, status.mode != GearToGearModeDisabled))
         emu_geartogear_stop();
 
@@ -1715,12 +1729,19 @@ static void menu_geartogear(void)
             ImGui::TextDisabled("Peer %d of %d", status.local_peer_id, status.peer_count);
             if (status.cable_connected)
             {
-                ImGui::TextDisabled("Game Gear hardware connected (%s)", status.pacing_peer ? "pacing peer" : "following peer");
+                ImGui::TextDisabled("%s connected (%s)", hardware_name,
+                    status.pacing_peer ? "pacing peer" : "following peer");
+            }
+            else if (status.local_hardware_ready &&
+                status.remote_hardware_ready &&
+                status.protocol != status.remote_protocol)
+            {
+                ImGui::TextDisabled("Remote link hardware is incompatible");
             }
             else if (status.local_hardware_ready)
-                ImGui::TextDisabled("Waiting for remote Game Gear hardware");
+                ImGui::TextDisabled("Waiting for remote %s", hardware_name);
             else
-                ImGui::TextDisabled("Local Game Gear hardware inactive");
+                ImGui::TextDisabled("Local %s inactive", hardware_name);
             break;
         case GearToGearModeFault:
             ImGui::TextColored(error_red, "%s", status.last_error);
@@ -1819,7 +1840,7 @@ static void draw_server_status(void)
     if (geartogear.mode == GearToGearModeConnected)
     {
         snprintf(geartogear_status, sizeof(geartogear_status),
-            "GEAR-TO-GEAR: S%u P%d/%d", geartogear.session,
+            "LINK: S%u P%d/%d", geartogear.session,
             geartogear.local_peer_id, geartogear.peer_count);
         show_geartogear_status = true;
     }

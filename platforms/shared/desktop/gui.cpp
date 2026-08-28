@@ -230,7 +230,7 @@ void gui_shortcut(gui_ShortCutEvent event)
     {
         if (emu_geartogear_is_active())
         {
-            gui_set_status_message("Load state is disabled while Gear-to-Gear is active", 3000);
+            gui_set_status_message("Load state is disabled while a link cable is active", 3000);
             break;
         }
         std::string message("Loading state from slot ");

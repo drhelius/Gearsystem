@@ -313,14 +313,14 @@ void McpServer::HandleInitialize(const json& request)
         {"serverInfo", {
             {"name", "gearsystem-mcp-server"},
             {"title", GS_TITLE " MCP Server"},
-            {"description", "Debug/control " GS_TITLE " SMS/Game Gear/SG-1000: execution, breakpoints, memory, Z80 CPU, VDP, SN76489 PSG, YM2413 FM, Gear-to-Gear link cable, disassembly, symbols, sprites, save states, rewind, input, screenshots."},
+            {"description", "Debug/control " GS_TITLE " SMS/Game Gear/SG-1000: execution, breakpoints, memory, Z80 CPU, VDP, SN76489 PSG, YM2413 FM, Game Gear and Mark III link cables, disassembly, symbols, sprites, save states, rewind, input, screenshots."},
             {"version", GS_VERSION}
         }}
     };
 
     response["result"]["instructions"] =
         "Use this server for Master System, Game Gear, and SG-1000 game debugging, reverse engineering, "
-        "memory inspection, Z80 tracing, breakpoints, VDP, SN76489 PSG, YM2413 FM, Gear-to-Gear link cable, sprites, save states, "
+        "memory inspection, Z80 tracing, breakpoints, VDP, SN76489 PSG, YM2413 FM, Game Gear and Mark III link cables, sprites, save states, "
         "rewind, input, and screenshots.";
 
     if (g_mcp_router_enabled)
@@ -785,8 +785,8 @@ json McpServer::BuildToolList()
 
     tools.push_back({
         {"name", "get_serial_status"},
-        {"title", "Get Serial / Gear-to-Gear Status"},
-        {"description", "Read Game Gear serial, parallel/NMI, physical-wire, and Gear-to-Gear transport status."},
+        {"title", "Get Serial / Link Cable Status"},
+        {"description", "Read Game Gear serial, Mark III PPI, physical-wire, and link cable transport status."},
         {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
         {"inputSchema", {
             {"type", "object"},
@@ -796,8 +796,8 @@ json McpServer::BuildToolList()
 
     tools.push_back({
         {"name", "reset_geartogear_metrics"},
-        {"title", "Reset Gear-to-Gear Metrics"},
-        {"description", "Reset Gear-to-Gear transport and stall diagnostics."},
+        {"title", "Reset Link Cable Metrics"},
+        {"description", "Reset link cable transport and stall diagnostics."},
         {"annotations", {{"readOnlyHint", false}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
         {"inputSchema", {
             {"type", "object"},
@@ -1036,6 +1036,29 @@ json McpServer::BuildToolList()
                 }}
             }},
             {"required", json::array({"player", "button", "action"})}
+        }}
+    });
+
+    tools.push_back({
+        {"name", "markiii_key"},
+        {"title", "Mark III Keyboard Key"},
+        {"description", "Press or release an SK-1100 key used by Mark III link software: 1, 2, space, or return."},
+        {"annotations", {{"readOnlyHint", false}, {"destructiveHint", true}, {"idempotentHint", false}, {"openWorldHint", false}}},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"key", {
+                    {"type", "string"},
+                    {"description", "SK-1100 key: 1, 2, space, or return."},
+                    {"enum", json::array({"1", "2", "space", "return"})}
+                }},
+                {"action", {
+                    {"type", "string"},
+                    {"description", "Key action."},
+                    {"enum", json::array({"press", "release"})}
+                }}
+            }},
+            {"required", json::array({"key", "action"})}
         }}
     });
 
@@ -2485,6 +2508,12 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
         std::string button = arguments["button"];
         std::string action = arguments["action"];
         return m_debugAdapter.ControllerButton(player, button, action);
+    }
+    else if (normalizedTool == "markiii_key")
+    {
+        std::string key = arguments["key"];
+        std::string action = arguments["action"];
+        return m_debugAdapter.MarkIIIKey(key, action);
     }
     else if (normalizedTool == "get_input_state")
     {

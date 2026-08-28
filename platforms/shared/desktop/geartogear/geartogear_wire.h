@@ -41,7 +41,7 @@ struct GearToGearSharedWireEvent
 };
 
 static_assert(alignof(GearToGearSharedWireEvent) >= alignof(std::atomic<u64>),
-    "Gear-to-Gear shared events require aligned 64-bit atomics");
+    "Link cable shared events require aligned 64-bit atomics");
 
 inline u32 geartogear_pack_wire_state(u8 drive_mask, u8 levels)
 {
@@ -93,20 +93,6 @@ inline bool geartogear_read_shared_event(const GearToGearSharedWireEvent& source
 
     geartogear_unpack_wire_state(packed, event.drive_mask, event.levels);
     return true;
-}
-
-inline u8 geartogear_map_remote_bits_to_local(u8 value)
-{
-    static const u8 remote_to_local[7] = { 2, 3, 0, 1, 5, 4, 6 };
-    u8 mapped = 0;
-
-    for (int remote_bit = 0; remote_bit < 7; remote_bit++)
-    {
-        if (value & (1 << remote_bit))
-            mapped |= (u8)(1 << remote_to_local[remote_bit]);
-    }
-
-    return mapped & 0x7F;
 }
 
 #endif /* GEARTOGEAR_WIRE_H */

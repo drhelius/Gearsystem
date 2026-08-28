@@ -145,6 +145,7 @@ public:
 
     // Controller input
     json ControllerButton(int player, const std::string& button, const std::string& action);
+    json MarkIIIKey(const std::string& key, const std::string& action);
     json GetInputState();
 
     // Disassembler operations

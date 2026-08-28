@@ -140,7 +140,7 @@ static void draw_timeline(void)
     {
         ImGui::BeginDisabled(true);
         int dummy = 0;
-        const char* label = emu_geartogear_is_active() ? "Gear-to-Gear active" :
+        const char* label = emu_geartogear_is_active() ? "Link cable active" :
             (snapshot_count > 0 ? "Pause to scrub" : "No snapshots");
         ImGui::SetNextItemWidth(-1);
         ImGui::SliderInt("##rw_timeline", &dummy, 0, 0, label);
