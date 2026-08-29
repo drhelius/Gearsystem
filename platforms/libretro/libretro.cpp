@@ -277,7 +277,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
     info->geometry.max_width    = GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN;
     info->geometry.max_height   = GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN;
     info->geometry.aspect_ratio = aspect_ratio;
-    info->timing.fps            = runtime_info.region == Region_NTSC ? 60.0 : 50.0;
+    info->timing.fps            = runtime_info.fps;
     info->timing.sample_rate    = 44100.0;
 }
 

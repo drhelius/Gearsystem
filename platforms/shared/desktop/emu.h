@@ -102,6 +102,7 @@ EXTERN void update_savestates_data(void);
 EXTERN void emu_add_cheat(const char* cheat);
 EXTERN void emu_clear_cheats();
 EXTERN void emu_get_runtime(GS_RuntimeInfo& runtime);
+EXTERN double emu_get_frame_rate(void);
 EXTERN void emu_get_info(char* info, int buffer_size);
 EXTERN GearsystemCore* emu_get_core(void);
 EXTERN void emu_debug_step_over(void);

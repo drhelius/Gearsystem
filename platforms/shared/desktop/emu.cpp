@@ -670,6 +670,17 @@ void emu_get_runtime(GS_RuntimeInfo& runtime)
     gearsystem->GetRuntimeInfo(runtime);
 }
 
+double emu_get_frame_rate(void)
+{
+    if (!IsValidPointer(gearsystem))
+        return 60.0;
+
+    GS_RuntimeInfo runtime;
+    emu_get_runtime(runtime);
+
+    return runtime.fps;
+}
+
 void emu_get_info(char* info, int buffer_size)
 {
     if (!emu_is_empty())
