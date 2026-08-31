@@ -33,6 +33,7 @@ Input::Input(Processor* pProcessor, Video* pVideo, const u64* pMasterClockCycles
     m_pMasterClockCycles = pMasterClockCycles;
     InitPointer(m_pTraceLogger);
     m_bGameGear = false;
+    m_bGameGearInSMSMode = false;
     m_Joypad1 = 0;
     m_Joypad2 = 0;
     m_GlassesRegistry = 0;
@@ -59,9 +60,10 @@ void Input::Init()
     Reset(false);
 }
 
-void Input::Reset(bool bGameGear, bool bPAL)
+void Input::Reset(bool bGameGear, bool bPAL, bool bGameGearInSMSMode)
 {
     m_bGameGear = bGameGear;
+    m_bGameGearInSMSMode = bGameGearInSMSMode;
     m_Joypad1 = 0xFF;
     m_Joypad2 = 0xFF;
     m_GlassesRegistry = 0;
@@ -256,7 +258,7 @@ void Input::KeyPressed(GS_Joypads joypad, GS_Keys key)
     u8 previous = joypad == Joypad_1 ? m_Joypad1 : m_Joypad2;
     if (joypad == Joypad_1)
     {
-        if (!m_bGameGear && (key == Key_Start) && (m_Joypad1 & Key_Start))
+        if ((!m_bGameGear || m_bGameGearInSMSMode) && (key == Key_Start) && (m_Joypad1 & Key_Start))
             m_pProccesor->RequestNMI();
         m_Joypad1 &= ~key;
     }

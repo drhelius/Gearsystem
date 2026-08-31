@@ -1515,7 +1515,7 @@ void GearsystemCore::Reset()
     m_pProcessor->Reset(m_pCartridge->GetGameGearASIC() == 1);
     m_pAudio->Reset(m_pCartridge->IsPAL());
     m_pVideo->Reset(m_pCartridge->IsGameGear(), m_pCartridge->IsPAL(), m_pCartridge->GetGameGearASIC(), m_pCartridge->IsGameGearInSMSMode());
-    m_pInput->Reset(m_pCartridge->IsGameGear(), m_pCartridge->IsPAL());
+    m_pInput->Reset(m_pCartridge->IsGameGear(), m_pCartridge->IsPAL(), m_pCartridge->IsGameGearInSMSMode());
     m_pSegaMemoryRule->Reset();
     m_pCodemastersMemoryRule->Reset();
     m_pSG1000MemoryRule->Reset();
