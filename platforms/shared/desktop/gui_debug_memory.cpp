@@ -464,6 +464,12 @@ static void memory_editor_menu(void)
             mem_edit[current_mem_edit].OpenFindBytes();
         }
 
+        snprintf(label, 64, "Find Text in %s...", mem_edit[current_mem_edit].GetTitle());
+        if (ImGui::MenuItem(label))
+        {
+            mem_edit[current_mem_edit].OpenFindText();
+        }
+
         ImGui::EndMenu();
     }
 
