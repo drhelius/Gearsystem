@@ -65,23 +65,52 @@ class DataStore: ObservableObject {
         let dataDir = PathUtils.getDataDir
         let fileName = url.lastPathComponent
         let dstURL = dataDir.appendingPathComponent(fileName)
+        let crc: String
         
         if (url.deletingLastPathComponent().path != dataDir.path) {
             
-            _ = url.startAccessingSecurityScopedResource()
-            do {
-                if FileManager.default.fileExists(atPath: dstURL.path) {
-                    try FileManager.default.removeItem(at: dstURL)
+            let accessing = url.startAccessingSecurityScopedResource()
+            defer {
+                if accessing {
+                    url.stopAccessingSecurityScopedResource()
                 }
-                try FileManager.default.copyItem(at: url, to: dstURL)
+            }
+
+            do {
+                let temporaryDirectory = try FileManager.default.url(
+                    for: .itemReplacementDirectory, in: .userDomainMask,
+                    appropriateFor: dstURL, create: true
+                )
+                defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
+                let temporaryURL = temporaryDirectory.appendingPathComponent(fileName)
+                try FileManager.default.copyItem(at: url, to: temporaryURL)
+                guard let importedCRC = Self.crc(for: temporaryURL) else { return }
+
+                if FileManager.default.fileExists(atPath: dstURL.path) {
+                    _ = try FileManager.default.replaceItemAt(dstURL, withItemAt: temporaryURL)
+                } else {
+                    try FileManager.default.moveItem(at: temporaryURL, to: dstURL)
+                }
+                crc = importedCRC
             } catch (let error) {
                 debugPrint("Cannot copy item at \(url) to \(dstURL): \(error)")
+                return
             }
-            url.stopAccessingSecurityScopedResource()
+        } else {
+            guard let importedCRC = Self.crc(for: dstURL) else { return }
+            crc = importedCRC
         }
         
-        guard dataStore.rom(with: fileName) == nil else { return }
-        dataStore.addWithFileName(fileName)
+        if let index = allRoms.firstIndex(where: { $0.file == fileName }) {
+            var importedRom = Rom(crc: crc, title: allRoms[index].title, file: fileName)
+            importedRom.isFavorite = allRoms[index].isFavorite
+            importedRom.usedOn = allRoms[index].usedOn
+            allRoms[index] = importedRom
+        } else {
+            let title = (fileName as NSString).deletingPathExtension
+            allRoms.append(Rom(crc: crc, title: title, file: fileName))
+        }
+        save()
     }
     
     func addWithFileName(_ fileName: String) {
