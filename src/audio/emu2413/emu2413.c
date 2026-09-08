@@ -501,8 +501,8 @@ static inline void advance_lfo(void)
 {
   /* LFO */
   ym2413.lfo_am_cnt += ym2413.lfo_am_inc;
-  if (ym2413.lfo_am_cnt >= (uint32_t)(LFO_AM_TAB_ELEMENTS<<LFO_SH) )  /* lfo_am_table is 210 elements long */
-    ym2413.lfo_am_cnt -= (LFO_AM_TAB_ELEMENTS<<LFO_SH);
+  if (ym2413.lfo_am_cnt >= ((uint32_t)LFO_AM_TAB_ELEMENTS<<LFO_SH) )  /* lfo_am_table is 210 elements long */
+    ym2413.lfo_am_cnt -= ((uint32_t)LFO_AM_TAB_ELEMENTS<<LFO_SH);
 
   LFO_AM = lfo_am_table[ ym2413.lfo_am_cnt >> LFO_SH ] >> 1;
 
@@ -752,7 +752,7 @@ static inline void advance(void)
 
 static inline signed int op_calc(uint32_t phase, unsigned int env, signed int pm, unsigned int wave_tab)
 {
-  uint32_t p = (env<<5) + sin_tab[wave_tab + ((((signed int)((phase & ~FREQ_MASK) + (pm<<17))) >> FREQ_SH ) & SIN_MASK) ];
+  uint32_t p = (env<<5) + sin_tab[wave_tab + ((((signed int)((phase & ~FREQ_MASK) + ((uint32_t)pm<<17))) >> FREQ_SH ) & SIN_MASK) ];
 
   if (p >= TL_TAB_LEN)
     return 0;
@@ -792,7 +792,7 @@ static inline void chan_calc( YM2413_OPLL_CH *CH )
   {
     if (!SLOT->fb_shift)
       out = 0;
-    SLOT->op1_out[1] = op_calc1(SLOT->phase, env, (out<<SLOT->fb_shift), SLOT->wavetable );
+    SLOT->op1_out[1] = op_calc1(SLOT->phase, env, (int32_t)((uint32_t)out<<SLOT->fb_shift), SLOT->wavetable );
   }
 
   /* SLOT 2 */
@@ -872,7 +872,7 @@ static inline void rhythm_calc( YM2413_OPLL_CH *CH, unsigned int noise )
   {
     if (!SLOT->fb_shift)
       out = 0;
-    SLOT->op1_out[1] = op_calc1(SLOT->phase, env, (out<<SLOT->fb_shift), SLOT->wavetable );
+    SLOT->op1_out[1] = op_calc1(SLOT->phase, env, (int32_t)((uint32_t)out<<SLOT->fb_shift), SLOT->wavetable );
   }
 
   /* SLOT 2 */
