@@ -108,9 +108,27 @@ bool gui_init(void)
         gui_default_fonts[i] = io.Fonts->AddFontDefault(&font_cfg);
     }
 
+    gui_apply_settings();
+
+    if (strlen(gui_sms_bootrom_path) > 0)
+        emu_load_bootrom_sms(gui_sms_bootrom_path);
+    if (strlen(gui_gg_bootrom_path) > 0)
+        emu_load_bootrom_gg(gui_gg_bootrom_path);
+
+    gui_debug_init();
+    gui_cheats_init();
+    gui_init_menus();
+
+    return true;
+}
+
+void gui_apply_settings(void)
+{
     gui_default_font = gui_default_fonts[config_debug.font_size];
 
     set_style();
+
+    emu_audio_sync = config_audio.sync;
 
     emu_audio_mute(!config_audio.enable);
 
@@ -124,18 +142,15 @@ bool gui_init(void)
     strncpy_fit(gui_sms_bootrom_path, config_emulator.sms_bootrom_path.c_str(), sizeof(gui_sms_bootrom_path));
     strncpy_fit(gui_gg_bootrom_path, config_emulator.gg_bootrom_path.c_str(), sizeof(gui_gg_bootrom_path));
 
-    if (strlen(gui_sms_bootrom_path) > 0)
-        emu_load_bootrom_sms(gui_sms_bootrom_path);
-    if (strlen(gui_gg_bootrom_path) > 0)
-        emu_load_bootrom_gg(gui_gg_bootrom_path);
-
     emu_enable_bootrom_sms(config_emulator.sms_bootrom);
     emu_enable_bootrom_gg(config_emulator.gg_bootrom);
     emu_set_media_slot(config_emulator.media);
     emu_set_overscan(config_debug.debug ? 0 : config_video.overscan);
     emu_set_hide_left_bar(config_video.hide_left_bar);
     emu_video_no_sprite_limit(config_video.sprite_limit);
+    emu_set_3d_glasses_config(config_video.glasses);
     emu_set_disassembler_syntax(config_debug.dis_syntax);
+    emu_geartogear_set_normal_barrier_stall_us((u32)config_emulator.geartogear_stall_us);
     emu_disable_ym2413(config_audio.ym2413 == 1);
     emu_enable_phaser(config_emulator.light_phaser);
     emu_enable_phaser_crosshair(config_emulator.light_phaser_crosshair, config_emulator.light_phaser_crosshair_shape, config_emulator.light_phaser_crosshair_color);
@@ -147,12 +162,6 @@ bool gui_init(void)
     strncpy_fit(gui_savestates_path, config_emulator.savestates_path.c_str(), sizeof(gui_savestates_path));
     strncpy_fit(gui_screenshots_path, config_emulator.screenshots_path.c_str(), sizeof(gui_screenshots_path));
     strncpy_fit(gui_mcp_http_address, config_emulator.mcp_http_address.c_str(), sizeof(gui_mcp_http_address));
-
-    gui_debug_init();
-    gui_cheats_init();
-    gui_init_menus();
-
-    return true;
 }
 
 void gui_destroy(void)

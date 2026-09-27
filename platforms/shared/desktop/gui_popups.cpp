@@ -22,6 +22,7 @@
 #define GUI_POPUPS_IMPORT
 #include "gui_popups.h"
 #include "gui.h"
+#include "gui_actions.h"
 #include "gui_debug_constants.h"
 #include "config.h"
 #include "application.h"
@@ -317,16 +318,20 @@ void gui_popup_modal_load_defaults(void)
     if (ImGui::BeginPopupModal("Load Default Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
     {
         ImGui::Text("Are you sure you want to load default settings?\n\n");
+        ImGui::Text("The current game will reset.\n");
+        ImGui::Text("Boot ROM configuration will be cleared and Gear-to-Gear will disconnect.\n");
+        ImGui::Text("Active recordings will stop.\n\n");
         ImGui::Text("This action cannot be reverted.\n\n");
         ImGui::Separator();
 
+        ImGui::BeginDisabled(gui_is_rom_loading() || emu_is_media_loading());
         if (ImGui::Button("Yes", ImVec2(120, 0)))
         {
-            config_load_defaults();
-            gui_set_style();
             ImGui::CloseCurrentPopup();
             gui_dialog_in_use = false;
+            gui_action_load_defaults();
         }
+        ImGui::EndDisabled();
 
         ImGui::SameLine();
 

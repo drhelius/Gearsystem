@@ -46,7 +46,11 @@ static bool memory_settings_read_editor(std::istream& stream, std::vector<MemEdi
 void gui_debug_memory_init(void)
 {
     gui_debug_memory_reset();
+    gui_debug_memory_apply_settings();
+}
 
+void gui_debug_memory_apply_settings(void)
+{
     for (int i = 0; i < MEMORY_EDITOR_MAX; i++)
     {
         MemEditor::Options options;
@@ -98,8 +102,7 @@ void gui_debug_memory_reset(void)
     mem_edit[MEMORY_EDITOR_CRAM].Reset("CRAM", video->GetCRAM(), 0x40, 0);
     mem_edit[MEMORY_EDITOR_ROM].Reset("FULL ROM", cart->GetROM(), cart->GetROMSize(), 0);
 
-    if (IsValidPointer(memory->GetBootrom()))
-        mem_edit[MEMORY_EDITOR_BIOS].Reset("BIOS", memory->GetBootrom(), memory->GetBootromSize(), 0);
+    mem_edit[MEMORY_EDITOR_BIOS].Reset("BIOS", memory->GetBootrom(), memory->GetBootromSize(), 0);
 
     for (int i = MEMORY_EDITOR_ROM0_8K; i <= MEMORY_EDITOR_ROM5_8K; i++)
     {
