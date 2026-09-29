@@ -1328,9 +1328,6 @@ inline std::stack<Processor::GS_CallStackEntry>* Processor::GetDisassemblerCallS
 inline void Processor::PushCallStack(u16 src, u16 dest, u16 back, u16 bank)
 {
 #if !defined(GS_DISABLE_DISASSEMBLER)
-    if (m_debug_speculative_execution)
-        return;
-
     GS_CallStackEntry entry;
     entry.src = src;
     entry.dest = dest;
@@ -1349,7 +1346,7 @@ inline void Processor::PushCallStack(u16 src, u16 dest, u16 back, u16 bank)
 inline void Processor::PopCallStack()
 {
 #if !defined(GS_DISABLE_DISASSEMBLER)
-    if (!m_debug_speculative_execution && !m_disassembler_call_stack.empty())
+    if (!m_disassembler_call_stack.empty())
         m_disassembler_call_stack.pop();
 #endif
 }

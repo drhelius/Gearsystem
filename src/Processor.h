@@ -124,7 +124,6 @@ public:
     std::vector<GS_Breakpoint>* GetBreakpoints();
     void ClearDisassemblerCallStack();
     void ResetDebuggerExecutionState();
-    void SetDebuggerSpeculativeExecution(bool speculative);
     std::stack<GS_CallStackEntry>* GetDisassemblerCallStack();
     void CheckMemoryBreakpoints(int type, u16 address, bool read);
     bool Halted();
@@ -187,7 +186,6 @@ private:
     std::vector<GS_Breakpoint> m_breakpoints;
     GS_Breakpoint m_run_to_breakpoint;
     bool m_run_to_breakpoint_requested;
-    bool m_debug_speculative_execution;
     std::stack<GS_CallStackEntry> m_disassembler_call_stack;
     GS_Disassembler_Syntax m_disassembler_syntax;
     s32 m_debug_next_irq;
