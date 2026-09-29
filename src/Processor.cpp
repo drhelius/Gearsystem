@@ -60,6 +60,7 @@ Processor::Processor(Memory* pMemory)
     m_memory_breakpoint_hit = false;
     m_run_to_breakpoint_hit = false;
     m_run_to_breakpoint_requested = false;
+    m_debug_speculative_execution = false;
     m_disassembler_syntax = GS_Disassembler_Syntax_Gearsystem;
     m_debug_next_irq = 1;
 
@@ -147,6 +148,7 @@ void Processor::Reset(bool cycleAccurateHalt)
     m_memory_breakpoint_hit = false;
     m_run_to_breakpoint_hit = false;
     m_run_to_breakpoint_requested = false;
+    m_debug_speculative_execution = false;
     ClearDisassemblerCallStack();
     m_debug_next_irq = 1;
 }
@@ -169,9 +171,12 @@ u32 Processor::RunFor(u32 tstates)
     {
         m_iTStates = 0;
 #if !defined(GS_DISABLE_DISASSEMBLER)
-        m_cpu_breakpoint_hit = false;
-        m_memory_breakpoint_hit = false;
-        m_run_to_breakpoint_hit = false;
+        if (!m_debug_speculative_execution)
+        {
+            m_cpu_breakpoint_hit = false;
+            m_memory_breakpoint_hit = false;
+            m_run_to_breakpoint_hit = false;
+        }
 #endif
 
         if (!m_bInputLastCycle)
@@ -190,7 +195,8 @@ u32 Processor::RunFor(u32 tstates)
                 IncreaseR();
                 WZ.SetValue(PC.GetValue());
 #if !defined(GS_DISABLE_DISASSEMBLER)
-                m_debug_next_irq = 2;
+                if (!m_debug_speculative_execution)
+                    m_debug_next_irq = 2;
                 PushCallStack(pc, 0x0066, pc, 0);
                 TraceIRQEvent(pc, 0x0066, 2);
 #endif
@@ -225,7 +231,8 @@ u32 Processor::RunFor(u32 tstates)
                 WZ.SetValue(PC.GetValue());
                 UpdateProActionReplay();
 #if !defined(GS_DISABLE_DISASSEMBLER)
-                m_debug_next_irq = 3;
+                if (!m_debug_speculative_execution)
+                    m_debug_next_irq = 3;
                 PushCallStack(pc, interrupt_vector, pc, m_pMemory->GetBank(interrupt_vector));
                 TraceIRQEvent(pc, interrupt_vector, 3);
 #endif
@@ -504,6 +511,9 @@ void Processor::UndocumentedOPCode()
 void Processor::DisassembleNextOPCode()
 {
 #if !defined(GS_DISABLE_DISASSEMBLER)
+
+    if (m_debug_speculative_execution)
+        return;
 
     CheckBreakpoints();
 
@@ -1187,6 +1197,21 @@ bool Processor::IsBreakpoint(int type, u16 address)
     return false;
 }
 
+void Processor::ResetDebuggerExecutionState()
+{
+    ClearDisassemblerCallStack();
+    m_run_to_breakpoint_requested = false;
+    m_cpu_breakpoint_hit = false;
+    m_memory_breakpoint_hit = false;
+    m_run_to_breakpoint_hit = false;
+    m_debug_next_irq = 0;
+}
+
+void Processor::SetDebuggerSpeculativeExecution(bool speculative)
+{
+    m_debug_speculative_execution = speculative;
+}
+
 void Processor::ClearDisassemblerCallStack()
 {
     while(!m_disassembler_call_stack.empty())
@@ -1197,7 +1222,7 @@ void Processor::CheckMemoryBreakpoints(int type, u16 address, bool read)
 {
 #if !defined(GS_DISABLE_DISASSEMBLER)
 
-    if (!m_breakpoints_enabled)
+    if (m_debug_speculative_execution || !m_breakpoints_enabled)
         return;
 
     for (int i = 0; i < (int)m_breakpoints.size(); i++)
