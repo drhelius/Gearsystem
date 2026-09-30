@@ -1770,7 +1770,7 @@ static void menu_link_cable(void)
 
     ImGui::Text("Protocol:");
     ImGui::SameLine(110.0f);
-    ImGui::SetNextItemWidth(150.0f);
+    ImGui::SetNextItemWidth(130.0f);
 
     if (ImGui::Combo("##link_cable_protocol", &config_emulator.link_cable_protocol, "Auto\0Gear-to-Gear\0Mark III\0\0"))
     {

@@ -35,13 +35,14 @@ static u8 markiii_input_last_state = 0;
 
 static bool events_check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat);
 static bool events_match_hotkey_scancode(const SDL_Event* event, const config_Hotkey& hotkey);
+static const bool* input_get_keyboard_state(void);
 static Uint16 input_build_state(int controller);
 static Uint16 input_filter_opposing_directions(int controller, Uint16 state);
 static void input_apply_state(int controller, Uint16 before, Uint16 now);
 static bool input_check_reset(int controller);
+static void markiii_input_update(bool sync = false);
 static u8 markiii_input_build_state(void);
 static void markiii_input_apply_state(u8 before, u8 now);
-static bool markiii_input_scancode_reserved(SDL_Scancode scancode);
 
 void events_shortcuts(const SDL_Event* event)
 {
@@ -175,8 +176,7 @@ void events_emu(void)
 
     if (gui_in_use)
     {
-        markiii_input_apply_state(markiii_input_last_state, 0);
-        markiii_input_last_state = 0;
+        events_release_markiii_input();
         return;
     }
 
@@ -204,9 +204,7 @@ void events_emu(void)
 
     emu_set_reset(reset_pressed);
 
-    u8 markiii_state = markiii_input_build_state();
-    markiii_input_apply_state(markiii_input_last_state, markiii_state);
-    markiii_input_last_state = markiii_state;
+    markiii_input_update();
 }
 
 void events_sync_input(void)
@@ -227,10 +225,7 @@ void events_sync_input(void)
 
     emu_set_reset(reset_pressed);
 
-    u8 markiii_state = markiii_input_build_state();
-    markiii_input_apply_state(markiii_input_last_state, 0);
-    markiii_input_apply_state(0, markiii_state);
-    markiii_input_last_state = markiii_state;
+    markiii_input_update(true);
 }
 
 void events_reset_input(void)
@@ -249,6 +244,26 @@ bool events_input_updated(void)
     return input_updated;
 }
 
+static const bool* input_get_keyboard_state(void)
+{
+    const bool* keyboard_state = SDL_GetKeyboardState(NULL);
+    GearsystemCore* core = emu_get_core();
+
+    if (!core || core->GetLinkCableProtocol() != LinkCableProtocolMarkIII)
+        return keyboard_state;
+
+    static bool filtered_state[SDL_SCANCODE_COUNT];
+    memcpy(filtered_state, keyboard_state, sizeof(filtered_state));
+
+    filtered_state[SDL_SCANCODE_1] = false;
+    filtered_state[SDL_SCANCODE_2] = false;
+    filtered_state[SDL_SCANCODE_SPACE] = false;
+    filtered_state[SDL_SCANCODE_RETURN] = false;
+    filtered_state[SDL_SCANCODE_KP_ENTER] = false;
+
+    return filtered_state;
+}
+
 static Uint16 input_build_state(int controller)
 {
     if (controller < 0 || controller >= 2)
@@ -259,29 +274,22 @@ static Uint16 input_build_state(int controller)
     if (mods & (SDL_KMOD_CTRL | SDL_KMOD_SHIFT | SDL_KMOD_ALT | SDL_KMOD_GUI))
         return 0;
 
-    const bool* keyboard_state = SDL_GetKeyboardState(NULL);
+    const bool* keyboard_state = input_get_keyboard_state();
     Uint16 ret = 0;
 
-    if (keyboard_state[config_input[controller].key_left] &&
-        !markiii_input_scancode_reserved(config_input[controller].key_left))
+    if (keyboard_state[config_input[controller].key_left])
         ret |= Key_Left;
-    if (keyboard_state[config_input[controller].key_right] &&
-        !markiii_input_scancode_reserved(config_input[controller].key_right))
+    if (keyboard_state[config_input[controller].key_right])
         ret |= Key_Right;
-    if (keyboard_state[config_input[controller].key_up] &&
-        !markiii_input_scancode_reserved(config_input[controller].key_up))
+    if (keyboard_state[config_input[controller].key_up])
         ret |= Key_Up;
-    if (keyboard_state[config_input[controller].key_down] &&
-        !markiii_input_scancode_reserved(config_input[controller].key_down))
+    if (keyboard_state[config_input[controller].key_down])
         ret |= Key_Down;
-    if (keyboard_state[config_input[controller].key_1] &&
-        !markiii_input_scancode_reserved(config_input[controller].key_1))
+    if (keyboard_state[config_input[controller].key_1])
         ret |= Key_1;
-    if (keyboard_state[config_input[controller].key_2] &&
-        !markiii_input_scancode_reserved(config_input[controller].key_2))
+    if (keyboard_state[config_input[controller].key_2])
         ret |= Key_2;
-    if (keyboard_state[config_input[controller].key_start] &&
-        !markiii_input_scancode_reserved(config_input[controller].key_start))
+    if (keyboard_state[config_input[controller].key_start])
         ret |= Key_Start;
 
     SDL_Gamepad* sdl_controller = gamepad_controller[controller];
@@ -399,6 +407,17 @@ static bool input_check_reset(int controller)
     return false;
 }
 
+static void markiii_input_update(bool sync)
+{
+    u8 state = markiii_input_build_state();
+
+    if (sync)
+        events_release_markiii_input();
+
+    markiii_input_apply_state(markiii_input_last_state, state);
+    markiii_input_last_state = state;
+}
+
 static u8 markiii_input_build_state(void)
 {
     GearsystemCore* core = emu_get_core();
@@ -428,14 +447,17 @@ static u8 markiii_input_build_state(void)
 
 static void markiii_input_apply_state(u8 before, u8 now)
 {
+    u8 pressed = now & (u8)~before;
+    u8 released = before & (u8)~now;
+
+    if ((pressed | released) == 0)
+        return;
+
     static const u8 masks[4] = { 0x01, 0x02, 0x04, 0x08 };
     static const GS_MarkIII_Key keys[4] =
     {
         MarkIIIKey1, MarkIIIKey2, MarkIIIKeySpace, MarkIIIKeyReturn
     };
-
-    u8 pressed = now & (u8)~before;
-    u8 released = before & (u8)~now;
 
     for (int i = 0; i < 4; i++)
     {
@@ -444,20 +466,6 @@ static void markiii_input_apply_state(u8 before, u8 now)
         if (released & masks[i])
             emu_markiii_key_released(keys[i]);
     }
-}
-
-static bool markiii_input_scancode_reserved(SDL_Scancode scancode)
-{
-    GearsystemCore* core = emu_get_core();
-
-    if (!core || core->GetLinkCableProtocol() != LinkCableProtocolMarkIII)
-        return false;
-
-    return scancode == SDL_SCANCODE_1 ||
-        scancode == SDL_SCANCODE_2 ||
-        scancode == SDL_SCANCODE_SPACE ||
-        scancode == SDL_SCANCODE_RETURN ||
-        scancode == SDL_SCANCODE_KP_ENTER;
 }
 
 static bool events_check_hotkey(const SDL_Event* event, const config_Hotkey& hotkey, bool allow_repeat)

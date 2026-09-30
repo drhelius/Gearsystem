@@ -112,6 +112,7 @@ private:
     void RefreshLocalWireState(u64 cycle, bool force_publish, bool detect_rx_edge = true);
     bool ResolveGearToGearPin(int bit) const;
     u8 ResolveGearToGearPins() const;
+    INLINE u8 MapRemoteGearToGearBits(u8 value) const;
     void ApplyRemoteWireState(const GS_LinkCable_WireState& state, u64 cycle, bool detect_edges);
     void HandleGearToGearRxEdge(bool old_level, bool new_level, u64 cycle);
     void HandleGearToGearPC6Edge(bool old_level, bool new_level);
@@ -393,6 +394,12 @@ INLINE void GameGearIOPorts::EndLinkInstruction(u64 cycle)
         m_geartogear_sync_callback(cycle, LINK_CABLE_MAX_LEAD_CYCLES, m_geartogear_user_data);
         m_geartogear_next_sync_cycle = cycle + LINK_CABLE_MAX_SYNC_CYCLES;
     }
+}
+
+INLINE u8 GameGearIOPorts::MapRemoteGearToGearBits(u8 value) const
+{
+    return ((value & 0x03) << 2) | ((value & 0x0C) >> 2) |
+        ((value & 0x10) << 1) | ((value & 0x20) >> 1) | (value & 0x40);
 }
 
 INLINE void GameGearIOPorts::FenceGearToGearRead()

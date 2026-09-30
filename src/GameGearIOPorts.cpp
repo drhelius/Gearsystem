@@ -29,12 +29,6 @@ static const u32 kGearToGearHalfBitCycles[4] =
     373, 746, 1492, 5966
 };
 
-static INLINE u8 MapRemoteGearToGearBits(u8 value)
-{
-    return ((value & 0x03) << 2) | ((value & 0x0C) >> 2) |
-        ((value & 0x10) << 1) | ((value & 0x20) >> 1) | (value & 0x40);
-}
-
 GameGearIOPorts::GameGearIOPorts(Audio* pAudio, Video* pVideo, Input* pInput,
     Cartridge* pCartridge, Memory* pMemory, Processor* pProcessor)
 {

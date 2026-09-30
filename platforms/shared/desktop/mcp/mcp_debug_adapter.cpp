@@ -1365,7 +1365,6 @@ json DebugAdapter::GetSerialStatus()
     transport["attachments"] = link.attachments;
     transport["last_error"] = link.last_error;
     status["link_cable"] = transport;
-    status["geartogear"] = transport;
 
     return status;
 }
