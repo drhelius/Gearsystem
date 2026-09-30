@@ -17,8 +17,8 @@
  *
  */
 
-#define GUI_DEBUG_GEARTOGEAR_IMPORT
-#include "gui_debug_geartogear.h"
+#define GUI_DEBUG_LINK_CABLE_IMPORT
+#include "gui_debug_link_cable.h"
 
 #include "imgui.h"
 #include "GameGearIOPorts.h"
@@ -79,9 +79,8 @@ void gui_debug_window_geartogear_serial_registers(void)
     ImGui::SetNextWindowSize(ImVec2(242, 274), ImGuiCond_FirstUseEver);
     ImGui::Begin("Game Gear Serial Registers", &config_debug.show_geartogear_serial_registers);
 
-    GS_GearToGear_DebugState hardware =
-        emu_geartogear_get_debug_state();
-    GearToGearStatus link = emu_geartogear_get_status();
+    GS_GearToGear_DebugState hardware = emu_geartogear_get_debug_state();
+    LinkCableStatus link = emu_link_cable_get_status();
     GearsystemCore* core = emu_get_core();
     GameGearIOPorts* ports = core->GetGameGearIOPorts();
     u8 baud_index = (hardware.serial_control >> 6) & 0x03;
@@ -118,10 +117,8 @@ void gui_debug_window_geartogear_serial_registers(void)
     ImGui::TextColored(white, "%d / %d / %d", hardware.tx_busy ? 1 : 0, hardware.rx_ready ? 1 : 0, hardware.frame_error ? 1 : 0);
     ImGui::TextColored(violet, " CABLE          ");
     ImGui::SameLine();
-    bool game_gear_cable = link.cable_connected &&
-        link.protocol == LinkCableProtocolGearToGear;
-    ImGui::TextColored(game_gear_cable ? green : gray, "%s",
-        game_gear_cable ? "CONNECTED" : "DISCONNECTED");
+    bool game_gear_cable = link.cable_connected && link.protocol == LinkCableProtocolGearToGear;
+    ImGui::TextColored(game_gear_cable ? green : gray, "%s", game_gear_cable ? "CONNECTED" : "DISCONNECTED");
 
     ImGui::PopFont();
     ImGui::End();
@@ -167,8 +164,7 @@ void gui_debug_window_geartogear_serial_status(void)
 
     if (hardware.tx_busy)
     {
-        ImGui::TextColored(white, "%llu",
-            (unsigned long long)hardware.tx_next_cycle);
+        ImGui::TextColored(white, "%llu", (unsigned long long)hardware.tx_next_cycle);
     }
     else
         ImGui::TextColored(gray, "-");
@@ -192,8 +188,7 @@ void gui_debug_window_geartogear_serial_status(void)
 
     if (hardware.rx_state != 0)
     {
-        ImGui::TextColored(white, "%llu",
-            (unsigned long long)hardware.rx_next_cycle);
+        ImGui::TextColored(white, "%llu", (unsigned long long)hardware.rx_next_cycle);
     }
     else
         ImGui::TextColored(gray, "-");
@@ -215,7 +210,7 @@ void gui_debug_window_geartogear_serial_status(void)
     ImGui::TextColored(white, "%llu", (unsigned long long)hardware.cycle);
     ImGui::TextColored(violet, " LINK CYCLE      ");
     ImGui::SameLine();
-    ImGui::TextColored(white, "%llu", (unsigned long long)core->GetGearToGearCycles());
+    ImGui::TextColored(white, "%llu", (unsigned long long)core->GetLinkCableCycles());
 
     ImGui::Separator();
     ImGui::TextColored(magenta, "PHYSICAL PINS:");
@@ -235,19 +230,19 @@ void gui_debug_window_geartogear_serial_status(void)
     ImGui::PopStyleVar();
 }
 
-void gui_debug_window_geartogear_transport(void)
+void gui_debug_window_link_cable_transport(void)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
     ImGui::SetNextWindowPos(ImVec2(300, 90), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(320, 720), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Link Cable (Transport)", &config_debug.show_geartogear_transport);
+    ImGui::SetNextWindowSize(ImVec2(320, 670), ImGuiCond_FirstUseEver);
+    ImGui::Begin("Link Cable (Transport)", &config_debug.show_link_cable_transport);
 
-    GearToGearStatus link = emu_geartogear_get_status();
+    LinkCableStatus link = emu_link_cable_get_status();
 
     const char* mode = "DISABLED";
-    if (link.mode == GearToGearModeConnected)
+    if (link.mode == LinkCableModeConnected)
         mode = "JOINED";
-    else if (link.mode == GearToGearModeFault)
+    else if (link.mode == LinkCableModeFault)
         mode = "FAULT";
 
     ImGui::PushFont(gui_default_font);
@@ -257,15 +252,14 @@ void gui_debug_window_geartogear_transport(void)
     ImGui::TextColored(violet, " CABLE           "); ImGui::SameLine();
     ImGui::TextColored(link.cable_connected ? green : red, "%s", link.cable_connected ? "CONNECTED" : "DISCONNECTED");
     ImGui::TextColored(violet, " STATUS          "); ImGui::SameLine();
-    ImGui::TextColored(link.mode == GearToGearModeFault ? red : white, "%s", mode);
+    ImGui::TextColored(link.mode == LinkCableModeFault ? red : white, "%s", mode);
     ImGui::TextColored(violet, " SESSION         "); ImGui::SameLine();
     ImGui::TextColored(white, "%u", link.session);
     ImGui::TextColored(violet, " PEER            "); ImGui::SameLine();
 
-    if (link.mode == GearToGearModeConnected)
+    if (link.mode == LinkCableModeConnected)
     {
-        ImGui::TextColored(white, "%d / %d", link.local_peer_id,
-            link.peer_count);
+        ImGui::TextColored(white, "%d / %d", link.local_peer_id, link.peer_count);
     }
     else
         ImGui::TextColored(gray, "-");
@@ -281,14 +275,13 @@ void gui_debug_window_geartogear_transport(void)
         "%s", link_protocol_name(link.remote_protocol));
     ImGui::TextColored(violet, " PACING          "); ImGui::SameLine();
 
-    if (link.mode == GearToGearModeConnected)
+    if (link.mode == LinkCableModeConnected)
     {
         if (!link.cable_connected)
             ImGui::TextColored(white, "LOCAL AUDIO");
         else
         {
-            ImGui::TextColored(link.pacing_peer ? green : cyan, "%s",
-                link.pacing_peer ? "LEADER" : "FOLLOWER");
+            ImGui::TextColored(link.pacing_peer ? green : cyan, "%s", link.pacing_peer ? "LEADER" : "FOLLOWER");
         }
     }
     else
@@ -303,7 +296,7 @@ void gui_debug_window_geartogear_transport(void)
     ImGui::TextColored(violet, " LINK CYCLE      "); ImGui::SameLine();
     ImGui::TextColored(white, "%llu", (unsigned long long)emu_get_core()->GetLinkCableCycles());
     ImGui::TextColored(violet, " MAX LEAD        "); ImGui::SameLine();
-    ImGui::TextColored(white, "%u cycles", GEARTOGEAR_MAX_LEAD_CYCLES);
+    ImGui::TextColored(white, "%u cycles", LINK_CABLE_MAX_LEAD_CYCLES);
     draw_metric_pair(" LOCAL PROG/PROM ", link.local_progress, link.local_promise);
     draw_metric_pair(" REMOTE PROG/PROM", link.remote_progress, link.remote_promise);
     ImGui::TextColored(violet, " REMOTE GEN      "); ImGui::SameLine();
@@ -324,33 +317,9 @@ void gui_debug_window_geartogear_transport(void)
     draw_metric_pair(" BARRIER # / us  ", link.barrier_waits, link.barrier_wait_us);
     draw_metric_pair(" MAX WAIT/GAP us ", link.barrier_wait_max_us, link.sync_gap_max_us);
     ImGui::TextColored(violet, " WAITS 1/10/50ms "); ImGui::SameLine();
-    ImGui::TextColored(white, "%llu / %llu / %llu",
-        (unsigned long long)link.barrier_wait_over_1ms,
-        (unsigned long long)link.barrier_wait_over_10ms,
-        (unsigned long long)link.barrier_wait_over_50ms);
+    ImGui::TextColored(white, "%llu / %llu / %llu", (unsigned long long)link.barrier_wait_over_1ms,
+        (unsigned long long)link.barrier_wait_over_10ms, (unsigned long long)link.barrier_wait_over_50ms);
     draw_metric_pair(" SPIN / SLEEP    ", link.spin_iterations, link.sleep_calls);
-
-    GS_MarkIII_LinkDebugState markiii = emu_markiii_link_get_debug_state();
-    if (markiii.peripheral_attached ||
-        link.protocol == LinkCableProtocolMarkIII)
-    {
-        ImGui::Separator();
-        ImGui::TextColored(magenta, "MARK III PPI:");
-        ImGui::TextColored(violet, " CONTROL/ROW     "); ImGui::SameLine();
-        ImGui::TextColored(white, "%02X / %u", markiii.control,
-            markiii.selected_row);
-        ImGui::TextColored(violet, " PORT A/B/C      "); ImGui::SameLine();
-        ImGui::TextColored(white, "%02X / %02X / %02X", markiii.port_a,
-            markiii.port_b, markiii.port_c);
-        ImGui::TextColored(violet, " PORT C LATCH    "); ImGui::SameLine();
-        ImGui::TextColored(white, "%02X", markiii.port_c_latch);
-        ImGui::TextColored(violet, " LOCAL MASK/LEVEL"); ImGui::SameLine();
-        ImGui::TextColored(white, "%02X / %02X",
-            markiii.local_state.drive_mask, markiii.local_state.levels);
-        ImGui::TextColored(violet, " REMOTE MASK/LEVEL"); ImGui::SameLine();
-        ImGui::TextColored(white, "%02X / %02X",
-            markiii.remote_state.drive_mask, markiii.remote_state.levels);
-    }
 
     ImGui::Separator();
     ImGui::TextColored(magenta, "RECOVERY:");
@@ -361,7 +330,7 @@ void gui_debug_window_geartogear_transport(void)
     draw_metric(" MAX DETACH AGE us", link.peer_detach_max_age_us);
     draw_metric(" GAPS > 50ms     ", link.sync_gap_over_50ms);
 
-    if (link.mode == GearToGearModeFault)
+    if (link.mode == LinkCableModeFault)
     {
         ImGui::Separator();
         ImGui::TextColored(red, "%s", link.last_error);
@@ -370,7 +339,7 @@ void gui_debug_window_geartogear_transport(void)
     ImGui::Separator();
 
     if (ImGui::Button("RESET METRICS"))
-        emu_geartogear_reset_metrics();
+        emu_link_cable_reset_metrics();
 
     ImGui::PopFont();
 

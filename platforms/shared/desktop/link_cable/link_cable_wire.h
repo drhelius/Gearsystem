@@ -17,50 +17,50 @@
  *
  */
 
-#ifndef GEARTOGEAR_WIRE_H
-#define GEARTOGEAR_WIRE_H
+#ifndef LINK_CABLE_WIRE_H
+#define LINK_CABLE_WIRE_H
 
 #include <atomic>
-#include "geartogear.h"
+#include "link_cable.h"
 
-struct GearToGearLocalWireEvent
+struct LinkCableLocalWireEvent
 {
     u64 cycle;
     u8 drive_mask;
     u8 levels;
 };
 
-struct GearToGearSharedWireEvent
+struct LinkCableSharedWireEvent
 {
     std::atomic<u32> sequence;
     std::atomic<u32> generation;
     std::atomic<u64> cycle;
     std::atomic<u32> wire_state;
 
-    GearToGearSharedWireEvent() : sequence(0), generation(0), cycle(0), wire_state(0) {}
+    LinkCableSharedWireEvent() : sequence(0), generation(0), cycle(0), wire_state(0) {}
 };
 
-static_assert(alignof(GearToGearSharedWireEvent) >= alignof(std::atomic<u64>),
+static_assert(alignof(LinkCableSharedWireEvent) >= alignof(std::atomic<u64>),
     "Link cable shared events require aligned 64-bit atomics");
 
-inline u32 geartogear_pack_wire_state(u8 drive_mask, u8 levels)
+inline u32 link_cable_pack_wire_state(u8 drive_mask, u8 levels)
 {
     return (u32)(drive_mask & 0x7F) | ((u32)(levels & 0x7F) << 8);
 }
 
-inline void geartogear_unpack_wire_state(u32 packed, u8& drive_mask, u8& levels)
+inline void link_cable_unpack_wire_state(u32 packed, u8& drive_mask, u8& levels)
 {
     drive_mask = (u8)(packed & 0x7F);
     levels = (u8)((packed >> 8) & 0x7F);
 }
 
-inline bool geartogear_shared_event_atomics_lock_free(const GearToGearSharedWireEvent& event)
+inline bool link_cable_shared_event_atomics_lock_free(const LinkCableSharedWireEvent& event)
 {
     return event.sequence.is_lock_free() && event.generation.is_lock_free() &&
         event.cycle.is_lock_free() && event.wire_state.is_lock_free();
 }
 
-inline void geartogear_publish_shared_event(GearToGearSharedWireEvent& event, u32 generation, u64 cycle, u8 drive_mask, u8 levels)
+inline void link_cable_publish_shared_event(LinkCableSharedWireEvent& event, u32 generation, u64 cycle, u8 drive_mask, u8 levels)
 {
     u32 sequence = event.sequence.load(std::memory_order_relaxed);
     u32 busy_sequence = (sequence + 1) | 1u;
@@ -68,11 +68,11 @@ inline void geartogear_publish_shared_event(GearToGearSharedWireEvent& event, u3
     event.sequence.exchange(busy_sequence, std::memory_order_acq_rel);
     event.generation.store(generation, std::memory_order_relaxed);
     event.cycle.store(cycle, std::memory_order_relaxed);
-    event.wire_state.store(geartogear_pack_wire_state(drive_mask, levels), std::memory_order_relaxed);
+    event.wire_state.store(link_cable_pack_wire_state(drive_mask, levels), std::memory_order_relaxed);
     event.sequence.store(busy_sequence + 1, std::memory_order_release);
 }
 
-inline bool geartogear_read_shared_event(const GearToGearSharedWireEvent& source, u32 expected_generation, GearToGearLocalWireEvent& event)
+inline bool link_cable_read_shared_event(const LinkCableSharedWireEvent& source, u32 expected_generation, LinkCableLocalWireEvent& event)
 {
     u32 before = source.sequence.load(std::memory_order_acquire);
 
@@ -91,8 +91,8 @@ inline bool geartogear_read_shared_event(const GearToGearSharedWireEvent& source
         return false;
     }
 
-    geartogear_unpack_wire_state(packed, event.drive_mask, event.levels);
+    link_cable_unpack_wire_state(packed, event.drive_mask, event.levels);
     return true;
 }
 
-#endif /* GEARTOGEAR_WIRE_H */
+#endif /* LINK_CABLE_WIRE_H */

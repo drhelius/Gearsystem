@@ -41,7 +41,7 @@ int application_headless_init(const ApplicationParams& params)
     Log("\n%s", GS_TITLE_ASCII);
     Log("%s %s Headless Mode", GS_TITLE, GS_VERSION);
 
-    if (params.mcp_mode < 0 && !params.geartogear_session_set)
+    if (params.mcp_mode < 0 && !params.link_cable_session_set)
     {
         Error("Headless mode requires MCP or --link-session");
         return 1;
@@ -112,8 +112,8 @@ int application_headless_init(const ApplicationParams& params)
         emu_mcp_start();
     }
 
-    if (params.geartogear_session_set)
-        emu_geartogear_connect(params.geartogear_session);
+    if (params.link_cable_session_set)
+        emu_link_cable_connect(params.link_cable_session);
 
     signal(SIGINT, headless_signal_handler);
     signal(SIGTERM, headless_signal_handler);
@@ -140,7 +140,7 @@ void application_headless_mainloop(void)
         gui_debug_update();
         gui_finish_loading_rom();
 
-        if (!emu_mcp_is_running() && !emu_geartogear_is_active())
+        if (!emu_mcp_is_running() && !emu_link_cable_is_active())
         {
             Log("No service running, exiting headless mode");
             break;

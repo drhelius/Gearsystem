@@ -33,27 +33,26 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #endif
-#include "geartogear_manager.h"
-#include "geartogear_wire.h"
+#include "link_cable_manager.h"
+#include "link_cable_wire.h"
 #include "log.h"
 
-#define GEARTOGEAR_SHM_MAGIC 0x47534C4B
-#define GEARTOGEAR_SHM_VERSION 2
-#define GEARTOGEAR_SHARED_EVENT_COUNT 64
-#define GEARTOGEAR_BARRIER_SLEEP_US 100
+#define LINK_CABLE_SHM_MAGIC 0x47534C4B
+#define LINK_CABLE_SHM_VERSION 2
+#define LINK_CABLE_SHARED_EVENT_COUNT 64
+#define LINK_CABLE_BARRIER_SLEEP_US 100
 
-#define GEARTOGEAR_PEER_FREE 0
-#define GEARTOGEAR_PEER_ACTIVE 1
-#define GEARTOGEAR_PEER_CLAIMING 2
-// A ready peer is an active transport slot with compatible link hardware.
-#define GEARTOGEAR_PEER_READY 3
+#define LINK_CABLE_PEER_FREE 0
+#define LINK_CABLE_PEER_ACTIVE 1
+#define LINK_CABLE_PEER_CLAIMING 2
+#define LINK_CABLE_PEER_READY 3
 
-static u64 geartogear_saturating_add(u64 value, u64 add)
+static INLINE u64 link_cable_saturating_add(u64 value, u64 add)
 {
     return add > (~0ULL - value) ? ~0ULL : value + add;
 }
 
-struct GearToGearManager::Shared
+struct LinkCableManager::Shared
 {
     struct Peer
     {
@@ -64,7 +63,7 @@ struct GearToGearManager::Shared
         std::atomic<u64> progress_cycle;
         std::atomic<u64> promise_cycle;
         std::atomic<u32> write_index;
-        GearToGearSharedWireEvent events[GEARTOGEAR_SHARED_EVENT_COUNT];
+        LinkCableSharedWireEvent events[LINK_CABLE_SHARED_EVENT_COUNT];
 
         Peer() : state(0), generation(0), protocol(0), heartbeat_us(0),
             progress_cycle(0), promise_cycle(0), write_index(0) {}
@@ -74,39 +73,40 @@ struct GearToGearManager::Shared
     u32 version;
     u8 session;
     u8 reserved[3];
-    Peer peers[GEARTOGEAR_MAX_PEERS];
+    Peer peers[LINK_CABLE_MAX_PEERS];
 
-    Shared() : magic(0), version(GEARTOGEAR_SHM_VERSION), session(0)
+    Shared() : magic(0), version(LINK_CABLE_SHM_VERSION), session(0)
     {
         memset(reserved, 0, sizeof(reserved));
     }
 };
 
-static void StoreMax(std::atomic<u64>& value, u64 desired)
+static INLINE void StoreMax(std::atomic<u64>& value, u64 desired)
 {
     u64 current = value.load(std::memory_order_relaxed);
+
     while (current < desired && !value.compare_exchange_weak(current, desired,
         std::memory_order_release, std::memory_order_relaxed))
     {
     }
 }
 
-static bool IsPeerActive(u32 state)
+static INLINE bool IsPeerActive(u32 state)
 {
-    return state == GEARTOGEAR_PEER_ACTIVE || state == GEARTOGEAR_PEER_READY;
+    return state == LINK_CABLE_PEER_ACTIVE || state == LINK_CABLE_PEER_READY;
 }
 
-static bool IsPeerReady(u32 state)
+static INLINE bool IsPeerReady(u32 state)
 {
-    return state == GEARTOGEAR_PEER_READY;
+    return state == LINK_CABLE_PEER_READY;
 }
 
-static bool IsPeerProtocol(u32 peer_protocol, GS_LinkCable_Protocol protocol)
+static INLINE bool IsPeerProtocol(u32 peer_protocol, GS_LinkCable_Protocol protocol)
 {
     return peer_protocol == (u32)protocol;
 }
 
-GearToGearManager::GearToGearManager()
+LinkCableManager::LinkCableManager()
 {
     m_shared = NULL;
     m_mapping_handle = NULL;
@@ -114,34 +114,40 @@ GearToGearManager::GearToGearManager()
     m_slot = -1;
     m_generation = 0;
     m_session = 0;
+
     m_local_anchor = 0;
     m_bus_anchor = 0;
     m_last_local_cycle = 0;
     m_last_sync_exit_us = 0;
+
     m_remote_slot = -1;
     m_remote_generation = 0;
     m_remote_read_index = 0;
     m_remote_state.drive_mask = 0;
     m_remote_state.levels = 0x7F;
     m_remote_sampled = false;
+
     m_last_published_state.drive_mask = 0;
     m_last_published_state.levels = 0x7F;
     m_has_last_published_state = false;
+
     m_local_attachment_changed = false;
     m_remote_identity_changed = false;
+
     m_hardware_ready = false;
     m_protocol = LinkCableProtocolNone;
-    m_normal_barrier_stall_us = geartogear_normal_barrier_stall_us();
+    m_normal_barrier_stall_us = link_cable_normal_barrier_stall_us();
+
     memset(&m_status, 0, sizeof(m_status));
-    m_status.mode = GearToGearModeDisabled;
+    m_status.mode = LinkCableModeDisabled;
 }
 
-GearToGearManager::~GearToGearManager()
+LinkCableManager::~LinkCableManager()
 {
     Stop();
 }
 
-bool GearToGearManager::Connect(u8 session, u64 local_cycle)
+bool LinkCableManager::Connect(u8 session, u64 local_cycle)
 {
     Stop();
 
@@ -164,7 +170,7 @@ bool GearToGearManager::Connect(u8 session, u64 local_cycle)
     }
 
     memset(&m_status, 0, sizeof(m_status));
-    m_status.mode = GearToGearModeConnected;
+    m_status.mode = LinkCableModeConnected;
     m_status.active = true;
     m_status.session = session;
     m_status.attachments = 1;
@@ -176,12 +182,11 @@ bool GearToGearManager::Connect(u8 session, u64 local_cycle)
     UpdateRemoteIdentity(now);
     RefreshStatus();
 
-    Log("Link cable: connected to shared session %u as peer %u", session,
-        m_slot + 1);
+    Log("Link cable: connected to shared session %u as peer %u", session, m_slot + 1);
     return true;
 }
 
-void GearToGearManager::Stop()
+void LinkCableManager::Stop()
 {
     if (m_shared && m_slot >= 0)
     {
@@ -215,10 +220,10 @@ void GearToGearManager::Stop()
     m_protocol = LinkCableProtocolNone;
 
     memset(&m_status, 0, sizeof(m_status));
-    m_status.mode = GearToGearModeDisabled;
+    m_status.mode = LinkCableModeDisabled;
 }
 
-void GearToGearManager::Pump(u64 local_cycle)
+void LinkCableManager::Pump(u64 local_cycle)
 {
     if (!EnsureAttached(local_cycle))
         return;
@@ -230,23 +235,21 @@ void GearToGearManager::Pump(u64 local_cycle)
     {
         u64 bus_cycle = ToBusCycle(local_cycle);
         StoreMax(m_shared->peers[m_slot].progress_cycle, bus_cycle);
-        StoreMax(m_shared->peers[m_slot].promise_cycle, geartogear_saturating_add(bus_cycle, GEARTOGEAR_MAX_LEAD_CYCLES));
+        StoreMax(m_shared->peers[m_slot].promise_cycle, link_cable_saturating_add(bus_cycle, LINK_CABLE_MAX_LEAD_CYCLES));
     }
 
     ReapStalePeers(now);
     UpdateRemoteIdentity(now);
 }
 
-void GearToGearManager::SetHardwareReady(bool ready, u64 local_cycle,
-    GS_LinkCable_Protocol protocol)
+void LinkCableManager::SetHardwareReady(bool ready, u64 local_cycle, GS_LinkCable_Protocol protocol)
 {
     if (!EnsureAttached(local_cycle))
         return;
 
     Shared::Peer& local = m_shared->peers[m_slot];
 
-    if (protocol != LinkCableProtocolGearToGear &&
-        protocol != LinkCableProtocolMarkIII)
+    if (protocol != LinkCableProtocolGearToGear && protocol != LinkCableProtocolMarkIII)
     {
         ready = false;
         protocol = LinkCableProtocolNone;
@@ -256,10 +259,8 @@ void GearToGearManager::SetHardwareReady(bool ready, u64 local_cycle,
     {
         if (m_hardware_ready)
         {
-            local.state.store(GEARTOGEAR_PEER_ACTIVE,
-                std::memory_order_release);
-            local.protocol.store(LinkCableProtocolNone,
-                std::memory_order_relaxed);
+            local.state.store(LINK_CABLE_PEER_ACTIVE, std::memory_order_release);
+            local.protocol.store(LinkCableProtocolNone, std::memory_order_relaxed);
             m_hardware_ready = false;
             m_protocol = LinkCableProtocolNone;
             m_has_last_published_state = false;
@@ -279,7 +280,7 @@ void GearToGearManager::SetHardwareReady(bool ready, u64 local_cycle,
 
     u64 bus_anchor = 0;
 
-    for (int i = 0; i < GEARTOGEAR_MAX_PEERS; i++)
+    for (int i = 0; i < LINK_CABLE_MAX_PEERS; i++)
     {
         if (i == m_slot)
             continue;
@@ -287,11 +288,9 @@ void GearToGearManager::SetHardwareReady(bool ready, u64 local_cycle,
         Shared::Peer& peer = m_shared->peers[i];
 
         if (IsPeerReady(peer.state.load(std::memory_order_acquire)) &&
-            IsPeerProtocol(peer.protocol.load(std::memory_order_acquire),
-                protocol))
+            IsPeerProtocol(peer.protocol.load(std::memory_order_acquire), protocol))
         {
-            bus_anchor = MAX(bus_anchor,
-                peer.progress_cycle.load(std::memory_order_acquire));
+            bus_anchor = MAX(bus_anchor, peer.progress_cycle.load(std::memory_order_acquire));
         }
     }
 
@@ -311,27 +310,26 @@ void GearToGearManager::SetHardwareReady(bool ready, u64 local_cycle,
 
     local.write_index.store(0, std::memory_order_relaxed);
     local.progress_cycle.store(bus_anchor, std::memory_order_relaxed);
-    local.promise_cycle.store(geartogear_saturating_add(bus_anchor, GEARTOGEAR_MAX_LEAD_CYCLES), std::memory_order_relaxed);
+    local.promise_cycle.store(link_cable_saturating_add(bus_anchor, LINK_CABLE_MAX_LEAD_CYCLES), std::memory_order_relaxed);
     local.heartbeat_us.store(now, std::memory_order_relaxed);
     local.protocol.store((u32)protocol, std::memory_order_relaxed);
-    local.state.store(GEARTOGEAR_PEER_READY, std::memory_order_release);
+    local.state.store(LINK_CABLE_PEER_READY, std::memory_order_release);
     m_hardware_ready = true;
     m_protocol = protocol;
 
     UpdateRemoteIdentity(now);
 }
 
-void GearToGearManager::PublishState(u64 local_cycle, const GS_GearToGear_WireState& input_state, bool force)
+void LinkCableManager::PublishState(u64 local_cycle, const GS_LinkCable_WireState& input_state, bool force)
 {
     if (!EnsureAttached(local_cycle) || !m_hardware_ready)
         return;
 
-    GS_GearToGear_WireState state;
+    GS_LinkCable_WireState state;
     state.drive_mask = input_state.drive_mask & 0x7F;
     state.levels = input_state.levels & 0x7F;
 
-    if (!force && m_has_last_published_state &&
-        state.drive_mask == m_last_published_state.drive_mask &&
+    if (!force && m_has_last_published_state && state.drive_mask == m_last_published_state.drive_mask &&
         state.levels == m_last_published_state.levels)
     {
         return;
@@ -341,8 +339,8 @@ void GearToGearManager::PublishState(u64 local_cycle, const GS_GearToGear_WireSt
     peer.heartbeat_us.store(GetClockMicroseconds(), std::memory_order_release);
 
     u32 index = peer.write_index.load(std::memory_order_relaxed);
-    GearToGearSharedWireEvent& event = peer.events[index % GEARTOGEAR_SHARED_EVENT_COUNT];
-    geartogear_publish_shared_event(event, m_generation, ToBusCycle(local_cycle), state.drive_mask, state.levels);
+    LinkCableSharedWireEvent& event = peer.events[index % LINK_CABLE_SHARED_EVENT_COUNT];
+    link_cable_publish_shared_event(event, m_generation, ToBusCycle(local_cycle), state.drive_mask, state.levels);
     peer.write_index.store(index + 1, std::memory_order_release);
 
     m_last_published_state = state;
@@ -350,7 +348,7 @@ void GearToGearManager::PublishState(u64 local_cycle, const GS_GearToGear_WireSt
     m_status.events_published++;
 }
 
-bool GearToGearManager::SampleRemoteState(u64 local_cycle, GS_GearToGear_WireState& state)
+bool LinkCableManager::SampleRemoteState(u64 local_cycle, GS_LinkCable_WireState& state)
 {
     state.drive_mask = 0;
     state.levels = 0x7F;
@@ -371,14 +369,14 @@ bool GearToGearManager::SampleRemoteState(u64 local_cycle, GS_GearToGear_WireSta
     Shared::Peer& peer = m_shared->peers[m_remote_slot];
     u32 generation = m_remote_generation;
     u32 write_index = peer.write_index.load(std::memory_order_acquire);
-    u32 count = MIN(write_index, (u32)GEARTOGEAR_SHARED_EVENT_COUNT);
+    u32 count = MIN(write_index, (u32)LINK_CABLE_SHARED_EVENT_COUNT);
 
     for (u32 offset = 0; offset < count; offset++)
     {
-        GearToGearLocalWireEvent event;
-        GearToGearSharedWireEvent& source = peer.events[(write_index - 1 - offset) % GEARTOGEAR_SHARED_EVENT_COUNT];
+        LinkCableLocalWireEvent event;
+        LinkCableSharedWireEvent& source = peer.events[(write_index - 1 - offset) % LINK_CABLE_SHARED_EVENT_COUNT];
 
-        if (!geartogear_read_shared_event(source, generation, event))
+        if (!link_cable_read_shared_event(source, generation, event))
         {
             m_status.seqlock_retries++;
             continue;
@@ -390,8 +388,7 @@ bool GearToGearManager::SampleRemoteState(u64 local_cycle, GS_GearToGear_WireSta
     }
 
     if (!IsPeerReady(peer.state.load(std::memory_order_acquire)) ||
-        !IsPeerProtocol(peer.protocol.load(std::memory_order_acquire),
-            m_protocol) ||
+        !IsPeerProtocol(peer.protocol.load(std::memory_order_acquire), m_protocol) ||
         peer.generation.load(std::memory_order_acquire) != generation)
     {
         UpdateRemoteIdentity(GetClockMicroseconds());
@@ -407,7 +404,7 @@ bool GearToGearManager::SampleRemoteState(u64 local_cycle, GS_GearToGear_WireSta
     return true;
 }
 
-bool GearToGearManager::PollRemoteEvent(u64 through_local_cycle, GS_GearToGear_WireEvent& event)
+bool LinkCableManager::PollRemoteEvent(u64 through_local_cycle, GS_LinkCable_WireEvent& event)
 {
     if (!EnsureAttached(through_local_cycle) || !IsCableConnected())
         return false;
@@ -422,8 +419,7 @@ bool GearToGearManager::PollRemoteEvent(u64 through_local_cycle, GS_GearToGear_W
     Shared::Peer& peer = m_shared->peers[m_remote_slot];
 
     if (!IsPeerReady(peer.state.load(std::memory_order_acquire)) ||
-        !IsPeerProtocol(peer.protocol.load(std::memory_order_acquire),
-            m_protocol) ||
+        !IsPeerProtocol(peer.protocol.load(std::memory_order_acquire), m_protocol) ||
         peer.generation.load(std::memory_order_acquire) != m_remote_generation)
     {
         UpdateRemoteIdentity(GetClockMicroseconds());
@@ -433,23 +429,23 @@ bool GearToGearManager::PollRemoteEvent(u64 through_local_cycle, GS_GearToGear_W
     u32 write_index = peer.write_index.load(std::memory_order_acquire);
     u32 distance = write_index - m_remote_read_index;
 
-    if (distance > GEARTOGEAR_SHARED_EVENT_COUNT)
+    if (distance > LINK_CABLE_SHARED_EVENT_COUNT)
     {
         m_status.state_ring_overruns++;
 #if !defined(NDEBUG)
         assert(false && "Link cable event ring overrun");
 #endif
-        m_remote_read_index = write_index - GEARTOGEAR_SHARED_EVENT_COUNT;
-        distance = GEARTOGEAR_SHARED_EVENT_COUNT;
+        m_remote_read_index = write_index - LINK_CABLE_SHARED_EVENT_COUNT;
+        distance = LINK_CABLE_SHARED_EVENT_COUNT;
     }
 
     if (distance == 0)
         return false;
 
-    GearToGearLocalWireEvent local_event;
-    GearToGearSharedWireEvent& source = peer.events[m_remote_read_index % GEARTOGEAR_SHARED_EVENT_COUNT];
+    LinkCableLocalWireEvent local_event;
+    LinkCableSharedWireEvent& source = peer.events[m_remote_read_index % LINK_CABLE_SHARED_EVENT_COUNT];
 
-    if (!geartogear_read_shared_event(source, m_remote_generation, local_event))
+    if (!link_cable_read_shared_event(source, m_remote_generation, local_event))
     {
         m_status.seqlock_retries++;
         return false;
@@ -459,8 +455,7 @@ bool GearToGearManager::PollRemoteEvent(u64 through_local_cycle, GS_GearToGear_W
         return false;
 
     if (!IsPeerReady(peer.state.load(std::memory_order_acquire)) ||
-        !IsPeerProtocol(peer.protocol.load(std::memory_order_acquire),
-            m_protocol) ||
+        !IsPeerProtocol(peer.protocol.load(std::memory_order_acquire), m_protocol) ||
         peer.generation.load(std::memory_order_acquire) != m_remote_generation)
     {
         UpdateRemoteIdentity(GetClockMicroseconds());
@@ -476,7 +471,7 @@ bool GearToGearManager::PollRemoteEvent(u64 through_local_cycle, GS_GearToGear_W
     return true;
 }
 
-void GearToGearManager::PublishProgress(u64 local_cycle, u32 lead_cycles)
+void LinkCableManager::PublishProgress(u64 local_cycle, u32 lead_cycles)
 {
     if (!EnsureAttached(local_cycle) || !m_hardware_ready)
         return;
@@ -484,18 +479,18 @@ void GearToGearManager::PublishProgress(u64 local_cycle, u32 lead_cycles)
     Shared::Peer& local = m_shared->peers[m_slot];
     u64 bus_cycle = ToBusCycle(local_cycle);
     StoreMax(local.progress_cycle, bus_cycle);
-    StoreMax(local.promise_cycle, geartogear_saturating_add(bus_cycle, lead_cycles));
+    StoreMax(local.promise_cycle, link_cable_saturating_add(bus_cycle, lead_cycles));
     local.heartbeat_us.store(GetClockMicroseconds(), std::memory_order_release);
 }
 
-void GearToGearManager::Fence(u64 local_cycle)
+void LinkCableManager::Fence(u64 local_cycle)
 {
     if (!EnsureAttached(local_cycle) || !IsCableConnected())
         return;
 
     m_status.fence_calls++;
     u64 target = ToBusCycle(local_cycle);
-    PublishProgress(local_cycle, GEARTOGEAR_MAX_LEAD_CYCLES);
+    PublishProgress(local_cycle, LINK_CABLE_MAX_LEAD_CYCLES);
 
     u64 now = GetClockMicroseconds();
     ReapStalePeers(now);
@@ -514,8 +509,7 @@ void GearToGearManager::Fence(u64 local_cycle)
     {
         Shared::Peer& remote = m_shared->peers[remote_slot];
         if (!IsPeerReady(remote.state.load(std::memory_order_acquire)) ||
-            !IsPeerProtocol(remote.protocol.load(std::memory_order_acquire),
-                m_protocol) ||
+            !IsPeerProtocol(remote.protocol.load(std::memory_order_acquire), m_protocol) ||
             remote.generation.load(std::memory_order_acquire) != remote_generation)
         {
             break;
@@ -546,7 +540,7 @@ void GearToGearManager::Fence(u64 local_cycle)
 
         if (now - progress_time >= m_normal_barrier_stall_us)
         {
-            std::this_thread::sleep_for(std::chrono::microseconds(GEARTOGEAR_BARRIER_SLEEP_US));
+            std::this_thread::sleep_for(std::chrono::microseconds(LINK_CABLE_BARRIER_SLEEP_US));
             m_status.sleep_calls++;
         }
         else
@@ -566,7 +560,7 @@ void GearToGearManager::Fence(u64 local_cycle)
     UpdateRemoteIdentity(GetClockMicroseconds());
 }
 
-void GearToGearManager::Synchronize(u64 local_cycle, u32 lead_cycles)
+void LinkCableManager::Synchronize(u64 local_cycle, u32 lead_cycles)
 {
     if (!EnsureAttached(local_cycle) || !IsCableConnected())
         return;
@@ -595,13 +589,12 @@ void GearToGearManager::Synchronize(u64 local_cycle, u32 lead_cycles)
     {
         u64 floor = ~0ULL;
 
-        for (int i = 0; i < GEARTOGEAR_MAX_PEERS; i++)
+        for (int i = 0; i < LINK_CABLE_MAX_PEERS; i++)
         {
             Shared::Peer& peer = m_shared->peers[i];
 
             if (IsPeerReady(peer.state.load(std::memory_order_acquire)) &&
-                IsPeerProtocol(peer.protocol.load(std::memory_order_acquire),
-                    m_protocol))
+                IsPeerProtocol(peer.protocol.load(std::memory_order_acquire), m_protocol))
             {
                 floor = MIN(floor, peer.promise_cycle.load(std::memory_order_acquire));
             }
@@ -631,7 +624,7 @@ void GearToGearManager::Synchronize(u64 local_cycle, u32 lead_cycles)
 
         if (now - progress_time >= m_normal_barrier_stall_us)
         {
-            std::this_thread::sleep_for(std::chrono::microseconds(GEARTOGEAR_BARRIER_SLEEP_US));
+            std::this_thread::sleep_for(std::chrono::microseconds(LINK_CABLE_BARRIER_SLEEP_US));
             m_status.sleep_calls++;
         }
         else
@@ -650,7 +643,7 @@ void GearToGearManager::Synchronize(u64 local_cycle, u32 lead_cycles)
     UpdateRemoteIdentity(now);
 }
 
-bool GearToGearManager::IsActive() const
+bool LinkCableManager::IsActive() const
 {
     if (!m_shared || m_slot < 0)
         return false;
@@ -660,27 +653,25 @@ bool GearToGearManager::IsActive() const
         peer.generation.load(std::memory_order_acquire) == m_generation;
 }
 
-bool GearToGearManager::IsCableConnected() const
+bool LinkCableManager::IsCableConnected() const
 {
     if (!IsActive() || m_remote_slot < 0)
         return false;
 
     const Shared::Peer& peer = m_shared->peers[m_remote_slot];
     u64 heartbeat = peer.heartbeat_us.load(std::memory_order_acquire);
-    return m_hardware_ready &&
-        IsPeerReady(peer.state.load(std::memory_order_acquire)) &&
-        IsPeerProtocol(peer.protocol.load(std::memory_order_acquire),
-            m_protocol) &&
+    return m_hardware_ready && IsPeerReady(peer.state.load(std::memory_order_acquire)) &&
+        IsPeerProtocol(peer.protocol.load(std::memory_order_acquire), m_protocol) &&
         peer.generation.load(std::memory_order_acquire) == m_remote_generation &&
-        geartogear_heartbeat_age(GetClockMicroseconds(), heartbeat) <= GEARTOGEAR_DETACH_US;
+        link_cable_heartbeat_age(GetClockMicroseconds(), heartbeat) <= LINK_CABLE_DETACH_US;
 }
 
-bool GearToGearManager::IsHardwareReady() const
+bool LinkCableManager::IsHardwareReady() const
 {
     return IsActive() && m_hardware_ready;
 }
 
-bool GearToGearManager::IsPacingPeer() const
+bool LinkCableManager::IsPacingPeer() const
 {
     if (!IsActive())
         return false;
@@ -694,26 +685,26 @@ bool GearToGearManager::IsPacingPeer() const
     return true;
 }
 
-bool GearToGearManager::ConsumeLocalAttachmentChanged()
+bool LinkCableManager::ConsumeLocalAttachmentChanged()
 {
     bool changed = m_local_attachment_changed;
     m_local_attachment_changed = false;
     return changed;
 }
 
-bool GearToGearManager::ConsumeRemoteIdentityChanged()
+bool LinkCableManager::ConsumeRemoteIdentityChanged()
 {
     bool changed = m_remote_identity_changed;
     m_remote_identity_changed = false;
     return changed;
 }
 
-void GearToGearManager::SetNormalBarrierStallUs(u32 stall_us)
+void LinkCableManager::SetNormalBarrierStallUs(u32 stall_us)
 {
     m_normal_barrier_stall_us = stall_us;
 }
 
-void GearToGearManager::ResetMetrics()
+void LinkCableManager::ResetMetrics()
 {
     m_status.events_published = 0;
     m_status.events_consumed = 0;
@@ -742,7 +733,7 @@ void GearToGearManager::ResetMetrics()
     m_last_sync_exit_us = GetClockMicroseconds();
 }
 
-GearToGearStatus GearToGearManager::GetStatus()
+LinkCableStatus LinkCableManager::GetStatus()
 {
     if (m_shared)
     {
@@ -754,7 +745,7 @@ GearToGearStatus GearToGearManager::GetStatus()
     return m_status;
 }
 
-void GearToGearManager::RecordBarrierWait(u64 wait)
+void LinkCableManager::RecordBarrierWait(u64 wait)
 {
     m_status.barrier_wait_us += wait;
     m_status.barrier_wait_max_us = MAX(m_status.barrier_wait_max_us, wait);
@@ -767,7 +758,7 @@ void GearToGearManager::RecordBarrierWait(u64 wait)
         m_status.barrier_wait_over_50ms++;
 }
 
-bool GearToGearManager::Map(u8 session)
+bool LinkCableManager::Map(u8 session)
 {
     bool created = false;
 
@@ -827,7 +818,7 @@ bool GearToGearManager::Map(u8 session)
 
         while (fstat(fd, &status) != 0 || status.st_size < (off_t)sizeof(Shared))
         {
-            if (GetClockMicroseconds() - started > GEARTOGEAR_DETACH_US)
+            if (GetClockMicroseconds() - started > LINK_CABLE_DETACH_US)
             {
                 close(fd);
                 SetFault("Link cable shared memory sizing timed out");
@@ -854,7 +845,7 @@ bool GearToGearManager::Map(u8 session)
     {
         new (m_shared) Shared();
         m_shared->session = session;
-        m_shared->magic.store(GEARTOGEAR_SHM_MAGIC, std::memory_order_release);
+        m_shared->magic.store(LINK_CABLE_SHM_MAGIC, std::memory_order_release);
     }
     else
     {
@@ -863,7 +854,7 @@ bool GearToGearManager::Map(u8 session)
         {
             u32 magic = m_shared->magic.load(std::memory_order_acquire);
 
-            if (magic == GEARTOGEAR_SHM_MAGIC)
+            if (magic == LINK_CABLE_SHM_MAGIC)
                 break;
 
             if (magic != 0)
@@ -873,7 +864,7 @@ bool GearToGearManager::Map(u8 session)
                 return false;
             }
 
-            if (GetClockMicroseconds() - started > GEARTOGEAR_DETACH_US)
+            if (GetClockMicroseconds() - started > LINK_CABLE_DETACH_US)
             {
                 Unmap();
                 SetFault("Link cable shared memory initialization timed out");
@@ -883,7 +874,7 @@ bool GearToGearManager::Map(u8 session)
             std::this_thread::yield();
         }
 
-        if (m_shared->version != GEARTOGEAR_SHM_VERSION || m_shared->session != session)
+        if (m_shared->version != LINK_CABLE_SHM_VERSION || m_shared->session != session)
         {
             Unmap();
             SetFault("Incompatible link cable shared memory");
@@ -901,7 +892,7 @@ bool GearToGearManager::Map(u8 session)
     return true;
 }
 
-void GearToGearManager::Unmap()
+void LinkCableManager::Unmap()
 {
     if (!m_shared)
         return;
@@ -921,14 +912,14 @@ void GearToGearManager::Unmap()
     m_mapping_fd = -1;
 }
 
-bool GearToGearManager::ClaimSlot(u64 local_cycle, bool reattach)
+bool LinkCableManager::ClaimSlot(u64 local_cycle, bool reattach)
 {
     u64 now = GetClockMicroseconds();
-    ReapStalePeers(now, true);
+    ReapStalePeers(now);
 
     u64 bus_anchor = 0;
 
-    for (int i = 0; i < GEARTOGEAR_MAX_PEERS; i++)
+    for (int i = 0; i < LINK_CABLE_MAX_PEERS; i++)
     {
         Shared::Peer& peer = m_shared->peers[i];
         if (IsPeerReady(peer.state.load(std::memory_order_acquire)))
@@ -937,11 +928,11 @@ bool GearToGearManager::ClaimSlot(u64 local_cycle, bool reattach)
         }
     }
 
-    for (int i = 0; i < GEARTOGEAR_MAX_PEERS; i++)
+    for (int i = 0; i < LINK_CABLE_MAX_PEERS; i++)
     {
         Shared::Peer& peer = m_shared->peers[i];
-        u32 expected = GEARTOGEAR_PEER_FREE;
-        if (!peer.state.compare_exchange_strong(expected, GEARTOGEAR_PEER_CLAIMING, std::memory_order_acq_rel))
+        u32 expected = LINK_CABLE_PEER_FREE;
+        if (!peer.state.compare_exchange_strong(expected, LINK_CABLE_PEER_CLAIMING, std::memory_order_acq_rel))
         {
             continue;
         }
@@ -955,9 +946,9 @@ bool GearToGearManager::ClaimSlot(u64 local_cycle, bool reattach)
         peer.write_index.store(0, std::memory_order_relaxed);
         peer.protocol.store(LinkCableProtocolNone, std::memory_order_relaxed);
         peer.progress_cycle.store(bus_anchor, std::memory_order_relaxed);
-        peer.promise_cycle.store(geartogear_saturating_add(bus_anchor, GEARTOGEAR_MAX_LEAD_CYCLES), std::memory_order_relaxed);
+        peer.promise_cycle.store(link_cable_saturating_add(bus_anchor, LINK_CABLE_MAX_LEAD_CYCLES), std::memory_order_relaxed);
         peer.heartbeat_us.store(now, std::memory_order_relaxed);
-        peer.state.store(GEARTOGEAR_PEER_ACTIVE, std::memory_order_release);
+        peer.state.store(LINK_CABLE_PEER_ACTIVE, std::memory_order_release);
 
         m_has_last_published_state = false;
         m_remote_slot = -1;
@@ -975,7 +966,7 @@ bool GearToGearManager::ClaimSlot(u64 local_cycle, bool reattach)
         if (reattach)
         {
             m_status.slot_reclaims++;
-            m_status.mode = GearToGearModeConnected;
+            m_status.mode = LinkCableModeConnected;
             m_status.active = true;
             m_status.last_error[0] = '\0';
             Log("Link cable: reattached to shared session %u", m_session);
@@ -987,7 +978,7 @@ bool GearToGearManager::ClaimSlot(u64 local_cycle, bool reattach)
     return false;
 }
 
-bool GearToGearManager::EnsureAttached(u64 local_cycle)
+bool LinkCableManager::EnsureAttached(u64 local_cycle)
 {
     if (!m_shared)
         return false;
@@ -1017,12 +1008,12 @@ bool GearToGearManager::EnsureAttached(u64 local_cycle)
     return false;
 }
 
-void GearToGearManager::ReapStalePeers(u64 now_us, bool preserve_idle)
+void LinkCableManager::ReapStalePeers(u64 now_us)
 {
     if (!m_shared)
         return;
 
-    for (int i = 0; i < GEARTOGEAR_MAX_PEERS; i++)
+    for (int i = 0; i < LINK_CABLE_MAX_PEERS; i++)
     {
         if (i == m_slot)
             continue;
@@ -1030,15 +1021,10 @@ void GearToGearManager::ReapStalePeers(u64 now_us, bool preserve_idle)
         Shared::Peer& peer = m_shared->peers[i];
         u64 heartbeat = peer.heartbeat_us.load(std::memory_order_acquire);
         u32 generation = peer.generation.load(std::memory_order_acquire);
-        u64 age = geartogear_heartbeat_age(now_us, heartbeat);
+        u64 age = link_cable_heartbeat_age(now_us, heartbeat);
 
         u32 observed_state = peer.state.load(std::memory_order_acquire);
-        if (!IsPeerActive(observed_state) || age <= GEARTOGEAR_DETACH_US)
-        {
-            continue;
-        }
-
-        if (preserve_idle && peer.write_index.load(std::memory_order_acquire) == 0)
+        if (!IsPeerActive(observed_state) || age <= LINK_CABLE_DETACH_US)
         {
             continue;
         }
@@ -1049,7 +1035,7 @@ void GearToGearManager::ReapStalePeers(u64 now_us, bool preserve_idle)
         u32 current_generation = peer.generation.load(std::memory_order_acquire);
         u64 current_heartbeat = peer.heartbeat_us.load(std::memory_order_acquire);
 
-        if (!geartogear_lease_is_unchanged_and_stale(now_us, heartbeat, generation, current_heartbeat, current_generation))
+        if (!link_cable_lease_is_unchanged_and_stale(now_us, heartbeat, generation, current_heartbeat, current_generation))
         {
             continue;
         }
@@ -1060,18 +1046,17 @@ void GearToGearManager::ReapStalePeers(u64 now_us, bool preserve_idle)
         {
             // The slot may be reclaimed immediately after publishing FREE.
             m_status.peer_detaches++;
-            m_status.peer_detach_max_age_us =
-                MAX(m_status.peer_detach_max_age_us, age);
+            m_status.peer_detach_max_age_us = MAX(m_status.peer_detach_max_age_us, age);
         }
     }
 }
 
-int GearToGearManager::FindRemoteSlot(u64 now_us, u32* generation) const
+int LinkCableManager::FindRemoteSlot(u64 now_us, u32* generation) const
 {
     if (!m_shared)
         return -1;
 
-    for (int i = 0; i < GEARTOGEAR_MAX_PEERS; i++)
+    for (int i = 0; i < LINK_CABLE_MAX_PEERS; i++)
     {
         if (i == m_slot)
             continue;
@@ -1081,15 +1066,14 @@ int GearToGearManager::FindRemoteSlot(u64 now_us, u32* generation) const
         if (!IsPeerReady(peer.state.load(std::memory_order_acquire)))
             continue;
 
-        if (!IsPeerProtocol(peer.protocol.load(std::memory_order_acquire),
-            m_protocol))
+        if (!IsPeerProtocol(peer.protocol.load(std::memory_order_acquire), m_protocol))
         {
             continue;
         }
 
         u64 heartbeat = peer.heartbeat_us.load(std::memory_order_acquire);
 
-        if (geartogear_heartbeat_age(now_us, heartbeat) > GEARTOGEAR_DETACH_US)
+        if (link_cable_heartbeat_age(now_us, heartbeat) > LINK_CABLE_DETACH_US)
         {
             continue;
         }
@@ -1103,7 +1087,7 @@ int GearToGearManager::FindRemoteSlot(u64 now_us, u32* generation) const
     return -1;
 }
 
-void GearToGearManager::UpdateRemoteIdentity(u64 now_us)
+void LinkCableManager::UpdateRemoteIdentity(u64 now_us)
 {
     u32 generation = 0;
     int slot = m_hardware_ready ? FindRemoteSlot(now_us, &generation) : -1;
@@ -1120,27 +1104,24 @@ void GearToGearManager::UpdateRemoteIdentity(u64 now_us)
     m_remote_identity_changed = true;
 }
 
-bool GearToGearManager::SharedAtomicsLockFree() const
+bool LinkCableManager::SharedAtomicsLockFree() const
 {
     if (!m_shared->magic.is_lock_free())
         return false;
 
-    for (int i = 0; i < GEARTOGEAR_MAX_PEERS; i++)
+    for (int i = 0; i < LINK_CABLE_MAX_PEERS; i++)
     {
         const Shared::Peer& peer = m_shared->peers[i];
-        if (!peer.state.is_lock_free() || !peer.generation.is_lock_free() ||
-            !peer.protocol.is_lock_free() ||
-            !peer.heartbeat_us.is_lock_free() ||
-            !peer.progress_cycle.is_lock_free() ||
-            !peer.promise_cycle.is_lock_free() ||
-            !peer.write_index.is_lock_free())
+        if (!peer.state.is_lock_free() || !peer.generation.is_lock_free() || !peer.protocol.is_lock_free() ||
+            !peer.heartbeat_us.is_lock_free() || !peer.progress_cycle.is_lock_free() ||
+            !peer.promise_cycle.is_lock_free() || !peer.write_index.is_lock_free())
         {
             return false;
         }
 
-        for (int event = 0; event < GEARTOGEAR_SHARED_EVENT_COUNT; event++)
+        for (int event = 0; event < LINK_CABLE_SHARED_EVENT_COUNT; event++)
         {
-            if (!geartogear_shared_event_atomics_lock_free(peer.events[event]))
+            if (!link_cable_shared_event_atomics_lock_free(peer.events[event]))
             {
                 return false;
             }
@@ -1150,45 +1131,44 @@ bool GearToGearManager::SharedAtomicsLockFree() const
     return true;
 }
 
-u64 GearToGearManager::ToBusCycle(u64 local_cycle) const
+u64 LinkCableManager::ToBusCycle(u64 local_cycle) const
 {
     if (local_cycle >= m_local_anchor)
     {
-        return geartogear_saturating_add(m_bus_anchor,
-            local_cycle - m_local_anchor);
+        return link_cable_saturating_add(m_bus_anchor, local_cycle - m_local_anchor);
     }
 
     u64 distance = m_local_anchor - local_cycle;
     return distance > m_bus_anchor ? 0 : m_bus_anchor - distance;
 }
 
-u64 GearToGearManager::FromBusCycle(u64 bus_cycle) const
+u64 LinkCableManager::FromBusCycle(u64 bus_cycle) const
 {
     if (bus_cycle >= m_bus_anchor)
     {
-        return geartogear_saturating_add(m_local_anchor, bus_cycle - m_bus_anchor);
+        return link_cable_saturating_add(m_local_anchor, bus_cycle - m_bus_anchor);
     }
 
     u64 distance = m_bus_anchor - bus_cycle;
     return distance > m_local_anchor ? 0 : m_local_anchor - distance;
 }
 
-u64 GearToGearManager::GetClockMicroseconds() const
+u64 LinkCableManager::GetClockMicroseconds() const
 {
     return (u64)std::chrono::duration_cast<std::chrono::microseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
-void GearToGearManager::SetFault(const char* message)
+void LinkCableManager::SetFault(const char* message)
 {
-    m_status.mode = GearToGearModeFault;
+    m_status.mode = LinkCableModeFault;
     m_status.active = false;
     m_status.cable_connected = false;
     snprintf(m_status.last_error, sizeof(m_status.last_error), "%s", message);
     Error("Link cable: %s", message);
 }
 
-void GearToGearManager::RefreshStatus()
+void LinkCableManager::RefreshStatus()
 {
     m_status.active = IsActive();
     m_status.session = m_session;
@@ -1211,7 +1191,7 @@ void GearToGearManager::RefreshStatus()
     {
         u64 now = GetClockMicroseconds();
 
-        for (int i = 0; i < GEARTOGEAR_MAX_PEERS; i++)
+        for (int i = 0; i < LINK_CABLE_MAX_PEERS; i++)
         {
             Shared::Peer& peer = m_shared->peers[i];
             u64 heartbeat = peer.heartbeat_us.load(std::memory_order_acquire);
@@ -1219,7 +1199,7 @@ void GearToGearManager::RefreshStatus()
             GS_LinkCable_Protocol protocol = (GS_LinkCable_Protocol)
                 peer.protocol.load(std::memory_order_acquire);
 
-            if (IsPeerActive(state) && geartogear_heartbeat_age(now, heartbeat) <= GEARTOGEAR_DETACH_US)
+            if (IsPeerActive(state) && link_cable_heartbeat_age(now, heartbeat) <= LINK_CABLE_DETACH_US)
             {
                 m_status.peer_count++;
 
@@ -1230,28 +1210,22 @@ void GearToGearManager::RefreshStatus()
 
                     if (m_status.local_hardware_ready)
                     {
-                        m_status.local_progress = peer.progress_cycle.load(
-                            std::memory_order_acquire);
-                        m_status.local_promise = peer.promise_cycle.load(
-                            std::memory_order_acquire);
+                        m_status.local_progress = peer.progress_cycle.load(std::memory_order_acquire);
+                        m_status.local_promise = peer.promise_cycle.load(std::memory_order_acquire);
                     }
                 }
                 else if (IsPeerReady(state))
                 {
                     m_status.remote_protocol = protocol;
                     m_status.remote_hardware_ready = true;
-                    m_status.remote_progress = peer.progress_cycle.load(
-                        std::memory_order_acquire);
-                    m_status.remote_promise = peer.promise_cycle.load(
-                        std::memory_order_acquire);
+                    m_status.remote_progress = peer.progress_cycle.load(std::memory_order_acquire);
+                    m_status.remote_promise = peer.promise_cycle.load(std::memory_order_acquire);
                 }
             }
         }
     }
 
-    m_status.cable_connected = m_status.active &&
-        m_status.local_hardware_ready && m_status.remote_hardware_ready &&
-        m_status.protocol != LinkCableProtocolNone &&
-        m_status.protocol == m_status.remote_protocol;
+    m_status.cable_connected = m_status.active && m_status.local_hardware_ready && m_status.remote_hardware_ready &&
+        m_status.protocol != LinkCableProtocolNone && m_status.protocol == m_status.remote_protocol;
     m_status.pacing_peer = m_status.cable_connected && IsPacingPeer();
 }

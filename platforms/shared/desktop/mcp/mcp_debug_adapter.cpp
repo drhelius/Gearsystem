@@ -1176,10 +1176,9 @@ json DebugAdapter::GetSerialStatus()
         "idle", "confirm_start", "data", "stop"
     };
 
-    GearToGearStatus link = emu_geartogear_get_status();
+    LinkCableStatus link = emu_link_cable_get_status();
     GS_GearToGear_DebugState hardware = emu_geartogear_get_debug_state();
-    GS_MarkIII_LinkDebugState markiii =
-        emu_markiii_link_get_debug_state();
+    GS_MarkIII_LinkDebugState markiii = emu_markiii_link_get_debug_state();
 
     const char* protocol = "none";
     if (link.protocol == LinkCableProtocolGearToGear)
@@ -1313,9 +1312,9 @@ json DebugAdapter::GetSerialStatus()
     status["markiii"] = markiii_status;
 
     const char* mode = "disabled";
-    if (link.mode == GearToGearModeConnected)
+    if (link.mode == LinkCableModeConnected)
         mode = "connected";
-    else if (link.mode == GearToGearModeFault)
+    else if (link.mode == LinkCableModeFault)
         mode = "fault";
 
     json transport;
@@ -1334,7 +1333,7 @@ json DebugAdapter::GetSerialStatus()
     transport["local_anchor"] = link.local_anchor;
     transport["bus_anchor"] = link.bus_anchor;
     transport["bus_cycle"] = link.bus_cycle;
-    transport["max_lead_cycles"] = GEARTOGEAR_MAX_LEAD_CYCLES;
+    transport["max_lead_cycles"] = LINK_CABLE_MAX_LEAD_CYCLES;
     transport["local_progress"] = link.local_progress;
     transport["local_promise"] = link.local_promise;
     transport["remote_progress"] = link.remote_progress;
@@ -1371,9 +1370,9 @@ json DebugAdapter::GetSerialStatus()
     return status;
 }
 
-json DebugAdapter::ResetGearToGearMetrics()
+json DebugAdapter::ResetLinkCableMetrics()
 {
-    emu_geartogear_reset_metrics();
+    emu_link_cable_reset_metrics();
     return {{"success", true}};
 }
 
@@ -1646,7 +1645,7 @@ json DebugAdapter::LoadStateFile(const std::string& file_path)
         return result;
     }
 
-    emu_geartogear_stop();
+    emu_link_cable_stop();
     if (!m_core->LoadState(file_path.c_str()))
     {
         result["error"] = "Failed to load state file";
@@ -1721,7 +1720,7 @@ json DebugAdapter::GetRewindStatus()
 
 json DebugAdapter::RewindSeek(int snapshot)
 {
-    if (emu_geartogear_is_active())
+    if (emu_link_cable_is_active())
         return {{"error", "Rewind is disabled while a link cable is active"}};
 
     bool paused = emu_is_paused() || emu_is_debug_idle();
@@ -1817,8 +1816,7 @@ json DebugAdapter::ControllerButton(int player, const std::string& button, const
     return result;
 }
 
-json DebugAdapter::MarkIIIKey(const std::string& key,
-    const std::string& action)
+json DebugAdapter::MarkIIIKey(const std::string& key, const std::string& action)
 {
     json result;
 
@@ -1829,10 +1827,10 @@ json DebugAdapter::MarkIIIKey(const std::string& key,
     }
 
     std::string key_lower = key;
-    std::transform(key_lower.begin(), key_lower.end(), key_lower.begin(),
-        ::tolower);
+    std::transform(key_lower.begin(), key_lower.end(), key_lower.begin(), ::tolower);
 
     GS_MarkIII_Key markiii_key;
+
     if (key_lower == "1")
         markiii_key = MarkIIIKey1;
     else if (key_lower == "2")
@@ -1849,12 +1847,12 @@ json DebugAdapter::MarkIIIKey(const std::string& key,
 
     if (action == "press")
     {
-        if (!m_core || m_core->GetLinkCableProtocol() !=
-            LinkCableProtocolMarkIII)
+        if (!m_core || m_core->GetLinkCableProtocol() != LinkCableProtocolMarkIII)
         {
             result["error"] = "Mark III link keyboard is not active";
             return result;
         }
+
         emu_markiii_key_pressed(markiii_key);
     }
     else

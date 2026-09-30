@@ -113,7 +113,7 @@ bool display_should_run_emu_frame(void)
     if (config_video.sync_mode == config_VideoSync_Fixed && last_vsync_state == 1
         && !emu_is_empty() && !emu_is_paused()
         && !emu_is_debug_idle() && emu_is_audio_open() && !config_emulator.ffwd
-        && !emu_geartogear_is_active())
+        && !emu_link_cable_is_active())
     {
         if (!display_fixed_vsync_supported() || content_frame_rate + 0.000001 >= monitor_refresh_rate)
             return true;
@@ -139,7 +139,7 @@ void display_use_vsync_if_enabled(void)
     display_update_frame_pacing();
 
     bool effective = config_video.sync_mode != config_VideoSync_Disabled &&
-        !display_is_vsync_forced_off() && !emu_geartogear_is_active();
+        !display_is_vsync_forced_off() && !emu_link_cable_is_active();
 
     if (config_video.sync_mode == config_VideoSync_Fixed && !display_fixed_vsync_supported())
         effective = false;
@@ -155,7 +155,7 @@ void display_disable_vsync(void)
 
 void display_update_vsync_state(void)
 {
-    bool active = emu_geartogear_is_active();
+    bool active = emu_link_cable_is_active();
 
     if (active == last_geartogear_active)
         return;

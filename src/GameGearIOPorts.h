@@ -44,19 +44,19 @@ public:
     virtual void LoadState(std::istream& stream, int version);
     void SetTraceLogger(TraceLogger* pTraceLogger);
     void SetGearToGearCallbacks(
-        GS_GearToGear_Publish_Callback publish_callback,
-        GS_GearToGear_Sample_Callback sample_callback,
-        GS_GearToGear_Poll_Callback poll_callback,
-        GS_GearToGear_Fence_Callback fence_callback,
-        GS_GearToGear_Sync_Callback sync_callback,
+        GS_LinkCable_Publish_Callback publish_callback,
+        GS_LinkCable_Sample_Callback sample_callback,
+        GS_LinkCable_Poll_Callback poll_callback,
+        GS_LinkCable_Fence_Callback fence_callback,
+        GS_LinkCable_Sync_Callback sync_callback,
         void* user_data);
     void SetGearToGearTransportActive(bool active, u64 cycle);
     void SetGearToGearCableConnected(bool connected, u64 cycle);
-    void BeginInstruction(u64 cycle);
-    void EndInstruction(u64 cycle);
+    INLINE void BeginLinkInstruction(u64 cycle);
+    INLINE void EndLinkInstruction(u64 cycle);
     void RebaseGearToGear(u64 cycle);
     bool IsGearToGearCableConnected() const;
-    GS_GearToGear_WireState GetGearToGearWireState() const;
+    GS_LinkCable_WireState GetGearToGearWireState() const;
     u8 GetGearToGearResolvedPins() const;
     u8 GetGearToGearContentionMask() const;
     GS_GearToGear_DebugState GetGearToGearDebugState() const;
@@ -108,15 +108,15 @@ private:
     u8 ReadGearToGearPort(u8 port);
     void WriteGearToGearPort(u8 port, u8 value);
     void ResetGearToGearHardware();
-    GS_GearToGear_WireState ComputeLocalWireState() const;
+    GS_LinkCable_WireState ComputeLocalWireState() const;
     void RefreshLocalWireState(u64 cycle, bool force_publish, bool detect_rx_edge = true);
     bool ResolveGearToGearPin(int bit) const;
     u8 ResolveGearToGearPins() const;
-    void ApplyRemoteWireState(const GS_GearToGear_WireState& state, u64 cycle, bool detect_edges);
+    void ApplyRemoteWireState(const GS_LinkCable_WireState& state, u64 cycle, bool detect_edges);
     void HandleGearToGearRxEdge(bool old_level, bool new_level, u64 cycle);
     void HandleGearToGearPC6Edge(bool old_level, bool new_level);
     void UpdateGearToGearNMI();
-    void FenceGearToGearRead();
+    INLINE void FenceGearToGearRead();
     u8 ReadGearToGearStatus() const;
     void StartGearToGearTx(u8 value, u64 cycle);
     void AbortGearToGearTx(u64 cycle);
@@ -140,22 +140,22 @@ private:
     u8 m_Port3F;
     u8 m_Ports[6];
 
-    GS_GearToGear_Publish_Callback m_geartogear_publish_callback;
-    GS_GearToGear_Sample_Callback m_geartogear_sample_callback;
-    GS_GearToGear_Poll_Callback m_geartogear_poll_callback;
-    GS_GearToGear_Fence_Callback m_geartogear_fence_callback;
-    GS_GearToGear_Sync_Callback m_geartogear_sync_callback;
+    GS_LinkCable_Publish_Callback m_geartogear_publish_callback;
+    GS_LinkCable_Sample_Callback m_geartogear_sample_callback;
+    GS_LinkCable_Poll_Callback m_geartogear_poll_callback;
+    GS_LinkCable_Fence_Callback m_geartogear_fence_callback;
+    GS_LinkCable_Sync_Callback m_geartogear_sync_callback;
     void* m_geartogear_user_data;
     bool m_geartogear_transport_active;
     bool m_geartogear_cable_connected;
     u64 m_geartogear_cycle;
     u64 m_geartogear_next_sync_cycle;
-    GS_GearToGear_WireState m_geartogear_local_state;
-    GS_GearToGear_WireState m_geartogear_remote_state;
-    GS_GearToGear_WireState m_geartogear_last_published_state;
+    GS_LinkCable_WireState m_geartogear_local_state;
+    GS_LinkCable_WireState m_geartogear_remote_state;
+    GS_LinkCable_WireState m_geartogear_last_published_state;
     bool m_geartogear_has_published_state;
     bool m_geartogear_has_pending_remote_event;
-    GS_GearToGear_WireEvent m_geartogear_pending_remote_event;
+    GS_LinkCable_WireEvent m_geartogear_pending_remote_event;
     GearToGearTxState m_geartogear_tx;
     GearToGearRxState m_geartogear_rx;
     GearToGearNmiState m_geartogear_nmi;
@@ -357,6 +357,53 @@ inline void GameGearIOPorts::DoOutput(u8 port, u8 value)
         }
     }
 #endif
+}
+
+INLINE void GameGearIOPorts::BeginLinkInstruction(u64 cycle)
+{
+    if (!m_geartogear_cable_connected)
+        return;
+
+    AdvanceGearToGearTo(cycle);
+}
+
+INLINE void GameGearIOPorts::EndLinkInstruction(u64 cycle)
+{
+    if (!m_geartogear_cable_connected && !m_geartogear_tx.busy &&
+        m_geartogear_rx.state == GearToGearRxState::Idle && m_geartogear_nmi.parallel_arm_delay == 0)
+    {
+        m_geartogear_cycle = cycle;
+        return;
+    }
+
+    AdvanceGearToGearTo(cycle);
+
+    if (m_geartogear_nmi.parallel_arm_delay > 0)
+    {
+        m_geartogear_nmi.parallel_arm_delay--;
+
+        if (m_geartogear_nmi.parallel_arm_delay == 0 && (m_Ports[2] & 0x80) == 0)
+        {
+            m_geartogear_nmi.parallel_armed = true;
+        }
+    }
+
+    if (m_geartogear_cable_connected && m_geartogear_sync_callback && cycle >= m_geartogear_next_sync_cycle)
+    {
+        m_geartogear_sync_callback(cycle, LINK_CABLE_MAX_LEAD_CYCLES, m_geartogear_user_data);
+        m_geartogear_next_sync_cycle = cycle + LINK_CABLE_MAX_SYNC_CYCLES;
+    }
+}
+
+INLINE void GameGearIOPorts::FenceGearToGearRead()
+{
+    if (!m_geartogear_cable_connected)
+        return;
+
+    if (m_geartogear_fence_callback)
+        m_geartogear_fence_callback(m_geartogear_cycle, m_geartogear_user_data);
+
+    AdvanceGearToGearTo(m_geartogear_cycle);
 }
 
 #endif	/* GAMEGEARIOPORTS_H */

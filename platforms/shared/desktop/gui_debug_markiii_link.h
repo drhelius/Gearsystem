@@ -17,19 +17,17 @@
  *
  */
 
-#ifndef GUI_DEBUG_GEARTOGEAR_H
-#define GUI_DEBUG_GEARTOGEAR_H
+#ifndef GUI_DEBUG_MARKIII_LINK_H
+#define GUI_DEBUG_MARKIII_LINK_H
 
-#ifdef GUI_DEBUG_GEARTOGEAR_IMPORT
+#ifdef GUI_DEBUG_MARKIII_LINK_IMPORT
     #define EXTERN
 #else
     #define EXTERN extern
 #endif
 
-EXTERN void gui_debug_window_geartogear_serial_registers(void);
-EXTERN void gui_debug_window_geartogear_serial_status(void);
-EXTERN void gui_debug_window_geartogear_transport(void);
+EXTERN void gui_debug_window_markiii_link(void);
 
-#undef GUI_DEBUG_GEARTOGEAR_IMPORT
+#undef GUI_DEBUG_MARKIII_LINK_IMPORT
 #undef EXTERN
-#endif /* GUI_DEBUG_GEARTOGEAR_H */
+#endif /* GUI_DEBUG_MARKIII_LINK_H */

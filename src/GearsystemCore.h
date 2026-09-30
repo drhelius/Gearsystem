@@ -126,33 +126,20 @@ public:
     void SetGlassesConfig(GlassesConfig config);
     u64 GetMasterClockCycles();
     void SetMasterClockCycles(u64 cycles);
-    void SetGearToGearCallbacks(
-        GS_GearToGear_Publish_Callback publish_callback,
-        GS_GearToGear_Sample_Callback sample_callback,
-        GS_GearToGear_Poll_Callback poll_callback,
-        GS_GearToGear_Fence_Callback fence_callback,
-        GS_GearToGear_Sync_Callback sync_callback,
-        void* user_data);
-    void SetGearToGearTransportActive(bool active, u64 cycle);
-    void SetGearToGearCableConnected(bool connected, u64 cycle);
-    void SetLinkCableCallbacks(
-        GS_LinkCable_Publish_Callback publish_callback,
-        GS_LinkCable_Sample_Callback sample_callback,
-        GS_LinkCable_Poll_Callback poll_callback,
-        GS_LinkCable_Fence_Callback fence_callback,
-        GS_LinkCable_Sync_Callback sync_callback,
-        void* user_data);
+    void SetLinkCableCallbacks(GS_LinkCable_Publish_Callback publish_callback,
+        GS_LinkCable_Sample_Callback sample_callback, GS_LinkCable_Poll_Callback poll_callback,
+        GS_LinkCable_Fence_Callback fence_callback, GS_LinkCable_Sync_Callback sync_callback, void* user_data);
     void SetLinkCableProtocol(GS_LinkCable_Protocol protocol, u64 cycle);
     void SetLinkCableTransportActive(bool active, u64 cycle);
     void SetLinkCableConnected(bool connected, u64 cycle);
-    GS_LinkCable_Protocol GetLinkCableProtocol() const;
+    INLINE GS_LinkCable_Protocol GetLinkCableProtocol() const;
     GS_LinkCable_Protocol GetSupportedLinkCableProtocol() const;
-    u64 GetLinkCableCycles() const;
+    GS_LinkCable_Protocol GetDetectedLinkCableProtocol() const;
+    INLINE u64 GetLinkCableCycles() const;
     void MarkIIIKeyPressed(GS_MarkIII_Key key);
     void MarkIIIKeyReleased(GS_MarkIII_Key key);
     void ReleaseMarkIIIKeys();
     bool IsNativeGameGearMode() const;
-    u64 GetGearToGearCycles() const;
     GameGearIOPorts* GetGameGearIOPorts();
     MarkIIILink* GetMarkIIILink();
     TraceLogger* GetTraceLogger();
@@ -161,8 +148,6 @@ private:
     void InitMemoryRules();
     bool AddMemoryRules();
     void Reset();
-    void BeginLinkInstruction(u64 cycle);
-    void EndLinkInstruction(u64 cycle);
     bool SaveState(std::ostream& stream, size_t& size, bool screenshot);
     bool LoadState(std::istream& stream);
     bool LoadStateV1(std::istream& stream, size_t size);
@@ -206,10 +191,20 @@ private:
     GS_Color_Format m_pixelFormat;
     GlassesConfig m_GlassesConfig;
     u64 m_master_clock_cycles;
-    u64 m_geartogear_cycles;
-    GS_LinkCable_Protocol m_link_protocol;
+    u64 m_link_cable_cycles;
+    GS_LinkCable_Protocol m_link_cable_protocol;
     TraceLogger* m_trace_logger;
     u8* m_pFrameBuffer;
 };
+
+INLINE GS_LinkCable_Protocol GearsystemCore::GetLinkCableProtocol() const
+{
+    return m_link_cable_protocol;
+}
+
+INLINE u64 GearsystemCore::GetLinkCableCycles() const
+{
+    return m_link_cable_cycles;
+}
 
 #endif	/* CORE_H */

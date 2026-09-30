@@ -179,6 +179,7 @@ void events_emu(void)
         markiii_input_last_state = 0;
         return;
     }
+
     input_updated = true;
 
     SDL_PumpEvents();
@@ -254,32 +255,33 @@ static Uint16 input_build_state(int controller)
         return 0;
 
     SDL_Keymod mods = SDL_GetModState();
+
     if (mods & (SDL_KMOD_CTRL | SDL_KMOD_SHIFT | SDL_KMOD_ALT | SDL_KMOD_GUI))
         return 0;
 
     const bool* keyboard_state = SDL_GetKeyboardState(NULL);
     Uint16 ret = 0;
 
-    if (!markiii_input_scancode_reserved(config_input[controller].key_left) &&
-        keyboard_state[config_input[controller].key_left])
+    if (keyboard_state[config_input[controller].key_left] &&
+        !markiii_input_scancode_reserved(config_input[controller].key_left))
         ret |= Key_Left;
-    if (!markiii_input_scancode_reserved(config_input[controller].key_right) &&
-        keyboard_state[config_input[controller].key_right])
+    if (keyboard_state[config_input[controller].key_right] &&
+        !markiii_input_scancode_reserved(config_input[controller].key_right))
         ret |= Key_Right;
-    if (!markiii_input_scancode_reserved(config_input[controller].key_up) &&
-        keyboard_state[config_input[controller].key_up])
+    if (keyboard_state[config_input[controller].key_up] &&
+        !markiii_input_scancode_reserved(config_input[controller].key_up))
         ret |= Key_Up;
-    if (!markiii_input_scancode_reserved(config_input[controller].key_down) &&
-        keyboard_state[config_input[controller].key_down])
+    if (keyboard_state[config_input[controller].key_down] &&
+        !markiii_input_scancode_reserved(config_input[controller].key_down))
         ret |= Key_Down;
-    if (!markiii_input_scancode_reserved(config_input[controller].key_1) &&
-        keyboard_state[config_input[controller].key_1])
+    if (keyboard_state[config_input[controller].key_1] &&
+        !markiii_input_scancode_reserved(config_input[controller].key_1))
         ret |= Key_1;
-    if (!markiii_input_scancode_reserved(config_input[controller].key_2) &&
-        keyboard_state[config_input[controller].key_2])
+    if (keyboard_state[config_input[controller].key_2] &&
+        !markiii_input_scancode_reserved(config_input[controller].key_2))
         ret |= Key_2;
-    if (!markiii_input_scancode_reserved(config_input[controller].key_start) &&
-        keyboard_state[config_input[controller].key_start])
+    if (keyboard_state[config_input[controller].key_start] &&
+        !markiii_input_scancode_reserved(config_input[controller].key_start))
         ret |= Key_Start;
 
     SDL_Gamepad* sdl_controller = gamepad_controller[controller];
@@ -400,36 +402,35 @@ static bool input_check_reset(int controller)
 static u8 markiii_input_build_state(void)
 {
     GearsystemCore* core = emu_get_core();
+
     if (!core || core->GetLinkCableProtocol() != LinkCableProtocolMarkIII)
         return 0;
 
     SDL_Keymod mods = SDL_GetModState();
-    if (mods & (SDL_KMOD_CTRL | SDL_KMOD_SHIFT | SDL_KMOD_ALT |
-        SDL_KMOD_GUI))
-    {
+
+    if (mods & (SDL_KMOD_CTRL | SDL_KMOD_SHIFT | SDL_KMOD_ALT | SDL_KMOD_GUI))
         return 0;
-    }
 
     const bool* keyboard_state = SDL_GetKeyboardState(NULL);
     u8 state = 0;
+
     if (keyboard_state[SDL_SCANCODE_1])
         state |= 0x01;
     if (keyboard_state[SDL_SCANCODE_2])
         state |= 0x02;
     if (keyboard_state[SDL_SCANCODE_SPACE])
         state |= 0x04;
-    if (keyboard_state[SDL_SCANCODE_RETURN] ||
-        keyboard_state[SDL_SCANCODE_KP_ENTER])
-    {
+    if (keyboard_state[SDL_SCANCODE_RETURN] || keyboard_state[SDL_SCANCODE_KP_ENTER])
         state |= 0x08;
-    }
+
     return state;
 }
 
 static void markiii_input_apply_state(u8 before, u8 now)
 {
     static const u8 masks[4] = { 0x01, 0x02, 0x04, 0x08 };
-    static const GS_MarkIII_Key keys[4] = {
+    static const GS_MarkIII_Key keys[4] =
+    {
         MarkIIIKey1, MarkIIIKey2, MarkIIIKeySpace, MarkIIIKeyReturn
     };
 
@@ -448,6 +449,7 @@ static void markiii_input_apply_state(u8 before, u8 now)
 static bool markiii_input_scancode_reserved(SDL_Scancode scancode)
 {
     GearsystemCore* core = emu_get_core();
+
     if (!core || core->GetLinkCableProtocol() != LinkCableProtocolMarkIII)
         return false;
 

@@ -205,7 +205,7 @@ static const McpToolCategory kMcpToolCategories[] =
     {"symbols", "Symbols", "Add, remove, load, list, and look up debug symbols or labels."},
     {"hardware_video", "Video Hardware", "Inspect VDP registers, display timing, status, sprites, scanlines, and video state."},
     {"hardware_audio", "Audio Hardware", "Inspect SN76489 PSG and YM2413 FM audio state, channels, mixer, and sound registers."},
-    {"hardware_serial", "Serial Hardware", "Inspect Game Gear serial, Mark III PPI signals, physical pins, and link cable transport."},
+    {"hardware_serial", "Serial Hardware", "Inspect Gear-to-Gear serial/parallel state, Mark III PPI signals, physical pins, and link cable transport."},
     {"media", "Media", "Load ROMs, list recent media, load symbols, and inspect loaded cartridge/media information."},
     {"capture", "Capture", "Capture current screenshots and SMS/Game Gear sprite images or sprite metadata."},
     {"state", "Save States", "List save slots, select a slot, save emulator state, and load emulator state."},
@@ -265,7 +265,7 @@ static const char* const kMcpAudioTools[] =
 
 static const char* const kMcpSerialTools[] =
 {
-    "get_serial_status", "reset_geartogear_metrics"
+    "get_serial_status", "reset_link_cable_metrics"
 };
 
 static const char* const kMcpMediaTools[] =
@@ -291,8 +291,7 @@ static const char* const kMcpRewindTools[] =
 
 static const char* const kMcpInputTools[] =
 {
-    "controller_button", "markiii_key", "controller_macro",
-    "get_input_state"
+    "controller_button", "controller_macro", "get_input_state", "markiii_key"
 };
 
 static const char* const kMcpTraceTools[] =
@@ -665,8 +664,7 @@ bool McpToolRegistry::IsDirectToolName(const std::string& tool_name) const
            (name == "get_disassembly") ||
            (name == "set_breakpoint") ||
            (name == "get_screenshot") ||
-           (name == "controller_button") ||
-           (name == "markiii_key");
+           (name == "controller_button");
 }
 
 std::string McpToolRegistry::ToolCategoryForName(const std::string& tool_name) const
@@ -699,7 +697,7 @@ std::string McpToolRegistry::AliasesForTool(const std::string& tool_name) const
         StringContains(name, "audio") || StringContains(name, "ym2413") ||
         StringContains(name, "ay8910"))
         aliases += " sound audio channel tone noise volume";
-    if (StringContains(name, "serial") || StringContains(name, "geartogear"))
+    if (StringContains(name, "serial") || StringContains(name, "link_cable"))
         aliases += " serial link cable uart gpio pins nmi peer session shared memory game gear mark iii joy joy ppi sk1100";
     if (StringContains(name, "breakpoint"))
         aliases += " watchpoint stop read write execute irq interrupt";

@@ -42,23 +42,7 @@ public:
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream, int version);
     void SetTraceLogger(TraceLogger* pTraceLogger);
-    void SetLinkCableCallbacks(
-        GS_LinkCable_Publish_Callback publish_callback,
-        GS_LinkCable_Sample_Callback sample_callback,
-        GS_LinkCable_Poll_Callback poll_callback,
-        GS_LinkCable_Fence_Callback fence_callback,
-        GS_LinkCable_Sync_Callback sync_callback,
-        void* user_data);
-    void SetMarkIIIPeripheralAttached(bool attached, u64 cycle);
-    void SetMarkIIITransportActive(bool active, u64 cycle);
-    void SetMarkIIICableConnected(bool connected, u64 cycle);
-    void BeginMarkIIIInstruction(u64 cycle);
-    void EndMarkIIIInstruction(u64 cycle);
-    void RebaseMarkIIILink(u64 cycle);
-    void MarkIIIKeyPressed(GS_MarkIII_Key key);
-    void MarkIIIKeyReleased(GS_MarkIII_Key key);
-    void ReleaseMarkIIIKeys();
-    MarkIIILink* GetMarkIIILink();
+    INLINE MarkIIILink* GetMarkIIILink();
 
 private:
     INLINE void TraceInputReadEvent(u8 port, u8 raw, u8 effective, u8 player);
@@ -86,6 +70,11 @@ private:
 #include "YM2413.h"
 #include "TraceLogger.h"
 
+INLINE MarkIIILink* SmsIOPorts::GetMarkIIILink()
+{
+    return &m_markiii_link;
+}
+
 INLINE void SmsIOPorts::TraceInputReadEvent(u8 port, u8 raw, u8 effective, u8 player)
 {
     if (m_pTraceLogger->IsEventEnabled(TRACE_INPUT, TRACE_INPUT_READ))
@@ -104,11 +93,13 @@ INLINE u8 SmsIOPorts::ReadControllerPort(u8 port)
     {
         u8 ret_dc = m_pInput->GetPortDC();
         u8 raw = ret_dc;
+
         if (!(m_Port3F & 0x01))
         {
             ret_dc &= 0xDF;
             ret_dc |= (m_Port3F & 0x10) << 1;
         }
+
         TraceInputReadEvent(port, raw, ret_dc, 1);
         return ret_dc;
     }
@@ -179,6 +170,7 @@ inline u8 SmsIOPorts::DoInput(u8 port)
         {
             if (m_markiii_link.IsKeyboardSelected())
                 return m_markiii_link.DoInput(port);
+
             return ReadControllerPort(port);
         }
 

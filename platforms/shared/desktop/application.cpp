@@ -160,8 +160,8 @@ int application_init(const ApplicationParams& params)
         emu_mcp_start();
     }
 
-    if (params.geartogear_session_set)
-        emu_geartogear_connect(params.geartogear_session);
+    if (params.link_cable_session_set)
+        emu_link_cable_connect(params.link_cable_session);
 
     application_refocus_window();
 
@@ -574,7 +574,7 @@ static void sdl_events_app(const SDL_Event* event)
         {
             display_disable_vsync();
             events_release_markiii_input();
-            if (config_emulator.pause_when_inactive && !emu_geartogear_is_active())
+            if (config_emulator.pause_when_inactive && !emu_link_cable_is_active())
             {
                 paused_when_focus_lost = emu_is_paused();
                 emu_pause();

@@ -150,7 +150,7 @@ void gui_apply_settings(void)
     emu_video_no_sprite_limit(config_video.sprite_limit);
     emu_set_3d_glasses_config(config_video.glasses);
     emu_set_disassembler_syntax(config_debug.dis_syntax);
-    emu_geartogear_set_normal_barrier_stall_us((u32)config_emulator.geartogear_stall_us);
+    emu_link_cable_set_normal_barrier_stall_us((u32)config_emulator.link_cable_stall_us);
     emu_disable_ym2413(config_audio.ym2413 == 1);
     emu_enable_phaser(config_emulator.light_phaser);
     emu_enable_phaser_crosshair(config_emulator.light_phaser_crosshair, config_emulator.light_phaser_crosshair_shape, config_emulator.light_phaser_crosshair_color);
@@ -187,14 +187,17 @@ void gui_render(void)
 
     gui_main_window_hovered = false;
 
-    if((!config_debug.debug && !emu_is_empty()) || (config_debug.debug && config_debug.show_screen))
-        main_window();
+    if (!gui_is_rom_loading() && !emu_is_media_loading())
+    {
+        if ((!config_debug.debug && !emu_is_empty()) || (config_debug.debug && config_debug.show_screen))
+            main_window();
 
-    gui_debug_windows();
-    gui_cheats_window();
+        gui_debug_windows();
+        gui_cheats_window();
 
-    if (config_emulator.show_info)
-        gui_show_info();
+        if (config_emulator.show_info)
+            gui_show_info();
+    }
 
     show_loading_popup();
     show_status_message();
@@ -237,7 +240,7 @@ void gui_shortcut(gui_ShortCutEvent event)
     }
     case gui_ShortcutLoadState:
     {
-        if (emu_geartogear_is_active())
+        if (emu_link_cable_is_active())
         {
             gui_set_status_message("Load state is disabled while a link cable is active", 3000);
             break;

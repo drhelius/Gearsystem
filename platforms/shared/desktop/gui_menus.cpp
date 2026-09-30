@@ -72,7 +72,7 @@ static bool shader_parameter_is_integer(const ShaderPresetParameter* parameter);
 static int shader_parameter_round_to_int(float value);
 static void menu_input(void);
 static void menu_audio(void);
-static void menu_geartogear(void);
+static void menu_link_cable(void);
 static void menu_debug(void);
 static void menu_about(void);
 static void draw_background_color_menu(const char* label, int theme);
@@ -119,7 +119,7 @@ void gui_main_menu(void)
         menu_video();
         menu_input();
         menu_audio();
-        menu_geartogear();
+        menu_link_cable();
         menu_debug();
         menu_about();
         draw_server_status();
@@ -182,14 +182,14 @@ static void menu_gearsystem(void)
 
         ImGui::Separator();
 
-        bool geartogear_active = emu_geartogear_is_active();
+        bool link_cable_active = emu_link_cable_is_active();
 
-        if (ImGui::MenuItem("Fast Forward", config_hotkeys[config_HotkeyIndex_FFWD].str, &config_emulator.ffwd, media_actions_enabled && !geartogear_active))
+        if (ImGui::MenuItem("Fast Forward", config_hotkeys[config_HotkeyIndex_FFWD].str, &config_emulator.ffwd, media_actions_enabled && !link_cable_active))
         {
             gui_action_ffwd();
         }
 
-        if (ImGui::BeginMenu("Fast Forward Speed", !geartogear_active))
+        if (ImGui::BeginMenu("Fast Forward Speed", !link_cable_active))
         {
             ImGui::PushItemWidth(100.0f);
             ImGui::Combo("##fwd", &config_emulator.ffwd_speed, "X 1.5\0X 2\0X 2.5\0X 3\0Unlimited\0\0");
@@ -197,7 +197,7 @@ static void menu_gearsystem(void)
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("Rewind", !geartogear_active))
+        if (ImGui::BeginMenu("Rewind", !link_cable_active))
         {
             if (ImGui::MenuItem("Enabled", config_hotkeys[config_HotkeyIndex_Rewind].str, &config_rewind.enabled))
                 rewind_reset();
@@ -209,7 +209,7 @@ static void menu_gearsystem(void)
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("Run-Ahead", !geartogear_active))
+        if (ImGui::BeginMenu("Run-Ahead", !link_cable_active))
         {
             ImGui::PushItemWidth(140.0f);
             ImGui::Combo("##runahead", &config_emulator.runahead, "Disabled\0" "1 Frame\0" "2 Frames\0" "3 Frames\0\0");
@@ -248,7 +248,7 @@ static void menu_gearsystem(void)
             save_state = true;
         }
 
-        if (ImGui::MenuItem("Load State From...", "", false, media_actions_enabled && !geartogear_active))
+        if (ImGui::MenuItem("Load State From...", "", false, media_actions_enabled && !link_cable_active))
         {
             open_state = true;
         }
@@ -275,7 +275,7 @@ static void menu_gearsystem(void)
             emu_save_state_slot(config_emulator.save_slot + 1);
         }
 
-        if (ImGui::MenuItem("Load State", config_hotkeys[config_HotkeyIndex_LoadState].str, false, media_actions_enabled && !geartogear_active))
+        if (ImGui::MenuItem("Load State", config_hotkeys[config_HotkeyIndex_LoadState].str, false, media_actions_enabled && !link_cable_active))
         {
             std::string message("Loading state from slot ");
             message += std::to_string(config_emulator.save_slot + 1);
@@ -1649,7 +1649,10 @@ static void menu_debug(void)
 
         ImGui::MenuItem("Show Game Gear Serial Registers", "", &config_debug.show_geartogear_serial_registers, config_debug.debug);
         ImGui::MenuItem("Show Game Gear Serial Status", "", &config_debug.show_geartogear_serial_status, config_debug.debug);
-        ImGui::MenuItem("Show Link Cable (Transport)", "", &config_debug.show_geartogear_transport, config_debug.debug);
+        ImGui::MenuItem("Show Mark III Link", "", &config_debug.show_markiii_link, config_debug.debug);
+        ImGui::MenuItem("Show Link Cable (Transport)", "", &config_debug.show_link_cable_transport, config_debug.debug);
+
+        ImGui::Separator();
 
         ImGui::MenuItem("Show Rewind", "", &config_debug.show_rewind, config_debug.debug);
 
@@ -1685,22 +1688,23 @@ static void menu_debug(void)
 #endif
 }
 
-static void menu_geartogear(void)
+static void menu_link_cable(void)
 {
     if (!ImGui::BeginMenu("Link Cable"))
         return;
 
     gui_in_use = true;
-    GearToGearStatus status = emu_geartogear_get_status();
-    bool active = emu_geartogear_is_active();
+    LinkCableStatus status = emu_link_cable_get_status();
+    bool active = emu_link_cable_is_active();
     const ImVec4 cornflower_blue(0.39f, 0.58f, 0.93f, 1.0f);
     const ImVec4 error_red(0.98f, 0.15f, 0.45f, 1.0f);
-    GS_LinkCable_Protocol local_protocol = status.protocol;
-    if (local_protocol == LinkCableProtocolNone && emu_get_core())
-        local_protocol = emu_get_core()->GetSupportedLinkCableProtocol();
-    const char* hardware_name = local_protocol ==
-        LinkCableProtocolMarkIII ? "Mark III Joy-Joy" :
-        "Game Gear Gear-to-Gear";
+    GS_LinkCable_Protocol local_protocol = emu_link_cable_get_protocol();
+    const char* hardware_name = "link hardware";
+
+    if (local_protocol == LinkCableProtocolGearToGear)
+        hardware_name = "Gear-to-Gear";
+    else if (local_protocol == LinkCableProtocolMarkIII)
+        hardware_name = "Mark III Joy-Joy";
 
 #if defined(__APPLE__)
     if (ImGui::MenuItem("New " GS_TITLE " Window", "", false, application_can_launch_new_instance()))
@@ -1712,22 +1716,20 @@ static void menu_geartogear(void)
 
     if (ImGui::MenuItem("Connect", NULL, false, !active))
     {
-        if (emu_geartogear_connect(config_emulator.geartogear_session) &&
-            local_protocol == LinkCableProtocolMarkIII)
+        if (emu_link_cable_connect(config_emulator.link_cable_session) && local_protocol == LinkCableProtocolMarkIII)
         {
-            gui_set_status_message(
-                "Mark III link hardware attached. Reset the console before use.",
-                5000);
+            gui_set_status_message("Mark III link hardware attached. Reset the console before use.", 5000);
         }
     }
-    if (ImGui::MenuItem("Disconnect", NULL, false, status.mode != GearToGearModeDisabled))
-        emu_geartogear_stop();
+
+    if (ImGui::MenuItem("Disconnect", NULL, false, status.mode != LinkCableModeDisabled))
+        emu_link_cable_stop();
 
     ImGui::Separator();
 
     switch (status.mode)
     {
-        case GearToGearModeConnected:
+        case LinkCableModeConnected:
             ImGui::TextColored(cornflower_blue, "%s", status.endpoint);
             ImGui::TextDisabled("Peer %d of %d", status.local_peer_id, status.peer_count);
             if (status.cable_connected)
@@ -1735,8 +1737,7 @@ static void menu_geartogear(void)
                 ImGui::TextDisabled("%s connected (%s)", hardware_name,
                     status.pacing_peer ? "pacing peer" : "following peer");
             }
-            else if (status.local_hardware_ready &&
-                status.remote_hardware_ready &&
+            else if (status.local_hardware_ready && status.remote_hardware_ready &&
                 status.protocol != status.remote_protocol)
             {
                 ImGui::TextDisabled("Remote link hardware is incompatible");
@@ -1746,7 +1747,7 @@ static void menu_geartogear(void)
             else
                 ImGui::TextDisabled("Local %s inactive", hardware_name);
             break;
-        case GearToGearModeFault:
+        case LinkCableModeFault:
             ImGui::TextColored(error_red, "%s", status.last_error);
             break;
         default:
@@ -1762,10 +1763,22 @@ static void menu_geartogear(void)
     ImGui::SameLine(110.0f);
     ImGui::SetNextItemWidth(60.0f);
 
-    if (ImGui::InputInt("##geartogear_session", &config_emulator.geartogear_session, 0, 0))
-        config_emulator.geartogear_session = CLAMP(config_emulator.geartogear_session, 1, 255);
+    if (ImGui::InputInt("##link_cable_session", &config_emulator.link_cable_session, 0, 0))
+        config_emulator.link_cable_session = CLAMP(config_emulator.link_cable_session, 1, 255);
 
     ImGui::EndDisabled();
+
+    ImGui::Text("Protocol:");
+    ImGui::SameLine(110.0f);
+    ImGui::SetNextItemWidth(150.0f);
+
+    if (ImGui::Combo("##link_cable_protocol", &config_emulator.link_cable_protocol, "Auto\0Gear-to-Gear\0Mark III\0\0"))
+    {
+        emu_link_cable_pump();
+
+        if (active && emu_link_cable_get_protocol() == LinkCableProtocolMarkIII && local_protocol != LinkCableProtocolMarkIII)
+            gui_set_status_message("Mark III link hardware attached. Reset the console before use.", 5000);
+    }
 
     ImGui::Separator();
 
@@ -1789,9 +1802,9 @@ static void menu_geartogear(void)
     if (ImGui::BeginMenu("Stall Threshold"))
     {
         ImGui::PushItemWidth(180.0f);
-        if (SliderIntWithSteps("##geartogear_stall", &config_emulator.geartogear_stall_us, stall_min, stall_max, stall_step, "%d us"))
+        if (SliderIntWithSteps("##link_cable_stall", &config_emulator.link_cable_stall_us, stall_min, stall_max, stall_step, "%d us"))
         {
-            emu_geartogear_set_normal_barrier_stall_us((u32)config_emulator.geartogear_stall_us);
+            emu_link_cable_set_normal_barrier_stall_us((u32)config_emulator.link_cable_stall_us);
         }
         ImGui::PopItemWidth();
 
@@ -1827,25 +1840,25 @@ static void menu_about(void)
 static void draw_server_status(void)
 {
     bool mcp_running = emu_mcp_is_running();
-    GearToGearStatus geartogear = emu_geartogear_get_status();
-    bool geartogear_active = geartogear.mode == GearToGearModeConnected;
+    LinkCableStatus link_cable = emu_link_cable_get_status();
+    bool link_cable_active = link_cable.mode == LinkCableModeConnected;
 
-    if (!mcp_running && !geartogear_active)
+    if (!mcp_running && !link_cable_active)
         return;
 
-    char geartogear_status[64];
+    char link_cable_status[64];
     char mcp_status[128];
-    bool show_geartogear_status = false;
+    bool show_link_cable_status = false;
     bool show_mcp_status = false;
-    ImVec4 geartogear_color(0.39f, 0.58f, 0.93f, 1.0f);
+    ImVec4 link_cable_color(0.39f, 0.58f, 0.93f, 1.0f);
     ImVec4 mcp_color = service_mcp_http_color;
 
-    if (geartogear.mode == GearToGearModeConnected)
+    if (link_cable.mode == LinkCableModeConnected)
     {
-        snprintf(geartogear_status, sizeof(geartogear_status),
-            "LINK: S%u P%d/%d", geartogear.session,
-            geartogear.local_peer_id, geartogear.peer_count);
-        show_geartogear_status = true;
+        snprintf(link_cable_status, sizeof(link_cable_status),
+            "LINK: S%u P%d/%d", link_cable.session,
+            link_cable.local_peer_id, link_cable.peer_count);
+        show_link_cable_status = true;
     }
 
     if (mcp_running)
@@ -1868,8 +1881,8 @@ static void draw_server_status(void)
     float spacing = style.ItemSpacing.x * 2.0f;
     float text_width = 0.0f;
 
-    if (show_geartogear_status)
-        text_width += ImGui::CalcTextSize(geartogear_status).x;
+    if (show_link_cable_status)
+        text_width += ImGui::CalcTextSize(link_cable_status).x;
 
     if (show_mcp_status)
     {
@@ -1888,12 +1901,12 @@ static void draw_server_status(void)
     ImGui::SameLine(status_x);
     ImGui::AlignTextToFramePadding();
 
-    if (show_geartogear_status)
-        ImGui::TextColored(geartogear_color, "%s", geartogear_status);
+    if (show_link_cable_status)
+        ImGui::TextColored(link_cable_color, "%s", link_cable_status);
 
     if (show_mcp_status)
     {
-        if (show_geartogear_status)
+        if (show_link_cable_status)
             ImGui::SameLine(0.0f, spacing);
 
         ImGui::TextColored(mcp_color, "%s", mcp_status);

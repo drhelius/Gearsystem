@@ -20,37 +20,7 @@
 #ifndef GEARTOGEAR_H
 #define GEARTOGEAR_H
 
-#include "definitions.h"
-
-#define LINK_CABLE_MAX_PEERS 2
-#define LINK_CABLE_MAX_SYNC_CYCLES 32
-#define LINK_CABLE_MAX_LEAD_CYCLES 64
-
-#define GEARTOGEAR_MAX_PEERS LINK_CABLE_MAX_PEERS
-#define GEARTOGEAR_MAX_SYNC_CYCLES LINK_CABLE_MAX_SYNC_CYCLES
-#define GEARTOGEAR_MAX_LEAD_CYCLES LINK_CABLE_MAX_LEAD_CYCLES
-
-enum GS_LinkCable_Protocol
-{
-    LinkCableProtocolNone,
-    LinkCableProtocolGearToGear,
-    LinkCableProtocolMarkIII
-};
-
-struct GS_LinkCable_WireState
-{
-    u8 drive_mask;
-    u8 levels;
-};
-
-struct GS_LinkCable_WireEvent
-{
-    u64 cycle;
-    GS_LinkCable_WireState state;
-};
-
-typedef GS_LinkCable_WireState GS_GearToGear_WireState;
-typedef GS_LinkCable_WireEvent GS_GearToGear_WireEvent;
+#include "link_cable.h"
 
 struct GS_GearToGear_DebugState
 {
@@ -60,8 +30,8 @@ struct GS_GearToGear_DebugState
     u8 rx_data;
     u8 serial_control;
     u8 serial_status;
-    GS_GearToGear_WireState local_state;
-    GS_GearToGear_WireState remote_state;
+    GS_LinkCable_WireState local_state;
+    GS_LinkCable_WireState remote_state;
     u8 resolved_pins;
     u8 contention_mask;
     bool tx_busy;
@@ -84,17 +54,5 @@ struct GS_GearToGear_DebugState
     u8 nint_arm_delay;
     u64 cycle;
 };
-
-typedef void (*GS_LinkCable_Publish_Callback)(u64 cycle, const GS_LinkCable_WireState* state, void* user_data);
-typedef bool (*GS_LinkCable_Sample_Callback)(u64 cycle, GS_LinkCable_WireState* state, void* user_data);
-typedef bool (*GS_LinkCable_Poll_Callback)(u64 through_cycle, GS_LinkCable_WireEvent* event, void* user_data);
-typedef void (*GS_LinkCable_Fence_Callback)(u64 cycle, void* user_data);
-typedef void (*GS_LinkCable_Sync_Callback)(u64 cycle, u32 lead_cycles, void* user_data);
-
-typedef GS_LinkCable_Publish_Callback GS_GearToGear_Publish_Callback;
-typedef GS_LinkCable_Sample_Callback GS_GearToGear_Sample_Callback;
-typedef GS_LinkCable_Poll_Callback GS_GearToGear_Poll_Callback;
-typedef GS_LinkCable_Fence_Callback GS_GearToGear_Fence_Callback;
-typedef GS_LinkCable_Sync_Callback GS_GearToGear_Sync_Callback;
 
 #endif /* GEARTOGEAR_H */

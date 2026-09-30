@@ -21,17 +21,17 @@
 #include "shader_preset.h"
 
 #if defined(_WIN32)
-static const int config_geartogear_stall_default_us = 5000;
-static const int config_geartogear_stall_min_us = 1000;
-static const int config_geartogear_stall_max_us = 10000;
+static const int config_link_cable_stall_default_us = 5000;
+static const int config_link_cable_stall_min_us = 1000;
+static const int config_link_cable_stall_max_us = 10000;
 #elif defined(__APPLE__)
-static const int config_geartogear_stall_default_us = 100;
-static const int config_geartogear_stall_min_us = 50;
-static const int config_geartogear_stall_max_us = 1000;
+static const int config_link_cable_stall_default_us = 100;
+static const int config_link_cable_stall_min_us = 50;
+static const int config_link_cable_stall_max_us = 1000;
 #else
-static const int config_geartogear_stall_default_us = 250;
-static const int config_geartogear_stall_min_us = 50;
-static const int config_geartogear_stall_max_us = 2000;
+static const int config_link_cable_stall_default_us = 250;
+static const int config_link_cable_stall_min_us = 50;
+static const int config_link_cable_stall_max_us = 2000;
 #endif
 
 static inline void process(config_Operation operation)
@@ -60,7 +60,8 @@ static inline void process(config_Operation operation)
     CONFIG_BOOL("Debug", "TraceLogger", config_debug.show_trace_logger, false);
     CONFIG_BOOL("Debug", "GameGearSerialRegisters", config_debug.show_geartogear_serial_registers, false);
     CONFIG_BOOL("Debug", "GameGearSerialStatus", config_debug.show_geartogear_serial_status, false);
-    CONFIG_BOOL("Debug", "GearToGearTransport", config_debug.show_geartogear_transport, false);
+    CONFIG_BOOL("Debug", "MarkIIILink", config_debug.show_markiii_link, false);
+    CONFIG_BOOL("Debug", "LinkCableTransport", config_debug.show_link_cable_transport, false);
     CONFIG_BOOL("Debug", "Rewind", config_debug.show_rewind, false);
 
     // Trace logger
@@ -181,9 +182,10 @@ static inline void process(config_Operation operation)
     // Services
     CONFIG_INT("Emulator", "MCPTCPPort", config_emulator.mcp_tcp_port, 7777);
     CONFIG_STRING_NOT_EMPTY("Emulator", "MCPHTTPAddress", config_emulator.mcp_http_address, "127.0.0.1");
-    CONFIG_INT_RANGE("Emulator", "GearToGearSession", config_emulator.geartogear_session, 1, 1, 255);
-    CONFIG_INT_RANGE("Emulator", "GearToGearStallUs", config_emulator.geartogear_stall_us,
-        config_geartogear_stall_default_us, config_geartogear_stall_min_us, config_geartogear_stall_max_us);
+    CONFIG_INT_RANGE("Emulator", "LinkCableSession", config_emulator.link_cable_session, 1, 1, 255);
+    CONFIG_INT_RANGE("Emulator", "LinkCableProtocol", config_emulator.link_cable_protocol, 0, 0, 2);
+    CONFIG_INT_RANGE("Emulator", "LinkCableStallUs", config_emulator.link_cable_stall_us,
+        config_link_cable_stall_default_us, config_link_cable_stall_min_us, config_link_cable_stall_max_us);
 
     //**************************************
     // Video
@@ -488,7 +490,7 @@ static void migrate(int file_version)
         if (read_int("Emulator", "GearToGearStallUs", 0) == 0)
         {
             write_int("Emulator", "GearToGearStallUs",
-                config_geartogear_stall_default_us);
+                config_link_cable_stall_default_us);
         }
     }
 

@@ -28,13 +28,16 @@ MarkIIILink::MarkIIILink()
     m_fence_callback = NULL;
     m_sync_callback = NULL;
     m_user_data = NULL;
+
     m_peripheral_attached = false;
     m_transport_active = false;
     m_cable_connected = false;
+
     m_cycle = 0;
     m_next_sync_cycle = 0;
     m_has_published_state = false;
     m_has_pending_remote_event = false;
+
     Reset();
 }
 
@@ -42,6 +45,7 @@ void MarkIIILink::Reset()
 {
     ResetPPI();
     ReleaseAllKeys();
+
     m_remote_state.drive_mask = 0;
     m_remote_state.levels = 0x7F;
     m_has_published_state = false;
@@ -64,6 +68,9 @@ u8 MarkIIILink::DoInput(u8 port)
         case 0:
             return ReadPortA();
         case 1:
+            if (m_control & 0x02)
+                FenceRead();
+
             return ReadPortB();
         case 2:
             return ReadPortC();
@@ -92,13 +99,9 @@ void MarkIIILink::DoOutput(u8 port, u8 value)
     }
 }
 
-void MarkIIILink::SetCallbacks(
-    GS_LinkCable_Publish_Callback publish_callback,
-    GS_LinkCable_Sample_Callback sample_callback,
-    GS_LinkCable_Poll_Callback poll_callback,
-    GS_LinkCable_Fence_Callback fence_callback,
-    GS_LinkCable_Sync_Callback sync_callback,
-    void* user_data)
+void MarkIIILink::SetCallbacks(GS_LinkCable_Publish_Callback publish_callback,
+    GS_LinkCable_Sample_Callback sample_callback, GS_LinkCable_Poll_Callback poll_callback,
+    GS_LinkCable_Fence_Callback fence_callback, GS_LinkCable_Sync_Callback sync_callback, void* user_data)
 {
     m_publish_callback = publish_callback;
     m_sample_callback = sample_callback;
@@ -131,6 +134,7 @@ void MarkIIILink::SetPeripheralAttached(bool attached, u64 cycle)
         m_cable_connected = false;
         m_remote_state.drive_mask = 0;
         m_remote_state.levels = 0x7F;
+        m_local_state = ComputeLocalWireState();
         ReleaseAllKeys();
     }
 }
@@ -171,24 +175,6 @@ void MarkIIILink::SetCableConnected(bool connected, u64 cycle)
     }
 }
 
-void MarkIIILink::BeginInstruction(u64 cycle)
-{
-    AdvanceTo(cycle);
-}
-
-void MarkIIILink::EndInstruction(u64 cycle)
-{
-    AdvanceTo(cycle);
-
-    if (m_cable_connected && m_sync_callback &&
-        cycle >= m_next_sync_cycle)
-    {
-        m_sync_callback(cycle, LINK_CABLE_MAX_LEAD_CYCLES,
-            m_user_data);
-        m_next_sync_cycle = cycle + LINK_CABLE_MAX_SYNC_CYCLES;
-    }
-}
-
 void MarkIIILink::Rebase(u64 cycle)
 {
     m_cycle = cycle;
@@ -223,26 +209,6 @@ void MarkIIILink::ReleaseAllKeys()
     memset(m_keyboard_a, 0xFF, sizeof(m_keyboard_a));
 }
 
-bool MarkIIILink::IsPeripheralAttached() const
-{
-    return m_peripheral_attached;
-}
-
-bool MarkIIILink::IsKeyboardSelected() const
-{
-    return GetSelectedRow() != 7;
-}
-
-bool MarkIIILink::IsCableConnected() const
-{
-    return m_cable_connected;
-}
-
-u8 MarkIIILink::GetSelectedRow() const
-{
-    return m_port_c & 0x07;
-}
-
 GS_MarkIII_LinkDebugState MarkIIILink::GetDebugState() const
 {
     GS_MarkIII_LinkDebugState state = {};
@@ -251,51 +217,36 @@ GS_MarkIII_LinkDebugState MarkIIILink::GetDebugState() const
     state.cable_connected = m_cable_connected;
     state.control = m_control;
     state.port_a = ReadPortA();
-    if ((m_control & 0x02) == 0)
-    {
-        state.port_b = m_port_b;
-    }
-    else
-    {
-        state.port_b = 0x1F;
-        if (ReadRemoteLine(0x20))
-            state.port_b |= 0x20;
-        if (ReadRemoteLine(0x40))
-            state.port_b |= 0x40;
-    }
+    state.port_b = ReadPortB();
     state.port_c = ReadPortC();
+    state.port_a_latch = m_port_a;
+    state.port_b_latch = m_port_b;
     state.port_c_latch = m_port_c;
     state.selected_row = GetSelectedRow();
+    memcpy(state.keyboard_a, m_keyboard_a, sizeof(state.keyboard_a));
     state.local_state = m_local_state;
     state.remote_state = m_remote_state;
     state.cycle = m_cycle;
+
     return state;
 }
 
 void MarkIIILink::SaveState(std::ostream& stream)
 {
-    stream.write(reinterpret_cast<const char*>(&m_control),
-        sizeof(m_control));
-    stream.write(reinterpret_cast<const char*>(&m_port_a),
-        sizeof(m_port_a));
-    stream.write(reinterpret_cast<const char*>(&m_port_b),
-        sizeof(m_port_b));
-    stream.write(reinterpret_cast<const char*>(&m_port_c),
-        sizeof(m_port_c));
+    stream.write(reinterpret_cast<const char*> (&m_control), sizeof(m_control));
+    stream.write(reinterpret_cast<const char*> (&m_port_a), sizeof(m_port_a));
+    stream.write(reinterpret_cast<const char*> (&m_port_b), sizeof(m_port_b));
+    stream.write(reinterpret_cast<const char*> (&m_port_c), sizeof(m_port_c));
 }
 
 void MarkIIILink::LoadState(std::istream& stream, int version)
 {
     if (version >= 109)
     {
-        stream.read(reinterpret_cast<char*>(&m_control),
-            sizeof(m_control));
-        stream.read(reinterpret_cast<char*>(&m_port_a),
-            sizeof(m_port_a));
-        stream.read(reinterpret_cast<char*>(&m_port_b),
-            sizeof(m_port_b));
-        stream.read(reinterpret_cast<char*>(&m_port_c),
-            sizeof(m_port_c));
+        stream.read(reinterpret_cast<char*> (&m_control), sizeof(m_control));
+        stream.read(reinterpret_cast<char*> (&m_port_a), sizeof(m_port_a));
+        stream.read(reinterpret_cast<char*> (&m_port_b), sizeof(m_port_b));
+        stream.read(reinterpret_cast<char*> (&m_port_c), sizeof(m_port_c));
     }
     else
     {
@@ -303,6 +254,7 @@ void MarkIIILink::LoadState(std::istream& stream, int version)
     }
 
     ReleaseAllKeys();
+
     m_remote_state.drive_mask = 0;
     m_remote_state.levels = 0x7F;
     m_local_state = ComputeLocalWireState();
@@ -318,18 +270,18 @@ u8 MarkIIILink::ReadPortA() const
     return m_keyboard_a[GetSelectedRow()];
 }
 
-u8 MarkIIILink::ReadPortB()
+u8 MarkIIILink::ReadPortB() const
 {
     if ((m_control & 0x02) == 0)
         return m_port_b;
 
-    FenceRead();
-
     u8 value = 0x1F;
+
     if (ReadRemoteLine(0x20))
         value |= 0x20;
     if (ReadRemoteLine(0x40))
         value |= 0x40;
+
     return value;
 }
 
@@ -352,6 +304,7 @@ void MarkIIILink::WriteControl(u8 value)
     {
         u8 bit = (value >> 1) & 0x07;
         u8 mask = (u8)(1 << bit);
+
         if (value & 0x01)
             m_port_c |= mask;
         else
@@ -364,10 +317,12 @@ void MarkIIILink::WriteControl(u8 value)
 u8 MarkIIILink::GetPortCOutputMask() const
 {
     u8 mask = 0;
+
     if ((m_control & 0x01) == 0)
         mask |= 0x0F;
     if ((m_control & 0x08) == 0)
         mask |= 0xF0;
+
     return mask;
 }
 
@@ -375,8 +330,9 @@ GS_LinkCable_WireState MarkIIILink::ComputeLocalWireState() const
 {
     GS_LinkCable_WireState state;
     u8 output_mask = GetPortCOutputMask();
-    state.drive_mask = output_mask & 0x60;
+    state.drive_mask = m_peripheral_attached ? (output_mask & 0x60) : 0;
     state.levels = m_port_c & 0x60;
+
     return state;
 }
 
@@ -385,12 +341,13 @@ void MarkIIILink::RefreshLocalWireState(u64 cycle, bool force_publish)
     m_cycle = cycle;
     m_local_state = ComputeLocalWireState();
 
-    bool changed = !m_has_published_state ||
-        m_local_state.drive_mask != m_last_published_state.drive_mask ||
+    if (!m_transport_active || !m_publish_callback)
+        return;
+
+    bool changed = !m_has_published_state || m_local_state.drive_mask != m_last_published_state.drive_mask ||
         m_local_state.levels != m_last_published_state.levels;
 
-    if (m_transport_active && m_publish_callback &&
-        (force_publish || changed))
+    if (force_publish || changed)
     {
         m_publish_callback(cycle, &m_local_state, m_user_data);
         m_last_published_state = m_local_state;
@@ -398,8 +355,7 @@ void MarkIIILink::RefreshLocalWireState(u64 cycle, bool force_publish)
     }
 }
 
-void MarkIIILink::ApplyRemoteWireState(
-    const GS_LinkCable_WireState& state)
+void MarkIIILink::ApplyRemoteWireState(const GS_LinkCable_WireState& state)
 {
     m_remote_state.drive_mask = state.drive_mask & 0x60;
     m_remote_state.levels = state.levels & 0x60;
@@ -415,13 +371,13 @@ bool MarkIIILink::ReadRemoteLine(u8 mask) const
 
 void MarkIIILink::FetchPendingRemoteEvent(u64 target_cycle)
 {
-    if (!m_cable_connected || m_has_pending_remote_event ||
-        !m_poll_callback)
+    if (!m_cable_connected || m_has_pending_remote_event || !m_poll_callback)
     {
         return;
     }
 
     GS_LinkCable_WireEvent event;
+
     if (m_poll_callback(target_cycle, &event, m_user_data))
     {
         event.state.drive_mask &= 0x60;
@@ -435,8 +391,7 @@ void MarkIIILink::AdvanceTo(u64 target_cycle)
 {
     FetchPendingRemoteEvent(target_cycle);
 
-    while (m_has_pending_remote_event &&
-        m_pending_remote_event.cycle <= target_cycle)
+    while (m_has_pending_remote_event && m_pending_remote_event.cycle <= target_cycle)
     {
         m_cycle = m_pending_remote_event.cycle;
         GS_LinkCable_WireState state = m_pending_remote_event.state;
@@ -446,14 +401,6 @@ void MarkIIILink::AdvanceTo(u64 target_cycle)
     }
 
     m_cycle = target_cycle;
-}
-
-void MarkIIILink::FenceRead()
-{
-    if (m_cable_connected && m_fence_callback)
-        m_fence_callback(m_cycle, m_user_data);
-
-    AdvanceTo(m_cycle);
 }
 
 void MarkIIILink::SetKeyState(GS_MarkIII_Key key, bool pressed)

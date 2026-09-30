@@ -60,7 +60,7 @@ static void draw_transport_bar(void)
     bool has_snapshots = snapshot_count > 0;
     bool is_empty = emu_is_empty();
     bool is_paused = emu_is_paused() || emu_is_debug_idle();
-    bool can_scrub = has_snapshots && is_paused && !is_empty && !emu_geartogear_is_active();
+    bool can_scrub = has_snapshots && is_paused && !is_empty && !emu_link_cable_is_active();
     bool at_newest = seek_position <= 0;
     bool at_oldest = seek_position >= snapshot_count - 1;
 
@@ -134,13 +134,13 @@ static void draw_timeline(void)
     int snapshot_count = rewind_get_snapshot_count();
     bool is_empty = emu_is_empty();
     bool is_paused = emu_is_paused() || emu_is_debug_idle();
-    bool can_scrub = snapshot_count > 0 && is_paused && !is_empty && !emu_geartogear_is_active();
+    bool can_scrub = snapshot_count > 0 && is_paused && !is_empty && !emu_link_cable_is_active();
 
     if (!can_scrub)
     {
         ImGui::BeginDisabled(true);
         int dummy = 0;
-        const char* label = emu_geartogear_is_active() ? "Link cable active" :
+        const char* label = emu_link_cable_is_active() ? "Link cable active" :
             (snapshot_count > 0 ? "Pause to scrub" : "No snapshots");
         ImGui::SetNextItemWidth(-1);
         ImGui::SliderInt("##rw_timeline", &dummy, 0, 0, label);
@@ -172,7 +172,7 @@ static void draw_timeline(void)
 
 bool gui_debug_rewind_seek(int age)
 {
-    if (emu_geartogear_is_active())
+    if (emu_link_cable_is_active())
         return false;
 
     int snapshot_count = rewind_get_snapshot_count();

@@ -99,8 +99,9 @@ struct config_Emulator
     bool capture_mouse;
     int mcp_tcp_port;
     std::string mcp_http_address;
-    int geartogear_session;
-    int geartogear_stall_us;
+    int link_cable_session;
+    int link_cable_protocol;
+    int link_cable_stall_us;
 };
 
 struct config_Video
@@ -229,7 +230,8 @@ struct config_Debug
     bool show_trace_logger;
     bool show_geartogear_serial_registers;
     bool show_geartogear_serial_status;
-    bool show_geartogear_transport;
+    bool show_markiii_link;
+    bool show_link_cable_transport;
     bool show_rewind;
     bool trace_counter;
     bool trace_cycles;

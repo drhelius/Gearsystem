@@ -42,7 +42,7 @@ void gui_action_load_defaults(void)
         return;
 
     emu_stop_vgm_recording();
-    emu_geartogear_stop();
+    emu_link_cable_stop();
     emu_save_persistent_data();
 
     GearsystemCore* core = emu_get_core();
@@ -69,6 +69,9 @@ void gui_action_load_defaults(void)
 
 void gui_action_reset(void)
 {
+    if (gui_is_rom_loading() || emu_is_media_loading())
+        return;
+
     gui_set_status_message("Resetting...", 3000);
 
     gui_debug_trace_logger_clear();
@@ -113,7 +116,7 @@ void gui_action_pause(void)
 
 void gui_action_ffwd(void)
 {
-    if (emu_geartogear_is_active())
+    if (emu_link_cable_is_active())
     {
         config_emulator.ffwd = false;
         gui_set_status_message("Fast forward is disabled while a link cable is active", 3000);
@@ -137,7 +140,7 @@ void gui_action_ffwd(void)
 
 void gui_action_rewind_pressed(void)
 {
-    if (emu_geartogear_is_active())
+    if (emu_link_cable_is_active())
     {
         gui_set_status_message("Rewind is disabled while a link cable is active", 3000);
         return;

@@ -55,6 +55,7 @@
 #define GS_DB_FEATURE_FORCE_JAPAN_SMS 0x40
 #define GS_DB_FEATURE_PADDLE 0x80
 #define GS_DB_FEATURE_FORCE_SG1000 0x100
+#define GS_DB_FEATURE_MARKIII_LINK 0x200
 
 struct GS_GameDBEntry
 {
@@ -458,6 +459,9 @@ const GS_GameDBEntry kGameDatabase[] =
     {0x3D8D0DD6, GS_DB_EEPROM_93C46_MAPPER, GS_DB_FEATURE_NONE, "World Series Baseball [v0]"},
     {0xBB38CFD7, GS_DB_EEPROM_93C46_MAPPER, GS_DB_FEATURE_NONE, "World Series Baseball [v1]"},
     {0x578A8A38, GS_DB_EEPROM_93C46_MAPPER, GS_DB_FEATURE_NONE, "World Series Baseball '95"},
+
+    // Mark III Link Cable
+    {0x7CE06FCE, GS_DB_DEFAULT_MAPPER, GS_DB_FEATURE_MARKIII_LINK, "F-16 Fighting Falcon [Japan]"},
 
     {0, 0, 0, 0}
 };

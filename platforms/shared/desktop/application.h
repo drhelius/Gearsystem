@@ -35,10 +35,10 @@ struct ApplicationParams
     bool mcp_tcp_port_set = false;
     std::string mcp_http_address = "127.0.0.1";
     bool mcp_http_address_set = false;
-    int geartogear_session = 1;
-    bool geartogear_session_set = false;
-    int geartogear_stall_us = 0;
-    bool geartogear_stall_us_set = false;
+    int link_cable_session = 1;
+    bool link_cable_session_set = false;
+    int link_cable_stall_us = 0;
+    bool link_cable_stall_us_set = false;
 };
 
 #ifdef APPLICATION_IMPORT

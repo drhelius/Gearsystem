@@ -121,7 +121,7 @@ public:
     json GetPSGStatus();
     json GetYM2413Status();
     json GetSerialStatus();
-    json ResetGearToGearMetrics();
+    json ResetLinkCableMetrics();
     json GetScreenshot();
     json ListSprites();
     json GetSpriteImage(int sprite_index);

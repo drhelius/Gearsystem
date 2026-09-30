@@ -111,7 +111,8 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 - Supported cartridges: ROM, ROM + RAM, SEGA, Codemasters, Korean, MSX + Nemesis, Janggun, SG-1000, and many Korean multi-carts.
 - Automatic region detection: NTSC-JAP, NTSC-USA, PAL-EUR.
 - Support for YM2413 (OPLL) FM sound chip.
-- Link cable support for two local desktop processes: Game Gear Gear-to-Gear and Mark III Joy-Joy through the SK-1100 keyboard/printer interface.
+- Gear-to-Gear cable support for two local desktop processes, including serial and parallel communication.
+- Mark III Joy-Joy cable support for two local desktop processes.
 - Light Phaser and Paddle Control support.
 - Internal database for ROM detection.
 - Battery powered RAM save support.
@@ -137,8 +138,8 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 - **Overscan**: For a precise representation of the original image, select **Overscan** `Top+Bottom` and **Aspect Ratio** `Standard (4:3 DAR)` in the **Video** menu. Game Gear will ignore any overscan settings.
 - **Mouse Cursor**: Automatically hides when hovering over the main output window or when Main Menu is disabled.
 - **Portable Mode**: Run with `--portable`, or create an empty file named `portable.ini` in the same directory as the application binary. On macOS, place the file next to the `.app` bundle.
-- **Link Cable**:
-Open `Link Cable` in two desktop instances, select the same session, and connect both, or start each process with `--link-session N`. Native Game Gear software uses Gear-to-Gear hardware; Japanese Mark III software uses the Joy-Joy cable through a minimal SK-1100 keyboard interface. The Mark III keys currently mapped are Return, 1, 2, and Space. If a Mark III session is connected after software has started, reset the console so the expansion hardware is detected. `--geartogear-session N` and `--geartogear-stall-us N` remain available as compatibility aliases. Independent instances should use separate application copies or `--portable` data directories so configuration, saves, and single-instance handling do not conflict.
+- **Gear-to-Gear and Mark III Link Cable**:
+Open `Link Cable` in two desktop instances, select the same session, and connect both, or start each process with `--link-session N`. Select `Auto`, `Gear-to-Gear`, or `Mark III` under `Protocol`; the session is independent of this selection. `Auto` uses Gear-to-Gear for native Game Gear software and Mark III Joy-Joy for F-16 Fighting Falcon (Japan). For Mark III, Return, 1, 2, and Space are mapped to the SK-1100 keyboard. Reset the console if Mark III hardware is attached after startup. Independent instances should use separate application copies or `--portable` data directories so configuration, saves, and single-instance handling do not conflict.
 
 ### Debugging Features
 - **Docking Windows**: In debug mode, you can dock windows together by pressing SHIFT and dragging a window onto another.
@@ -164,9 +165,7 @@ Options:
       --mcp-http-port N       HTTP port for MCP server (default: 7777)
       --headless              Run without GUI (requires MCP or Link Cable)
       --link-session N        Connect to link cable session 1-255
-      --geartogear-session N  Compatibility alias for --link-session
       --link-stall-us N       Override barrier stall threshold (0=default)
-      --geartogear-stall-us N Compatibility alias for --link-stall-us
       --portable              Store configuration and user data beside the application
   -v, --version               Display version information
   -h, --help                  Display this help message

@@ -313,14 +313,14 @@ void McpServer::HandleInitialize(const json& request)
         {"serverInfo", {
             {"name", "gearsystem-mcp-server"},
             {"title", GS_TITLE " MCP Server"},
-            {"description", "Debug/control " GS_TITLE " SMS/Game Gear/SG-1000: execution, breakpoints, memory, Z80 CPU, VDP, SN76489 PSG, YM2413 FM, Game Gear and Mark III link cables, disassembly, symbols, sprites, save states, rewind, input, screenshots."},
+            {"description", "Debug/control " GS_TITLE " SMS/Game Gear/SG-1000: execution, breakpoints, memory, Z80 CPU, VDP, SN76489 PSG, YM2413 FM, Gear-to-Gear and Mark III link cables, disassembly, symbols, sprites, save states, rewind, input, screenshots."},
             {"version", GS_VERSION}
         }}
     };
 
     response["result"]["instructions"] =
         "Use this server for Master System, Game Gear, and SG-1000 game debugging, reverse engineering, "
-        "memory inspection, Z80 tracing, breakpoints, VDP, SN76489 PSG, YM2413 FM, Game Gear and Mark III link cables, sprites, save states, "
+        "memory inspection, Z80 tracing, breakpoints, VDP, SN76489 PSG, YM2413 FM, Gear-to-Gear and Mark III link cables, sprites, save states, "
         "rewind, input, and screenshots.";
 
     if (g_mcp_router_enabled)
@@ -786,7 +786,7 @@ json McpServer::BuildToolList()
     tools.push_back({
         {"name", "get_serial_status"},
         {"title", "Get Serial / Link Cable Status"},
-        {"description", "Read Game Gear serial, Mark III PPI, physical-wire, and link cable transport status."},
+        {"description", "Read Gear-to-Gear serial/parallel state, Mark III PPI, physical pins, and link cable transport status."},
         {"annotations", {{"readOnlyHint", true}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
         {"inputSchema", {
             {"type", "object"},
@@ -795,7 +795,7 @@ json McpServer::BuildToolList()
     });
 
     tools.push_back({
-        {"name", "reset_geartogear_metrics"},
+        {"name", "reset_link_cable_metrics"},
         {"title", "Reset Link Cable Metrics"},
         {"description", "Reset link cable transport and stall diagnostics."},
         {"annotations", {{"readOnlyHint", false}, {"destructiveHint", false}, {"idempotentHint", true}, {"openWorldHint", false}}},
@@ -2449,9 +2449,9 @@ json McpServer::ExecuteCommand(const std::string& toolName, const json& argument
     {
         return m_debugAdapter.GetSerialStatus();
     }
-    else if (normalizedTool == "reset_geartogear_metrics")
+    else if (normalizedTool == "reset_link_cable_metrics")
     {
-        return m_debugAdapter.ResetGearToGearMetrics();
+        return m_debugAdapter.ResetLinkCableMetrics();
     }
     else if (normalizedTool == "get_screenshot")
     {

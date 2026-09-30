@@ -50,7 +50,7 @@ This server provides tools for game development, rom hacking, reverse engineerin
 - **Full Debugger Access**: CPU registers, memory inspection, breakpoints, and execution control
 - **Multiple Memory Areas**: Access RAM, VRAM, CRAM, ROM banks, external RAM, BIOS, and more
 - **Disassembly**: View disassembled Z80 code around PC or any address
-- **Hardware Inspection**: Z80 CPU, VDP, PSG, YM2413 FM synthesis, and Game Gear/Mark III link cables
+- **Hardware Inspection**: Z80 CPU, VDP, PSG, YM2413 FM synthesis, and Gear-to-Gear and Mark III link cables
 - **Sprite Viewer**: List and inspect all 64 sprites with images
 - **Symbol Support**: Add, remove, list, and look up debug symbols
 - **Input State**: Inspect effective pressed buttons and pending tap releases
@@ -95,7 +95,7 @@ By default, Gearsystem exposes every MCP tool directly. This avoids nested tool 
 
 Add `--mcp-router` to expose a compact set of high-frequency tools directly and route advanced debugger tools through lightweight discovery tools. This reduces MCP context while preserving access to the full debugger surface.
 
-Direct tools in routed mode: `load_media`, `get_media_info`, `debug_pause`, `debug_continue`, `debug_step_into`, `get_z80_status`, `read_memory`, `write_memory`, `get_disassembly`, `set_breakpoint`, `get_screenshot`, `controller_button`, and `markiii_key`.
+Direct tools in routed mode: `load_media`, `get_media_info`, `debug_pause`, `debug_continue`, `debug_step_into`, `get_z80_status`, `read_memory`, `write_memory`, `get_disassembly`, `set_breakpoint`, `get_screenshot`, and `controller_button`.
 
 Router tools:
 
@@ -393,8 +393,8 @@ Exact trace filters are `cpu.instructions`, `cpu.interrupts`, `vdp.registers`, `
 - `get_vdp_status` - Get VDP status (flags, counters, mode, SG-1000 mode, extended mode 224)
 - `get_psg_status` - Get SN76489 PSG status for all 4 channels (3 tone + 1 noise): volume, period, frequency, GG stereo
 - `get_ym2413_status` - Get YM2413 FM synth status: 9 channels, instruments, key-on, f-number, block, envelope, rhythm mode, user instrument
-- `get_serial_status` - Get Game Gear serial state, Mark III PPI state, physical pins, peer readiness, synchronization diagnostics, and link cable transport metrics
-- `reset_geartogear_metrics` - Reset link cable transport and stall diagnostics
+- `get_serial_status` - Get Gear-to-Gear serial/parallel state, Mark III PPI state, physical pins, peer readiness, synchronization diagnostics, and link cable transport metrics
+- `reset_link_cable_metrics` - Reset link cable transport and stall diagnostics
 
 ### Sprites
 - `list_sprites` - List all 64 sprites with position, size, pattern index
