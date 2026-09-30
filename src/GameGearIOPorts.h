@@ -42,6 +42,8 @@ public:
     virtual void DoOutput(u8 port, u8 value);
     virtual void SaveState(std::ostream& stream);
     virtual void LoadState(std::istream& stream, int version);
+    void SaveLinkCableState(std::ostream& stream);
+    void LoadLinkCableState(std::istream& stream);
     void SetTraceLogger(TraceLogger* pTraceLogger);
     void SetGearToGearCallbacks(
         GS_LinkCable_Publish_Callback publish_callback,

@@ -177,10 +177,6 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
 
     if (!m_bPaused && m_pCartridge->IsReady())
     {
-        bool game_gear = IsNativeGameGearMode();
-        bool markiii_link = m_link_cable_protocol == LinkCableProtocolMarkIII;
-        MarkIIILink* markiii = m_pSmsIOPorts->GetMarkIIILink();
-
 #if !defined(GS_DISABLE_DISASSEMBLER)
         bool debug_enable = false;
         bool instruction_completed = false;
@@ -195,23 +191,9 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
 
         do
         {
-            if (game_gear)
-                m_pGameGearIOPorts->BeginLinkInstruction(m_link_cable_cycles);
-            else if (markiii_link)
-                markiii->BeginLinkInstruction(m_link_cable_cycles);
-
-            unsigned int clockCycles = debug_enable && debug->step_debugger ? m_pProcessor->RunInstruction() : m_pProcessor->RunFor(1);
+            unsigned int clockCycles;
+            vblank = RunCycle(pFrameBuffer, clockCycles, debug_enable && debug->step_debugger);
             instruction_completed = true;
-            m_master_clock_cycles += clockCycles;
-            m_link_cable_cycles += clockCycles;
-
-            if (game_gear)
-                m_pGameGearIOPorts->EndLinkInstruction(m_link_cable_cycles);
-            else if (markiii_link)
-                markiii->EndLinkInstruction(m_link_cable_cycles);
-
-            vblank = m_pVideo->Tick(clockCycles);
-            m_pAudio->Tick(clockCycles);
             totalClocks += clockCycles;
 
             if (debug_enable)
@@ -237,7 +219,7 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
         }
         while (!vblank);
 
-        m_pAudio->EndFrame(pSampleBuffer, pSampleCount);
+        EndFrame(pSampleBuffer, pSampleCount);
         if (render)
             RenderFrameBuffer(pFrameBuffer);
 
@@ -249,22 +231,8 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
 
         do
         {
-            if (game_gear)
-                m_pGameGearIOPorts->BeginLinkInstruction(m_link_cable_cycles);
-            else if (markiii_link)
-                markiii->BeginLinkInstruction(m_link_cable_cycles);
-
-            unsigned int clockCycles = m_pProcessor->RunFor(1);
-            m_master_clock_cycles += clockCycles;
-            m_link_cable_cycles += clockCycles;
-
-            if (game_gear)
-                m_pGameGearIOPorts->EndLinkInstruction(m_link_cable_cycles);
-            else if (markiii_link)
-                markiii->EndLinkInstruction(m_link_cable_cycles);
-
-            vblank = m_pVideo->Tick(clockCycles);
-            m_pAudio->Tick(clockCycles);
+            unsigned int clockCycles;
+            vblank = RunCycle(pFrameBuffer, clockCycles);
             totalClocks += clockCycles;
 
             if (totalClocks > 702240)
@@ -272,7 +240,7 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
         }
         while (!vblank);
 
-        m_pAudio->EndFrame(pSampleBuffer, pSampleCount);
+        EndFrame(pSampleBuffer, pSampleCount);
         if (render)
             RenderFrameBuffer(pFrameBuffer);
 
@@ -281,6 +249,25 @@ bool GearsystemCore::RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSam
     }
 
     return false;
+}
+
+void GearsystemCore::EndFrame(s16* sample_buffer, int* sample_count)
+{
+    m_pAudio->EndFrame(sample_buffer, sample_count);
+}
+
+void GearsystemCore::SaveLinkCableState(std::ostream& stream)
+{
+    stream.write((const char*)&m_master_clock_cycles, sizeof(m_master_clock_cycles));
+    stream.write((const char*)&m_link_cable_cycles, sizeof(m_link_cable_cycles));
+    m_pGameGearIOPorts->SaveLinkCableState(stream);
+}
+
+void GearsystemCore::LoadLinkCableState(std::istream& stream)
+{
+    stream.read((char*)&m_master_clock_cycles, sizeof(m_master_clock_cycles));
+    stream.read((char*)&m_link_cable_cycles, sizeof(m_link_cable_cycles));
+    m_pGameGearIOPorts->LoadLinkCableState(stream);
 }
 
 bool GearsystemCore::LoadROM(const char* szFilePath, Cartridge::ForceConfiguration* config, bool softpatching)

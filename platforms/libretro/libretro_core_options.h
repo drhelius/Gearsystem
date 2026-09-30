@@ -56,6 +56,7 @@ struct retro_core_option_v2_category option_cats_us[] = {
         "Input",
         "Configure controller behavior, light gun, paddle and Sports Pad settings."
     },
+    { "link", "Link Cable", "Configure Game Gear link cable emulation, screen layout and audio." },
     { NULL, NULL, NULL },
 };
 
@@ -540,6 +541,79 @@ struct retro_core_option_v2_definition option_defs_us[] = {
             { NULL, NULL },
         },
         "8"
+    },
+
+    {
+        "gearsystem_link_enable",
+        "Game Link Cable Enable (restart)",
+        NULL,
+        "Run two linked Game Gear systems. Loading one ROM runs a separate copy on each screen; use the 2 Player Game Gear Link subsystem to load two different ROMs. Controller ports 1 and 2 control screens 1 and 2. Only native Game Gear mode supports linking; other systems run normally.",
+        NULL,
+        "link",
+        {
+            { "Enabled", NULL },
+            { "Disabled", NULL },
+            { NULL, NULL },
+        },
+        "Disabled"
+    },
+    {
+        "gearsystem_link_placement",
+        "Dual Screen Placement",
+        NULL,
+        "Arrange both screens horizontally or vertically.",
+        NULL,
+        "link",
+        {
+            { "Horizontal", NULL },
+            { "Vertical", NULL },
+            { NULL, NULL },
+        },
+        "Horizontal"
+    },
+    {
+        "gearsystem_link_switch",
+        "Dual Screen Switch",
+        NULL,
+        "Swap the positions of the two screens. Controller assignments, screen selection and audio selection still refer to the original screen numbers.",
+        NULL,
+        "link",
+        {
+            { "Enabled", NULL },
+            { "Disabled", NULL },
+            { NULL, NULL },
+        },
+        "Disabled"
+    },
+    {
+        "gearsystem_link_screen",
+        "Dual Screen Selection",
+        NULL,
+        "Display both screens or only the selected system. Both systems continue running.",
+        NULL,
+        "link",
+        {
+            { "Both Screens", NULL },
+            { "Screen 1", NULL },
+            { "Screen 2", NULL },
+            { NULL, NULL },
+        },
+        "Both Screens"
+    },
+    {
+        "gearsystem_link_audio",
+        "Dual Screen Audio",
+        NULL,
+        "Choose the system to hear, or mix both systems at half volume each.",
+        NULL,
+        "link",
+        {
+            { "Screen 1", NULL },
+            { "Screen 2", NULL },
+            { "Mix", NULL },
+            { NULL, NULL },
+        },
+        "Screen 1"
     },
 
     { NULL, NULL, NULL, NULL, NULL, NULL, {{0}}, NULL },

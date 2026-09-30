@@ -347,6 +347,7 @@ void GameGearIOPorts::ResetGearToGearHardware()
     m_geartogear_last_published_state.levels = 0x7F;
     m_geartogear_has_published_state = false;
     m_geartogear_has_pending_remote_event = false;
+    memset(&m_geartogear_pending_remote_event, 0, sizeof(m_geartogear_pending_remote_event));
 
     m_geartogear_tx.busy = false;
     m_geartogear_tx.line = true;
@@ -931,4 +932,42 @@ void GameGearIOPorts::LoadGearToGearState(std::istream& stream)
         (m_geartogear_nmi.parallel_latch ? 0x01 : 0) |
         (m_geartogear_nmi.serial_latch ? 0x02 : 0) |
         (m_geartogear_nmi.output_asserted ? 0x04 : 0);
+}
+
+void GameGearIOPorts::SaveLinkCableState(std::ostream& stream)
+{
+    stream.write((const char*)&m_geartogear_cycle, sizeof(m_geartogear_cycle));
+    stream.write((const char*)&m_geartogear_next_sync_cycle, sizeof(m_geartogear_next_sync_cycle));
+    stream.write((const char*)&m_geartogear_transport_active, sizeof(m_geartogear_transport_active));
+    stream.write((const char*)&m_geartogear_cable_connected, sizeof(m_geartogear_cable_connected));
+    stream.write((const char*)&m_geartogear_local_state, sizeof(m_geartogear_local_state));
+    stream.write((const char*)&m_geartogear_remote_state, sizeof(m_geartogear_remote_state));
+    stream.write((const char*)&m_geartogear_last_published_state, sizeof(m_geartogear_last_published_state));
+    stream.write((const char*)&m_geartogear_has_published_state, sizeof(m_geartogear_has_published_state));
+    stream.write((const char*)&m_geartogear_has_pending_remote_event, sizeof(m_geartogear_has_pending_remote_event));
+    stream.write((const char*)&m_geartogear_pending_remote_event.cycle, sizeof(m_geartogear_pending_remote_event.cycle));
+    stream.write((const char*)&m_geartogear_pending_remote_event.state, sizeof(m_geartogear_pending_remote_event.state));
+    stream.write((const char*)&m_geartogear_last_nmi_trace_state, sizeof(m_geartogear_last_nmi_trace_state));
+    SaveGearToGearState(stream);
+    stream.write((const char*)&m_geartogear_tx.next_cycle, sizeof(m_geartogear_tx.next_cycle));
+    stream.write((const char*)&m_geartogear_rx.next_cycle, sizeof(m_geartogear_rx.next_cycle));
+}
+
+void GameGearIOPorts::LoadLinkCableState(std::istream& stream)
+{
+    stream.read((char*)&m_geartogear_cycle, sizeof(m_geartogear_cycle));
+    stream.read((char*)&m_geartogear_next_sync_cycle, sizeof(m_geartogear_next_sync_cycle));
+    stream.read((char*)&m_geartogear_transport_active, sizeof(m_geartogear_transport_active));
+    stream.read((char*)&m_geartogear_cable_connected, sizeof(m_geartogear_cable_connected));
+    stream.read((char*)&m_geartogear_local_state, sizeof(m_geartogear_local_state));
+    stream.read((char*)&m_geartogear_remote_state, sizeof(m_geartogear_remote_state));
+    stream.read((char*)&m_geartogear_last_published_state, sizeof(m_geartogear_last_published_state));
+    stream.read((char*)&m_geartogear_has_published_state, sizeof(m_geartogear_has_published_state));
+    stream.read((char*)&m_geartogear_has_pending_remote_event, sizeof(m_geartogear_has_pending_remote_event));
+    stream.read((char*)&m_geartogear_pending_remote_event.cycle, sizeof(m_geartogear_pending_remote_event.cycle));
+    stream.read((char*)&m_geartogear_pending_remote_event.state, sizeof(m_geartogear_pending_remote_event.state));
+    stream.read((char*)&m_geartogear_last_nmi_trace_state, sizeof(m_geartogear_last_nmi_trace_state));
+    LoadGearToGearState(stream);
+    stream.read((char*)&m_geartogear_tx.next_cycle, sizeof(m_geartogear_tx.next_cycle));
+    stream.read((char*)&m_geartogear_rx.next_cycle, sizeof(m_geartogear_rx.next_cycle));
 }

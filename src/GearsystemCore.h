@@ -82,6 +82,10 @@ public:
     ~GearsystemCore();
     void Init(GS_Color_Format pixelFormat = GS_PIXEL_RGBA8888);
     bool RunToVBlank(u8* pFrameBuffer, s16* pSampleBuffer, int* pSampleCount, GS_Debug_Run* debug = NULL, bool render = true);
+    INLINE bool RunCycle(u8* frame_buffer, unsigned int& clock_cycles, bool step_debugger = false);
+    void EndFrame(s16* sample_buffer, int* sample_count);
+    void SaveLinkCableState(std::ostream& stream);
+    void LoadLinkCableState(std::istream& stream);
     void RenderFrameBuffer(u8* finalFrameBuffer);
     bool LoadROM(const char* szFilePath, Cartridge::ForceConfiguration* config = NULL, bool softpatching = false);
     bool LoadROMFromBuffer(const u8* buffer, int size, Cartridge::ForceConfiguration* config = NULL, const char* szFilePath = NULL);
@@ -196,6 +200,36 @@ private:
     TraceLogger* m_trace_logger;
     u8* m_pFrameBuffer;
 };
+
+#include "Audio.h"
+#include "GameGearIOPorts.h"
+#include "SmsIOPorts.h"
+
+INLINE bool GearsystemCore::RunCycle(u8* frame_buffer, unsigned int& clock_cycles, bool step_debugger)
+{
+    m_pFrameBuffer = frame_buffer;
+    bool game_gear = IsNativeGameGearMode();
+    bool markiii_link = m_link_cable_protocol == LinkCableProtocolMarkIII;
+    MarkIIILink* markiii = m_pSmsIOPorts->GetMarkIIILink();
+
+    if (game_gear)
+        m_pGameGearIOPorts->BeginLinkInstruction(m_link_cable_cycles);
+    else if (markiii_link)
+        markiii->BeginLinkInstruction(m_link_cable_cycles);
+
+    clock_cycles = step_debugger ? m_pProcessor->RunInstruction() : m_pProcessor->RunFor(1);
+    m_master_clock_cycles += clock_cycles;
+    m_link_cable_cycles += clock_cycles;
+
+    if (game_gear)
+        m_pGameGearIOPorts->EndLinkInstruction(m_link_cable_cycles);
+    else if (markiii_link)
+        markiii->EndLinkInstruction(m_link_cable_cycles);
+
+    bool vblank = m_pVideo->Tick(clock_cycles);
+    m_pAudio->Tick(clock_cycles);
+    return vblank;
+}
 
 INLINE GS_LinkCable_Protocol GearsystemCore::GetLinkCableProtocol() const
 {

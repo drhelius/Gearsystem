@@ -234,6 +234,8 @@ void Video::Reset(bool bGameGear, bool bPAL, int iGGASIC, bool bGameGearSMSMode)
     m_LineEvents.vint = false;
     m_LineEvents.vintFlag = false;
     m_LineEvents.render = false;
+    m_LineEvents.display = false;
+    m_LineEvents.spriteovr = false;
 
     m_iCycleCounter = 0;
     m_iVdpRegister10Counter = m_VdpRegister[10];

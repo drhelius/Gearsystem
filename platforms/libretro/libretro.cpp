@@ -24,11 +24,13 @@
 #include <string.h>
 #include <math.h>
 #include <string>
+#include <sstream>
 #include <vector>
 
 #include "libretro.h"
 #include "../../src/gearsystem.h"
 #include "libretro_core_options.h"
+#include "libretro_link.h"
 
 #ifdef _WIN32
 static const char slash = '\\';
@@ -53,8 +55,16 @@ retro_log_printf_t log_cb;
 static char retro_system_directory[4096];
 static char retro_game_path[4096];
 
-static s16 audio_buf[GS_AUDIO_BUFFER_SIZE];
-static int audio_sample_count = 0;
+static LibretroInstance instances[2];
+static unsigned instance_count = 0;
+static LibretroLink* link_cable = NULL;
+static bool link_enabled = false;
+static bool link_vertical = false;
+static bool link_switched = false;
+static int link_screen = 0;
+static int link_audio = 0;
+static bool link_subsystem = false;
+static bool game_loaded = false;
 
 static unsigned input_device[2] = {
     RETRO_DEVICE_SMS_GG_PAD,
@@ -79,13 +89,15 @@ static int current_screen_height = 0;
 static float current_aspect_ratio = 0;
 
 static GearsystemCore* core;
-static u8* frame_buffer;
 static Cartridge::ForceConfiguration config;
 static GearsystemCore::GlassesConfig glasses_config;
 static const retro_vfs_interface* vfs_interface = NULL;
 static std::vector<std::string> libretro_cheats;
 
-static void load_bootroms(void);
+static void init_instances(unsigned count);
+static void load_bootroms(GearsystemCore* target);
+static bool load_game(const struct retro_game_info* first, const struct retro_game_info* second);
+static void apply_variables(GearsystemCore* core);
 static void set_controller_info(void);
 static void clear_input_state(void);
 static void reset_controller_devices(void);
@@ -96,20 +108,23 @@ static void check_variables(void);
 
 static void apply_cheats(void)
 {
-    core->ClearCheats();
-
-    for (size_t i = 0; i < libretro_cheats.size(); i++)
+    for (unsigned i = 0; i < instance_count; i++)
     {
-        if (!libretro_cheats[i].empty())
-            core->SetCheat(libretro_cheats[i].c_str());
+        instances[i].core->ClearCheats();
+
+        for (size_t j = 0; j < libretro_cheats.size(); j++)
+        {
+            if (!libretro_cheats[j].empty())
+                instances[i].core->SetCheat(libretro_cheats[j].c_str());
+        }
     }
 }
 
 static void clear_cheats(void)
 {
     libretro_cheats.clear();
-    if (IsValidPointer(core))
-        core->ClearCheats();
+    for (unsigned i = 0; i < instance_count; i++)
+        instances[i].core->ClearCheats();
 }
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
@@ -155,6 +170,21 @@ void retro_set_environment(retro_environment_t cb)
 {
     environ_cb = cb;
     set_controller_info();
+    static const struct retro_subsystem_memory_info memory1[] = {
+        { "srm", GEARSYSTEM_LINK_RAM_1 }
+    };
+    static const struct retro_subsystem_memory_info memory2[] = {
+        { "srm2", GEARSYSTEM_LINK_RAM_2 }
+    };
+    static const struct retro_subsystem_rom_info roms[] = {
+        { "Screen 1", "gg|bin|rom", false, false, true, memory1, 1 },
+        { "Screen 2", "gg|bin|rom", false, false, true, memory2, 1 }
+    };
+    static const struct retro_subsystem_info subsystems[] = {
+        { "2 Player Game Gear Link", "gg_link_2p", roms, 2, GEARSYSTEM_LINK_SUBSYSTEM },
+        { NULL, NULL, NULL, 0, 0 }
+    };
+    environ_cb(RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO, (void*)subsystems);
     libretro_set_core_options(environ_cb, &categories_supported);
 }
 
@@ -185,15 +215,7 @@ void retro_init(void)
     else
         vfs_interface = NULL;
 
-    core = new GearsystemCore();
-
-#ifdef PS2
-    core->Init(GS_PIXEL_BGR555);
-#else
-    core->Init(GS_PIXEL_RGB565);
-#endif
-
-    frame_buffer = new u8[GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN * GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN * 2];
+    init_instances(1);
 
     config.type = Cartridge::CartridgeNotSupported;
     config.zone = Cartridge::CartridgeUnknownZone;
@@ -210,14 +232,27 @@ void retro_init(void)
     libretro_supports_bitmasks = environ_cb(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, NULL);
 }
 
+static void init_instances(unsigned count)
+{
+    for (unsigned i = instance_count; i < count; i++)
+    {
+        memset(&instances[i], 0, sizeof(instances[i]));
+        instances[i].core = new GearsystemCore();
+#ifdef PS2
+        instances[i].core->Init(GS_PIXEL_BGR555);
+#else
+        instances[i].core->Init(GS_PIXEL_RGB565);
+#endif
+    }
+    instance_count = count;
+    core = instances[0].core;
+}
+
 void retro_deinit(void)
 {
-    clear_cheats();
-    SafeDeleteArray(frame_buffer);
-    SafeDelete(core);
+    retro_unload_game();
     vfs_interface = NULL;
 
-    audio_sample_count = 0;
     current_screen_width = 0;
     current_screen_height = 0;
     current_aspect_ratio = 0.0f;
@@ -230,11 +265,40 @@ void retro_deinit(void)
 
 void retro_reset(void)
 {
-    log_cb(RETRO_LOG_DEBUG, "Resetting...\n");
+    if (!game_loaded)
+        return;
 
+    log_cb(RETRO_LOG_DEBUG, "Resetting...\n");
     check_variables();
-    load_bootroms();
-    core->ResetROMPreservingRAM(&config);
+    clear_input_state();
+
+    for (unsigned i = 0; i < instance_count; i++)
+    {
+        GearsystemCore* target = instances[i].core;
+        if (link_cable)
+        {
+            // Preserve frontend-loaded saves even before the cartridge enables RAM.
+            MemoryRule* rule = target->GetMemory()->GetCurrentRule();
+            std::stringstream ram;
+            rule->SaveRam(ram);
+            s32 size = (s32)ram.tellp();
+            target->ResetROM();
+            if (size > 0)
+                rule->LoadRam(ram, size);
+        }
+        else
+        {
+            load_bootroms(target);
+            target->ResetROMPreservingRAM(&config);
+        }
+
+        memset(instances[i].frame_buffer, 0, sizeof(instances[i].frame_buffer));
+        instances[i].sample_count = 0;
+    }
+
+    if (link_cable)
+        link_cable->Reset();
+    apply_cheats();
 }
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
@@ -265,76 +329,89 @@ void retro_get_system_info(struct retro_system_info *info)
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-    GS_RuntimeInfo runtime_info;
-    core->GetRuntimeInfo(runtime_info);
+    GS_RuntimeInfo runtime_info = {};
+    runtime_info.screen_width = GS_RESOLUTION_SMS_WIDTH;
+    runtime_info.screen_height = GS_RESOLUTION_SMS_HEIGHT;
+    runtime_info.fps = (double)GS_MASTER_CLOCK_NTSC / (GS_LINES_PER_FRAME_NTSC * GS_CYCLES_PER_LINE);
+    if (game_loaded)
+        core->GetRuntimeInfo(runtime_info);
 
-    current_screen_width = runtime_info.screen_width;
-    current_screen_height = runtime_info.screen_height;
+    unsigned width = runtime_info.screen_width;
+    unsigned height = runtime_info.screen_height;
+    if (link_cable)
+        link_cable->Geometry(link_vertical, link_screen, &width, &height);
 
-    info->geometry.base_width   = current_screen_width;
-    info->geometry.base_height  = current_screen_height;
+    info->geometry.base_width   = width;
+    info->geometry.base_height  = height;
     info->geometry.max_width    = GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN;
     info->geometry.max_height   = GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN;
-    info->geometry.aspect_ratio = aspect_ratio;
+    info->geometry.aspect_ratio = link_cable ? (float)width / height : aspect_ratio;
     info->timing.fps            = runtime_info.fps;
     info->timing.sample_rate    = 44100.0;
 }
 
 void retro_run(void)
 {
+    if (!game_loaded)
+        return;
+
     bool core_options_updated = false;
     if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &core_options_updated) && core_options_updated)
-    {
         check_variables();
-    }
 
     update_input();
+    for (unsigned i = 0; i < instance_count; i++)
+        instances[i].sample_count = 0;
 
-    audio_sample_count = 0;
-    core->RunToVBlank(frame_buffer, audio_buf, &audio_sample_count);
+    if (link_cable)
+        link_cable->RunFrame();
+    else
+        core->RunToVBlank((u8*)instances[0].frame_buffer, instances[0].audio_buffer, &instances[0].sample_count);
 
-    GS_RuntimeInfo runtime_info;
-    core->GetRuntimeInfo(runtime_info);
-
-    if ((runtime_info.screen_width != current_screen_width) ||
-        (runtime_info.screen_height != current_screen_height) ||
-        (aspect_ratio != current_aspect_ratio))
+    struct retro_system_av_info info;
+    retro_get_system_av_info(&info);
+    if ((int)info.geometry.base_width != current_screen_width ||
+        (int)info.geometry.base_height != current_screen_height ||
+        info.geometry.aspect_ratio != current_aspect_ratio)
     {
-        current_screen_width = runtime_info.screen_width;
-        current_screen_height = runtime_info.screen_height;
-        current_aspect_ratio = aspect_ratio;
-
-        retro_system_av_info info;
-        info.geometry.base_width   = runtime_info.screen_width;
-        info.geometry.base_height  = runtime_info.screen_height;
-        info.geometry.max_width    = GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN;
-        info.geometry.max_height   = GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN;
-        info.geometry.aspect_ratio = aspect_ratio;
-
+        current_screen_width = info.geometry.base_width;
+        current_screen_height = info.geometry.base_height;
+        current_aspect_ratio = info.geometry.aspect_ratio;
         environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &info.geometry);
     }
 
-    video_cb((uint8_t*)frame_buffer, runtime_info.screen_width, runtime_info.screen_height, runtime_info.screen_width * sizeof(u8) * 2);
+    const u16* video = instances[0].frame_buffer;
+    const s16* audio = instances[0].audio_buffer;
+    int samples = instances[0].sample_count;
+    if (link_cable)
+    {
+        video = link_cable->Video(link_vertical, link_switched, link_screen);
+        audio = link_cable->Audio(link_audio, &samples);
+    }
 
-    if (audio_sample_count > 0)
-        audio_batch_cb(audio_buf, audio_sample_count / 2);
+    video_cb(video, current_screen_width, current_screen_height, current_screen_width * sizeof(u16));
+    if (samples > 0)
+        audio_batch_cb(audio, samples / 2);
 }
 
-static bool load_rom(const struct retro_game_info* info)
+static bool load_rom(GearsystemCore* target, const struct retro_game_info* info)
 {
     if (!info)
         return false;
 
     const char* path = info->path ? info->path : "";
 
+    if (info->size > 0x7FFFFFFF)
+        return false;
+
     if (IsValidPointer(info->data) && (info->size > 0))
-        return core->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size, &config, path);
+        return target->LoadROMFromBuffer(reinterpret_cast<const u8*>(info->data), info->size, &config, path);
 
     if (!path[0])
         return false;
 
     if (!vfs_interface)
-        return core->LoadROM(path, &config);
+        return target->LoadROM(path, &config);
 
     retro_vfs_file_handle* file = vfs_interface->open(path, RETRO_VFS_FILE_ACCESS_READ,
         RETRO_VFS_FILE_ACCESS_HINT_NONE);
@@ -362,40 +439,86 @@ static bool load_rom(const struct retro_game_info* info)
 
     bool loaded = vfs_interface->close(file) == 0 && total == size;
     if (loaded)
-        loaded = core->LoadROMFromBuffer(buffer, (int)size, &config, path);
+        loaded = target->LoadROMFromBuffer(buffer, (int)size, &config, path);
 
     SafeDeleteArray(buffer);
     return loaded;
 }
 
-bool retro_load_game(const struct retro_game_info *info)
+bool retro_load_game(const struct retro_game_info* info)
 {
+    return load_game(info, NULL);
+}
+
+static bool load_game(const struct retro_game_info* info, const struct retro_game_info* second)
+{
+    retro_unload_game();
     if (!info)
         return false;
 
-    clear_cheats();
-    core->GetCartridge()->Reset();
+    init_instances(1);
     check_variables();
-    load_bootroms();
-
+    load_bootroms(core);
+    link_subsystem = second != NULL;
     snprintf(retro_game_path, sizeof(retro_game_path), "%s", info->path ? info->path : "");
-
     log_cb(RETRO_LOG_INFO, "Loading game: %s\n", retro_game_path);
 
-    if (!load_rom(info))
+    if (!load_rom(core, info))
     {
-        log_cb(RETRO_LOG_ERROR, "Invalid or corrupted ROM.\n");
+        log_cb(RETRO_LOG_ERROR, "Invalid or corrupted ROM for screen 1.\n");
+        retro_unload_game();
         return false;
+    }
+
+    if (link_subsystem || (link_enabled && core->IsNativeGameGearMode()))
+    {
+        init_instances(2);
+        check_variables();
+        load_bootroms(instances[1].core);
+        if (!load_rom(instances[1].core, second ? second : info) ||
+            !core->IsNativeGameGearMode() || !instances[1].core->IsNativeGameGearMode() ||
+            core->GetCartridge()->IsPAL() != instances[1].core->GetCartridge()->IsPAL())
+        {
+            log_cb(RETRO_LOG_ERROR, "Game Gear linking requires two native Game Gear ROMs with matching timing.\n");
+            retro_unload_game();
+            return false;
+        }
     }
 
     enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
     if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
     {
         log_cb(RETRO_LOG_ERROR, "RGB565 is not supported.\n");
+        retro_unload_game();
         return false;
     }
 
-    bool achievements = true;
+    if (instance_count == 2)
+    {
+        link_cable = new LibretroLink(instances, dpad_vertical_latch, dpad_horizontal_latch);
+        link_cable->Reset();
+    }
+    game_loaded = true;
+    clear_input_state();
+    set_controller_info();
+    for (unsigned i = 0; i < 2; i++)
+        retro_set_controller_port_device(i, input_device[i]);
+
+    struct retro_system_av_info av_info;
+    retro_get_system_av_info(&av_info);
+    current_screen_width = av_info.geometry.base_width;
+    current_screen_height = av_info.geometry.base_height;
+    current_aspect_ratio = av_info.geometry.aspect_ratio;
+
+    if (link_cable && !link_subsystem)
+    {
+        const char* directory = NULL;
+        environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &directory);
+        link_cable->SetSavePath(info->path, directory);
+        link_cable->PersistentMemory(false, vfs_interface);
+    }
+
+    bool achievements = !link_cable;
     environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS, &achievements);
 
     Cartridge* cart = core->GetCartridge();
@@ -421,62 +544,108 @@ bool retro_load_game(const struct retro_game_info *info)
 
 void retro_unload_game(void)
 {
+    if (game_loaded && link_cable && !link_subsystem)
+        link_cable->PersistentMemory(true, vfs_interface);
+
+    clear_input_state();
     clear_cheats();
+    SafeDelete(link_cable);
+    for (unsigned i = 0; i < instance_count; i++)
+    {
+        SafeDelete(instances[i].core);
+        instances[i].sample_count = 0;
+    }
+    core = NULL;
+    instance_count = 0;
+    game_loaded = false;
+    link_subsystem = false;
+    retro_game_path[0] = 0;
+    current_screen_width = 0;
+    current_screen_height = 0;
+    current_aspect_ratio = 0.0f;
+    set_controller_info();
 }
 
 unsigned retro_get_region(void)
 {
-    return core->GetCartridge()->IsPAL() ? RETRO_REGION_PAL : RETRO_REGION_NTSC;
+    return game_loaded && core->GetCartridge()->IsPAL() ? RETRO_REGION_PAL : RETRO_REGION_NTSC;
 }
 
-bool retro_load_game_special(unsigned game_type, const struct retro_game_info *info, size_t num_info)
+bool retro_load_game_special(unsigned type, const struct retro_game_info* info, size_t num)
 {
-   (void)game_type;
-   (void)info;
-   (void)num_info;
-   return false;
+    if (type != GEARSYSTEM_LINK_SUBSYSTEM || !info || num != 2)
+        return false;
+    return load_game(&info[0], &info[1]);
 }
 
 size_t retro_serialize_size(void)
 {
+    if (!game_loaded)
+        return 0;
+    if (link_cable)
+        return link_cable->StateSize();
+
     size_t size = 0;
     core->SaveState(NULL, size);
     return size;
 }
 
-bool retro_serialize(void *data, size_t size)
+bool retro_serialize(void* data, size_t size)
 {
-    return core->SaveState(reinterpret_cast<u8*>(data), size);
+    if (!game_loaded || !data)
+        return false;
+    return link_cable ? link_cable->SaveState(data, size) : core->SaveState((u8*)data, size);
 }
 
-bool retro_unserialize(const void *data, size_t size)
+bool retro_unserialize(const void* data, size_t size)
 {
-    return core->LoadState(reinterpret_cast<const u8*>(data), size);
+    if (!game_loaded)
+        return false;
+    return link_cable ? link_cable->LoadState(data, size) : core->LoadState((const u8*)data, size);
 }
 
-void *retro_get_memory_data(unsigned id)
+static GearsystemCore* memory_instance(unsigned id)
 {
-    switch (id)
+    if (!game_loaded)
+        return NULL;
+    if (id < 0x100)
+        return instances[0].core;
+
+    unsigned index = (id >> 8) - 1;
+    if (index >= instance_count || (id & 0xFF) != RETRO_MEMORY_SAVE_RAM)
+        return NULL;
+    return instances[index].core;
+}
+
+void* retro_get_memory_data(unsigned id)
+{
+    GearsystemCore* target = memory_instance(id);
+    if (!target)
+        return NULL;
+
+    switch (id & 0xFF)
     {
         case RETRO_MEMORY_SAVE_RAM:
-            return core->GetMemory()->GetCurrentRule()->GetRamBanks();
+            return target->GetMemory()->GetCurrentRule()->GetRamBanks();
         case RETRO_MEMORY_SYSTEM_RAM:
-            return core->GetMemory()->GetMemoryMap() + 0xC000;
+            return target->GetMemory()->GetMemoryMap() + 0xC000;
     }
-
     return NULL;
 }
 
 size_t retro_get_memory_size(unsigned id)
 {
-    switch (id)
+    GearsystemCore* target = memory_instance(id);
+    if (!target)
+        return 0;
+
+    switch (id & 0xFF)
     {
         case RETRO_MEMORY_SAVE_RAM:
-            return core->GetMemory()->GetCurrentRule()->GetRamSize();
+            return target->GetMemory()->GetCurrentRule()->GetRamSize();
         case RETRO_MEMORY_SYSTEM_RAM:
             return 0x2000;
     }
-
     return 0;
 }
 
@@ -502,19 +671,19 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
     apply_cheats();
 }
 
-static bool load_bootrom_file(const char* path, bool gg)
+static bool load_bootrom_file(GearsystemCore* target, const char* path, bool gg)
 {
     if (!vfs_interface)
     {
         if (gg)
-            core->GetMemory()->LoadBootromGG(path);
+            target->GetMemory()->LoadBootromGG(path);
         else
-            core->GetMemory()->LoadBootromSMS(path);
+            target->GetMemory()->LoadBootromSMS(path);
 
-        return core->GetMemory()->IsBootromLoaded(gg);
+        return target->GetMemory()->IsBootromLoaded(gg);
     }
 
-    core->GetMemory()->UnloadBootrom(gg);
+    target->GetMemory()->UnloadBootrom(gg);
 
     retro_vfs_file_handle* file = vfs_interface->open(path, RETRO_VFS_FILE_ACCESS_READ,
         RETRO_VFS_FILE_ACCESS_HINT_NONE);
@@ -546,7 +715,7 @@ static bool load_bootrom_file(const char* path, bool gg)
 
     vfs_interface->close(file);
 
-    bool loaded = (total == size) && core->GetMemory()->LoadBootromFromBuffer(bootrom, (int)size, gg);
+    bool loaded = (total == size) && target->GetMemory()->LoadBootromFromBuffer(bootrom, (int)size, gg);
     SafeDeleteArray(bootrom);
 
     if (!loaded)
@@ -559,7 +728,7 @@ static bool load_bootrom_file(const char* path, bool gg)
     return true;
 }
 
-static void load_bootroms(void)
+static void load_bootroms(GearsystemCore* target)
 {
     char bootrom_sms_path[4112];
     char bootrom_gg_path[4112];
@@ -567,10 +736,10 @@ static void load_bootroms(void)
     snprintf(bootrom_sms_path, sizeof(bootrom_sms_path), "%s%cbios.sms", retro_system_directory, slash);
     snprintf(bootrom_gg_path, sizeof(bootrom_gg_path), "%s%cbios.gg", retro_system_directory, slash);
 
-    load_bootrom_file(bootrom_sms_path, false);
-    load_bootrom_file(bootrom_gg_path, true);
-    core->GetMemory()->EnableBootromSMS(bootrom_sms);
-    core->GetMemory()->EnableBootromGG(bootrom_gg);
+    load_bootrom_file(target, bootrom_sms_path, false);
+    load_bootrom_file(target, bootrom_gg_path, true);
+    target->GetMemory()->EnableBootromSMS(bootrom_sms);
+    target->GetMemory()->EnableBootromGG(bootrom_gg);
 }
 
 static void set_controller_info(void)
@@ -597,7 +766,12 @@ static void set_controller_info(void)
         { NULL, 0 },
     };
 
-    environ_cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
+    static const struct retro_controller_info linked_ports[] = {
+        { port_1, 3 },
+        { port_2, 3 },
+        { NULL, 0 },
+    };
+    environ_cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)(link_cable ? linked_ports : ports));
 
     struct retro_input_descriptor joypad[] = {
         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left" },
@@ -626,11 +800,8 @@ static void set_controller_info(void)
 
 static void clear_input_state(void)
 {
-    for (int i = 0; i < 2; i++)
-    {
-        dpad_vertical_latch[i] = 0;
-        dpad_horizontal_latch[i] = 0;
-    }
+    for (unsigned i = 0; i < 2; i++)
+        release_controller_input(i);
 }
 
 static void reset_controller_devices(void)
@@ -643,6 +814,16 @@ static void apply_controller_device(unsigned port, unsigned device, bool log_dev
 {
     if (!core)
         return;
+
+    if (link_cable)
+    {
+        GearsystemCore* target = instances[port].core;
+        target->EnablePhaser(false);
+        target->EnablePaddle(false);
+        target->EnableSportsPad(Joypad_1, false);
+        target->EnableSportsPad(Joypad_2, false);
+        return;
+    }
 
     bool phaser = false;
     bool paddle = false;
@@ -691,24 +872,25 @@ static void apply_controller_device(unsigned port, unsigned device, bool log_dev
 
 static void release_controller_input(unsigned port)
 {
-    GS_Joypads joypad = static_cast<GS_Joypads>(port);
+    GearsystemCore* target = link_cable ? instances[port].core : core;
+    GS_Joypads joypad = link_cable ? Joypad_1 : (GS_Joypads)port;
 
-    if (core)
+    if (target)
     {
-        core->KeyReleased(joypad, Key_Up);
-        core->KeyReleased(joypad, Key_Down);
-        core->KeyReleased(joypad, Key_Left);
-        core->KeyReleased(joypad, Key_Right);
-        core->KeyReleased(joypad, Key_1);
-        core->KeyReleased(joypad, Key_2);
-        core->KeyReleased(joypad, Key_Start);
+        target->KeyReleased(joypad, Key_Up);
+        target->KeyReleased(joypad, Key_Down);
+        target->KeyReleased(joypad, Key_Left);
+        target->KeyReleased(joypad, Key_Right);
+        target->KeyReleased(joypad, Key_1);
+        target->KeyReleased(joypad, Key_2);
+        target->KeyReleased(joypad, Key_Start);
     }
 
     dpad_vertical_latch[port] = 0;
     dpad_horizontal_latch[port] = 0;
 
-    if ((port == 0) && core)
-        core->SetReset(false);
+    if (target)
+        target->SetReset(false);
 }
 
 static void update_input(void)
@@ -716,9 +898,14 @@ static void update_input(void)
     input_poll_cb();
     bool reset_pressed = false;
 
-    for (int player=0; player<2; player++)
+    for (int player = 0; player < 2; player++)
     {
-        switch (input_device[player])
+        GearsystemCore* target = link_cable ? instances[player].core : core;
+        GS_Joypads joypad = link_cable ? Joypad_1 : (GS_Joypads)player;
+
+        unsigned device = link_cable && input_device[player] != RETRO_DEVICE_NONE ? RETRO_DEVICE_SMS_GG_PAD : input_device[player];
+
+        switch (device)
         {
         case RETRO_DEVICE_SMS_GG_PAD:
         case RETRO_DEVICE_JOYPAD:
@@ -824,37 +1011,37 @@ static void update_input(void)
             }
 
             if (up)
-                core->KeyPressed(static_cast<GS_Joypads>(player), Key_Up);
+                target->KeyPressed(joypad, Key_Up);
             else
-                core->KeyReleased(static_cast<GS_Joypads>(player), Key_Up);
+                target->KeyReleased(joypad, Key_Up);
 
             if (down)
-                core->KeyPressed(static_cast<GS_Joypads>(player), Key_Down);
+                target->KeyPressed(joypad, Key_Down);
             else
-                core->KeyReleased(static_cast<GS_Joypads>(player), Key_Down);
+                target->KeyReleased(joypad, Key_Down);
 
             if (left)
-                core->KeyPressed(static_cast<GS_Joypads>(player), Key_Left);
+                target->KeyPressed(joypad, Key_Left);
             else
-                core->KeyReleased(static_cast<GS_Joypads>(player), Key_Left);
+                target->KeyReleased(joypad, Key_Left);
 
             if (right)
-                core->KeyPressed(static_cast<GS_Joypads>(player), Key_Right);
+                target->KeyPressed(joypad, Key_Right);
             else
-                core->KeyReleased(static_cast<GS_Joypads>(player), Key_Right);
+                target->KeyReleased(joypad, Key_Right);
 
             if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_B))
-                core->KeyPressed(static_cast<GS_Joypads>(player), Key_1);
+                target->KeyPressed(joypad, Key_1);
             else
-                core->KeyReleased(static_cast<GS_Joypads>(player), Key_1);
+                target->KeyReleased(joypad, Key_1);
             if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_A))
-                core->KeyPressed(static_cast<GS_Joypads>(player), Key_2);
+                target->KeyPressed(joypad, Key_2);
             else
-                core->KeyReleased(static_cast<GS_Joypads>(player), Key_2);
+                target->KeyReleased(joypad, Key_2);
             if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_START))
-                core->KeyPressed(static_cast<GS_Joypads>(player), Key_Start);
+                target->KeyPressed(joypad, Key_Start);
             else
-                core->KeyReleased(static_cast<GS_Joypads>(player), Key_Start);
+                target->KeyReleased(joypad, Key_Start);
             if (ib & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
                 reset_pressed = true;
 
@@ -871,18 +1058,18 @@ static void update_input(void)
                     x = ((x + 0x7fff) * current_screen_width) / 0xfffe;
                     y = ((y + 0x7fff) * current_screen_height) / 0xfffe;
 
-                    core->SetPhaser(x, y);
+                    target->SetPhaser(x, y);
 
                     if (input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED))
-                        core->KeyPressed(static_cast<GS_Joypads>(0), Key_1);
+                        target->KeyPressed(static_cast<GS_Joypads>(0), Key_1);
                     else
-                        core->KeyReleased(static_cast<GS_Joypads>(0), Key_1);
+                        target->KeyReleased(static_cast<GS_Joypads>(0), Key_1);
                 }
                 else
                 {
                     if (input_state_cb(0, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN) )
                     {
-                        core->SetPhaser(-1000, -1000);
+                        target->SetPhaser(-1000, -1000);
                     }
                     else
                     {
@@ -891,13 +1078,13 @@ static void update_input(void)
                         x = ((x + 0x7fff) * current_screen_width) / 0xfffe;
                         y = ((y + 0x7fff) * current_screen_height) / 0xfffe;
 
-                        core->SetPhaser(x, y);
+                        target->SetPhaser(x, y);
                     }
 
                     if (input_state_cb(0, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_TRIGGER))
-                        core->KeyPressed(static_cast<GS_Joypads>(0), Key_1);
+                        target->KeyPressed(static_cast<GS_Joypads>(0), Key_1);
                     else
-                        core->KeyReleased(static_cast<GS_Joypads>(0), Key_1);
+                        target->KeyReleased(static_cast<GS_Joypads>(0), Key_1);
                 }
             }
 
@@ -913,12 +1100,12 @@ static void update_input(void)
                 if (sen < 1)
                     sen = 1;
                 float relx = (float)(mouse_x) * ((float)(sen) / 6.0f);
-                core->SetPaddle(relx);
+                target->SetPaddle(relx);
 
                 if (input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT))
-                    core->KeyPressed(static_cast<GS_Joypads>(0), Key_1);
+                    target->KeyPressed(static_cast<GS_Joypads>(0), Key_1);
                 else
-                    core->KeyReleased(static_cast<GS_Joypads>(0), Key_1);
+                    target->KeyReleased(static_cast<GS_Joypads>(0), Key_1);
             }
 
             break;
@@ -937,20 +1124,20 @@ static void update_input(void)
             if (sen < 1)
                 sen = 1;
             float sensitivity = (float)sen / 32768.0f;
-            core->MoveSportsPad((GS_Joypads)player, x * sensitivity, y * sensitivity);
+            target->MoveSportsPad(joypad, x * sensitivity, y * sensitivity);
 
             if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B))
-                core->KeyPressed((GS_Joypads)player, Key_1);
+                target->KeyPressed(joypad, Key_1);
             else
-                core->KeyReleased((GS_Joypads)player, Key_1);
+                target->KeyReleased(joypad, Key_1);
             if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A))
-                core->KeyPressed((GS_Joypads)player, Key_2);
+                target->KeyPressed(joypad, Key_2);
             else
-                core->KeyReleased((GS_Joypads)player, Key_2);
+                target->KeyReleased(joypad, Key_2);
             if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START))
-                core->KeyPressed((GS_Joypads)player, Key_Start);
+                target->KeyPressed(joypad, Key_Start);
             else
-                core->KeyReleased((GS_Joypads)player, Key_Start);
+                target->KeyReleased(joypad, Key_Start);
             if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT))
                 reset_pressed = true;
 
@@ -961,10 +1148,11 @@ static void update_input(void)
         }
     }
 
-    core->SetReset(reset_pressed);
+    for (unsigned i = 0; i < instance_count; i++)
+        instances[i].core->SetReset(reset_pressed);
 }
 
-static void check_variables(void)
+static void apply_variables(GearsystemCore* core)
 {
     struct retro_variable var = {0};
 
@@ -1327,4 +1515,52 @@ static void check_variables(void)
 
         core->SetGlassesConfig(glasses_config);
     }
+}
+
+static void check_variables(void)
+{
+    struct retro_variable var = {};
+
+    var.key = "gearsystem_link_enable";
+    var.value = NULL;
+    link_enabled = environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && strcmp(var.value, "Enabled") == 0;
+
+    var.key = "gearsystem_link_placement";
+    var.value = NULL;
+    link_vertical = environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && strcmp(var.value, "Vertical") == 0;
+
+    var.key = "gearsystem_link_switch";
+    var.value = NULL;
+    link_switched = environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && strcmp(var.value, "Enabled") == 0;
+
+    var.key = "gearsystem_link_screen";
+    var.value = NULL;
+    link_screen = 0;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Screen 1") == 0)
+            link_screen = 1;
+        else if (strcmp(var.value, "Screen 2") == 0)
+            link_screen = 2;
+        else
+            link_screen = 0;
+    }
+
+    var.key = "gearsystem_link_audio";
+    var.value = NULL;
+    link_audio = 0;
+
+    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+    {
+        if (strcmp(var.value, "Screen 2") == 0)
+            link_audio = 1;
+        else if (strcmp(var.value, "Mix") == 0)
+            link_audio = 2;
+        else
+            link_audio = 0;
+    }
+
+    for (unsigned i = 0; i < instance_count; i++)
+        apply_variables(instances[i].core);
 }
