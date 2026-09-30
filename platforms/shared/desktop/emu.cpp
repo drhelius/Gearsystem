@@ -515,7 +515,12 @@ bool emu_is_empty(void)
     return !gearsystem->GetCartridge()->IsReady();
 }
 
-void emu_reset(Cartridge::ForceConfiguration config)
+void emu_save_persistent_data(void)
+{
+    save_ram();
+}
+
+void emu_reset(Cartridge::ForceConfiguration config, bool save_persistent_data)
 {
     gui_debug_trace_logger_reset();
     emu_debug_command = Debug_Command_None;
@@ -526,7 +531,8 @@ void emu_reset(Cartridge::ForceConfiguration config)
     reset_buffers();
     reset_rewind_timing();
     emu_audio_reset();
-    save_ram();
+    if (save_persistent_data)
+        emu_save_persistent_data();
     gearsystem->ResetROM(&config);
     load_ram();
     rewind_reset();
@@ -606,6 +612,7 @@ void emu_load_state_slot(int index)
         const char* dir = get_configurated_dir(config_emulator.savestates_dir_option, config_emulator.savestates_path.c_str());
         if (gearsystem->LoadState(dir, index))
         {
+            emu_debug_state_restored();
             events_sync_input();
             rewind_reset();
         }
@@ -625,6 +632,7 @@ void emu_load_state_file(const char* file_path)
         emu_geartogear_stop();
         if (gearsystem->LoadState(file_path))
         {
+            emu_debug_state_restored();
             events_sync_input();
             rewind_reset();
         }
@@ -635,14 +643,20 @@ void update_savestates_data(void)
 {
     emu_savestates_generation++;
 
+    for (int i = 0; i < 5; i++)
+    {
+        emu_savestates[i].rom_name[0] = 0;
+        SafeDeleteArray(emu_savestates_screenshots[i].data);
+        emu_savestates_screenshots[i].width = 0;
+        emu_savestates_screenshots[i].height = 0;
+        emu_savestates_screenshots[i].size = 0;
+    }
+
     if (emu_is_empty())
         return;
 
     for (int i = 0; i < 5; i++)
     {
-        emu_savestates[i].rom_name[0] = 0;
-        SafeDeleteArray(emu_savestates_screenshots[i].data);
-
         const char* dir = get_configurated_dir(config_emulator.savestates_dir_option, config_emulator.savestates_path.c_str());
 
         if (!gearsystem->GetSaveStateHeader(i + 1, dir, &emu_savestates[i]))
@@ -670,6 +684,17 @@ void emu_clear_cheats()
 void emu_get_runtime(GS_RuntimeInfo& runtime)
 {
     gearsystem->GetRuntimeInfo(runtime);
+}
+
+double emu_get_frame_rate(void)
+{
+    if (!IsValidPointer(gearsystem))
+        return 60.0;
+
+    GS_RuntimeInfo runtime;
+    emu_get_runtime(runtime);
+
+    return runtime.fps;
 }
 
 void emu_get_info(char* info, int buffer_size)
@@ -713,6 +738,15 @@ void emu_get_info(char* info, int buffer_size)
 GearsystemCore* emu_get_core(void)
 {
     return gearsystem;
+}
+
+void emu_debug_state_restored(void)
+{
+    emu_get_core()->GetProcessor()->ResetDebuggerExecutionState();
+    emu_debug_command = Debug_Command_None;
+    emu_debug_step_frames_pending = 0;
+    emu_debug_halt_step_frames_pending = 0;
+    emu_debug_pc_changed = true;
 }
 
 void emu_debug_step_over(void)

@@ -33,6 +33,7 @@
 #include "application.h"
 #include "display.h"
 #include "gamepad.h"
+#include "sound_queue.h"
 #include "emu.h"
 #include "ogl_renderer.h"
 #include "ogl_shader_chain.h"
@@ -304,7 +305,7 @@ static void menu_gearsystem(void)
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem("Load Default Settings"))
+        if (ImGui::MenuItem("Load Default Settings", NULL, false, !gui_is_rom_loading() && !emu_is_media_loading()))
         {
             open_load_defaults = true;
         }
@@ -762,11 +763,12 @@ static void menu_video(void)
 
         if (ImGui::BeginMenu("Vertical Sync"))
         {
-            ImGui::PushItemWidth(240.0f);
 #if defined(_WIN32)
-            if (ImGui::Combo("##sync_mode", &config_video.sync_mode, "Disabled\0Fixed (60 Hz, 120 Hz, 240 Hz)\0Variable Refresh Rate (VRR)\0\0"))
+            ImGui::PushItemWidth(220.0f);
+            if (ImGui::Combo("##sync_mode", &config_video.sync_mode, "Disabled\0Fixed Vertical Sync\0Variable Refresh Rate (VRR)\0\0"))
 #else
-            if (ImGui::Combo("##sync_mode", &config_video.sync_mode, "Disabled\0Fixed (60 Hz, 120 Hz, 240 Hz)\0\0"))
+            ImGui::PushItemWidth(100.0f);
+            if (ImGui::Combo("##sync_mode", &config_video.sync_mode, "Disabled\0Enabled\0\0"))
 #endif
             {
                 if (config_video.sync_mode != config_VideoSync_Disabled)
@@ -780,19 +782,18 @@ static void menu_video(void)
             }
             ImGui::PopItemWidth();
 
+#if defined(_WIN32)
             if (ImGui::IsItemHovered())
             {
                 ImGui::BeginTooltip();
                 ImGui::Text("Disabled: do not synchronize presentation to the monitor.");
-                ImGui::Text("Fixed: use normal VSync for 60 Hz, 120 Hz, and 240 Hz displays.");
-#if defined(_WIN32)
+                ImGui::Text("Fixed Vertical Sync: use normal VSync.");
                 ImGui::Text("VRR: present at the emulator frame rate.");
-                ImGui::Text("VRR requires fullscreen, a VRR display, and G-SYNC,");
+                ImGui::Text("\nVRR requires fullscreen, a VRR display, and G-SYNC,");
                 ImGui::Text("FreeSync, or Adaptive Sync enabled in your monitor and GPU driver settings.");
-#endif
                 ImGui::EndTooltip();
             }
-
+#endif
             ImGui::EndMenu();
         }
 
@@ -1096,8 +1097,9 @@ static void menu_input(void)
 
                 if (ImGui::BeginMenu("Directional Controls"))
                 {
-                    ImGui::PushItemWidth(150.0f);
-                    ImGui::Combo("##directional", &config_input[0].gamepad_directional, "D-pad\0Left Analog Stick\0\0");
+                    ImGui::PushItemWidth(200.0f);
+                    ImGui::Combo("##directional", &config_input[0].gamepad_directional,
+                        "D-pad\0Left Analog Stick\0D-pad + Left Analog Stick\0\0");
                     ImGui::PopItemWidth();
                     ImGui::EndMenu();
                 }
@@ -1161,8 +1163,9 @@ static void menu_input(void)
 
                 if (ImGui::BeginMenu("Directional Controls"))
                 {
-                    ImGui::PushItemWidth(150.0f);
-                    ImGui::Combo("##directional", &config_input[1].gamepad_directional, "D-pad\0Left Analog Stick\0\0");
+                    ImGui::PushItemWidth(200.0f);
+                    ImGui::Combo("##directional", &config_input[1].gamepad_directional,
+                        "D-pad\0Left Analog Stick\0D-pad + Left Analog Stick\0\0");
                     ImGui::PopItemWidth();
                     ImGui::EndMenu();
                 }
@@ -1470,12 +1473,12 @@ static void menu_audio(void)
             ImGui::PopItemWidth();
             if (ImGui::IsItemHovered())
             {
-                float latency_ms = (config_audio.buffer_count * GS_AUDIO_QUEUE_SIZE) / (float)(GS_AUDIO_SAMPLE_RATE * 2) * 1000.0f;
                 ImGui::BeginTooltip();
-                ImGui::Text("Lower values reduce audio latency.");
+                ImGui::Text("Audio latency: %.0f ms", sound_queue_get_target_latency_ms());
+                ImGui::Text("\nLower values reduce audio latency.");
                 ImGui::Text("Higher values prevent audio underruns.");
                 ImGui::Text("Enabling VSync may force higher buffer counts.");
-                ImGui::Text("Current audio latency: %.0f ms", latency_ms);
+
                 ImGui::EndTooltip();
             }
             ImGui::EndMenu();

@@ -210,7 +210,7 @@ static inline void process(config_Operation operation)
         CONFIG_STRING("Video", "ShaderPresetFile", config_video.shader_preset_path, "");
     }
 
-    CONFIG_INT_RANGE("Video", "SyncMode", config_video.sync_mode, config_VideoSync_Disabled, config_VideoSync_Disabled, config_VideoSync_VRR);
+    CONFIG_INT_RANGE("Video", "SyncMode", config_video.sync_mode, config_VideoSync_Fixed, config_VideoSync_Disabled, config_VideoSync_VRR);
 
     // Background colors
     CONFIG_FLOAT("Video", "BackgroundColorR", config_video.background_color[config_Theme_Dark][0], 0.1f);
@@ -287,7 +287,7 @@ static inline void process(config_Operation operation)
         // Gamepad
         CONFIG_BOOL(section, "AllowUpDown", config_input[i].allow_up_down, false);
         CONFIG_BOOL(section, "Gamepad", config_input[i].gamepad, true);
-        CONFIG_INT(section, "GamepadDirectional", config_input[i].gamepad_directional, 0);
+        CONFIG_INT_RANGE(section, "GamepadDirectional", config_input[i].gamepad_directional, 0, 0, 2);
         CONFIG_BOOL(section, "GamepadInvertX", config_input[i].gamepad_invert_x_axis, false);
         CONFIG_BOOL(section, "GamepadInvertY", config_input[i].gamepad_invert_y_axis, false);
         CONFIG_INT(section, "Gamepad1", config_input[i].gamepad_1, gamepad_1_default);

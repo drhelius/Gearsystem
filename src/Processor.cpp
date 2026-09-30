@@ -1187,6 +1187,16 @@ bool Processor::IsBreakpoint(int type, u16 address)
     return false;
 }
 
+void Processor::ResetDebuggerExecutionState()
+{
+    ClearDisassemblerCallStack();
+    m_run_to_breakpoint_requested = false;
+    m_cpu_breakpoint_hit = false;
+    m_memory_breakpoint_hit = false;
+    m_run_to_breakpoint_hit = false;
+    m_debug_next_irq = 0;
+}
+
 void Processor::ClearDisassemblerCallStack()
 {
     while(!m_disassembler_call_stack.empty())

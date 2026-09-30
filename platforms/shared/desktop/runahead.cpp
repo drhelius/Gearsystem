@@ -95,6 +95,7 @@ void runahead_run(int frames, u8* frame_buffer, s16* sample_buffer, int* sample_
     {
         Log("Run-ahead: failed to restore state, disabling run-ahead");
         config_emulator.runahead = 0;
+        emu_debug_state_restored();
     }
 }
 

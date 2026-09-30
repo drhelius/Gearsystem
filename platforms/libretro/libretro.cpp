@@ -43,7 +43,6 @@ static const char slash = '/';
 
 static retro_environment_t environ_cb;
 static retro_video_refresh_t video_cb;
-static retro_audio_sample_t audio_cb;
 static retro_audio_sample_batch_t audio_batch_cb;
 static retro_input_poll_t input_poll_cb;
 static retro_input_state_t input_state_cb;
@@ -129,7 +128,7 @@ unsigned retro_api_version(void)
 
 void retro_set_audio_sample(retro_audio_sample_t cb)
 {
-    audio_cb = cb;
+    (void)cb;
 }
 
 void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb)
@@ -277,7 +276,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
     info->geometry.max_width    = GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN;
     info->geometry.max_height   = GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN;
     info->geometry.aspect_ratio = aspect_ratio;
-    info->timing.fps            = runtime_info.region == Region_NTSC ? 60.0 : 50.0;
+    info->timing.fps            = runtime_info.fps;
     info->timing.sample_rate    = 44100.0;
 }
 

@@ -123,6 +123,7 @@ public:
     bool IsBreakpoint(int type, u16 address);
     std::vector<GS_Breakpoint>* GetBreakpoints();
     void ClearDisassemblerCallStack();
+    void ResetDebuggerExecutionState();
     std::stack<GS_CallStackEntry>* GetDisassemblerCallStack();
     void CheckMemoryBreakpoints(int type, u16 address, bool read);
     bool Halted();

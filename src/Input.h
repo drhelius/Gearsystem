@@ -65,7 +65,7 @@ public:
 public:
     Input(Processor* pProcessor, Video* pVideo, const u64* pMasterClockCycles);
     void Init();
-    void Reset(bool bGameGear, bool bPAL = false);
+    void Reset(bool bGameGear, bool bPAL = false, bool bGameGearInSMSMode = false);
     void KeyPressed(GS_Joypads joypad, GS_Keys key);
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
     bool IsKeyPressed(GS_Joypads joypad, GS_Keys key) const;
@@ -117,6 +117,7 @@ private:
     u8 m_Joypad2;
     u8 m_GlassesRegistry;
     bool m_bGameGear;
+    bool m_bGameGearInSMSMode;
     bool m_bPhaser;
     stPhaser m_Phaser;
     stPhaser m_PhaserOffset;

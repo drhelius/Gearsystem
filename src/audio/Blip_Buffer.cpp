@@ -400,7 +400,7 @@ long Blip_Buffer::read_samples( blip_sample_t* BLIP_RESTRICT out, long max_sampl
 		
 		if ( !stereo )
 		{
-			for ( blip_long n = count; n; --n )
+			for ( long n = count; n; --n )
 			{
 				blip_long s = BLIP_READER_READ( reader );
 				if ( (blip_sample_t) s != s )
@@ -411,7 +411,7 @@ long Blip_Buffer::read_samples( blip_sample_t* BLIP_RESTRICT out, long max_sampl
 		}
 		else
 		{
-			for ( blip_long n = count; n; --n )
+			for ( long n = count; n; --n )
 			{
 				blip_long s = BLIP_READER_READ( reader );
 				if ( (blip_sample_t) s != s )

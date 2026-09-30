@@ -201,6 +201,7 @@ struct GS_RuntimeInfo
     int screen_width;
     int screen_height;
     GS_Region region;
+    double fps;
 };
 
 enum GS_Disassembler_Syntax

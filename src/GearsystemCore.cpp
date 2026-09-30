@@ -375,6 +375,12 @@ void GearsystemCore::SaveDisassembledROM()
 
 bool GearsystemCore::GetRuntimeInfo(GS_RuntimeInfo& runtime_info)
 {
+    bool pal = m_pCartridge->IsPAL();
+    double master_clock = pal ? (m_pCartridge->IsSG1000() ? GS_MASTER_CLOCK_PAL_SG1000 : GS_MASTER_CLOCK_PAL) : GS_MASTER_CLOCK_NTSC;
+    int lines_per_frame = pal ? GS_LINES_PER_FRAME_PAL : GS_LINES_PER_FRAME_NTSC;
+
+    runtime_info.fps = master_clock / (GS_CYCLES_PER_LINE * lines_per_frame);
+
     if (m_pCartridge->IsReady())
     {
         if (m_pCartridge->IsGameGear() && !m_pCartridge->IsGameGearInSMSMode())
@@ -1615,7 +1621,7 @@ void GearsystemCore::Reset()
     m_pProcessor->Reset(m_pCartridge->GetGameGearASIC() == 1);
     m_pAudio->Reset(m_pCartridge->IsPAL());
     m_pVideo->Reset(m_pCartridge->IsGameGear(), m_pCartridge->IsPAL(), m_pCartridge->GetGameGearASIC(), m_pCartridge->IsGameGearInSMSMode());
-    m_pInput->Reset(m_pCartridge->IsGameGear(), m_pCartridge->IsPAL());
+    m_pInput->Reset(m_pCartridge->IsGameGear(), m_pCartridge->IsPAL(), m_pCartridge->IsGameGearInSMSMode());
     m_pSegaMemoryRule->Reset();
     m_pCodemastersMemoryRule->Reset();
     m_pSG1000MemoryRule->Reset();
