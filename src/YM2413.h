@@ -21,7 +21,7 @@ public:
     int EndFrame(s16* pSampleBuffer);
     void Enable(bool bEnabled);
     void SaveState(std::ostream& stream);
-    void LoadState(std::istream& stream);
+    void LoadState(std::istream& stream, int version);
     void LoadStateV1(std::istream& stream);
 
 private:

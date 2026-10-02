@@ -189,14 +189,13 @@ void YM2413::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*>(&m_CurrentSample), sizeof(s16));
     stream.write(reinterpret_cast<const char*>(&m_bEnabled), sizeof(bool));
     stream.write(reinterpret_cast<const char*>(&m_iSampleRateFactor), sizeof(int));
-    stream.write(reinterpret_cast<const char*>(m_pBuffer), sizeof(s16) * GS_AUDIO_BUFFER_SIZE);
 
     unsigned char* context = YM2413GetContextPtr();
     unsigned int contex_size = YM2413GetContextSize();
     stream.write(reinterpret_cast<const char*>(context), contex_size);
 }
 
-void YM2413::LoadState(std::istream& stream)
+void YM2413::LoadState(std::istream& stream, int version)
 {
     stream.read(reinterpret_cast<char*>(&m_iCycleCounter), sizeof(int));
     stream.read(reinterpret_cast<char*>(&m_iSampleCounter), sizeof(int));
@@ -207,7 +206,9 @@ void YM2413::LoadState(std::istream& stream)
     stream.read(reinterpret_cast<char*>(&m_CurrentSample), sizeof(s16));
     stream.read(reinterpret_cast<char*>(&m_bEnabled), sizeof(bool));
     stream.read(reinterpret_cast<char*>(&m_iSampleRateFactor), sizeof(int));
-    stream.read(reinterpret_cast<char*>(m_pBuffer), sizeof(s16) * GS_AUDIO_BUFFER_SIZE);
+
+    if (version < 110)
+        stream.read(reinterpret_cast<char*>(m_pBuffer), sizeof(s16) * GS_AUDIO_BUFFER_SIZE);
 
     unsigned char* context = YM2413GetContextPtr();
     unsigned int context_size = YM2413GetContextSize();
