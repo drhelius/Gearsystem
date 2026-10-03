@@ -61,7 +61,7 @@ int application_headless_init(const ApplicationParams& params)
 
     config_debug.debug = true;
 
-    emu_set_overscan(0);
+    emu_set_overscan(config_debug.overscan);
     emu_audio_mute(true);
 
     gui_debug_init();
@@ -79,7 +79,7 @@ int application_headless_init(const ApplicationParams& params)
     emu_enable_bootrom_sms(config_emulator.sms_bootrom);
     emu_enable_bootrom_gg(config_emulator.gg_bootrom);
     emu_set_media_slot(config_emulator.media);
-    emu_set_hide_left_bar(config_video.hide_left_bar);
+    emu_set_hide_left_bar(config_debug.hide_left_bar);
     emu_video_no_sprite_limit(config_video.sprite_limit);
     emu_disable_ym2413(config_audio.ym2413 == 1);
 

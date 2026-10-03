@@ -145,8 +145,8 @@ void gui_apply_settings(void)
     emu_enable_bootrom_sms(config_emulator.sms_bootrom);
     emu_enable_bootrom_gg(config_emulator.gg_bootrom);
     emu_set_media_slot(config_emulator.media);
-    emu_set_overscan(config_debug.debug ? 0 : config_video.overscan);
-    emu_set_hide_left_bar(config_video.hide_left_bar);
+    emu_set_overscan(config_debug.debug ? config_debug.overscan : config_video.overscan);
+    emu_set_hide_left_bar(config_debug.debug ? config_debug.hide_left_bar : config_video.hide_left_bar);
     emu_video_no_sprite_limit(config_video.sprite_limit);
     emu_set_3d_glasses_config(config_video.glasses);
     emu_set_disassembler_syntax(config_debug.dis_syntax);

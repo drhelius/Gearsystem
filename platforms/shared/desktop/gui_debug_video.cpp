@@ -57,8 +57,6 @@ void gui_debug_window_vram_nametable(void)
     }
 
     Video* video = emu_get_core()->GetVideo();
-    GS_RuntimeInfo runtime;
-    emu_get_runtime(runtime);
     u8* regs = video->GetRegisters();
     u8* vram = video->GetVRAM();
     bool isMode224 = video->IsExtendedMode224();
@@ -114,13 +112,17 @@ void gui_debug_window_vram_nametable(void)
 
     if (show_screen)
     {
-        int scroll_x = 256 - regs[8];
+        int scroll_x = 256 - regs[8] + video->GetHideLeftBarOffset();
         int scroll_y = regs[9];
+        int screen_width = GS_RESOLUTION_SMS_WIDTH - video->GetHideLeftBarOffset();
+        int screen_height = isMode224 ? GS_RESOLUTION_SMS_HEIGHT_EXTENDED : GS_RESOLUTION_SMS_HEIGHT;
 
         if (isGG)
         {
             scroll_x += GS_RESOLUTION_GG_X_OFFSET;
             scroll_y += GS_RESOLUTION_GG_Y_OFFSET;
+            screen_width = GS_RESOLUTION_GG_WIDTH;
+            screen_height = GS_RESOLUTION_GG_HEIGHT;
         }
 
         scroll_x &= 0xFF;
@@ -131,8 +133,8 @@ void gui_debug_window_vram_nametable(void)
 
         float rect_x_min = p.x + (scroll_x * scale);
         float rect_y_min = p.y + (scroll_y * scale);
-        float rect_x_max = p.x + ((scroll_x + runtime.screen_width) * scale);
-        float rect_y_max = p.y + ((scroll_y + runtime.screen_height) * scale);
+        float rect_x_max = p.x + ((scroll_x + screen_width) * scale);
+        float rect_y_max = p.y + ((scroll_y + screen_height) * scale);
 
         float x_overflow = 0.0f;
         float y_overflow = 0.0f;
@@ -641,8 +643,20 @@ void gui_debug_window_vram_sprites(void)
             tile &= sprites_16 ? 0xFE : 0xFF;
             sprite_tile_addr = sprite_tiles_address + (tile << 5);
 
-            real_x = (float)(x - sprite_shift - (isGG ? GS_RESOLUTION_GG_X_OFFSET : 0));
+            real_x = (float)(x - sprite_shift - (isGG ? GS_RESOLUTION_GG_X_OFFSET : 0) - video->GetHideLeftBarOffset());
             real_y = (float)(y + 1.0f - (isGG ? GS_RESOLUTION_GG_Y_OFFSET : 0));
+        }
+
+        if (!isGG && (video->GetOverscan() != Video::OverscanDisabled))
+        {
+            int overscan_y_offset = core->GetCartridge()->IsPAL() ? GS_RESOLUTION_SMS_OVERSCAN_V_PAL : GS_RESOLUTION_SMS_OVERSCAN_V;
+            overscan_y_offset -= video->IsExtendedMode224() ? 16 : 0;
+            real_y += (float)overscan_y_offset;
+
+            if (video->GetOverscan() == Video::OverscanFull284)
+                real_x += (float)GS_RESOLUTION_SMS_OVERSCAN_H_284_L;
+            else if (video->GetOverscan() == Video::OverscanFull320)
+                real_x += (float)GS_RESOLUTION_SMS_OVERSCAN_H_320_L;
         }
 
         float max_width = 8.0f;
