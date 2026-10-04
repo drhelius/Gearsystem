@@ -1676,13 +1676,22 @@ json McpServer::BuildToolList()
                     {"type", "string"},
                     {"description", "Output directory for disk capture."}
                 }},
+                {"vblank_watch_address", {
+                    {"type", "string"},
+                    {"description", "CPU address hex watched by vdp.missed_vblank: 'C000', '0xC000', or '$C000'. Omit to keep current."}
+                }},
+                {"vblank_watch_operation", {
+                    {"type", "string"},
+                    {"description", "Access that marks a frame as on time for vdp.missed_vblank. Omit to keep current."},
+                    {"enum", json::array({"read", "write", "read_write"})}
+                }},
                 {"filters", {
                     {"type", "array"},
                     {"minItems", 1},
                     {"uniqueItems", true},
                     {"items", {{"type", "string"}, {"enum", json::array({
                         "cpu.instructions", "cpu.interrupts", "vdp.registers", "vdp.interrupts", "vdp.status",
-                        "vdp.sprites", "vdp.sprite_budget", "vdp.sprite_limit", "vdp.state", "vdp.data", "vdp.cram",
+                        "vdp.sprites", "vdp.sprite_budget", "vdp.sprite_limit", "vdp.missed_vblank", "vdp.state", "vdp.data", "vdp.cram",
                         "input.reads", "input.changes",
                         "io.control", "io.counters", "io.gamegear", "psg.tone", "psg.volume", "psg.noise",
                         "geartogear.cable", "geartogear.transfers",

@@ -2921,6 +2921,7 @@ json DebugAdapter::GetTraceLog(s64 start, int count)
 
 json DebugAdapter::SetTraceLog(const json& arguments)
 {
+    static const char* const k_vblank_watch_operations[] = { "read", "write", "read_write" };
     json result;
 
     TraceLogger* tl = m_core->GetTraceLogger();
@@ -2964,6 +2965,7 @@ json DebugAdapter::SetTraceLog(const json& arguments)
         else if (filter == "vdp.sprites") { flags |= TRACE_FLAG_VDP; masks[TRACE_VDP] |= TRACE_VDP_EVENT_SPRITES; }
         else if (filter == "vdp.sprite_budget") { flags |= TRACE_FLAG_VDP; masks[TRACE_VDP] |= TRACE_VDP_EVENT_SPRITE_BUDGET; }
         else if (filter == "vdp.sprite_limit") { flags |= TRACE_FLAG_VDP; masks[TRACE_VDP] |= TRACE_VDP_EVENT_SPRITE_LIMIT; }
+        else if (filter == "vdp.missed_vblank") { flags |= TRACE_FLAG_VDP; masks[TRACE_VDP] |= TRACE_VDP_EVENT_MISSED_VBLANK; }
         else if (filter == "vdp.state") { flags |= TRACE_FLAG_VDP; masks[TRACE_VDP] |= TRACE_VDP_EVENT_STATE; }
         else if (filter == "vdp.data") { flags |= TRACE_FLAG_VDP; masks[TRACE_VDP] |= TRACE_VDP_EVENT_DATA; }
         else if (filter == "vdp.cram") { flags |= TRACE_FLAG_VDP; masks[TRACE_VDP] |= TRACE_VDP_EVENT_CRAM; }
@@ -3034,6 +3036,30 @@ json DebugAdapter::SetTraceLog(const json& arguments)
             return {{"error", "Invalid trace disk size"}};
     }
 
+    int vblank_watch_address_value = config_debug.trace_vblank_watch_address;
+    std::string vblank_watch_address = arguments.value("vblank_watch_address", "");
+    if (!vblank_watch_address.empty())
+    {
+        u16 address = 0;
+        if (!parse_hex_with_prefix(vblank_watch_address, &address))
+            return {{"error", "Invalid vblank watch address"}};
+        vblank_watch_address_value = address;
+    }
+
+    int vblank_watch_operation_value = config_debug.trace_vblank_watch_operation;
+    std::string vblank_watch_operation = arguments.value("vblank_watch_operation", "");
+    if (!vblank_watch_operation.empty())
+    {
+        vblank_watch_operation_value = -1;
+        for (int i = 0; i < 3; i++)
+        {
+            if (vblank_watch_operation == k_vblank_watch_operations[i])
+                vblank_watch_operation_value = i;
+        }
+        if (vblank_watch_operation_value < 0)
+            return {{"error", "Invalid vblank watch operation"}};
+    }
+
     std::string output_path = arguments.value("output_path", "");
     bool configuration_changed = output_value != config_debug.trace_output;
     if (output_value == gui_TraceOutput_Memory)
@@ -3053,6 +3079,8 @@ json DebugAdapter::SetTraceLog(const json& arguments)
         return {{"error", "Unable to configure trace logger"}};
 
     gui_debug_trace_logger_set_event_filters(masks);
+    config_debug.trace_vblank_watch_address = vblank_watch_address_value;
+    config_debug.trace_vblank_watch_operation = vblank_watch_operation_value;
     if (!gui_debug_trace_logger_start(flags))
         return {{"error", "Unable to start trace logger"}};
 
@@ -3061,6 +3089,13 @@ json DebugAdapter::SetTraceLog(const json& arguments)
     result["memory_size"] = gui_debug_trace_logger_memory_size_name(config_debug.trace_capacity);
     result["disk_size"] = gui_debug_trace_logger_disk_size_name(config_debug.trace_disk_size);
     result["filters"] = filters;
+    if ((masks[TRACE_VDP] & TRACE_VDP_EVENT_MISSED_VBLANK) != 0)
+    {
+        char address[8];
+        snprintf(address, sizeof(address), "%04X", config_debug.trace_vblank_watch_address);
+        result["vblank_watch_address"] = address;
+        result["vblank_watch_operation"] = k_vblank_watch_operations[config_debug.trace_vblank_watch_operation];
+    }
     if (config_debug.trace_output == gui_TraceOutput_Disk)
         result["output_path"] = gui_debug_trace_logger_get_output_path();
     result["total_entries"] = tl->GetCount();

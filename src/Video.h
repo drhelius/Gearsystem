@@ -120,6 +120,8 @@ private:
     void LogVDPEvent(u8 event, u8 raw, u8 effective, u16 auxiliary, u8 reg, u8 status_before, u8 status_after, u16 address);
     INLINE void TraceSpriteBudget(int line);
     void LogSpriteBudget(int line);
+    INLINE void TraceMissedVBlank();
+    void LogMissedVBlank();
 
 private:
     Memory* m_pMemory;
@@ -236,6 +238,12 @@ INLINE void Video::TraceSpriteBudget(int line)
 {
     if (m_pTraceLogger->IsEnabled(TRACE_VDP))
         LogSpriteBudget(line);
+}
+
+INLINE void Video::TraceMissedVBlank()
+{
+    if (m_pTraceLogger->IsEventEnabled(TRACE_VDP, TRACE_VDP_MISSED_VBLANK))
+        LogMissedVBlank();
 }
 
 inline u8* Video::GetVRAM()

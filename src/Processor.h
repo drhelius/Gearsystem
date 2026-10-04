@@ -127,6 +127,12 @@ public:
     void ResetDebuggerExecutionState();
     std::stack<GS_CallStackEntry>* GetDisassemblerCallStack();
     void CheckMemoryBreakpoints(int type, u16 address, bool read);
+    INLINE bool HasMemoryHooks(bool read) const;
+    INLINE void CheckCpuAddressHooks(u16 address, bool read);
+    void SetVBlankWatch(bool read, bool write, u16 address);
+    u32 UpdateVBlankWatch();
+    INLINE u16 GetVBlankWatchAddress() const;
+    INLINE bool GetVBlankWatchAccess(bool read) const;
     bool Halted();
     void SetTraceLogger(TraceLogger* pTraceLogger);
     void SetProfiler(Profiler* pProfiler);
@@ -183,6 +189,14 @@ private:
     bool m_bCycleAccurateHalt;
     bool m_breakpoints_enabled;
     bool m_breakpoints_irq_enabled;
+    bool m_memory_hooks_read;
+    bool m_memory_hooks_write;
+    bool m_vblank_watch_read;
+    bool m_vblank_watch_write;
+    u16 m_vblank_watch_address;
+    bool m_vblank_watch_hit;
+    bool m_vblank_watch_armed;
+    u32 m_vblank_watch_misses;
     bool m_cpu_breakpoint_hit;
     bool m_memory_breakpoint_hit;
     bool m_run_to_breakpoint_hit;
@@ -230,6 +244,8 @@ private:
     void InvalidOPCode();
     void UndocumentedOPCode();
     void CheckBreakpoints();
+    void RefreshMemoryHooks();
+    void ResetVBlankWatch();
     void PushCallStack(u16 src, u16 dest, u16 back, u16 bank, u8 tstates, bool irq);
     void PopCallStack(u8 tstates);
     NO_INLINE void ProfilerEnter(u16 address, u32 pending_cycles, bool irq);

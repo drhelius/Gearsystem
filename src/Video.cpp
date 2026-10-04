@@ -255,6 +255,27 @@ void Video::LogSpriteBudget(int line)
 #endif
 }
 
+void Video::LogMissedVBlank()
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    u32 misses = m_pProcessor->UpdateVBlankWatch();
+
+    if (misses == 0)
+        return;
+
+    GS_Trace_Entry e = {};
+    e.type = TRACE_VDP;
+    e.vdp.event = TRACE_VDP_MISSED_VBLANK;
+    e.vdp.address = m_pProcessor->GetVBlankWatchAddress();
+    e.vdp.raw = (m_pProcessor->GetVBlankWatchAccess(true) ? 0x01 : 0x00) |
+        (m_pProcessor->GetVBlankWatchAccess(false) ? 0x02 : 0x00);
+    e.vdp.auxiliary = (u16)MIN(misses, 0xFFFFU);
+    e.vdp.line = (u16)m_iRenderLine;
+    e.vdp.hpos = (u16)m_iCycleCounter;
+    m_pTraceLogger->TraceLog(e);
+#endif
+}
+
 void Video::SetNoSpriteLimit(bool noSpriteLimit)
 {
     m_bNoSpriteLimit = noSpriteLimit;
@@ -485,6 +506,7 @@ bool Video::Tick(unsigned int clockCycles)
         if (m_iRenderLine == (max_height + 1))
         {
 #if !defined(GS_DISABLE_DISASSEMBLER)
+            TraceMissedVBlank();
             u8 status_before = m_VdpStatus;
 #endif
             m_VdpStatus = SetBit(m_VdpStatus, 7);

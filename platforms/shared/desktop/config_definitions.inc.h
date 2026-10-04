@@ -89,6 +89,8 @@ static inline void process(config_Operation operation)
     CONFIG_INT_RANGE("Debug", "TracePsgEvents", config_debug.trace_psg_events, TRACE_PSG_EVENT_ALL, 0, TRACE_PSG_EVENT_ALL);
     CONFIG_INT_RANGE("Debug", "TraceYm2413Events", config_debug.trace_ym2413_events, TRACE_YM2413_EVENT_ALL, 0, TRACE_YM2413_EVENT_ALL);
     CONFIG_INT_RANGE("Debug", "TraceMapperEvents", config_debug.trace_mapper_events, TRACE_MAPPER_EVENT_ALL, 0, TRACE_MAPPER_EVENT_ALL);
+    CONFIG_INT_RANGE("Debug", "TraceVBlankWatchAddress", config_debug.trace_vblank_watch_address, 0, 0, 0xFFFF);
+    CONFIG_INT_RANGE("Debug", "TraceVBlankWatchOperation", config_debug.trace_vblank_watch_operation, 1, 0, 2);
     CONFIG_INT_RANGE("Debug", "TraceOutput", config_debug.trace_output, 0, 0, 1);
     CONFIG_INT_RANGE("Debug", "TraceCapacity", config_debug.trace_capacity, 0, 0, 4);
     CONFIG_INT_RANGE("Debug", "TraceDiskDirOption", config_debug.trace_disk_dir_option, 0, 0, 2);

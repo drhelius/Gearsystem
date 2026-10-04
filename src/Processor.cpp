@@ -57,6 +57,11 @@ Processor::Processor(Memory* pMemory)
     m_ProActionReplayList.clear();
     m_breakpoints_enabled = false;
     m_breakpoints_irq_enabled = false;
+    m_vblank_watch_read = false;
+    m_vblank_watch_write = false;
+    m_vblank_watch_address = 0;
+    ResetVBlankWatch();
+    RefreshMemoryHooks();
     m_cpu_breakpoint_hit = false;
     m_memory_breakpoint_hit = false;
     m_run_to_breakpoint_hit = false;
@@ -150,6 +155,7 @@ void Processor::Reset(bool cycleAccurateHalt)
     m_run_to_breakpoint_requested = false;
     ClearDisassemblerCallStack();
     m_debug_next_irq = 1;
+    ResetVBlankWatch();
 }
 
 void Processor::SetIOPOrts(IOPorts* pIOPorts)
@@ -1061,11 +1067,51 @@ void Processor::EnableBreakpoints(bool enable, bool irqs)
 {
     m_breakpoints_enabled = enable;
     m_breakpoints_irq_enabled = irqs;
+    RefreshMemoryHooks();
 }
 
 void Processor::ResetBreakpoints()
 {
     m_breakpoints.clear();
+}
+
+void Processor::SetVBlankWatch(bool read, bool write, u16 address)
+{
+    if ((m_vblank_watch_read == read) && (m_vblank_watch_write == write) &&
+        (m_vblank_watch_address == address))
+        return;
+
+    m_vblank_watch_read = read;
+    m_vblank_watch_write = write;
+    m_vblank_watch_address = address;
+    ResetVBlankWatch();
+    RefreshMemoryHooks();
+}
+
+u32 Processor::UpdateVBlankWatch()
+{
+    if (!m_vblank_watch_read && !m_vblank_watch_write)
+        return 0;
+
+    bool missed = m_vblank_watch_armed && !m_vblank_watch_hit;
+    m_vblank_watch_armed = true;
+    m_vblank_watch_hit = false;
+    m_vblank_watch_misses = missed ? m_vblank_watch_misses + 1 : 0;
+
+    return m_vblank_watch_misses;
+}
+
+void Processor::RefreshMemoryHooks()
+{
+    m_memory_hooks_read = m_vblank_watch_read || m_breakpoints_enabled;
+    m_memory_hooks_write = m_vblank_watch_write || m_breakpoints_enabled;
+}
+
+void Processor::ResetVBlankWatch()
+{
+    m_vblank_watch_hit = false;
+    m_vblank_watch_armed = false;
+    m_vblank_watch_misses = 0;
 }
 
 bool Processor::AddBreakpoint(int type, char* text, bool read, bool write, bool execute)
@@ -1391,6 +1437,8 @@ void Processor::LoadState(std::istream& stream, int version)
     m_iHaltCycle = 0;
     if (version >= 111)
         stream.read(reinterpret_cast<char*> (&m_iHaltCycle), sizeof(m_iHaltCycle));
+
+    ResetVBlankWatch();
 }
 
 void Processor::SetProActionReplayCheat(const char* szCheat)

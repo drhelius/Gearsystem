@@ -988,6 +988,7 @@ bool GearsystemCore::SaveState(std::ostream& stream, size_t& size, bool screensh
     m_pProcessor->GetIOPOrts()->SaveState(stream);
 
 #if defined(__LIBRETRO__)
+    UNUSED(screenshot);
     GS_SaveState_Header_Libretro header;
     header.magic = GS_SAVESTATE_MAGIC;
     header.version = GS_SAVESTATE_VERSION;

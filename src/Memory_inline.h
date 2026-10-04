@@ -26,7 +26,8 @@
 inline u8 Memory::Read(u16 address)
 {
     #if !defined(GS_DISABLE_DISASSEMBLER)
-    m_pProcessor->CheckMemoryBreakpoints(Processor::GS_BREAKPOINT_TYPE_ROMRAM, address, true);
+    if (m_pProcessor->HasMemoryHooks(true))
+        m_pProcessor->CheckCpuAddressHooks(address, true);
     #endif
 
     if (m_MediaSlot == m_DesiredMediaSlot)
@@ -44,7 +45,8 @@ inline u8 Memory::Read(u16 address)
 inline void Memory::Write(u16 address, u8 value)
 {
     #if !defined(GS_DISABLE_DISASSEMBLER)
-    m_pProcessor->CheckMemoryBreakpoints(Processor::GS_BREAKPOINT_TYPE_ROMRAM, address, false);
+    if (m_pProcessor->HasMemoryHooks(false))
+        m_pProcessor->CheckCpuAddressHooks(address, false);
     #endif
 
     if (m_MediaSlot == m_DesiredMediaSlot)
