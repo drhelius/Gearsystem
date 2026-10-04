@@ -440,6 +440,7 @@ void Input::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_bPaddle), sizeof(m_bPaddle));
     stream.write(reinterpret_cast<const char*> (&m_Paddle), sizeof(m_Paddle));
     stream.write(reinterpret_cast<const char*> (&m_SportsPad), sizeof(m_SportsPad));
+    stream.write(reinterpret_cast<const char*> (&m_bResetPressed), sizeof(m_bResetPressed));
 }
 
 void Input::LoadState(std::istream& stream, int version)
@@ -466,4 +467,8 @@ void Input::LoadState(std::istream& stream, int version)
         ResetSportsPad(&m_SportsPad[0]);
         ResetSportsPad(&m_SportsPad[1]);
     }
+
+    m_bResetPressed = false;
+    if (version >= 111)
+        stream.read(reinterpret_cast<char*> (&m_bResetPressed), sizeof(m_bResetPressed));
 }

@@ -1214,7 +1214,7 @@ bool GearsystemCore::LoadStateV1(std::istream& stream, size_t size)
         return false;
     }
 
-    if (v1_version != GS_SAVESTATE_VERSION_V1)
+    if (v1_version != GS_SAVESTATE_VERSION_V1 && v1_version != 100)
     {
         Error("Invalid V1 save state version: %d", v1_version);
         return false;
@@ -1231,7 +1231,7 @@ bool GearsystemCore::LoadStateV1(std::istream& stream, size_t size)
     m_pMemory->LoadState(stream, GS_SAVESTATE_VERSION_V1);
     m_pProcessor->LoadState(stream, GS_SAVESTATE_VERSION_V1);
     m_pAudio->LoadStateV1(stream);
-    m_pVideo->LoadState(stream);
+    m_pVideo->LoadState(stream, GS_SAVESTATE_VERSION_V1);
     m_pInput->LoadState(stream, GS_SAVESTATE_VERSION_V1);
     m_pMemory->GetCurrentRule()->LoadState(stream, GS_SAVESTATE_VERSION_V1);
     m_pProcessor->GetIOPOrts()->LoadState(stream, GS_SAVESTATE_VERSION_V1);
@@ -1278,7 +1278,8 @@ bool GearsystemCore::GetSaveStateHeader(int index, const char* path, GS_SaveStat
         stream.read(reinterpret_cast<char*>(&v1_size), sizeof(v1_size));
         stream.close();
 
-        if (v1_magic != GS_SAVESTATE_MAGIC || v1_version != GS_SAVESTATE_VERSION_V1 || v1_size != savestate_size)
+        if (v1_magic != GS_SAVESTATE_MAGIC || (v1_version != GS_SAVESTATE_VERSION_V1 && v1_version != 100) ||
+            v1_size != savestate_size)
             return false;
 
         memset(header, 0, sizeof(GS_SaveState_Header));
@@ -1318,7 +1319,8 @@ bool GearsystemCore::GetSaveStateHeader(int index, const char* path, GS_SaveStat
             stream.read(reinterpret_cast<char*>(&v1_size), sizeof(v1_size));
             stream.close();
 
-            if (v1_magic != GS_SAVESTATE_MAGIC || v1_version != GS_SAVESTATE_VERSION_V1 || v1_size != savestate_size)
+            if (v1_magic != GS_SAVESTATE_MAGIC || (v1_version != GS_SAVESTATE_VERSION_V1 && v1_version != 100) ||
+                v1_size != savestate_size)
                 return false;
 
             memset(header, 0, sizeof(GS_SaveState_Header));

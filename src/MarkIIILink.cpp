@@ -237,6 +237,7 @@ void MarkIIILink::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_port_a), sizeof(m_port_a));
     stream.write(reinterpret_cast<const char*> (&m_port_b), sizeof(m_port_b));
     stream.write(reinterpret_cast<const char*> (&m_port_c), sizeof(m_port_c));
+    stream.write(reinterpret_cast<const char*> (m_keyboard_a), sizeof(m_keyboard_a));
 }
 
 void MarkIIILink::LoadState(std::istream& stream, int version)
@@ -253,7 +254,10 @@ void MarkIIILink::LoadState(std::istream& stream, int version)
         ResetPPI();
     }
 
-    ReleaseAllKeys();
+    if (version >= 111)
+        stream.read(reinterpret_cast<char*> (m_keyboard_a), sizeof(m_keyboard_a));
+    else
+        ReleaseAllKeys();
 
     m_remote_state.drive_mask = 0;
     m_remote_state.levels = 0x7F;

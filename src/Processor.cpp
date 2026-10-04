@@ -1300,6 +1300,7 @@ void Processor::SaveState(std::ostream& stream)
     stream.write(reinterpret_cast<const char*> (&m_bInputLastCycle), sizeof(m_bInputLastCycle));
     stream.write(reinterpret_cast<const char*> (&m_Q), sizeof(m_Q));
     stream.write(reinterpret_cast<const char*> (&m_QTemp), sizeof(m_QTemp));
+    stream.write(reinterpret_cast<const char*> (&m_iHaltCycle), sizeof(m_iHaltCycle));
 }
 
 void Processor::LoadState(std::istream& stream, int version)
@@ -1365,6 +1366,10 @@ void Processor::LoadState(std::istream& stream, int version)
         m_Q = 0;
         m_QTemp = 0;
     }
+
+    m_iHaltCycle = 0;
+    if (version >= 111)
+        stream.read(reinterpret_cast<char*> (&m_iHaltCycle), sizeof(m_iHaltCycle));
 }
 
 void Processor::SetProActionReplayCheat(const char* szCheat)

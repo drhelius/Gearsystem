@@ -1851,7 +1851,9 @@ void Video::LoadState(std::istream& stream, int version)
     stream.read(reinterpret_cast<char*> (&m_bSpriteOvrRequest), sizeof(m_bSpriteOvrRequest));
     stream.read(reinterpret_cast<char*> (&m_Phaser), sizeof(m_Phaser));
 
-    stream.read(reinterpret_cast<char*> (&m_bLineInterruptPending), sizeof(m_bLineInterruptPending));
+    m_bLineInterruptPending = false;
+    if (version >= 100)
+        stream.read(reinterpret_cast<char*> (&m_bLineInterruptPending), sizeof(m_bLineInterruptPending));
 
     if (version >= 101)
     {
