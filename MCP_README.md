@@ -57,6 +57,7 @@ This server provides tools for game development, rom hacking, reverse engineerin
 - **Bookmarks**: Memory and disassembler bookmarks for navigation
 - **Call Stack**: View function call hierarchy
 - **Trace Logger**: CPU instructions, VDP, input, I/O, PSG, YM2413, mapper, EEPROM, and flash events
+- **Profiler**: Per-function call counts, calls per frame, and inclusive/exclusive cycle statistics
 - **Rewind**: Time-travel debugging with snapshot status and seek tools
 - **Screenshot Capture**: Get current frame as PNG image
 - **GUI Integration**: MCP server runs alongside the emulator GUI, sharing the same state
@@ -328,6 +329,7 @@ Once configured, you can ask your AI assistant:
 - "There's a data decompression routine around address 0x8000. Step through it instruction by instruction, reverse engineer the compression algorithm, and explain how it works with examples"
 - "Find where the game stores its level data in ROM. Analyze the data structure format, create a memory map showing each section, and add symbols for the data tables"
 - "The game is rendering corrupted graphics. Examine the VDP registers, check the VRAM contents, inspect the sprite attribute table, and diagnose what's causing the corruption. Set up watches on relevant memory addresses"
+- "Profile the game for a few seconds, then tell me which functions use the most CPU time per frame and what they do"
 
 ## Available MCP Tools
 
@@ -382,6 +384,10 @@ The server exposes tools organized in the following categories:
 - `set_trace_log` - Start, stop, or reconfigure shared GUI/MCP capture. `output` is `memory` or `disk`; `memory_size` is `100K`, `500K`, `1M`, `2M`, or `5M`; `disk_size` is `10MB`, `50MB`, `100MB`, `250MB`, `500MB`, `1GB`, or `unbounded`; `output_path` is a directory. Omitting `filters` selects CPU instructions and interrupts
 
 Exact trace filters are `cpu.instructions`, `cpu.interrupts`, `vdp.registers`, `vdp.interrupts`, `vdp.status`, `vdp.sprites`, `vdp.sprite_budget`, `vdp.sprite_limit`, `vdp.state`, `vdp.data`, `vdp.cram`, `input.reads`, `input.changes`, `io.control`, `io.counters`, `io.gamegear`, `geartogear.cable`, `geartogear.transfers`, `geartogear.interrupts`, `geartogear.wire`, `psg.tone`, `psg.volume`, `psg.noise`, `psg.stereo`, `ym2413.registers`, `ym2413.mixer`, `mapper.rom`, `mapper.ram`, `mapper.control`, `mapper.eeprom`, and `mapper.flash`. `vdp.sprite_budget` records one entry per active line with the number of sprites on that line against the per-line limit (8 in Mode 4, 4 in TMS9918 modes), flagging lines that hit the limit and how many sprites were dropped; `vdp.sprite_limit` records only the lines that hit the limit. Unlike `vdp.sprites`, which only reports when the overflow status flag gets set, these streams report every line. Trace cycle values are Z80 T-states, and a `RESET` marker denotes a reset clock discontinuity while absolute sequence identity remains monotonic.
+
+### Profiler
+- `set_profiler` - Start, stop, or reset the function profiler with `action` (`start`, `stop`, `reset`). `start` opens the Profiler debugger window and `stop` closes it. Statistics are only collected while the window is visible (in headless mode, while started), starting on the next frame
+- `get_profiler_data` - Read profiler results: `collecting`, `window_open`, `total_cycles`, `frame_cycles`, `frames`, `function_count`, and per-function `name`, `symbol`, `bank`, `address`, `type`, `calls`, `calls_per_frame`, `inclusive_cycles`, `inclusive_percent`, `exclusive_cycles`, `exclusive_percent`, `average_cycles`, `min_cycles`, and `max_cycles`. Optional `sort` (`inclusive`, `exclusive`, `calls`, `average`, `max`; highest first), `count` (default 50, max 1000), and `filter` (name or hex address substring)
 
 ### Breakpoints
 - `set_breakpoint` - Set execution, read, or write breakpoint (supports 4 memory areas: rom_ram, vram, cram, vdp_reg)

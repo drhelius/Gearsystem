@@ -175,6 +175,8 @@ public:
     json MemoryFind(int area, const std::string& value, bool text, bool case_sensitive);
     json GetTraceLog(s64 start, int count);
     json SetTraceLog(const json& arguments);
+    json SetProfiler(const std::string& action);
+    json GetProfilerData(const std::string& sort, int count, const std::string& filter);
 
     // Core access
     GearsystemCore* GetCore() { return m_core; }

@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
 
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see http://www.gnu.org/licenses/ 
- * 
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  */
 
 #define GUI_DEBUG_PROFILER_IMPORT
@@ -95,7 +95,6 @@ static void draw_number(u64 value);
 static void draw_percent(u64 value, u64 total);
 static void draw_calls_per_frame(u32 calls, u64 total);
 static void draw_empty(void);
-static u32 get_frame_cycles(void);
 
 void gui_debug_window_profiler(void)
 {
@@ -122,11 +121,41 @@ void gui_debug_profiler_update(void)
         profiler->Enable(profiler_visible && !profiler_paused);
 }
 
+void gui_debug_profiler_update_headless(void)
+{
+    Profiler* profiler = emu_get_core()->GetProfiler();
+    if (IsValidPointer(profiler))
+        profiler->Enable(config_debug.debug && config_debug.show_profiler && !profiler_paused);
+}
+
 void gui_debug_profiler_reset(void)
 {
     profiler_rows.clear();
     profiler_function_count = 0;
     profiler_dirty = true;
+}
+
+void gui_debug_profiler_show(bool show)
+{
+    config_debug.show_profiler = show;
+
+    if (show)
+    {
+        profiler_paused = false;
+        return;
+    }
+
+    profiler_visible = false;
+
+    Profiler* profiler = emu_get_core()->GetProfiler();
+    if (IsValidPointer(profiler))
+        profiler->Enable(false);
+}
+
+u32 gui_debug_profiler_get_frame_cycles(void)
+{
+    bool pal = emu_get_core()->GetCartridge()->IsPAL();
+    return GS_CYCLES_PER_LINE * (pal ? GS_LINES_PER_FRAME_PAL : GS_LINES_PER_FRAME_NTSC);
 }
 
 static void draw_profiler(Profiler* profiler)
@@ -153,7 +182,7 @@ static void draw_profiler(Profiler* profiler)
 
     ImGui::SameLine();
     ImGui::Text("Functions: %u  Frames: %llu  Cycles: %llu", count - 2,
-        (unsigned long long)(total / get_frame_cycles()), (unsigned long long)total);
+        (unsigned long long)(total / gui_debug_profiler_get_frame_cycles()), (unsigned long long)total);
 
     ImGui::SameLine();
     ImGui::PushItemWidth(-1);
@@ -479,7 +508,7 @@ static void draw_percent(u64 value, u64 total)
 static void draw_calls_per_frame(u32 calls, u64 total)
 {
     char text[32];
-    double frames = (double)total / (double)get_frame_cycles();
+    double frames = (double)total / (double)gui_debug_profiler_get_frame_cycles();
     snprintf(text, sizeof(text), "%.2f", (double)calls / frames);
     draw_right_aligned(white, text);
 }
@@ -487,10 +516,4 @@ static void draw_calls_per_frame(u32 calls, u64 total)
 static void draw_empty(void)
 {
     draw_right_aligned(gray, "-");
-}
-
-static u32 get_frame_cycles(void)
-{
-    bool pal = emu_get_core()->GetCartridge()->IsPAL();
-    return GS_CYCLES_PER_LINE * (pal ? GS_LINES_PER_FRAME_PAL : GS_LINES_PER_FRAME_NTSC);
 }
