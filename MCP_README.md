@@ -60,6 +60,7 @@ This server provides tools for game development, rom hacking, reverse engineerin
 - **Profiler**: Per-function call counts, calls per frame, and inclusive/exclusive cycle statistics
 - **Rewind**: Time-travel debugging with snapshot status and seek tools
 - **Screenshot Capture**: Get current frame as PNG image
+- **Video Recording**: Record emulated video and audio to AVI files on disk
 - **GUI Integration**: MCP server runs alongside the emulator GUI, sharing the same state
 
 ## Transport Modes
@@ -320,6 +321,7 @@ Once configured, you can ask your AI assistant:
 - "Pause execution and show me all sprites"
 - "Step through the next 5 instructions"
 - "Capture a screenshot of the current frame"
+- "Record a video of the next 600 frames to /path/to/clip.avi"
 - "Tap the up button on player 1 controller"
 
 ### Advanced Debugging Workflows
@@ -410,6 +412,8 @@ Exact trace filters are `cpu.instructions`, `cpu.interrupts`, `vdp.registers`, `
 
 ### Screen Capture
 - `get_screenshot` - Capture current screen frame as base64 PNG
+- `start_video_recording` - Start recording video and audio to an AVI file (MJPEG or uncompressed video, 16-bit PCM audio). Only the resulting `file_path` is returned; the video stays on disk. Optional `file_path` (absolute; if omitted, an automatic name in the configured video recordings directory), `scale` (1-20), `aspect_ratio` (`screen`, `square`, `4:3`, `16:9`, `16:10`), and `quality` (`low`, `medium`, `high`, `lossless`). Given options update the recording settings, same as the GUI menu. `screen` follows the display aspect ratio, which uses square pixels while debugging. Frames are recorded only while the emulator runs, so continue or step execution before stopping
+- `stop_video_recording` - Stop the active recording and finalize the AVI file. Returns `file_path` and the number of recorded `frames`
 
 ### Media & State Management
 - `get_media_info` - Get loaded ROM info (file path, type, size, mapper, zone, system)

@@ -162,6 +162,7 @@ void gui_apply_settings(void)
     strncpy_fit(gui_savefiles_path, config_emulator.savefiles_path.c_str(), sizeof(gui_savefiles_path));
     strncpy_fit(gui_savestates_path, config_emulator.savestates_path.c_str(), sizeof(gui_savestates_path));
     strncpy_fit(gui_screenshots_path, config_emulator.screenshots_path.c_str(), sizeof(gui_screenshots_path));
+    strncpy_fit(gui_video_recordings_path, config_emulator.video_recordings_path.c_str(), sizeof(gui_video_recordings_path));
     strncpy_fit(gui_mcp_http_address, config_emulator.mcp_http_address.c_str(), sizeof(gui_mcp_http_address));
 }
 
@@ -269,6 +270,9 @@ void gui_shortcut(gui_ShortCutEvent event)
         break;
     case gui_ShortcutScreenshot:
         gui_action_save_screenshot(NULL);
+        break;
+    case gui_ShortcutVideoRecording:
+        gui_action_toggle_video_recording();
         break;
     case gui_ShortcutFullscreen:
         config_emulator.fullscreen = !config_emulator.fullscreen;

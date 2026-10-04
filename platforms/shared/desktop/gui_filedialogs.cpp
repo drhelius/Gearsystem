@@ -45,11 +45,13 @@ enum FileDialogID
     FileDialog_SaveState,
     FileDialog_ChooseSavestatePath,
     FileDialog_ChooseScreenshotPath,
+    FileDialog_ChooseVideoRecordingPath,
     FileDialog_ChooseTracePath,
     FileDialog_ChooseSavesPath,
     FileDialog_LoadSymbols,
     FileDialog_SaveScreenshot,
     FileDialog_SaveVGM,
+    FileDialog_SaveVideo,
     FileDialog_SaveSprite,
     FileDialog_SaveAllSprites,
     FileDialog_SaveBackground,
@@ -111,6 +113,8 @@ static const char* get_save_file_extension(FileDialogID id)
             return ".png";
         case FileDialog_SaveVGM:
             return ".vgm";
+        case FileDialog_SaveVideo:
+            return ".avi";
         case FileDialog_SaveMemoryDumpBinary:
             return ".bin";
         case FileDialog_SaveMemoryDumpText:
@@ -193,6 +197,15 @@ void gui_file_dialog_choose_screenshot_path(void)
     SDL_ShowOpenFolderDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_ChooseScreenshotPath, application_sdl_window, default_path, false);
 }
 
+void gui_file_dialog_choose_video_recording_path(void)
+{
+    if (!begin_dialog())
+        return;
+
+    const char* default_path = config_emulator.video_recordings_path.empty() ? NULL : config_emulator.video_recordings_path.c_str();
+    SDL_ShowOpenFolderDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_ChooseVideoRecordingPath, application_sdl_window, default_path, false);
+}
+
 void gui_file_dialog_choose_trace_path(void)
 {
     if (!begin_dialog())
@@ -227,6 +240,15 @@ void gui_file_dialog_save_vgm(void)
 
     SDL_DialogFileFilter filters[] = { { "VGM Files", "vgm" } };
     SDL_ShowSaveFileDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_SaveVGM, application_sdl_window, filters, 1, NULL);
+}
+
+void gui_file_dialog_save_video(void)
+{
+    if (!begin_dialog())
+        return;
+
+    SDL_DialogFileFilter filters[] = { { "AVI Files", "avi" } };
+    SDL_ShowSaveFileDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_SaveVideo, application_sdl_window, filters, 1, NULL);
 }
 
 void gui_file_dialog_save_sprite(int index)
@@ -460,6 +482,12 @@ static void process_dialog_result(FileDialogID id, const char* path)
             config_emulator.screenshots_path.assign(path);
             break;
         }
+        case FileDialog_ChooseVideoRecordingPath:
+        {
+            strncpy_fit(gui_video_recordings_path, path, sizeof(gui_video_recordings_path));
+            config_emulator.video_recordings_path.assign(path);
+            break;
+        }
         case FileDialog_LoadSymbols:
         {
             gui_debug_reset_symbols();
@@ -475,6 +503,11 @@ static void process_dialog_result(FileDialogID id, const char* path)
         {
             emu_start_vgm_recording(path);
             gui_set_status_message("VGM recording started", 3000);
+            break;
+        }
+        case FileDialog_SaveVideo:
+        {
+            gui_action_start_video_recording(path);
             break;
         }
         case FileDialog_SaveSprite:

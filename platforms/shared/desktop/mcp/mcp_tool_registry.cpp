@@ -207,7 +207,7 @@ static const McpToolCategory kMcpToolCategories[] =
     {"hardware_audio", "Audio Hardware", "Inspect SN76489 PSG and YM2413 FM audio state, channels, mixer, and sound registers."},
     {"hardware_serial", "Serial Hardware", "Inspect Gear-to-Gear serial/parallel state, Mark III PPI signals, physical pins, and link cable transport."},
     {"media", "Media", "Load ROMs, list recent media, load symbols, and inspect loaded cartridge/media information."},
-    {"capture", "Capture", "Capture current screenshots and SMS/Game Gear sprite images or sprite metadata."},
+    {"capture", "Capture", "Capture current screenshots, record AVI video, and SMS/Game Gear sprite images or sprite metadata."},
     {"state", "Save States", "List save slots, select a slot, save emulator state, and load emulator state."},
     {"rewind", "Rewind", "Inspect rewind buffer status and seek to rewind snapshots for time-travel debugging."},
     {"input", "Input", "Inspect, press, release, tap, or macro controller input."},
@@ -276,7 +276,7 @@ static const char* const kMcpMediaTools[] =
 
 static const char* const kMcpCaptureTools[] =
 {
-    "get_screenshot", "list_sprites", "get_sprite_image"
+    "get_screenshot", "start_video_recording", "stop_video_recording", "list_sprites", "get_sprite_image"
 };
 
 static const char* const kMcpStateTools[] =
@@ -716,6 +716,8 @@ std::string McpToolRegistry::AliasesForTool(const std::string& tool_name) const
         aliases += " log logger events cpu irq debug output";
     if (StringContains(name, "profiler"))
         aliases += " performance cycles timing hotspot function calls frame";
+    if (StringContains(name, "video_recording"))
+        aliases += " record movie clip capture avi mjpeg gameplay";
     if (StringContains(name, "controller"))
         aliases += " input joypad gamepad button macro tap press release";
     if (StringContains(name, "state") || StringContains(name, "rewind"))

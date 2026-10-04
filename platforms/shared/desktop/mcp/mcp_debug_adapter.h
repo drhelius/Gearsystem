@@ -123,6 +123,8 @@ public:
     json GetSerialStatus();
     json ResetLinkCableMetrics();
     json GetScreenshot();
+    json StartVideoRecording(const std::string& file_path, int scale, const std::string& aspect_ratio, const std::string& quality);
+    json StopVideoRecording();
     json ListSprites();
     json GetSpriteImage(int sprite_index);
 
