@@ -58,6 +58,7 @@ class SmsIOPorts;
 class GameGearIOPorts;
 class BootromMemoryRule;
 class TraceLogger;
+class Profiler;
 
 class GearsystemCore
 {
@@ -147,6 +148,7 @@ public:
     GameGearIOPorts* GetGameGearIOPorts();
     MarkIIILink* GetMarkIIILink();
     TraceLogger* GetTraceLogger();
+    Profiler* GetProfiler();
 
 private:
     void InitMemoryRules();
@@ -198,6 +200,7 @@ private:
     u64 m_link_cable_cycles;
     GS_LinkCable_Protocol m_link_cable_protocol;
     TraceLogger* m_trace_logger;
+    Profiler* m_profiler;
     u8* m_pFrameBuffer;
 };
 

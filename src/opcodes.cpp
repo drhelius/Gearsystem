@@ -816,6 +816,11 @@ void Processor::OPCode0x76()
         m_iHaltCycle = 1;
         m_iTStates -= 3;
     }
+
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    if (unlikely(m_pProfiler->IsEnabled()))
+        m_pProfiler->Halt(true, m_iTStates + 4);
+#endif
 }
 
 void Processor::OPCode0x77()
@@ -1316,7 +1321,7 @@ void Processor::OPCode0xC8()
 void Processor::OPCode0xC9()
 {
     // RET
-    OPCodes_RET();
+    OPCodes_RET(10);
 }
 
 void Processor::OPCode0xCA()

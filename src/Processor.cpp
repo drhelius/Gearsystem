@@ -35,6 +35,7 @@ Processor::Processor(Memory* pMemory)
     m_pMemory->SetProcessor(this);
     InitPointer(m_pIOPorts);
     InitPointer(m_pTraceLogger);
+    InitPointer(m_pProfiler);
     InitOPCodeTable();
     m_bIFF1 = false;
     m_bIFF2 = false;
@@ -191,7 +192,7 @@ u32 Processor::RunFor(u32 tstates)
                 WZ.SetValue(PC.GetValue());
 #if !defined(GS_DISABLE_DISASSEMBLER)
                 m_debug_next_irq = 2;
-                PushCallStack(pc, 0x0066, pc, 0);
+                PushCallStack(pc, 0x0066, pc, 0, 0, true);
                 TraceIRQEvent(pc, 0x0066, 2);
 #endif
                 DisassembleNextOPCode();
@@ -226,7 +227,7 @@ u32 Processor::RunFor(u32 tstates)
                 UpdateProActionReplay();
 #if !defined(GS_DISABLE_DISASSEMBLER)
                 m_debug_next_irq = 3;
-                PushCallStack(pc, interrupt_vector, pc, m_pMemory->GetBank(interrupt_vector));
+                PushCallStack(pc, interrupt_vector, pc, m_pMemory->GetBank(interrupt_vector), 0, true);
                 TraceIRQEvent(pc, interrupt_vector, 3);
 #endif
                 DisassembleNextOPCode();
@@ -367,6 +368,23 @@ void Processor::RequestNMI()
 void Processor::SetTraceLogger(TraceLogger* pTraceLogger)
 {
     m_pTraceLogger = pTraceLogger;
+}
+
+void Processor::SetProfiler(Profiler* pProfiler)
+{
+    m_pProfiler = pProfiler;
+}
+
+void Processor::ProfilerEnter(u16 address, u32 pending_cycles, bool irq)
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    u32 key = (address < 0xC000) ? m_pMemory->GetPhysicalAddress(address) : (PROFILER_RAM_KEY | address);
+    m_pProfiler->Enter(key, address, m_pMemory->GetBank(address), SP.GetValue(), irq, pending_cycles);
+#else
+    UNUSED(address);
+    UNUSED(pending_cycles);
+    UNUSED(irq);
+#endif
 }
 
 void Processor::ExecuteOPCode()
@@ -1195,6 +1213,9 @@ void Processor::ResetDebuggerExecutionState()
     m_memory_breakpoint_hit = false;
     m_run_to_breakpoint_hit = false;
     m_debug_next_irq = 0;
+
+    if (IsValidPointer(m_pProfiler))
+        m_pProfiler->ResetStack();
 }
 
 void Processor::ClearDisassemblerCallStack()

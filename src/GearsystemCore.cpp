@@ -52,6 +52,7 @@
 #include "GameGearIOPorts.h"
 #include "BootromMemoryRule.h"
 #include "TraceLogger.h"
+#include "Profiler.h"
 #include "common.h"
 #include "memory_stream.h"
 
@@ -91,6 +92,7 @@ GearsystemCore::GearsystemCore()
     InitPointer(m_pFrameBuffer);
     InitPointer(m_pIratahackMemoryRule);
     InitPointer(m_trace_logger);
+    InitPointer(m_profiler);
     m_master_clock_cycles = 0;
     m_link_cable_cycles = 0;
     m_link_cable_protocol = LinkCableProtocolNone;
@@ -134,6 +136,7 @@ GearsystemCore::~GearsystemCore()
     SafeDelete(m_pProcessor);
     SafeDelete(m_pMemory);
     SafeDelete(m_trace_logger);
+    SafeDelete(m_profiler);
 }
 
 void GearsystemCore::Init(GS_Color_Format pixelFormat)
@@ -166,6 +169,8 @@ void GearsystemCore::Init(GS_Color_Format pixelFormat)
     m_pInput->SetTraceLogger(m_trace_logger);
     m_pSmsIOPorts->SetTraceLogger(m_trace_logger);
     m_pGameGearIOPorts->SetTraceLogger(m_trace_logger);
+    m_profiler = new Profiler(&m_master_clock_cycles);
+    m_pProcessor->SetProfiler(m_profiler);
 #endif
 
     InitMemoryRules();
@@ -575,6 +580,11 @@ MarkIIILink* GearsystemCore::GetMarkIIILink()
 TraceLogger* GearsystemCore::GetTraceLogger()
 {
     return m_trace_logger;
+}
+
+Profiler* GearsystemCore::GetProfiler()
+{
+    return m_profiler;
 }
 
 void GearsystemCore::KeyPressed(GS_Joypads joypad, GS_Keys key)
@@ -1622,6 +1632,9 @@ void GearsystemCore::Reset()
     m_pSmsIOPorts->GetMarkIIILink()->Rebase(m_link_cable_cycles);
     m_bPaused = false;
     m_master_clock_cycles = 0;
+
+    if (IsValidPointer(m_profiler))
+        m_profiler->Reset();
 }
 
 void GearsystemCore::RenderFrameBuffer(u8* finalFrameBuffer)

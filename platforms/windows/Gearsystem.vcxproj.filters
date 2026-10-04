@@ -67,6 +67,9 @@
     <ClCompile Include="..\shared\desktop\gui_debug_trace_logger.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
+    <ClCompile Include="..\shared\desktop\gui_debug_profiler.cpp">
+      <Filter>desktop</Filter>
+    </ClCompile>
     <ClCompile Include="..\shared\desktop\trace_logger_formatter.cpp">
       <Filter>desktop</Filter>
     </ClCompile>
@@ -256,6 +259,9 @@
     <ClCompile Include="..\..\src\TraceLogger.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Profiler.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\shared\dependencies\miniz\miniz.c">
       <Filter>dependencies\miniz</Filter>
     </ClCompile>
@@ -367,6 +373,9 @@
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\gui_debug_trace_logger.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_debug_profiler.h">
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\trace_logger_formatter.h">
@@ -640,6 +649,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\TraceLogger.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Profiler.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\dependencies\glad\glad.h">

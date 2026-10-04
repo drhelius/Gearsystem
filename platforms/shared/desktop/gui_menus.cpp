@@ -1642,6 +1642,8 @@ static void menu_debug(void)
 
         ImGui::MenuItem("Show Symbols", "", &config_debug.show_symbols, config_debug.debug);
 
+        ImGui::MenuItem("Show Profiler", "", &config_debug.show_profiler, config_debug.debug);
+
         ImGui::MenuItem("Show Memory Editor", "", &config_debug.show_memory, config_debug.debug);
 
         if (ImGui::BeginMenu("Video", config_debug.debug))

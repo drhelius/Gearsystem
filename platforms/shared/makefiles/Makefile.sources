@@ -41,6 +41,7 @@ SOURCES_CXX := \
     $(DESKTOP_SRC_DIR)/gui_debug_markiii_link.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_rewind.cpp \
     $(DESKTOP_SRC_DIR)/gui_debug_trace_logger.cpp \
+    $(DESKTOP_SRC_DIR)/gui_debug_profiler.cpp \
     $(DESKTOP_SRC_DIR)/trace_logger_formatter.cpp \
     $(DESKTOP_SRC_DIR)/ogl_renderer.cpp \
     $(DESKTOP_SRC_DIR)/ogl_shader_program.cpp \
@@ -96,6 +97,7 @@ SOURCES_CXX := \
     $(SRC_DIR)/JanggunMemoryRule.cpp \
     $(SRC_DIR)/YM2413.cpp \
     $(SRC_DIR)/TraceLogger.cpp \
+    $(SRC_DIR)/Profiler.cpp \
     $(SRC_DIR)/VgmRecorder.cpp \
     $(SRC_DIR)/audio/Blip_Buffer.cpp \
     $(SRC_DIR)/audio/Sms_Apu.cpp \

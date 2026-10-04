@@ -54,7 +54,7 @@ void Processor::OPCodeED0x44()
 void Processor::OPCodeED0x45()
 {
     // RETN
-    OPCodes_RET();
+    OPCodes_RET(14);
     m_bIFF1 = m_bIFF2;
 }
 
@@ -104,7 +104,7 @@ void Processor::OPCodeED0x4C()
 void Processor::OPCodeED0x4D()
 {
     // RETI
-    OPCodes_RET();
+    OPCodes_RET(14);
     m_bIFF1 = m_bIFF2;
 }
 
