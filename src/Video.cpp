@@ -163,6 +163,98 @@ void Video::LogVDPEvent(u8 event, u8 raw, u8 effective, u16 auxiliary, u8 reg, u
 #endif
 }
 
+void Video::LogSpriteBudget(int line)
+{
+#if !defined(GS_DISABLE_DISASSEMBLER)
+    bool trace_budget = m_pTraceLogger->IsEventEnabled(TRACE_VDP, TRACE_VDP_SPRITE_BUDGET);
+    bool trace_limit = m_pTraceLogger->IsEventEnabled(TRACE_VDP, TRACE_VDP_SPRITE_LIMIT);
+
+    if (!trace_budget && !trace_limit)
+        return;
+
+    int requested = 0;
+    int max_sprites;
+
+    if (m_bTMS9918)
+    {
+        max_sprites = 4;
+        int sprite_size = IsSetBit(m_VdpRegister[1], 1) ? 16 : 8;
+        if (IsSetBit(m_VdpRegister[1], 0))
+            sprite_size *= 2;
+        u16 sprite_attribute_addr = (m_VdpRegister[5] & 0x7F) << 7;
+
+        for (int sprite = 0; sprite < 32; sprite++)
+        {
+            int sprite_y = m_pVdpVRAM[sprite_attribute_addr + (sprite << 2)];
+
+            if (sprite_y == 0xD0)
+                break;
+
+            sprite_y = (sprite_y + 1) & 0xFF;
+
+            if (sprite_y >= 0xE0)
+                sprite_y = -(0x100 - sprite_y);
+
+            if ((sprite_y <= line) && ((sprite_y + sprite_size) > line))
+                requested++;
+        }
+    }
+    else
+    {
+        if (line >= (m_bExtendedMode224 ? 224 : 192))
+            return;
+
+        max_sprites = 8;
+        u16 sprite_table_address = (m_VdpRegister[5] << 7) & 0x3F00;
+        int sprite_height = IsSetBit(m_VdpRegister[1], 1) ? 16 : 8;
+        if (IsSetBit(m_VdpRegister[1], 0))
+            sprite_height <<= 1;
+
+        for (int sprite = 0; sprite < 64; sprite++)
+        {
+            int sprite_y = m_pVdpVRAM[sprite_table_address + sprite];
+
+            if (!m_bExtendedMode224 && (sprite_y == 0xD0))
+                break;
+
+            sprite_y++;
+            int sprite_y_offscreen = ((sprite_y > 240) && (sprite_y <= 256)) ? sprite_y - 256 : sprite_y;
+
+            if (((line >= sprite_y) && (line < (sprite_y + sprite_height))) ||
+                ((line >= sprite_y_offscreen) && (line < (sprite_y_offscreen + sprite_height))))
+                requested++;
+        }
+    }
+
+    bool limit = requested > max_sprites;
+
+    if (!trace_budget && !limit)
+        return;
+
+    GS_Trace_Entry e = {};
+    e.type = TRACE_VDP;
+    e.vdp.raw = (u8)max_sprites;
+    e.vdp.effective = (u8)(m_bNoSpriteLimit ? requested : MIN(requested, max_sprites));
+    e.vdp.auxiliary = (u16)requested;
+    e.vdp.line = (u16)line;
+    e.vdp.hpos = (u16)m_iCycleCounter;
+
+    if (trace_budget)
+    {
+        e.vdp.event = TRACE_VDP_SPRITE_BUDGET;
+        m_pTraceLogger->TraceLog(e);
+    }
+
+    if (trace_limit && limit)
+    {
+        e.vdp.event = TRACE_VDP_SPRITE_LIMIT;
+        m_pTraceLogger->TraceLog(e);
+    }
+#else
+    UNUSED(line);
+#endif
+}
+
 void Video::SetNoSpriteLimit(bool noSpriteLimit)
 {
     m_bNoSpriteLimit = noSpriteLimit;
@@ -745,6 +837,7 @@ void Video::ScanLine(int line)
     if (!m_bTMS9918)
     {
         ParseSpritesSMSGG(next_line);
+        TraceSpriteBudget(next_line);
     }
 
     if (m_bDisplayEnabled)
@@ -756,6 +849,7 @@ void Video::ScanLine(int line)
             {
                 RenderBackgroundTMS9918(line);
                 RenderSpritesTMS9918(line);
+                TraceSpriteBudget(line);
             }
         }
         else

@@ -118,6 +118,8 @@ private:
     INLINE u16 CachedColorFromPalette(int palette_color);
     INLINE void TraceVDPEvent(u8 event, u8 raw = 0, u8 effective = 0, u16 auxiliary = 0, u8 reg = 0, u8 status_before = 0, u8 status_after = 0, u16 address = 0xFFFF);
     void LogVDPEvent(u8 event, u8 raw, u8 effective, u16 auxiliary, u8 reg, u8 status_before, u8 status_after, u16 address);
+    INLINE void TraceSpriteBudget(int line);
+    void LogSpriteBudget(int line);
 
 private:
     Memory* m_pMemory;
@@ -228,6 +230,12 @@ INLINE void Video::TraceVDPEvent(u8 event, u8 raw, u8 effective, u16 auxiliary, 
 {
     if (m_pTraceLogger->IsEventEnabled(TRACE_VDP, event))
         LogVDPEvent(event, raw, effective, auxiliary, reg, status_before, status_after, address);
+}
+
+INLINE void Video::TraceSpriteBudget(int line)
+{
+    if (m_pTraceLogger->IsEnabled(TRACE_VDP))
+        LogSpriteBudget(line);
 }
 
 inline u8* Video::GetVRAM()

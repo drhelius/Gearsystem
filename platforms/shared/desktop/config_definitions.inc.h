@@ -81,7 +81,7 @@ static inline void process(config_Operation operation)
     CONFIG_BOOL("Debug", "TracePsg", config_debug.trace_psg, false);
     CONFIG_BOOL("Debug", "TraceYm2413", config_debug.trace_ym2413, false);
     CONFIG_BOOL("Debug", "TraceMapper", config_debug.trace_mapper, false);
-    CONFIG_INT_RANGE("Debug", "TraceVdpEvents", config_debug.trace_vdp_events, TRACE_VDP_EVENT_ALL, 0, TRACE_VDP_EVENT_ALL);
+    CONFIG_INT_RANGE("Debug", "TraceVdpEvents", config_debug.trace_vdp_events, TRACE_VDP_EVENT_DEFAULT, 0, TRACE_VDP_EVENT_ALL);
     CONFIG_INT_RANGE("Debug", "TraceInputEvents", config_debug.trace_input_events, TRACE_INPUT_EVENT_ALL, 0, TRACE_INPUT_EVENT_ALL);
     CONFIG_INT_RANGE("Debug", "TraceIoEvents", config_debug.trace_io_events, TRACE_IO_EVENT_ALL, 0, TRACE_IO_EVENT_ALL);
     CONFIG_INT_RANGE("Debug", "TraceGearToGearEvents", config_debug.trace_geartogear_events, TRACE_GEARTOGEAR_EVENT_ALL, 0, TRACE_GEARTOGEAR_EVENT_ALL);

@@ -1682,7 +1682,8 @@ json McpServer::BuildToolList()
                     {"uniqueItems", true},
                     {"items", {{"type", "string"}, {"enum", json::array({
                         "cpu.instructions", "cpu.interrupts", "vdp.registers", "vdp.interrupts", "vdp.status",
-                        "vdp.sprites", "vdp.state", "vdp.data", "vdp.cram", "input.reads", "input.changes",
+                        "vdp.sprites", "vdp.sprite_budget", "vdp.sprite_limit", "vdp.state", "vdp.data", "vdp.cram",
+                        "input.reads", "input.changes",
                         "io.control", "io.counters", "io.gamegear", "psg.tone", "psg.volume", "psg.noise",
                         "geartogear.cable", "geartogear.transfers",
                         "geartogear.interrupts", "geartogear.wire",

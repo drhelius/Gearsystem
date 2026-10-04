@@ -337,6 +337,21 @@ void trace_logger_format_entry(const GS_Trace_Entry& entry,
                              entry.vdp.address, entry.vdp.raw, entry.vdp.auxiliary,
                              entry.vdp.line, entry.vdp.hpos);
                     break;
+                case TRACE_VDP_SPRITE_BUDGET:
+                case TRACE_VDP_SPRITE_LIMIT:
+                {
+                    int dropped = MAX(0, (int)entry.vdp.auxiliary - (int)entry.vdp.effective);
+                    if (entry.vdp.event == TRACE_VDP_SPRITE_LIMIT)
+                        snprintf(text, sizeof(text), "[VDP] SPRITES LIMIT HIT Line:%u Count:%u/%u Dropped:%d",
+                                 entry.vdp.line, entry.vdp.auxiliary, entry.vdp.raw, dropped);
+                    else if (entry.vdp.auxiliary > entry.vdp.raw)
+                        snprintf(text, sizeof(text), "[VDP] SPRITES Line:%u Count:%u/%u LIMIT HIT Dropped:%d",
+                                 entry.vdp.line, entry.vdp.auxiliary, entry.vdp.raw, dropped);
+                    else
+                        snprintf(text, sizeof(text), "[VDP] SPRITES Line:%u Count:%u/%u",
+                                 entry.vdp.line, entry.vdp.auxiliary, entry.vdp.raw);
+                    break;
+                }
                 default:
                     snprintf(text, sizeof(text), "[VDP] UNKNOWN Event:%u Line:%u H:%u",
                              entry.vdp.event, entry.vdp.line, entry.vdp.hpos);

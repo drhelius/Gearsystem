@@ -765,6 +765,12 @@ static void trace_logger_menu(void)
             trace_logger_menu_event_filter("Interrupts", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_INTERRUPTS);
             trace_logger_menu_event_filter("Status", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_STATUS);
             trace_logger_menu_event_filter("Sprites", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_SPRITES);
+            if (ImGui::BeginMenu("Sprite Budget"))
+            {
+                trace_logger_menu_event_filter("Every Line", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_SPRITE_BUDGET);
+                trace_logger_menu_event_filter("Limit Hits", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_SPRITE_LIMIT);
+                ImGui::EndMenu();
+            }
             trace_logger_menu_event_filter("State", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_STATE);
             trace_logger_menu_event_filter("Data", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_DATA);
             trace_logger_menu_event_filter("CRAM", &config_debug.trace_vdp_events, TRACE_VDP_EVENT_CRAM);
