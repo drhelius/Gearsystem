@@ -339,6 +339,9 @@
     <ClInclude Include="..\shared\desktop\gui_debug.h">
       <Filter>desktop</Filter>
     </ClInclude>
+    <ClInclude Include="..\shared\desktop\gui_colors.h">
+      <Filter>desktop</Filter>
+    </ClInclude>
     <ClInclude Include="..\shared\desktop\gui_debug_constants.h">
       <Filter>desktop</Filter>
     </ClInclude>

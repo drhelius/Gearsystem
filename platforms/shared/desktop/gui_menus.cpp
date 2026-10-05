@@ -25,6 +25,7 @@
 #include "gui_filedialogs.h"
 #include "gui_popups.h"
 #include "gui_actions.h"
+#include "gui_colors.h"
 #include "gui_debug_disassembler.h"
 #include "gui_debug_widgets.h"
 #include "gui_debug_memory.h"
@@ -59,8 +60,8 @@ static bool open_sms_bootrom = false;
 static bool open_gg_bootrom = false;
 static bool save_debug_settings = false;
 static bool load_debug_settings = false;
-static const ImVec4 service_mcp_http_color(0.10f, 0.90f, 0.10f, 1.0f);
-static const ImVec4 service_mcp_stdio_color(0.90f, 0.70f, 0.10f, 1.0f);
+static const GuiColor& service_mcp_http_color = green;
+static const GuiColor& service_mcp_stdio_color = amber;
 static ShaderPresetInfo shader_presets[SHADER_PRESET_MAX_DISCOVERED];
 static int shader_preset_count = 0;
 
@@ -593,7 +594,7 @@ static void menu_emulator(void)
                 }
                 else
                 {
-                    ImGui::TextColored(ImVec4(0.50f, 0.50f, 0.50f, 1.0f), "No SMS Bootrom loaded");
+                    ImGui::TextColored(gray, "No SMS Bootrom loaded");
                 }
 
                 ImGui::EndMenu();
@@ -626,7 +627,7 @@ static void menu_emulator(void)
                 }
                 else
                 {
-                    ImGui::TextColored(ImVec4(0.50f, 0.50f, 0.50f, 1.0f), "No GG Bootrom loaded");
+                    ImGui::TextColored(gray, "No GG Bootrom loaded");
                 }
 
                 ImGui::EndMenu();
@@ -1077,7 +1078,7 @@ static void menu_shader(void)
     else if (ogl_shader_chain_get_last_error()[0] != '\0')
     {
         ImGui::Separator();
-        ImGui::TextColored(ImVec4(0.98f, 0.15f, 0.45f, 1.0f), "%s", ogl_shader_chain_get_last_error());
+        ImGui::TextColored(red, "%s", ogl_shader_chain_get_last_error());
     }
 
     ImGui::EndMenu();
@@ -1709,7 +1710,7 @@ static void menu_debug(void)
                 ImGui::TextColored(service_mcp_http_color, "Listening on %s:%d",
                     emu_mcp_get_http_address(), emu_mcp_get_http_port());
             else
-                ImGui::TextColored(ImVec4(0.98f, 0.15f, 0.45f, 1.0f), "Stopped");
+                ImGui::TextColored(red, "Stopped");
 
             ImGui::Separator();
 
@@ -1844,8 +1845,6 @@ static void menu_link_cable(void)
     gui_in_use = true;
     LinkCableStatus status = emu_link_cable_get_status();
     bool active = emu_link_cable_is_active();
-    const ImVec4 cornflower_blue(0.39f, 0.58f, 0.93f, 1.0f);
-    const ImVec4 error_red(0.98f, 0.15f, 0.45f, 1.0f);
     GS_LinkCable_Protocol local_protocol = emu_link_cable_get_protocol();
     const char* hardware_name = "link hardware";
 
@@ -1878,7 +1877,7 @@ static void menu_link_cable(void)
     switch (status.mode)
     {
         case LinkCableModeConnected:
-            ImGui::TextColored(cornflower_blue, "%s", status.endpoint);
+            ImGui::TextColored(cornflower, "%s", status.endpoint);
             ImGui::TextDisabled("Peer %d of %d", status.local_peer_id, status.peer_count);
             if (status.cable_connected)
             {
@@ -1896,10 +1895,10 @@ static void menu_link_cable(void)
                 ImGui::TextDisabled("Local %s inactive", hardware_name);
             break;
         case LinkCableModeFault:
-            ImGui::TextColored(error_red, "%s", status.last_error);
+            ImGui::TextColored(red, "%s", status.last_error);
             break;
         default:
-            ImGui::TextColored(error_red, "Disconnected");
+            ImGui::TextColored(red, "Disconnected");
             break;
     }
 
@@ -1998,7 +1997,6 @@ static void draw_server_status(void)
     char mcp_status[128];
     bool show_link_cable_status = false;
     bool show_mcp_status = false;
-    ImVec4 link_cable_color(0.39f, 0.58f, 0.93f, 1.0f);
     ImVec4 mcp_color = service_mcp_http_color;
 
     if (link_cable.mode == LinkCableModeConnected)
@@ -2050,7 +2048,7 @@ static void draw_server_status(void)
     ImGui::AlignTextToFramePadding();
 
     if (show_link_cable_status)
-        ImGui::TextColored(link_cable_color, "%s", link_cable_status);
+        ImGui::TextColored(cornflower, "%s", link_cable_status);
 
     if (show_mcp_status)
     {
@@ -2281,13 +2279,13 @@ static void draw_savestate_slot_info(int slot)
         {
             if (emu_savestates[slot].version == GS_SAVESTATE_VERSION_V1)
             {
-                ImGui::TextColored(ImVec4(1.0f, 0.80f, 0.0f, 1.0f), "This save state is from an older version");
+                ImGui::TextColored(yellow, "This save state is from an older version");
             }
             else
             {
-                ImGui::TextColored(ImVec4(0.98f, 0.15f, 0.45f, 1.0f), "This save state is from an older version and will not work");
+                ImGui::TextColored(red, "This save state is from an older version and will not work");
                 if (emu_savestates[slot].emu_build[0] != 0)
-                    ImGui::TextColored(ImVec4(0.98f, 0.15f, 0.45f, 1.0f), "Use %s - %s", GS_TITLE, emu_savestates[slot].emu_build);
+                    ImGui::TextColored(red, "Use %s - %s", GS_TITLE, emu_savestates[slot].emu_build);
             }
             ImGui::Separator();
         }
@@ -2306,6 +2304,6 @@ static void draw_savestate_slot_info(int slot)
     }
     else
     {
-        ImGui::TextColored(ImVec4(0.50f, 0.50f, 0.50f, 1.0f), "Slot %d is empty", slot + 1);
+        ImGui::TextColored(gray, "Slot %d is empty", slot + 1);
     }
 }
