@@ -39,7 +39,6 @@ EXTERN void display_use_vsync_if_enabled(void);
 EXTERN void display_disable_vsync(void);
 EXTERN void display_update_frame_pacing(void);
 EXTERN void display_recreate_gl_context(void);
-EXTERN void display_request_gl_context_recreate(void);
 EXTERN void display_check_mixed_refresh_rates(void);
 EXTERN bool display_is_vsync_forced_off(void);
 

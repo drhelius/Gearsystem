@@ -43,12 +43,8 @@ EXTERN const char* ogl_renderer_opengl_version;
 
 struct OglRendererScreenGeometry
 {
-    int logical_width;
-    int logical_height;
     int physical_width;
     int physical_height;
-    float framebuffer_scale_x;
-    float framebuffer_scale_y;
 };
 
 EXTERN bool ogl_renderer_init(void);

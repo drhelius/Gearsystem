@@ -44,7 +44,6 @@
 
 static GearsystemCore* gearsystem;
 static s16* audio_buffer;
-static bool audio_enabled;
 static McpManager* mcp_manager;
 static LinkCableManager* link_cable_manager;
 static bool link_cable_transport_active;
@@ -130,7 +129,6 @@ bool emu_init(void)
     for (int i = 0; i < 5; i++)
         InitPointer(emu_savestates_screenshots[i].data);
 
-    audio_enabled = true;
     emu_audio_sync = true;
     emu_debug_disable_breakpoints = false;
     emu_debug_irq_breakpoints = false;
@@ -239,17 +237,6 @@ bool emu_finish_media_loading(void)
     rewind_reset();
 
     return true;
-}
-
-void emu_render_current_frame(void)
-{
-    if (emu_is_empty())
-        return;
-
-    gearsystem->RenderFrameBuffer(emu_frame_buffer);
-
-    if (config_debug.debug)
-        update_debug();
 }
 
 void emu_reset_rewind_timing(void)
@@ -557,7 +544,6 @@ void emu_reset(Cartridge::ForceConfiguration config, bool save_persistent_data)
 
 void emu_audio_mute(bool mute)
 {
-    audio_enabled = !mute;
     gearsystem->GetAudio()->Mute(mute);
 }
 
@@ -580,11 +566,6 @@ void emu_audio_psg_volume(float volume)
 void emu_audio_fm_volume(float volume)
 {
     gearsystem->GetAudio()->SetFMVolume(volume);
-}
-
-bool emu_is_audio_enabled(void)
-{
-    return audio_enabled;
 }
 
 bool emu_is_audio_open(void)
@@ -845,11 +826,6 @@ void emu_debug_continue(void)
     gearsystem->Pause(false);
     emu_debug_halt_step_frames_pending = 0;
     emu_debug_command = Debug_Command_Continue;
-}
-
-bool emu_debug_halt_step_active(void)
-{
-    return emu_debug_halt_step_frames_pending > 0;
 }
 
 void emu_set_disassembler_syntax(int syntax)
@@ -1817,12 +1793,6 @@ void emu_markiii_key_released(GS_MarkIII_Key key)
 {
     if (gearsystem && !link_cable_hardware_suspended)
         gearsystem->MarkIIIKeyReleased(key);
-}
-
-void emu_markiii_release_keys(void)
-{
-    if (gearsystem && !link_cable_hardware_suspended)
-        gearsystem->ReleaseMarkIIIKeys();
 }
 
 void emu_link_cable_pump(void)

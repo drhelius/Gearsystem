@@ -39,8 +39,7 @@ public:
         GS_BREAKPOINT_TYPE_ROMRAM = 0,
         GS_BREAKPOINT_TYPE_VRAM,
         GS_BREAKPOINT_TYPE_VDP_REGISTER,
-        GS_BREAKPOINT_TYPE_CRAM,
-        GS_BREAKPOINT_TYPE_COUNT
+        GS_BREAKPOINT_TYPE_CRAM
     };
 
     struct GS_Breakpoint
@@ -106,7 +105,6 @@ public:
     void ClearProActionReplayCheats();
     ProcessorState* GetState();
     void SetDisassemblerSyntax(GS_Disassembler_Syntax syntax);
-    GS_Disassembler_Syntax GetDisassemblerSyntax() const;
     void DisassembleNextOPCode();
     void PopulateDisassemblerRecord(GS_Disassembler_Record* record, u16 address);
     void InvalidateOverlappingRecords(u16 address, u8 opcode_size);

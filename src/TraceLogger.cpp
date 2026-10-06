@@ -36,7 +36,6 @@ TraceLogger::TraceLogger(const u64* master_clock_cycles)
 #endif
     for (int i = 0; i < TRACE_TYPE_COUNT; i++)
         m_event_filters[i] = 0xFFFFFFFFU;
-    m_total_logged = 0;
     m_sequence = 0;
     m_master_clock_cycles = master_clock_cycles;
 }
@@ -50,7 +49,6 @@ void TraceLogger::Reset()
 {
     m_position = 0;
     m_count = 0;
-    m_total_logged = 0;
 }
 
 bool TraceLogger::SetCapacity(u32 capacity)
@@ -99,23 +97,6 @@ void TraceLogger::SetEventFilter(GS_Trace_Type type, u32 filter)
         m_event_filters[type] = filter;
 }
 
-u32 TraceLogger::GetEnabledFlags() const
-{
-    return m_enabled_flags;
-}
-
-u32 TraceLogger::GetEventFilter(GS_Trace_Type type) const
-{
-    if (type < TRACE_TYPE_COUNT)
-        return m_event_filters[type];
-    return 0;
-}
-
-const GS_Trace_Entry* TraceLogger::GetBuffer() const
-{
-    return m_buffer;
-}
-
 u32 TraceLogger::GetCount() const
 {
     return m_count;
@@ -124,16 +105,6 @@ u32 TraceLogger::GetCount() const
 u32 TraceLogger::GetCapacity() const
 {
     return m_capacity;
-}
-
-u32 TraceLogger::GetPosition() const
-{
-    return m_position;
-}
-
-u64 TraceLogger::GetTotalLogged() const
-{
-    return m_total_logged;
 }
 
 u64 TraceLogger::GetSequence() const

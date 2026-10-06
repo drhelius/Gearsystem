@@ -51,7 +51,6 @@ void gui_debug_init(void)
     gui_debug_trace_logger_init();
     gui_debug_disassembler_init();
     gui_debug_psg_init();
-    gui_debug_ym2413_init();
     gui_debug_memory_init();
 }
 

@@ -36,7 +36,7 @@ void MemoryRule::SetTraceLogger(TraceLogger* pTraceLogger)
     m_pTraceLogger = pTraceLogger;
 }
 
-void MemoryRule::LogBankSwitchEvent(u16 address, u8 value, u8 flags, u16 auxiliary, bool flags_valid)
+void MemoryRule::LogBankSwitchEvent(u16 address, u8 value, u8 flags, u16 auxiliary)
 {
 #if !defined(GS_DISABLE_DISASSEMBLER)
     u8 event = TRACE_MAPPER_ROM;
@@ -49,7 +49,7 @@ void MemoryRule::LogBankSwitchEvent(u16 address, u8 value, u8 flags, u16 auxilia
     if (m_pTraceLogger->IsEventEnabled(TRACE_MAPPER, event))
     {
         GS_Trace_Entry e = {};
-        PopulateMapperTraceEntry(e, event, address, value, flags, auxiliary, flags_valid);
+        PopulateMapperTraceEntry(e, event, address, value, flags, auxiliary);
         m_pTraceLogger->TraceLog(e);
     }
 #else
@@ -57,15 +57,14 @@ void MemoryRule::LogBankSwitchEvent(u16 address, u8 value, u8 flags, u16 auxilia
     UNUSED(value);
     UNUSED(flags);
     UNUSED(auxiliary);
-    UNUSED(flags_valid);
 #endif
 }
 
-void MemoryRule::LogMapperEvent(u8 event, u16 address, u8 value, u8 flags, u16 auxiliary, bool flags_valid)
+void MemoryRule::LogMapperEvent(u8 event, u16 address, u8 value, u8 flags, u16 auxiliary)
 {
 #if !defined(GS_DISABLE_DISASSEMBLER)
     GS_Trace_Entry e = {};
-    PopulateMapperTraceEntry(e, event, address, value, flags, auxiliary, flags_valid);
+    PopulateMapperTraceEntry(e, event, address, value, flags, auxiliary);
     m_pTraceLogger->TraceLog(e);
 #else
     UNUSED(event);
@@ -73,12 +72,11 @@ void MemoryRule::LogMapperEvent(u8 event, u16 address, u8 value, u8 flags, u16 a
     UNUSED(value);
     UNUSED(flags);
     UNUSED(auxiliary);
-    UNUSED(flags_valid);
 #endif
 }
 
 void MemoryRule::PopulateMapperTraceEntry(GS_Trace_Entry& e, u8 event, u16 address,
-    u8 value, u8 flags, u16 auxiliary, bool flags_valid)
+    u8 value, u8 flags, u16 auxiliary)
 {
 #if !defined(GS_DISABLE_DISASSEMBLER)
     e.type = TRACE_MAPPER;
@@ -87,7 +85,6 @@ void MemoryRule::PopulateMapperTraceEntry(GS_Trace_Entry& e, u8 event, u16 addre
     e.mapper.address = address;
     e.mapper.value = value;
     e.mapper.flags = flags;
-    e.mapper.flags_valid = flags_valid ? 1 : 0;
     if (Has8kBanks())
     {
         for (int i = 0; i < 6; i++)
@@ -111,7 +108,6 @@ void MemoryRule::PopulateMapperTraceEntry(GS_Trace_Entry& e, u8 event, u16 addre
     UNUSED(value);
     UNUSED(flags);
     UNUSED(auxiliary);
-    UNUSED(flags_valid);
 #endif
 }
 
@@ -122,11 +118,6 @@ void MemoryRule::SaveRam(std::ostream&)
 bool MemoryRule::LoadRam(std::istream&, s32)
 {
     return false;
-}
-
-void MemoryRule::SetRamChangedCallback(RamChangedCallback callback)
-{
-    m_pRamChangedCallback = callback;
 }
 
 bool MemoryRule::PersistedRAM()

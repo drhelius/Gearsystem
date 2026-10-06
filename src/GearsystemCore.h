@@ -90,8 +90,6 @@ public:
     void RenderFrameBuffer(u8* finalFrameBuffer);
     bool LoadROM(const char* szFilePath, Cartridge::ForceConfiguration* config = NULL, bool softpatching = false);
     bool LoadROMFromBuffer(const u8* buffer, int size, Cartridge::ForceConfiguration* config = NULL, const char* szFilePath = NULL);
-    void SaveMemoryDump();
-    void SaveDisassembledROM();
     bool GetRuntimeInfo(GS_RuntimeInfo& runtime_info);
     void KeyPressed(GS_Joypads joypad, GS_Keys key);
     void KeyReleased(GS_Joypads joypad, GS_Keys key);
@@ -108,7 +106,6 @@ public:
     bool IsPaused();
     void ResetROM(Cartridge::ForceConfiguration* config = NULL);
     void ResetROMPreservingRAM(Cartridge::ForceConfiguration* config = NULL);
-    void ResetSound();
     void SaveRam();
     void SaveRam(const char* szPath, bool fullPath = false);
     void LoadRam();
@@ -121,7 +118,6 @@ public:
     bool GetSaveStateScreenshot(int index, const char* path, GS_SaveState_Screenshot* screenshot);
     void SetCheat(const char* szCheat);
     void ClearCheats();
-    void SetRamModificationCallback(RamChangedCallback callback);
     Memory* GetMemory();
     Cartridge* GetCartridge();
     Processor* GetProcessor();
@@ -143,7 +139,6 @@ public:
     INLINE u64 GetLinkCableCycles() const;
     void MarkIIIKeyPressed(GS_MarkIII_Key key);
     void MarkIIIKeyReleased(GS_MarkIII_Key key);
-    void ReleaseMarkIIIKeys();
     bool IsNativeGameGearMode() const;
     GameGearIOPorts* GetGameGearIOPorts();
     MarkIIILink* GetMarkIIILink();
@@ -193,7 +188,6 @@ private:
     BootromMemoryRule* m_pBootromMemoryRule;
     IratahackMemoryRule* m_pIratahackMemoryRule;
     bool m_bPaused;
-    RamChangedCallback m_pRamChangedCallback;
     GS_Color_Format m_pixelFormat;
     GlassesConfig m_GlassesConfig;
     u64 m_master_clock_cycles;

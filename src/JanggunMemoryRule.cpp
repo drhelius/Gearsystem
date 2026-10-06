@@ -138,7 +138,7 @@ void JanggunMemoryRule::PerformWrite(u16 address, u8 value)
                         m_iMapperSlotAddress[1] = m_iMapperSlot[1] * 0x2000;
                         m_bReverseFlags[1] = IsSetBit(value, 6);
                         TraceMapperEvent(TRACE_MAPPER_CONTROL, address, value,
-                            m_bReverseFlags[1] ? 1 : 0, 1, true);
+                            m_bReverseFlags[1] ? 1 : 0, 1);
                         break;
                     }
                     case 0xFFFF:
@@ -149,7 +149,7 @@ void JanggunMemoryRule::PerformWrite(u16 address, u8 value)
                         m_iMapperSlotAddress[3] = m_iMapperSlot[3] * 0x2000;
                         m_bReverseFlags[2] = IsSetBit(value, 6);
                         TraceMapperEvent(TRACE_MAPPER_CONTROL, address, value,
-                            m_bReverseFlags[2] ? 1 : 0, 2, true);
+                            m_bReverseFlags[2] ? 1 : 0, 2);
                         break;
                     }
                 }

@@ -61,7 +61,6 @@ public:
     void ResetDisassemblerRecords();
     GS_Disassembler_Record** GetAllDisassemblerRecords();
     void LoadSlotsFromROM(u8* pTheROM, int size);
-    void MemoryDump(const char* szFilePath);
     void SaveState(std::ostream& stream);
     void LoadState(std::istream& stream, int version = GS_SAVESTATE_VERSION);
     void EnableBootromSMS(bool enable);
@@ -72,7 +71,6 @@ public:
     void UnloadBootrom(bool gg);
     bool IsBootromLoaded(bool gg);
     bool IsBootromEnabled();
-    bool IsIOEnabled();
     void SetPort3E(u8 port3E);
     u8* GetBootrom();
     int GetBootromBankCount();

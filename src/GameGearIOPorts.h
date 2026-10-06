@@ -58,8 +58,6 @@ public:
     INLINE void EndLinkInstruction(u64 cycle);
     void RebaseGearToGear(u64 cycle);
     bool IsGearToGearCableConnected() const;
-    GS_LinkCable_WireState GetGearToGearWireState() const;
-    u8 GetGearToGearResolvedPins() const;
     u8 GetGearToGearContentionMask() const;
     GS_GearToGear_DebugState GetGearToGearDebugState() const;
 

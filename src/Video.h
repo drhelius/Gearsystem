@@ -93,7 +93,6 @@ public:
     void SetOverscan(Overscan overscan);
     Overscan GetOverscan();
     void SetHideLeftBar(HideLeftBar hideLeftBar);
-    HideLeftBar GetHideLeftBar();
     void SetNoSpriteLimit(bool noSpriteLimit);
     int GetHideLeftBarOffset();
     void SetPhaserCoordinates(int x, int y);

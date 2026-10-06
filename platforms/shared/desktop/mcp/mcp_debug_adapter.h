@@ -36,17 +36,6 @@ struct MemoryAreaInfo
     u8* data;
 };
 
-struct RegistersSnapshot
-{
-    u16 AF, BC, DE, HL;
-    u16 AF2, BC2, DE2, HL2;
-    u16 IX, IY, SP, PC, WZ;
-    u8 I, R;
-    bool IFF1, IFF2;
-    bool Halt;
-    int InterruptMode;
-};
-
 struct BreakpointInfo
 {
     bool enabled;
@@ -103,7 +92,6 @@ public:
     std::vector<BreakpointInfo> ListBreakpoints();
 
     // Registers
-    RegistersSnapshot GetRegisters();
     void SetRegister(const std::string& name, u32 value);
 
     // Memory areas (matching debugger memory editor)
@@ -179,9 +167,6 @@ public:
     json SetTraceLog(const json& arguments);
     json SetProfiler(const std::string& action);
     json GetProfilerData(const std::string& sort, int count, const std::string& filter);
-
-    // Core access
-    GearsystemCore* GetCore() { return m_core; }
 
 private:
     GearsystemCore* m_core;

@@ -1644,11 +1644,6 @@ void Video::SetHideLeftBar(HideLeftBar hideLeftBar)
     m_HideLeftBar = hideLeftBar;
 }
 
-Video::HideLeftBar Video::GetHideLeftBar()
-{
-    return m_HideLeftBar;
-}
-
 int Video::GetHideLeftBarOffset()
 {
     return m_iHideLeftBarOffset;

@@ -199,7 +199,7 @@ void IratahackMemoryRule::LogFlashEvent(u16 address, u8 value, u16 auxiliary)
 #if !defined(GS_DISABLE_DISASSEMBLER)
     u8 flags = (u8)m_iFlashMode;
     GS_Trace_Entry e = {};
-    PopulateMapperTraceEntry(e, TRACE_MAPPER_FLASH, address, value, flags, auxiliary, true);
+    PopulateMapperTraceEntry(e, TRACE_MAPPER_FLASH, address, value, flags, auxiliary);
     m_pTraceLogger->TraceLog(e);
 #else
     UNUSED(address);

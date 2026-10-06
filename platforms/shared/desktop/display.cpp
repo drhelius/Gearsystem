@@ -39,7 +39,6 @@ static int last_vsync_state = -1;
 static bool multi_monitor_mixed_refresh = false;
 static bool last_geartogear_active = false;
 static bool fixed_vsync_fallback_logged = false;
-static bool pending_gl_context_recreate = false;
 
 static bool display_is_vrr_enabled(void);
 static bool display_fixed_vsync_supported(void);
@@ -252,11 +251,6 @@ void display_check_mixed_refresh_rates(void)
 bool display_is_vsync_forced_off(void)
 {
     return config_debug.debug && config_debug.multi_viewport && multi_monitor_mixed_refresh;
-}
-
-void display_request_gl_context_recreate(void)
-{
-    pending_gl_context_recreate = true;
 }
 
 void display_recreate_gl_context(void)

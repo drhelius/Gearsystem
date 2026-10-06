@@ -26,8 +26,6 @@
     #define EXTERN extern
 #endif
 
-EXTERN void gui_debug_ym2413_init(void);
-EXTERN void gui_debug_ym2413_destroy(void);
 EXTERN void gui_debug_window_ym2413(void);
 
 #undef GUI_DEBUG_YM2413_IMPORT

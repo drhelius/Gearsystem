@@ -50,7 +50,6 @@ public:
     void DisableYM2413(bool bDisable);
     Sms_Apu* GetPSG();
     void EnablePSGDebug(bool enable);
-    bool IsPSGDebugEnabled();
     blip_sample_t* GetDebugChannelBuffer(int channel);
     int GetDebugChannelSamples(int channel);
     void SaveState(std::ostream& stream);
@@ -205,11 +204,6 @@ inline void Audio::EnablePSGDebug(bool enable)
     {
         m_pApu->disable_debug_buffers();
     }
-}
-
-inline bool Audio::IsPSGDebugEnabled()
-{
-    return m_pApu->is_debug_enabled();
 }
 
 inline blip_sample_t* Audio::GetDebugChannelBuffer(int channel)

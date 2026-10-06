@@ -111,7 +111,6 @@ void gui_main_menu(void)
     choose_savestates_path = false;
     choose_screenshots_path = false;
     choose_video_recordings_path = false;
-    gui_main_menu_hovered = false;
     choose_backup_ram_path = false;
     open_sms_bootrom = false;
     open_gg_bootrom = false;
@@ -120,8 +119,6 @@ void gui_main_menu(void)
 
     if (application_show_menu && ImGui::BeginMainMenuBar())
     {
-        gui_main_menu_hovered = ImGui::IsWindowHovered();
-
         menu_gearsystem();
         menu_emulator();
         menu_video();

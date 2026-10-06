@@ -40,11 +40,6 @@ enum GS_Trace_Type : u8
 
 static_assert(TRACE_TYPE_COUNT < 32, "Trace category flags exceed 32 bits");
 
-#define TRACE_VDP_WRITE TRACE_VDP
-#define TRACE_VDP_STATUS TRACE_VDP
-#define TRACE_IO_PORT TRACE_IO
-#define TRACE_BANK_SWITCH TRACE_MAPPER
-
 #define TRACE_FLAG_CPU          (1U << TRACE_CPU)
 #define TRACE_FLAG_CPU_IRQ      (1U << TRACE_CPU_IRQ)
 #define TRACE_FLAG_VDP          (1U << TRACE_VDP)
@@ -54,12 +49,6 @@ static_assert(TRACE_TYPE_COUNT < 32, "Trace category flags exceed 32 bits");
 #define TRACE_FLAG_PSG          (1U << TRACE_PSG)
 #define TRACE_FLAG_YM2413       (1U << TRACE_YM2413)
 #define TRACE_FLAG_MAPPER       (1U << TRACE_MAPPER)
-#define TRACE_FLAG_ALL          ((1U << TRACE_TYPE_COUNT) - 1U)
-
-#define TRACE_FLAG_VDP_WRITE TRACE_FLAG_VDP
-#define TRACE_FLAG_VDP_STATUS TRACE_FLAG_VDP
-#define TRACE_FLAG_IO_PORT TRACE_FLAG_IO
-#define TRACE_FLAG_BANK_SWITCH TRACE_FLAG_MAPPER
 
 enum GS_Trace_VDP_Event : u8
 {
@@ -192,15 +181,6 @@ enum GS_Trace_Mapper_Event : u8
 #define TRACE_MAPPER_EVENT_FLASH   (1U << TRACE_MAPPER_FLASH)
 #define TRACE_MAPPER_EVENT_ALL     (TRACE_MAPPER_EVENT_ROM | TRACE_MAPPER_EVENT_RAM | TRACE_MAPPER_EVENT_CONTROL | TRACE_MAPPER_EVENT_EEPROM | TRACE_MAPPER_EVENT_FLASH)
 
-#define GS_VDP_EVENT_VINT        0
-#define GS_VDP_EVENT_HINT        1
-#define GS_VDP_EVENT_VINT_FLAG   2
-#define GS_VDP_EVENT_DISPLAY     3
-#define GS_VDP_EVENT_SCROLL_X    4
-#define GS_VDP_EVENT_SCROLL_Y    5
-#define GS_VDP_EVENT_SPRITE_OVR  6
-#define GS_VDP_EVENT_SPRITE_COL  7
-
 struct GS_Trace_Entry
 {
     GS_Trace_Type type;
@@ -224,9 +204,6 @@ struct GS_Trace_Entry
             u8 size;
             u8 opcodes[7];
             char name[64];
-            bool iff1;
-            bool iff2;
-            bool halt;
         } cpu;
 
         struct
@@ -235,19 +212,6 @@ struct GS_Trace_Entry
             u16 vector;
             u8 type;
         } irq;
-
-        struct
-        {
-            u8 reg;
-            u8 value;
-        } vdp_write;
-
-        struct
-        {
-            u8 event;
-            u8 value;
-            u16 line;
-        } vdp_status;
 
         struct
         {
@@ -306,7 +270,6 @@ struct GS_Trace_Entry
             u8 value;
             u8 event;
             u8 channel;
-            u8 latch;
             u8 attenuation;
             u16 period;
         } psg;
@@ -317,7 +280,6 @@ struct GS_Trace_Entry
             u8 value;
             u8 event;
             u8 reg;
-            u8 effective;
             bool accepted;
             bool psg_enabled;
             bool fm_enabled;
@@ -325,24 +287,10 @@ struct GS_Trace_Entry
 
         struct
         {
-            u8 port;
-            u8 value;
-            bool is_write;
-        } io_port;
-
-        struct
-        {
-            u16 address;
-            u8 value;
-        } bank_switch;
-
-        struct
-        {
             u8 event;
             u8 mapper;
             u8 value;
             u8 flags;
-            u8 flags_valid;
             u16 address;
             u16 banks[6];
             s16 ram_bank;
@@ -365,13 +313,8 @@ public:
     INLINE void TraceLog(const GS_Trace_Entry& entry);
     void SetEnabledFlags(u32 flags);
     void SetEventFilter(GS_Trace_Type type, u32 filter);
-    u32 GetEnabledFlags() const;
-    u32 GetEventFilter(GS_Trace_Type type) const;
-    const GS_Trace_Entry* GetBuffer() const;
     u32 GetCount() const;
     u32 GetCapacity() const;
-    u32 GetPosition() const;
-    u64 GetTotalLogged() const;
     u64 GetSequence() const;
     const GS_Trace_Entry& GetEntry(u32 index) const;
 
@@ -388,7 +331,6 @@ private:
     bool m_enabled;
 #endif
     u32 m_event_filters[TRACE_TYPE_COUNT];
-    u64 m_total_logged;
     u64 m_sequence;
     const u64* m_master_clock_cycles;
 };
@@ -432,7 +374,6 @@ INLINE void TraceLogger::TraceLog(const GS_Trace_Entry& entry)
         m_position = 0;
     if (m_count < m_capacity)
         m_count++;
-    m_total_logged++;
     m_sequence++;
 #else
     UNUSED(entry);

@@ -304,11 +304,6 @@ void application_update_title_with_rom(const char* rom)
     SDL_SetWindowTitle(application_sdl_window, final_title);
 }
 
-void application_input_pump(void)
-{
-    events_emu();
-}
-
 bool application_check_single_instance(const char* rom_file, const char* symbol_file)
 {
 #if defined(__APPLE__)
@@ -599,10 +594,7 @@ static void sdl_events_app(const SDL_Event* event)
                 if (config_video.sync_mode != config_VideoSync_Disabled && !display_is_vsync_forced_off())
                     display_recreate_gl_context();
                 else
-                {
-                    display_request_gl_context_recreate();
                     display_update_frame_pacing();
-                }
             }
             break;
         }

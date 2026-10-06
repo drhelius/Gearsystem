@@ -28,9 +28,6 @@
     #define EXTERN extern
 #endif
 
-// Comfortable upper bound for one Gearsystem savestate without screenshots.
-#define REWIND_MAX_STATE_SIZE       (256 * 1024)
-
 // Absolute hard cap for the ring buffer. Effective capacity is derived from
 // config_rewind (buffer_seconds / frames_per_snapshot) and clamped to this.
 #define REWIND_MAX_SNAPSHOTS        600
@@ -47,7 +44,6 @@ EXTERN bool rewind_is_active(void);
 EXTERN int rewind_get_snapshot_count(void);
 EXTERN int rewind_get_capacity(void);
 EXTERN int rewind_get_frames_per_snapshot(void);
-EXTERN size_t rewind_get_memory_usage(void);
 
 #undef REWIND_IMPORT
 #undef EXTERN

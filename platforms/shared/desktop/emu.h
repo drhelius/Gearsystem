@@ -66,7 +66,6 @@ EXTERN void emu_update(void);
 EXTERN void emu_load_media_async(const char* file_path, Cartridge::ForceConfiguration config);
 EXTERN bool emu_is_media_loading(void);
 EXTERN bool emu_finish_media_loading(void);
-EXTERN void emu_render_current_frame(void);
 EXTERN void emu_reset_rewind_timing(void);
 EXTERN void emu_key_pressed(GS_Joypads pad, GS_Keys key);
 EXTERN void emu_key_released(GS_Joypads pad, GS_Keys key);
@@ -91,7 +90,6 @@ EXTERN void emu_audio_set_master_volume(float volume);
 EXTERN void emu_audio_reset(void);
 EXTERN void emu_audio_psg_volume(float volume);
 EXTERN void emu_audio_fm_volume(float volume);
-EXTERN bool emu_is_audio_enabled(void);
 EXTERN bool emu_is_audio_open(void);
 EXTERN void emu_save_ram(const char* file_path);
 EXTERN void emu_load_ram(const char* file_path, Cartridge::ForceConfiguration config);
@@ -114,7 +112,6 @@ EXTERN void emu_debug_step_frame(void);
 EXTERN void emu_debug_step_frames(int frames);
 EXTERN void emu_debug_break(void);
 EXTERN void emu_debug_continue(void);
-EXTERN bool emu_debug_halt_step_active(void);
 EXTERN void emu_set_disassembler_syntax(int syntax);
 EXTERN void emu_load_bootrom_sms(const char* file_path);
 EXTERN void emu_load_bootrom_gg(const char* file_path);
@@ -160,7 +157,6 @@ EXTERN void emu_link_cable_reset_metrics(void);
 EXTERN void emu_link_cable_set_normal_barrier_stall_us(u32 stall_us);
 EXTERN void emu_markiii_key_pressed(GS_MarkIII_Key key);
 EXTERN void emu_markiii_key_released(GS_MarkIII_Key key);
-EXTERN void emu_markiii_release_keys(void);
 
 #undef EMU_IMPORT
 #undef EXTERN

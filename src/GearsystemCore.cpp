@@ -330,55 +330,6 @@ bool GearsystemCore::LoadROMFromBuffer(const u8* buffer, int size, Cartridge::Fo
         return false;
 }
 
-void GearsystemCore::SaveMemoryDump()
-{
-    if (m_pCartridge->IsReady() && (strlen(m_pCartridge->GetFilePath()) > 0))
-    {
-        using namespace std;
-
-        string path = string(m_pCartridge->GetFilePath()) + ".dump";
-
-        Log("Saving Memory Dump %s...", path.c_str());
-
-        m_pMemory->MemoryDump(path.c_str());
-
-        Debug("Memory Dump Saved");
-    }
-}
-
-void GearsystemCore::SaveDisassembledROM()
-{
-    GS_Disassembler_Record** romMap = m_pMemory->GetAllDisassemblerRecords();
-
-    if (m_pCartridge->IsReady() && (strlen(m_pCartridge->GetFilePath()) > 0) && IsValidPointer(romMap))
-    {
-        using namespace std;
-
-        string path = string(m_pCartridge->GetFilePath()) + ".dis";
-
-        Log("Saving Disassembled ROM %s...", path.c_str());
-
-        ofstream myfile;
-        open_ofstream_utf8(myfile, path.c_str(), ios::out | ios::trunc);
-
-        if (myfile.is_open())
-        {
-            for (int i = 0; i < 65536; i++)
-            {
-                if (IsValidPointer(romMap[i]) && (romMap[i]->name[0] != 0))
-                {
-                    myfile << "0x" << hex << i << "\t " << romMap[i]->name << "\n";
-                    i += (romMap[i]->size - 1);
-                }
-            }
-
-            myfile.close();
-        }
-
-        Debug("Disassembled ROM Saved");
-    }
-}
-
 bool GearsystemCore::GetRuntimeInfo(GS_RuntimeInfo& runtime_info)
 {
     bool pal = m_pCartridge->IsPAL();
@@ -556,11 +507,6 @@ void GearsystemCore::MarkIIIKeyReleased(GS_MarkIII_Key key)
     m_pSmsIOPorts->GetMarkIIILink()->KeyReleased(key);
 }
 
-void GearsystemCore::ReleaseMarkIIIKeys()
-{
-    m_pSmsIOPorts->GetMarkIIILink()->ReleaseAllKeys();
-}
-
 bool GearsystemCore::IsNativeGameGearMode() const
 {
     return m_pCartridge->IsReady() && m_pCartridge->IsGameGear() &&
@@ -719,11 +665,6 @@ void GearsystemCore::ResetROMPreservingRAM(Cartridge::ForceConfiguration* config
             ResetROM(config);
         }
     }
-}
-
-void GearsystemCore::ResetSound()
-{
-    m_pAudio->Reset(m_pCartridge->IsPAL());
 }
 
 void GearsystemCore::SaveRam()
@@ -1438,11 +1379,6 @@ void GearsystemCore::ClearCheats()
     m_pProcessor->ClearProActionReplayCheats();
     if (m_pCartridge->IsReady())
         m_pMemory->LoadSlotsFromROM(m_pCartridge->GetROM(), m_pCartridge->GetROMSize());
-}
-
-void GearsystemCore::SetRamModificationCallback(RamChangedCallback callback)
-{
-    m_pRamChangedCallback = callback;
 }
 
 void GearsystemCore::InitMemoryRules()

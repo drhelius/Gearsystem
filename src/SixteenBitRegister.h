@@ -43,7 +43,7 @@ private:
         u16 v;
         struct 
         {
-#ifdef IS_LITTLE_ENDIAN
+#ifdef GS_LITTLE_ENDIAN
             uint8_t low;
             uint8_t high;
 #else

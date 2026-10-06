@@ -70,14 +70,6 @@ static const char* k_mul_names[16] = {
     "x8", "x9", "x10", "x10", "x12", "x12", "x15", "x15"
 };
 
-void gui_debug_ym2413_init(void)
-{
-}
-
-void gui_debug_ym2413_destroy(void)
-{
-}
-
 void gui_debug_window_ym2413(void)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);

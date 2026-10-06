@@ -280,16 +280,6 @@ bool GameGearIOPorts::IsGearToGearCableConnected() const
     return m_geartogear_cable_connected;
 }
 
-GS_LinkCable_WireState GameGearIOPorts::GetGearToGearWireState() const
-{
-    return m_geartogear_local_state;
-}
-
-u8 GameGearIOPorts::GetGearToGearResolvedPins() const
-{
-    return ResolveGearToGearPins();
-}
-
 u8 GameGearIOPorts::GetGearToGearContentionMask() const
 {
     if (!m_geartogear_cable_connected)

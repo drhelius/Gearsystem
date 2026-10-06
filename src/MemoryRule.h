@@ -38,7 +38,6 @@ public:
     virtual void Reset() = 0;
     virtual void SaveRam(std::ostream &file);
     virtual bool LoadRam(std::istream &file, s32 fileSize);
-    virtual void SetRamChangedCallback(RamChangedCallback callback);
     virtual bool PersistedRAM();
     virtual size_t GetRamSize();
     virtual u8* GetRamBanks();
@@ -50,29 +49,28 @@ public:
     virtual void LoadState(std::istream& stream, int version = GS_SAVESTATE_VERSION);
 
 protected:
-    INLINE void TraceBankSwitchEvent(u16 address, u8 value, u8 flags = 0, u16 auxiliary = 0, bool flags_valid = false);
-    INLINE void TraceMapperEvent(u8 event, u16 address, u8 value, u8 flags = 0, u16 auxiliary = 0, bool flags_valid = false);
-    void LogBankSwitchEvent(u16 address, u8 value, u8 flags, u16 auxiliary, bool flags_valid);
-    void LogMapperEvent(u8 event, u16 address, u8 value, u8 flags, u16 auxiliary, bool flags_valid);
-    void PopulateMapperTraceEntry(GS_Trace_Entry& entry, u8 event, u16 address, u8 value, u8 flags, u16 auxiliary, bool flags_valid);
+    INLINE void TraceBankSwitchEvent(u16 address, u8 value, u8 flags = 0, u16 auxiliary = 0);
+    INLINE void TraceMapperEvent(u8 event, u16 address, u8 value, u8 flags = 0, u16 auxiliary = 0);
+    void LogBankSwitchEvent(u16 address, u8 value, u8 flags, u16 auxiliary);
+    void LogMapperEvent(u8 event, u16 address, u8 value, u8 flags, u16 auxiliary);
+    void PopulateMapperTraceEntry(GS_Trace_Entry& entry, u8 event, u16 address, u8 value, u8 flags, u16 auxiliary);
 
     Memory* m_pMemory;
     Cartridge* m_pCartridge;
     Input* m_pInput;
-    RamChangedCallback m_pRamChangedCallback;
     TraceLogger* m_pTraceLogger;
 };
 
-INLINE void MemoryRule::TraceBankSwitchEvent(u16 address, u8 value, u8 flags, u16 auxiliary, bool flags_valid)
+INLINE void MemoryRule::TraceBankSwitchEvent(u16 address, u8 value, u8 flags, u16 auxiliary)
 {
     if (m_pTraceLogger->IsEnabled(TRACE_MAPPER))
-        LogBankSwitchEvent(address, value, flags, auxiliary, flags_valid);
+        LogBankSwitchEvent(address, value, flags, auxiliary);
 }
 
-INLINE void MemoryRule::TraceMapperEvent(u8 event, u16 address, u8 value, u8 flags, u16 auxiliary, bool flags_valid)
+INLINE void MemoryRule::TraceMapperEvent(u8 event, u16 address, u8 value, u8 flags, u16 auxiliary)
 {
     if (m_pTraceLogger->IsEventEnabled(TRACE_MAPPER, event))
-        LogMapperEvent(event, address, value, flags, auxiliary, flags_valid);
+        LogMapperEvent(event, address, value, flags, auxiliary);
 }
 
 #endif	/* MEMORYRULE_H */

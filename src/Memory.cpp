@@ -164,35 +164,6 @@ void Memory::LoadSlotsFromROM(u8* pTheROM, int size)
     Debug("%d bytes copied from cartridge", i);
 }
 
-void Memory::MemoryDump(const char* szFilePath)
-{
-    if (!IsValidPointer(m_pDisassembledMap))
-        return;
-
-    using namespace std;
-
-    ofstream myfile;
-    open_ofstream_utf8(myfile, szFilePath, ios::out | ios::trunc);
-
-    if (myfile.is_open())
-    {
-        for (int i = 0; i < 0x10000; i++)
-        {
-            if (IsValidPointer(m_pDisassembledMap[i]) && (m_pDisassembledMap[i]->name[0] != 0))
-            {
-                myfile << "0x" << hex << i << "\t " << m_pDisassembledMap[i]->name << "\n";
-                i += (m_pDisassembledMap[i]->size - 1);
-            }
-            else
-            {
-                myfile << "0x" << hex << i << "\t [0x" << hex << (int) m_pMap[i] << "]\n";
-            }
-        }
-
-        myfile.close();
-    }
-}
-
 void Memory::SaveState(std::ostream& stream)
 {
     using namespace std;
@@ -382,11 +353,6 @@ bool Memory::IsBootromEnabled()
         return false;
 
     return (m_bBootromSMSEnabled && m_bBootromSMSLoaded && !m_bGameGear) || (m_bBootromGGEnabled && m_bBootromGGLoaded && m_bGameGear);
-}
-
-bool Memory::IsIOEnabled()
-{
-    return m_bIOEnabled;
 }
 
 void Memory::SetPort3E(u8 port3E)

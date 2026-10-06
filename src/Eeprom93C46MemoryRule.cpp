@@ -166,7 +166,7 @@ void Eeprom93C46MemoryRule::LogEEPROMEvent(u16 address, u8 value, u16 auxiliary)
     u8 flags = (m_EEPROM.Enabled ? 0x01 : 0) | (m_EEPROM.ReadOnly ? 0x02 : 0) |
         ((m_EEPROM.Status & 0x03) << 2) | ((m_EEPROM.Lines & 0x0F) << 4);
     GS_Trace_Entry e = {};
-    PopulateMapperTraceEntry(e, TRACE_MAPPER_EEPROM, address, value, flags, auxiliary, true);
+    PopulateMapperTraceEntry(e, TRACE_MAPPER_EEPROM, address, value, flags, auxiliary);
     m_pTraceLogger->TraceLog(e);
 #else
     UNUSED(address);
