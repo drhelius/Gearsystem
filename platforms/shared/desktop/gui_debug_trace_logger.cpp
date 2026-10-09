@@ -22,6 +22,7 @@
 
 #include "imgui.h"
 #include "gui.h"
+#include "gui_notifications.h"
 #include "gui_filedialogs.h"
 #include "gui_debug_constants.h"
 #include "gui_debug_text.h"
@@ -197,7 +198,7 @@ static bool trace_logger_apply_capacity(void)
         k_trace_logger_capacities[config_debug.trace_capacity];
     if (!logger->SetCapacity(capacity))
     {
-        gui_set_error_message("Unable to allocate the selected trace logger capacity.");
+        gui_notify(gui_NotificationError, NULL, "Unable to allocate the selected trace logger capacity");
         return false;
     }
     return true;
@@ -250,7 +251,7 @@ static bool trace_logger_start(u32 flags, bool update_config)
         if (!trace_logger_start_disk(NULL, error, sizeof(error)))
         {
             if (error[0])
-                gui_set_error_message(error);
+                gui_notify(gui_NotificationError, NULL, error);
             return false;
         }
     }
@@ -262,7 +263,8 @@ static bool trace_logger_start(u32 flags, bool update_config)
     trace_logger_scroll_to_bottom = true;
     trace_logger_wait_for_scroll_away = false;
     trace_logger_sync_flags();
-    gui_set_status_message("Trace recording started", 3000);
+    gui_notify(gui_NotificationInfo, ICON_MD_FIBER_MANUAL_RECORD, "Trace recording started", trace_logger_file_path,
+        "trace");
     return true;
 }
 
@@ -336,7 +338,7 @@ void gui_debug_trace_logger_update(void)
     else if (limit_reached)
     {
         if (trace_logger_stop_disk(false, false))
-            gui_set_status_message("Trace recording stopped: maximum file size reached", 4000);
+            gui_notify(gui_NotificationWarning, NULL, "Trace recording stopped", "Maximum file size reached", "trace");
     }
 }
 
@@ -359,7 +361,7 @@ static bool trace_logger_stop(bool show_status)
     emu_get_core()->GetTraceLogger()->SetEnabledFlags(0);
     trace_logger_sync_vblank_watch(false);
     if (show_status)
-        gui_set_status_message("Trace recording stopped", 3000);
+        gui_notify(gui_NotificationInfo, ICON_MD_STOP, "Trace recording stopped", NULL, "trace");
     return true;
 }
 
@@ -380,10 +382,10 @@ static bool trace_logger_stop_disk(bool show_status, bool flush_entries)
     if (!success)
     {
         Error("Error closing trace log file: %s", trace_logger_file_path);
-        gui_set_error_message("Trace recording stopped with a disk write error.");
+        gui_notify(gui_NotificationError, NULL, "Trace recording stopped", "Disk write error", "trace");
     }
     else if (show_status)
-        gui_set_status_message("Trace recording stopped", 3000);
+        gui_notify(gui_NotificationInfo, ICON_MD_STOP, "Trace recording stopped", trace_logger_file_path, "trace");
     return success;
 }
 
@@ -663,7 +665,7 @@ void gui_debug_trace_logger_clear(void)
     emu_get_core()->GetTraceLogger()->Reset();
 }
 
-void gui_debug_save_log(const char* file_path)
+bool gui_debug_save_log(const char* file_path)
 {
     FILE* file = fopen_utf8(file_path, "w");
 
@@ -685,7 +687,10 @@ void gui_debug_save_log(const char* file_path)
         }
 
         fclose(file);
+        return true;
     }
+
+    return false;
 }
 
 static void trace_logger_menu(void)

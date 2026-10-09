@@ -592,49 +592,56 @@ void emu_load_ram(const char* file_path, Cartridge::ForceConfiguration config)
     }
 }
 
-void emu_save_state_slot(int index)
+bool emu_save_state_slot(int index)
 {
-    if (!emu_is_empty())
-    {
-        const char* dir = get_configurated_dir(config_emulator.savestates_dir_option, config_emulator.savestates_path.c_str());
-        gearsystem->SaveState(dir, index, true);
-        update_savestates_data();
-    }
+    if (emu_is_empty())
+        return false;
+
+    const char* dir = get_configurated_dir(config_emulator.savestates_dir_option, config_emulator.savestates_path.c_str());
+    bool saved = gearsystem->SaveState(dir, index, true);
+    update_savestates_data();
+    return saved;
 }
 
-void emu_load_state_slot(int index)
+bool emu_load_state_slot(int index)
 {
-    if (!emu_is_empty())
-    {
-        emu_link_cable_stop();
-        const char* dir = get_configurated_dir(config_emulator.savestates_dir_option, config_emulator.savestates_path.c_str());
-        if (gearsystem->LoadState(dir, index))
-        {
-            emu_debug_state_restored();
-            events_sync_input();
-            rewind_reset();
-        }
-    }
+    if (emu_is_empty())
+        return false;
+
+    emu_link_cable_stop();
+    const char* dir = get_configurated_dir(config_emulator.savestates_dir_option, config_emulator.savestates_path.c_str());
+
+    if (!gearsystem->LoadState(dir, index))
+        return false;
+
+    emu_debug_state_restored();
+    events_sync_input();
+    rewind_reset();
+    return true;
 }
 
-void emu_save_state_file(const char* file_path)
+bool emu_save_state_file(const char* file_path)
 {
-    if (!emu_is_empty())
-        gearsystem->SaveState(file_path, -1, true);
+    if (emu_is_empty())
+        return false;
+
+    return gearsystem->SaveState(file_path, -1, true);
 }
 
-void emu_load_state_file(const char* file_path)
+bool emu_load_state_file(const char* file_path)
 {
-    if (!emu_is_empty())
-    {
-        emu_link_cable_stop();
-        if (gearsystem->LoadState(file_path))
-        {
-            emu_debug_state_restored();
-            events_sync_input();
-            rewind_reset();
-        }
-    }
+    if (emu_is_empty())
+        return false;
+
+    emu_link_cable_stop();
+
+    if (!gearsystem->LoadState(file_path))
+        return false;
+
+    emu_debug_state_restored();
+    events_sync_input();
+    rewind_reset();
+    return true;
 }
 
 void update_savestates_data(void)
@@ -947,17 +954,20 @@ void emu_disable_ym2413(bool disable)
     gearsystem->GetAudio()->DisableYM2413(disable);
 }
 
-void emu_save_screenshot(const char* file_path)
+bool emu_save_screenshot(const char* file_path)
 {
     if (!gearsystem->GetCartridge()->IsReady())
-        return;
+        return false;
 
     GS_RuntimeInfo runtime;
     emu_get_runtime(runtime);
 
-    stbi_write_png(file_path, runtime.screen_width, runtime.screen_height, 4, emu_frame_buffer, runtime.screen_width * 4);
+    if (!stbi_write_png(file_path, runtime.screen_width, runtime.screen_height, 4, emu_frame_buffer,
+        runtime.screen_width * 4))
+        return false;
 
     Log("Screenshot saved to %s", file_path);
+    return true;
 }
 
 int emu_get_screenshot_png(unsigned char** out_buffer)
@@ -1021,10 +1031,10 @@ int emu_get_sprite_png(int sprite_index, unsigned char** out_buffer)
     return len;
 }
 
-void emu_save_sprite(const char* file_path, int index)
+bool emu_save_sprite(const char* file_path, int index)
 {
     if (!gearsystem->GetCartridge()->IsReady())
-        return;
+        return false;
 
     update_debug_sprites();
 
@@ -1033,27 +1043,31 @@ void emu_save_sprite(const char* file_path, int index)
 
     u8* buffer = emu_debug_sprite_buffers[index];
 
-    stbi_write_png(file_path, width, height, 4, buffer, 16 * 4);
+    if (!stbi_write_png(file_path, width, height, 4, buffer, 16 * 4))
+        return false;
 
     Log("Sprite saved to %s", file_path);
+    return true;
 }
 
-void emu_save_background(const char* file_path)
+bool emu_save_background(const char* file_path)
 {
     if (!gearsystem->GetCartridge()->IsReady())
-        return;
+        return false;
 
     update_debug_background();
 
-    stbi_write_png(file_path, 256, 256, 4, emu_debug_background_buffer, 256 * 4);
+    if (!stbi_write_png(file_path, 256, 256, 4, emu_debug_background_buffer, 256 * 4))
+        return false;
 
     Log("Background saved to %s", file_path);
+    return true;
 }
 
-void emu_save_tiles(const char* file_path)
+bool emu_save_tiles(const char* file_path)
 {
     if (!gearsystem->GetCartridge()->IsReady())
-        return;
+        return false;
 
     update_debug_tiles();
 
@@ -1062,9 +1076,11 @@ void emu_save_tiles(const char* file_path)
     int width = 32 * 8;
     int height = lines * 8;
 
-    stbi_write_png(file_path, width, height, 4, emu_debug_tile_buffer, width * 4);
+    if (!stbi_write_png(file_path, width, height, 4, emu_debug_tile_buffer, width * 4))
+        return false;
 
     Log("Pattern table saved to %s", file_path);
+    return true;
 }
 
 static void save_ram(void)
@@ -1582,10 +1598,10 @@ static void update_debug_sprite_buffers_sg1000(void)
     }
 }
 
-void emu_start_vgm_recording(const char* file_path)
+bool emu_start_vgm_recording(const char* file_path)
 {
     if (!gearsystem->GetCartridge()->IsReady())
-        return;
+        return false;
 
     if (gearsystem->GetAudio()->IsVgmRecording())
     {
@@ -1612,10 +1628,11 @@ void emu_start_vgm_recording(const char* file_path)
     metadata.game_name = cartridge->IsInGameDatabase() ? cartridge->GetGameDatabaseName() : cartridge->GetFileName();
     metadata.comment = "Created with " GS_TITLE " " GS_VERSION;
 
-    if (gearsystem->GetAudio()->StartVgmRecording(file_path, clock_rate, is_pal, has_ym2413, metadata))
-    {
-        Log("VGM recording started: %s", file_path);
-    }
+    if (!gearsystem->GetAudio()->StartVgmRecording(file_path, clock_rate, is_pal, has_ym2413, metadata))
+        return false;
+
+    Log("VGM recording started: %s", file_path);
+    return true;
 }
 
 void emu_stop_vgm_recording(void)

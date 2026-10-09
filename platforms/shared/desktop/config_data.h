@@ -86,7 +86,7 @@ struct config_Emulator
     std::string last_open_path;
     int window_width;
     int window_height;
-    bool status_messages;
+    bool show_notifications;
     bool allow_screensaver;
     bool light_phaser;
     bool light_phaser_crosshair;
