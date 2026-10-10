@@ -63,6 +63,7 @@ static bool save_debug_settings = false;
 static bool load_debug_settings = false;
 static const GuiColor& service_mcp_http_color = green;
 static const GuiColor& service_mcp_stdio_color = amber;
+static const GuiColor& video_recording_color = red;
 static ShaderPresetInfo shader_presets[SHADER_PRESET_MAX_DISCOVERED];
 static int shader_preset_count = 0;
 
@@ -1993,13 +1994,15 @@ static void menu_about(void)
 
 static void draw_server_status(void)
 {
+    bool video_recording = emu_is_video_recording();
     bool mcp_running = emu_mcp_is_running();
     LinkCableStatus link_cable = emu_link_cable_get_status();
     bool link_cable_active = link_cable.mode == LinkCableModeConnected;
 
-    if (!mcp_running && !link_cable_active)
+    if (!video_recording && !mcp_running && !link_cable_active)
         return;
 
+    const char* video_recording_status = "RECORDING";
     char link_cable_status[64];
     char mcp_status[128];
     bool show_link_cable_status = false;
@@ -2032,10 +2035,20 @@ static void draw_server_status(void)
 
     ImGuiStyle& style = ImGui::GetStyle();
     float spacing = style.ItemSpacing.x * 2.0f;
+    float dot_radius = ImGui::GetFontSize() * 0.22f;
+    float dot_width = (dot_radius * 2.0f) + style.ItemInnerSpacing.x;
     float text_width = 0.0f;
 
+    if (video_recording)
+        text_width += dot_width + ImGui::CalcTextSize(video_recording_status).x;
+
     if (show_link_cable_status)
+    {
+        if (text_width > 0.0f)
+            text_width += spacing;
+
         text_width += ImGui::CalcTextSize(link_cable_status).x;
+    }
 
     if (show_mcp_status)
     {
@@ -2054,12 +2067,28 @@ static void draw_server_status(void)
     ImGui::SameLine(status_x);
     ImGui::AlignTextToFramePadding();
 
+    if (video_recording)
+    {
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + dot_width);
+        ImGui::TextColored(video_recording_color, "%s", video_recording_status);
+
+        ImVec2 text_min = ImGui::GetItemRectMin();
+        ImVec2 text_max = ImGui::GetItemRectMax();
+        ImVec2 dot_center = ImVec2(text_min.x - dot_width + dot_radius, (text_min.y + text_max.y) * 0.5f);
+        ImGui::GetWindowDrawList()->AddCircleFilled(dot_center, dot_radius, ImGui::GetColorU32(video_recording_color));
+    }
+
     if (show_link_cable_status)
+    {
+        if (video_recording)
+            ImGui::SameLine(0.0f, spacing);
+
         ImGui::TextColored(cornflower, "%s", link_cable_status);
+    }
 
     if (show_mcp_status)
     {
-        if (show_link_cable_status)
+        if (video_recording || show_link_cable_status)
             ImGui::SameLine(0.0f, spacing);
 
         ImGui::TextColored(mcp_color, "%s", mcp_status);
