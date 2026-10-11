@@ -28,11 +28,8 @@
     #define EXTERN extern
 #endif
 
-#define FRAME_BUFFER_SCALE 4
 #define SYSTEM_TEXTURE_WIDTH 512
 #define SYSTEM_TEXTURE_HEIGHT 512
-#define FRAME_BUFFER_WIDTH (SYSTEM_TEXTURE_WIDTH * 1)
-#define FRAME_BUFFER_HEIGHT (SYSTEM_TEXTURE_HEIGHT * FRAME_BUFFER_SCALE)
 
 EXTERN uint32_t ogl_renderer_emu_texture;
 EXTERN uint32_t ogl_renderer_emu_debug_vram_background;
