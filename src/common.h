@@ -348,6 +348,27 @@ inline FILE* fopen_utf8(const char* path, const char* mode)
 }
 #endif
 
+inline bool is_safe_zip_entry_name(const char* name)
+{
+    if (name[0] == '\0' || name[0] == '/' || name[0] == '\\' || name[1] == ':')
+        return false;
+
+    const char* component = name;
+
+    while (true)
+    {
+        size_t length = strcspn(component, "/\\");
+
+        if (length == 2 && component[0] == '.' && component[1] == '.')
+            return false;
+
+        if (component[length] == '\0')
+            return true;
+
+        component += length + 1;
+    }
+}
+
 inline bool extract_zip_to_folder(const char* zip_path, const char* out_folder)
 {
     using namespace std;
@@ -383,6 +404,13 @@ inline bool extract_zip_to_folder(const char* zip_path, const char* out_folder)
         {
             Error("mz_zip_reader_file_stat failed for file %d", i);
             continue;
+        }
+
+        if (!is_safe_zip_entry_name(file_stat.m_filename))
+        {
+            Error("Unsafe path in ZIP archive: %s", file_stat.m_filename);
+            mz_zip_reader_end(&zip_archive);
+            return false;
         }
 
         if (file_stat.m_is_directory)
