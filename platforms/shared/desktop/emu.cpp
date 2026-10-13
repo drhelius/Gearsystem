@@ -31,6 +31,7 @@
 #include "rewind.h"
 #include "runahead.h"
 #include "video_recorder.h"
+#include "ogl_renderer.h"
 #include "events.h"
 #include "gui_debug_trace_logger.h"
 #include "mcp/mcp_manager.h"
@@ -52,6 +53,7 @@ static bool link_cable_hardware_suspended;
 static GS_LinkCable_Protocol link_cable_protocol;
 static Uint64 rewind_last_counter = 0;
 static double rewind_pop_accumulator = 0.0;
+static bool video_recording_output = false;
 
 enum Loading_State
 {
@@ -371,9 +373,14 @@ void emu_update(void)
             video_recorder_add_audio(audio_buffer, sampleCount);
             if (frame_completed)
             {
-                GS_RuntimeInfo runtime;
-                emu_get_runtime(runtime);
-                video_recorder_add_video(emu_frame_buffer, runtime.screen_width, runtime.screen_height, 4);
+                if (video_recording_output)
+                    emu_video_recording_frame_pending = true;
+                else
+                {
+                    GS_RuntimeInfo runtime;
+                    emu_get_runtime(runtime);
+                    video_recorder_add_video(emu_frame_buffer, runtime.screen_width, runtime.screen_height, 4);
+                }
             }
         }
     }
@@ -1662,12 +1669,21 @@ bool emu_start_video_recording(const char* file_path)
 
     int width = 0;
     int height = 0;
-    get_video_recording_size(runtime, &width, &height);
+    video_recording_output = ogl_renderer_get_output_size(&width, &height) && (width > 1) && (height > 1);
+    emu_video_recording_frame_pending = false;
+
+    if (video_recording_output)
+    {
+        width &= ~1;
+        height &= ~1;
+    }
+    else
+        get_video_recording_size(runtime, &width, &height);
 
     if (!video_recorder_start(file_path, width, height, emu_get_frame_rate(), GS_AUDIO_SAMPLE_RATE, (Video_Recorder_Quality)config_video.recording_quality))
         return false;
 
-    Log("Video recording started: %s (%dx%d)", file_path, width, height);
+    Log("Video recording started: %s (%dx%d%s)", file_path, width, height, video_recording_output ? ", shader output" : "");
     return true;
 }
 

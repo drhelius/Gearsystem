@@ -55,6 +55,7 @@ EXTERN Debug_Command emu_debug_command;
 EXTERN bool emu_debug_pc_changed;
 EXTERN int emu_debug_step_frames_pending;
 EXTERN u64 emu_frame_counter;
+EXTERN bool emu_video_recording_frame_pending;
 EXTERN int emu_debug_tile_palette;
 EXTERN bool emu_audio_sync;
 EXTERN bool emu_debug_disable_breakpoints;
