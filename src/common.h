@@ -403,7 +403,8 @@ inline bool extract_zip_to_folder(const char* zip_path, const char* out_folder)
         if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat))
         {
             Error("mz_zip_reader_file_stat failed for file %d", i);
-            continue;
+            mz_zip_reader_end(&zip_archive);
+            return false;
         }
 
         if (!is_safe_zip_entry_name(file_stat.m_filename))
@@ -413,19 +414,36 @@ inline bool extract_zip_to_folder(const char* zip_path, const char* out_folder)
             return false;
         }
 
+        string name(file_stat.m_filename);
+        size_t separator = name.find('/');
+
+        while (separator != string::npos)
+        {
+            string directory = out_dir + "/" + name.substr(0, separator);
+
+            if (!create_directory_if_not_exists(directory.c_str()))
+            {
+                Error("Failed to create directory %s", directory.c_str());
+                mz_zip_reader_end(&zip_archive);
+                return false;
+            }
+
+            separator = name.find('/', separator + 1);
+        }
+
         if (file_stat.m_is_directory)
             continue;
 
-        string out_path = out_dir + "/" + file_stat.m_filename;
+        string out_path = out_dir + "/" + name;
 
         if (!mz_zip_reader_extract_to_file(&zip_archive, i, out_path.c_str(), 0))
         {
             Error("Failed to extract %s", out_path.c_str());
+            mz_zip_reader_end(&zip_archive);
+            return false;
         }
-        else
-        {
-            Debug("Extracted: %s", out_path.c_str());
-        }
+
+        Debug("Extracted: %s", out_path.c_str());
     }
 
     mz_zip_reader_end(&zip_archive);
