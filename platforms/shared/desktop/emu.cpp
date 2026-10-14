@@ -678,7 +678,11 @@ void update_savestates_data(void)
         {
             emu_savestates_screenshots[i].data = new u8[emu_savestates[i].screenshot_size];
             emu_savestates_screenshots[i].size = emu_savestates[i].screenshot_size;
-            gearsystem->GetSaveStateScreenshot(i + 1, dir, &emu_savestates_screenshots[i]);
+            bool loaded = gearsystem->GetSaveStateScreenshot(i + 1, dir, &emu_savestates_screenshots[i]);
+            size_t expected_size = (size_t)emu_savestates_screenshots[i].width * emu_savestates_screenshots[i].height * 4;
+
+            if (!loaded || (emu_savestates_screenshots[i].size != expected_size))
+                SafeDeleteArray(emu_savestates_screenshots[i].data);
         }
     }
 }
