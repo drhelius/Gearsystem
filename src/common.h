@@ -322,6 +322,19 @@ inline FILE* fopen_utf8(const char* path, const char* mode)
     std::wstring wmode = utf8_to_wstring(mode);
     return _wfopen(wpath.c_str(), wmode.c_str());
 }
+
+inline bool rename_file_utf8(const char* from, const char* to)
+{
+    std::wstring wfrom = utf8_to_wstring(from);
+    std::wstring wto = utf8_to_wstring(to);
+    return MoveFileExW(wfrom.c_str(), wto.c_str(), MOVEFILE_REPLACE_EXISTING) != 0;
+}
+
+inline bool remove_file_utf8(const char* path)
+{
+    std::wstring wpath = utf8_to_wstring(path);
+    return DeleteFileW(wpath.c_str()) != 0;
+}
 #else
 #define open_ifstream_utf8(stream, path, mode) \
     stream.open(path, mode)
@@ -332,6 +345,16 @@ inline FILE* fopen_utf8(const char* path, const char* mode)
 inline FILE* fopen_utf8(const char* path, const char* mode)
 {
     return fopen(path, mode);
+}
+
+inline bool rename_file_utf8(const char* from, const char* to)
+{
+    return rename(from, to) == 0;
+}
+
+inline bool remove_file_utf8(const char* path)
+{
+    return remove(path) == 0;
 }
 #endif
 
