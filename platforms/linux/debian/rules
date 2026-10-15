@@ -20,8 +20,10 @@ override_dh_auto_clean:
 
 override_dh_install:
 	dh_install
-	install -Dm644 platforms/shared/desktop/mcp/icon.png \
-		debian/gearsystem/usr/share/icons/hicolor/128x128/apps/gearsystem.png
+	for size in 16 24 32 48 64 128 256 512; do \
+		install -Dm644 platforms/shared/desktop/icons/gearsystem-$${size}.png \
+			debian/gearsystem/usr/share/icons/hicolor/$${size}x$${size}/apps/gearsystem.png; \
+	done
 	install -dm755 debian/gearsystem/usr/lib/gearsystem/mcp/resources/hardware
 	install -m644 platforms/shared/desktop/mcp/resources/hardware/toc.json \
 		debian/gearsystem/usr/lib/gearsystem/mcp/resources/hardware/toc.json
