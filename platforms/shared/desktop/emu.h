@@ -90,6 +90,7 @@ EXTERN void emu_reset(Cartridge::ForceConfiguration config, bool save_persistent
 EXTERN void emu_audio_mute(bool mute);
 EXTERN void emu_audio_set_master_volume(float volume);
 EXTERN void emu_audio_reset(void);
+EXTERN void emu_audio_restart(void);
 EXTERN void emu_audio_psg_volume(float volume);
 EXTERN void emu_audio_fm_volume(float volume);
 EXTERN bool emu_is_audio_open(void);
