@@ -81,6 +81,10 @@ Add `--headless` to run without a GUI window. This is useful for servers, CLI ag
 
 Headless mode is debug mode without rendering, so the debug output settings apply: screenshots use the output overscan and hide left bar settings from the **Debug** menu instead of the ones in the **Video** menu. By default, overscan is disabled and the left bar is shown. Headless instances read these settings from the configuration file, so set them in the GUI with debug enabled. The same settings apply when the MCP server runs alongside the GUI, because MCP always runs in debug mode.
 
+### Pause When Inactive
+
+While the MCP server is running, the emulator keeps running when its window loses focus, even with **Pause When Inactive** enabled in the **Emulator** menu. The setting keeps its value and applies again once the server stops.
+
 ### Concurrent Clients
 
 The HTTP server accepts repeated valid MCP initialization requests. All connected clients control the same Gearsystem instance. Individual HTTP requests are serialized, but multi-request debugging workflows are not atomic. Concurrent agents can interfere with each other through pauses, resets, breakpoints, memory writes, media loads, and save states.
