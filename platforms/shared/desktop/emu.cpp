@@ -189,7 +189,7 @@ void emu_load_media_async(const char* file_path, Cartridge::ForceConfiguration c
         return;
 
     link_cable_suspend_hardware();
-    gui_debug_trace_logger_reset();
+    gui_debug_trace_logger_reset("media_change");
 
     emu_debug_command = Debug_Command_None;
     reset_buffers();
@@ -532,7 +532,7 @@ void emu_reset(Cartridge::ForceConfiguration config, bool save_persistent_data)
     if (loading_state.load() != Loading_State_None)
         return;
 
-    gui_debug_trace_logger_reset();
+    gui_debug_trace_logger_reset("reset");
     emu_debug_command = Debug_Command_None;
     emu_debug_halt_step_frames_pending = 0;
     emu_debug_step_frames_pending = 0;
@@ -600,7 +600,7 @@ void emu_load_ram(const char* file_path, Cartridge::ForceConfiguration config)
     if (!emu_is_empty())
     {
         emu_link_cable_stop();
-        gui_debug_trace_logger_reset();
+        gui_debug_trace_logger_reset("media_change");
         save_ram();
         gearsystem->ResetROM(&config);
         gearsystem->LoadRam(file_path, true);

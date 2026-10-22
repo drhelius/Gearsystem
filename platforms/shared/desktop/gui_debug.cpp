@@ -64,7 +64,7 @@ void gui_debug_destroy(void)
 
 void gui_debug_reset(void)
 {
-    gui_debug_trace_logger_reset();
+    gui_debug_trace_logger_reset("media_change");
     gui_debug_disassembler_reset();
     gui_debug_memory_reset();
     gui_debug_profiler_reset();

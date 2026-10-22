@@ -38,6 +38,7 @@
 #include <sys/stat.h>
 
 static bool trace_logger_enabled = false;
+static const char* trace_logger_stop_reason = NULL;
 static int trace_logger_output = 0;
 static FILE* trace_logger_file = NULL;
 static char trace_logger_file_buffer[1024 * 1024];
@@ -259,6 +260,7 @@ static bool trace_logger_start(u32 flags, bool update_config)
         return false;
 
     trace_logger_enabled = true;
+    trace_logger_stop_reason = NULL;
     trace_logger_follow_latest = true;
     trace_logger_scroll_to_bottom = true;
     trace_logger_wait_for_scroll_away = false;
@@ -394,8 +396,11 @@ void gui_debug_trace_logger_shutdown(void)
     trace_logger_stop(false);
 }
 
-void gui_debug_trace_logger_reset(void)
+void gui_debug_trace_logger_reset(const char* reason)
 {
+    if (trace_logger_enabled)
+        trace_logger_stop_reason = reason;
+
     trace_logger_stop(false);
     emu_get_core()->GetTraceLogger()->Reset();
 }
@@ -403,6 +408,11 @@ void gui_debug_trace_logger_reset(void)
 bool gui_debug_trace_logger_is_enabled(void)
 {
     return trace_logger_enabled;
+}
+
+const char* gui_debug_trace_logger_get_stop_reason(void)
+{
+    return trace_logger_stop_reason;
 }
 
 const char* gui_debug_trace_logger_get_output_path(void)
