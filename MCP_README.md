@@ -79,6 +79,8 @@ The HTTP transport mode runs the emulator with an embedded web server on `127.0.
 
 Add `--headless` to run without a GUI window. This is useful for servers, CLI agents, or any machine without a display. All MCP tools work identically in headless mode. Requires `--mcp-stdio` or `--mcp-http`.
 
+A save state can be loaded at launch too, with `--load-state 1` for slot 1 or `--load-state FILE` for a state file; run `gearsystem --help` for the full list.
+
 Headless mode is debug mode without rendering, so the debug output settings apply: screenshots use the output overscan and hide left bar settings from the **Debug** menu instead of the ones in the **Video** menu. By default, overscan is disabled and the left bar is shown. Headless instances read these settings from the configuration file, so set them in the GUI with debug enabled. The same settings apply when the MCP server runs alongside the GUI, because MCP always runs in debug mode.
 
 ### Pause When Inactive
