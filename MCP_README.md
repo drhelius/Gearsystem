@@ -437,6 +437,11 @@ Exact trace filters are `cpu.instructions`, `cpu.interrupts`, `vdp.registers`, `
 - `get_rewind_status` - Get rewind buffer status (enabled, snapshots, capacity, buffered seconds)
 - `rewind_seek` - Seek to a specific rewind snapshot while paused
 
+### Cheats
+- `list_cheats` - List cheats with index, code, description, enabled and valid state
+- `add_cheat` - Add an enabled Game Genie (`XXX-XXX[-XXX]`) or Pro Action Replay (`00AAAADD` or `AAAA:DD`, e.g. `C0E4:05`) cheat, join codes with `+`
+- `remove_cheat` - Remove a cheat by index
+
 ### Controller Input
 - `controller_button` - Control a button on a controller (player 1-2). Use action 'press' to hold the button, 'release' to let it go, or 'press_and_release' to simulate a quick tap. Buttons: up, down, left, right, 1, 2, start
 - `markiii_key` - Press or release one of the SK-1100 keys used by Mark III link software: 1, 2, space, or return

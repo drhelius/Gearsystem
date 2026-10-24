@@ -223,9 +223,11 @@ Use `read_memory` (area: vram) with the base addresses from `get_vdp_registers` 
 2. Set a write breakpoint: set_breakpoint (type: write) on the address
 3. debug_continue → when it hits, get_disassembly to see the decrement code
 4. Note the instruction (e.g., DEC (HL) or LD (addr),A)
-5. Option A: Periodically write_memory to reset the value (simple poke cheat)
+5. Option A: add_cheat with a Pro Action Replay RAM code (e.g. C0E4:05 writes 05 to C0E4)
 6. Option B: Identify the decrement routine for a NOP patch
 ```
+
+Use `add_cheat`, `remove_cheat` and `list_cheats` to apply and test Game Genie and Pro Action Replay codes; they appear in the emulator's Cheats window.
 
 ### Watching Values in Real-Time
 

@@ -31,6 +31,7 @@
 #include "gui_debug_trace_logger.h"
 #include "gui_debug.h"
 #include "gui_menus.h"
+#include "gui_cheats.h"
 #include "application.h"
 #include "config.h"
 #include "emu.h"
@@ -67,6 +68,7 @@ enum FileDialogID
     FileDialog_LoadDebugSettings,
     FileDialog_LoadSmsBootrom,
     FileDialog_LoadGgBootrom,
+    FileDialog_ImportCheats,
 };
 
 static FileDialogID pending_dialog_id = FileDialog_None;
@@ -376,6 +378,16 @@ void gui_file_dialog_load_gg_bootrom(void)
     SDL_ShowOpenFileDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_LoadGgBootrom, application_sdl_window, filters, 1, default_path, false);
 }
 
+void gui_file_dialog_import_cheats(void)
+{
+    if (!begin_dialog())
+        return;
+
+    SDL_DialogFileFilter filters[] = { { "Cheat Files", "cht" } };
+    const char* default_path = config_emulator.last_open_path.empty() ? NULL : config_emulator.last_open_path.c_str();
+    SDL_ShowOpenFileDialog(file_dialog_callback, (void*)(intptr_t)FileDialog_ImportCheats, application_sdl_window, filters, 1, default_path, false);
+}
+
 void gui_file_dialog_process_results(void)
 {
     bool refocus_window = pending_refocus_window && !dialog_active;
@@ -612,6 +624,21 @@ static void process_dialog_result(FileDialogID id, const char* path)
                 gui_notify(gui_NotificationSuccess, ICON_MD_MEMORY, "Game Gear boot ROM loaded", path);
             else
                 gui_notify(gui_NotificationError, NULL, "Unable to load the Game Gear boot ROM", path);
+            break;
+        }
+        case FileDialog_ImportCheats:
+        {
+            int imported = 0;
+            int skipped = 0;
+
+            if (gui_cheats_import(path, &imported, &skipped))
+            {
+                char message[64];
+                snprintf(message, sizeof(message), "%d cheats imported, %d skipped", imported, skipped);
+                gui_notify(gui_NotificationSuccess, ICON_MD_AUTO_FIX_HIGH, message, path);
+            }
+            else
+                gui_notify(gui_NotificationError, NULL, "Unable to import cheats", path);
             break;
         }
         default:

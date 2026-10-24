@@ -52,6 +52,7 @@ EXTERN void gui_file_dialog_load_debug_settings(void);
 EXTERN void gui_file_dialog_choose_saves_path(void);
 EXTERN void gui_file_dialog_load_sms_bootrom(void);
 EXTERN void gui_file_dialog_load_gg_bootrom(void);
+EXTERN void gui_file_dialog_import_cheats(void);
 EXTERN void gui_file_dialog_process_results(void);
 EXTERN bool gui_file_dialog_is_active(void);
 

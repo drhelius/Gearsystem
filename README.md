@@ -119,7 +119,7 @@ Don't hesitate to report bugs or ask for new features by [opening an issue](http
 - Save states with preview and rewind support.
 - Run-ahead support to reduce input latency.
 - Compressed ROM support (ZIP).
-- *Game Genie* and *Pro Action Replay* cheat support.
+- *Game Genie* and *Pro Action Replay* cheat support, with RetroArch `.cht` import.
 - VGM recorder.
 - Supported platforms (standalone): Windows, Linux, BSD and macOS.
 - Supported platforms (libretro): Windows, Linux, macOS, Raspberry Pi, Android, iOS, tvOS, webOS, PlayStation Vita, PlayStation 3, Nintendo 3DS, Nintendo GameCube, Nintendo Wii, Nintendo WiiU, Nintendo Switch, Emscripten, Classic Mini systems (NES, SNES, C64, ...), OpenDingux, RetroFW and QNX.
