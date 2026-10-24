@@ -2,9 +2,11 @@
 
 A [Model Context Protocol](https://modelcontextprotocol.io/introduction) server for the Gearsystem emulator, enabling AI-assisted debugging and development of Sega Master System / Game Gear / SG-1000 games.
 
-This server provides tools for game development, rom hacking, reverse engineering, and debugging through standardized MCP protocols compatible with AI agents like GitHub Copilot, Claude, Codex and others.
+This server provides tools for game development, rom hacking, reverse engineering, and debugging through standardized MCP protocols compatible with AI agents like Claude Code, Codex and others.
 
 ## Downloads
+
+These MCP Bundles (`.mcpb`) package Gearsystem with its MCP server configuration for MCP clients that install bundles, and are the packages published to the [MCP Registry](https://registry.modelcontextprotocol.io/). Claude Code and Codex use a regular Gearsystem build instead, see [Quick Start](#quick-start).
 
 <table>
   <thead>
@@ -128,17 +130,25 @@ Without `--mcp-router`, call every MCP tool directly.
 
 ## Quick Start
 
-### STDIO Mode with VS Code
+Get a desktop build of Gearsystem from the [downloads](README.md#downloads) or [build it from source](README.md#build-instructions). In the examples below, replace `/path/to/gearsystem` with the full path to the executable:
 
-1. **Install [GitHub Copilot extension](https://code.visualstudio.com/docs/copilot/overview)** in VS Code
+- **macOS:** `/Applications/Gearsystem.app/Contents/MacOS/gearsystem`
+- **Linux:** `/path/to/gearsystem`
+- **Windows:** `C:/path/to/gearsystem.exe`
 
-2. **Configure VS Code settings**:
+### STDIO Mode with Claude Code
 
-   Add to your workspace folder a file named `.vscode/mcp.json` with:
+1. **Add the Gearsystem MCP server** using the CLI:
+
+   ```bash
+   claude mcp add --transport stdio --scope user gearsystem -- /path/to/gearsystem --mcp-stdio
+   ```
+
+   Everything after `--` is passed to Gearsystem untouched. `--scope user` makes the server available in all your projects. Use `--scope local` (the default) to add it only to the current project, or `--scope project` to share it through a `.mcp.json` file in the project root:
 
    ```json
    {
-     "servers": {
+     "mcpServers": {
        "gearsystem": {
          "command": "/path/to/gearsystem",
          "args": ["--mcp-stdio"]
@@ -147,78 +157,43 @@ Without `--mcp-router`, call every MCP tool directly.
    }
    ```
 
-   **Important:** Update the `command` path to match your build location:
-   - **macOS:** `/path/to/gearsystem`
-   - **Linux:** `/path/to/gearsystem`
-   - **Windows:** `C:/path/to/gearsystem.exe`
-
-3. **Restart VS Code** may be necessary for settings to take effect
-
-4. **Open GitHub Copilot Chat** and start debugging:
-   - The emulator will auto-start with MCP server enabled
-   - Load a game ROM
-   - Start chatting with Copilot about the game state
-
-### STDIO Mode with Claude Desktop
-
-#### Option 1: Desktop Extension (Recommended)
-
-The easiest way to install Gearsystem MCP server on Claude Desktop is using the MCPB package:
-
-1. **Download the latest MCPB package** for your platform from the [releases page](https://github.com/drhelius/gearsystem/releases).
-
-2. **Install the extension**:
-   - Open Claude Desktop
-   - Navigate to **Settings > Extensions**
-   - Click **Advanced settings**
-   - In the Extension Developer section, click **Install Extension…**
-   - Select the downloaded `.mcpb` file
-
-3. **Start debugging**: The extension is now available in your conversations. The emulator will automatically launch when the tool is enabled.
-
-#### Option 2: Manual Configuration
-
-If you prefer to build from source or configure manually:
-
-1. **Edit Claude Desktop config file**:
-
-   Follow [these instructions](https://modelcontextprotocol.io/quickstart/user#for-claude-desktop-users) to access Claude's config file, then edit it to include:
-
-   ```json
-   {
-     "mcpServers": {
-       "gearsystem": {
-         "command": "/path/to/gearsystem/platforms/macos/gearsystem",
-         "args": ["--mcp-stdio"]
-       }
-     }
-   }
-   ```
-
-   **Config file locations:**
-   - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-   - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
-   - **Linux:** `~/.config/Claude/claude_desktop_config.json`
-
-   **Important:** Update the `command` path to match your build location.
-
-2. **Restart Claude Desktop**
-
-### STDIO Mode with Claude Code
-
-1. **Add the Gearsystem MCP server** using the CLI:
-   ```bash
-   claude mcp add --transport stdio gearsystem -- /path/to/gearsystem --mcp-stdio
-   ```
-
-   **Important:** Update the path to match your build location.
+   Claude Code asks for approval the first time it uses a server from `.mcp.json`.
 
 2. **Verify the server was added**:
+
    ```bash
    claude mcp list
    ```
 
-3. **Start debugging**: Open Claude Code and start chatting about the game state. The emulator will auto-start when tools are invoked.
+3. **Start debugging**: Start Claude Code and ask about the game state. Gearsystem launches when the session starts. Run `/mcp` inside Claude Code to check the server status or reconnect it.
+
+### STDIO Mode with Codex
+
+The Codex CLI, IDE extension, and desktop app share the same MCP configuration, so you only need to add the server once.
+
+1. **Add the Gearsystem MCP server** using the CLI:
+
+   ```bash
+   codex mcp add gearsystem -- /path/to/gearsystem --mcp-stdio
+   ```
+
+   Or add it to `~/.codex/config.toml`:
+
+   ```toml
+   [mcp_servers.gearsystem]
+   command = "/path/to/gearsystem"
+   args = ["--mcp-stdio"]
+   ```
+
+   To use the server only in one project, add the same table to `.codex/config.toml` in that project. Codex loads project configuration only for trusted projects. In TOML, write Windows paths with forward slashes or in single quotes.
+
+2. **Verify the server was added**:
+
+   ```bash
+   codex mcp list
+   ```
+
+3. **Start debugging**: Start Codex and ask about the game state. Gearsystem launches when the session starts. Type `/mcp` in the Codex CLI to see the active servers.
 
 ### HTTP Mode
 
@@ -226,67 +201,64 @@ If you prefer to build from source or configure manually:
 
    ```bash
    ./gearsystem --mcp-http
-  ```
+   ```
 
-  The default endpoint is `http://127.0.0.1:7777/mcp`.
+   The default endpoint is `http://127.0.0.1:7777/mcp`.
 
-  To use a custom port:
+   To use a custom port:
 
-  ```bash
+   ```bash
    ./gearsystem --mcp-http --mcp-http-port 3000
-  ```
+   ```
 
-  To bind to a custom address, set a bearer token first:
+   To bind to a custom address, set a bearer token first:
 
-  ```bash
-  GEARSYSTEM_MCP_HTTP_TOKEN="change-this-token" ./gearsystem --mcp-http --mcp-http-address 0.0.0.0 --mcp-http-port 3000
-  ```
+   ```bash
+   GEARSYSTEM_MCP_HTTP_TOKEN="change-this-token" ./gearsystem --mcp-http --mcp-http-address 0.0.0.0 --mcp-http-port 3000
+   ```
 
-  Clients must connect using the server's actual interface address, such as `http://192.168.1.50:3000/mcp`, not `0.0.0.0` or a spoofed loopback address.
+   Clients must connect using the server's actual interface address, such as `http://192.168.1.50:3000/mcp`, not `0.0.0.0` or a spoofed loopback address.
 
-  You can also start the server using the "MCP" menu in the GUI.
+   You can also start the server using the "MCP" menu in the GUI.
 
 2. **Configure bearer-token authentication**:
 
-  Set `GEARSYSTEM_MCP_HTTP_TOKEN` before starting HTTP mode. Authentication is optional for loopback binds and required for wildcard or other non-loopback binds.
+   Set `GEARSYSTEM_MCP_HTTP_TOKEN` before starting HTTP mode. Authentication is optional for loopback binds and required for wildcard or other non-loopback binds.
 
-  macOS and Linux:
+   macOS and Linux:
 
-  ```bash
-  GEARSYSTEM_MCP_HTTP_TOKEN="change-this-token" ./gearsystem --mcp-http
-  ```
-
-  Windows PowerShell:
-
-  ```powershell
-  $env:GEARSYSTEM_MCP_HTTP_TOKEN = "change-this-token"
-  .\gearsystem.exe --mcp-http
-  ```
-
-  Windows Command Prompt:
-
-  ```cmd
-  set GEARSYSTEM_MCP_HTTP_TOKEN=change-this-token
-  gearsystem.exe --mcp-http
+   ```bash
+   GEARSYSTEM_MCP_HTTP_TOKEN="change-this-token" ./gearsystem --mcp-http
    ```
 
-3. **Configure VS Code** `.vscode/mcp.json`:
+   Windows PowerShell:
 
-   ```json
-   {
-     "servers": {
-       "gearsystem": {
-         "type": "http",
-         "url": "http://127.0.0.1:7777/mcp",
-         "headers": {
-           "Authorization": "Bearer change-this-token"
-         }
-       }
-     }
-   }
+   ```powershell
+   $env:GEARSYSTEM_MCP_HTTP_TOKEN = "change-this-token"
+   .\gearsystem.exe --mcp-http
    ```
 
-4. **Or configure Claude Desktop**:
+   Windows Command Prompt:
+
+   ```cmd
+   set GEARSYSTEM_MCP_HTTP_TOKEN=change-this-token
+   gearsystem.exe --mcp-http
+   ```
+
+3. **Configure Claude Code**:
+
+   ```bash
+   claude mcp add --transport http --scope user gearsystem http://127.0.0.1:7777/mcp
+   ```
+
+   If the server uses a bearer token, add the header:
+
+   ```bash
+   claude mcp add --transport http --scope user gearsystem http://127.0.0.1:7777/mcp \
+     --header "Authorization: Bearer change-this-token"
+   ```
+
+   In a shared `.mcp.json`, read the token from the environment instead of committing it:
 
    ```json
    {
@@ -295,20 +267,34 @@ If you prefer to build from source or configure manually:
          "type": "http",
          "url": "http://127.0.0.1:7777/mcp",
          "headers": {
-           "Authorization": "Bearer change-this-token"
+           "Authorization": "Bearer ${GEARSYSTEM_MCP_HTTP_TOKEN}"
          }
        }
      }
    }
    ```
 
-5. **Or configure Claude Code**:
+4. **Or configure Codex**:
 
    ```bash
-  claude mcp add --transport http gearsystem http://127.0.0.1:7777/mcp
+   codex mcp add gearsystem --url http://127.0.0.1:7777/mcp
    ```
 
-6. **Restart your AI client** and start debugging
+   If the server uses a bearer token, Codex reads it from an environment variable, so set `GEARSYSTEM_MCP_HTTP_TOKEN` in the environment where Codex runs too:
+
+   ```bash
+   codex mcp add gearsystem --url http://127.0.0.1:7777/mcp --bearer-token-env-var GEARSYSTEM_MCP_HTTP_TOKEN
+   ```
+
+   The equivalent `~/.codex/config.toml` entry:
+
+   ```toml
+   [mcp_servers.gearsystem]
+   url = "http://127.0.0.1:7777/mcp"
+   bearer_token_env_var = "GEARSYSTEM_MCP_HTTP_TOKEN"
+   ```
+
+5. **Start a new Claude Code or Codex session** and start debugging
 
 > **Note:** The MCP HTTP Server must be running standalone before connecting the AI client.
 > **Security:** Without `GEARSYSTEM_MCP_HTTP_TOKEN`, HTTP mode starts only on a loopback address. Wildcard and other non-loopback binds are refused. `Host` and browser `Origin` values are matched to the connection's actual destination address to prevent DNS rebinding and address spoofing.
@@ -461,8 +447,8 @@ Exact trace filters are `cpu.instructions`, `cpu.interrupts`, `vdp.registers`, `
 ### STDIO Transport
 ```
 ┌─────────────────┐                    ┌──────────────────┐
-│   VS Code /     │       stdio        │   Gearsystem     │
-│ Claude Desktop  │◄──────────────────►│    MCP Server    │
+│  Claude Code /  │       stdio        │   Gearsystem     │
+│      Codex      │◄──────────────────►│    MCP Server    │
 │   (AI Client)   │       pipes        │  (background)    │
 └─────────────────┘                    └──────────────────┘
         │                                       │
@@ -479,8 +465,8 @@ Exact trace filters are `cpu.instructions`, `cpu.interrupts`, `vdp.registers`, `
 ### HTTP Transport
 ```
 ┌─────────────────┐                    ┌──────────────────┐
-│   VS Code /     │  HTTP (port 7777)  │   Gearsystem     │
-│ Claude Desktop  │◄──────────────────►│ MCP HTTP Server  │
+│  Claude Code /  │  HTTP (port 7777)  │   Gearsystem     │
+│      Codex      │◄──────────────────►│ MCP HTTP Server  │
 │   (AI Client)   │                    │    (listener)    │
 └─────────────────┘                    └──────────────────┘
                                                 │

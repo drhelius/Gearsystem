@@ -48,16 +48,13 @@ Alternatively, download from [GitHub Releases](https://github.com/drhelius/Gears
 
 ### Connecting as MCP Server
 
-Configure your AI client to run Gearsystem as an MCP server via STDIO transport. Example for Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json`):
-```json
-{
-  "mcpServers": {
-    "gearsystem": {
-      "command": "/path/to/gearsystem",
-      "args": ["--mcp-stdio"]
-    }
-  }
-}
+Configure your AI client to run Gearsystem as an MCP server via STDIO transport. For Claude Code:
+```bash
+claude mcp add --transport stdio --scope user gearsystem -- /path/to/gearsystem --mcp-stdio
+```
+For Codex:
+```bash
+codex mcp add gearsystem -- /path/to/gearsystem --mcp-stdio
 ```
 Replace `/path/to/gearsystem` with the actual binary path from the install script. Add `--headless` before `--mcp-stdio` on headless machines.
 
