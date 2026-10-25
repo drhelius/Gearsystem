@@ -40,10 +40,16 @@ static int last_vsync_state = -1;
 static bool multi_monitor_mixed_refresh = false;
 static bool last_geartogear_active = false;
 static bool fixed_vsync_fallback_logged = false;
+static bool swap_divider_unsupported = false;
+static int swap_divider_frames = 0;
+static Uint64 swap_divider_start = 0;
 
 static bool display_is_vrr_enabled(void);
 static bool display_fixed_vsync_supported(void);
 static double display_get_pacing_frame_rate(void);
+static int display_get_swap_divider(void);
+static void display_check_swap_divider(void);
+static void display_disable_swap_divider(int interval);
 static bool display_update_content_frame_rate(void);
 static void display_reset_vsync_accumulator(void);
 static void display_set_swap_interval(bool enabled);
@@ -110,11 +116,17 @@ bool display_should_run_emu_frame(void)
     if (display_update_content_frame_rate() && config_video.sync_mode == config_VideoSync_Fixed)
         display_use_vsync_if_enabled();
 
-    if (config_video.sync_mode == config_VideoSync_Fixed && last_vsync_state == 1
+    if (config_video.sync_mode == config_VideoSync_Fixed && last_vsync_state >= 1
         && !emu_is_empty() && !emu_is_paused()
         && !emu_is_debug_idle() && emu_is_audio_open() && !config_emulator.ffwd
         && !emu_link_cable_is_active())
     {
+        if (last_vsync_state > 1)
+        {
+            display_check_swap_divider();
+            return true;
+        }
+
         if (!display_fixed_vsync_supported() || content_frame_rate + 0.000001 >= monitor_refresh_rate)
             return true;
 
@@ -196,7 +208,7 @@ void display_update_frame_pacing(void)
 
     display_update_content_frame_rate();
 
-    if (config_video.sync_mode == config_VideoSync_Fixed && last_vsync_state == 1 && !display_fixed_vsync_supported())
+    if (config_video.sync_mode == config_VideoSync_Fixed && last_vsync_state >= 1 && !display_fixed_vsync_supported())
         display_set_swap_interval(false);
 
     Debug("Monitor refresh rate: %.3f Hz, content frame rate: %.3f FPS%s",
@@ -262,7 +274,7 @@ bool display_is_vsync_forced_off(void)
 
 bool display_is_vsync_pacing(void)
 {
-    return config_video.sync_mode == config_VideoSync_Fixed && last_vsync_state == 1 && !config_emulator.ffwd;
+    return config_video.sync_mode == config_VideoSync_Fixed && last_vsync_state >= 1 && !config_emulator.ffwd;
 }
 
 void display_recreate_gl_context(void)
@@ -319,13 +331,56 @@ static double display_get_pacing_frame_rate(void)
     {
         double divided_frame_rate = monitor_refresh_rate / interval;
 
-        if ((divided_frame_rate >= content_frame_rate) && (divided_frame_rate < content_frame_rate + 0.5))
+        if ((divided_frame_rate > content_frame_rate - 0.5) && (divided_frame_rate < content_frame_rate + 0.5))
         {
             return divided_frame_rate;
         }
     }
 
     return content_frame_rate;
+}
+
+static int display_get_swap_divider(void)
+{
+    if (swap_divider_unsupported || (config_video.sync_mode != config_VideoSync_Fixed))
+        return 1;
+
+    int interval = (int)((monitor_refresh_rate / content_frame_rate) + 0.5);
+
+    if (interval < 2)
+        return 1;
+
+    double divided_frame_rate = monitor_refresh_rate / interval;
+
+    if ((divided_frame_rate > content_frame_rate - 0.5) && (divided_frame_rate < content_frame_rate + 0.5))
+        return interval;
+
+    return 1;
+}
+
+static void display_check_swap_divider(void)
+{
+    Uint64 now = SDL_GetPerformanceCounter();
+
+    if (swap_divider_frames == 0)
+        swap_divider_start = now;
+
+    if (++swap_divider_frames <= 120)
+        return;
+
+    double elapsed = (double)(now - swap_divider_start) / (double)SDL_GetPerformanceFrequency();
+    double expected = ((swap_divider_frames - 1) * last_vsync_state) / monitor_refresh_rate;
+    swap_divider_frames = 0;
+
+    if (elapsed < expected * 0.75)
+        display_disable_swap_divider(last_vsync_state);
+}
+
+static void display_disable_swap_divider(int interval)
+{
+    Log("Swap interval %d is not supported, pacing with swap interval 1", interval);
+    swap_divider_unsupported = true;
+    display_set_swap_interval(true);
 }
 
 static bool display_update_content_frame_rate(void)
@@ -352,10 +407,16 @@ static void display_reset_vsync_accumulator(void)
 
 static void display_set_swap_interval(bool enabled)
 {
-    int requested = enabled ? 1 : 0;
+    int requested = enabled ? display_get_swap_divider() : 0;
 
     if (!SDL_GL_SetSwapInterval(requested))
     {
+        if (requested > 1)
+        {
+            display_disable_swap_divider(requested);
+            return;
+        }
+
         Log("SDL_GL_SetSwapInterval(%d) failed: %s", requested, SDL_GetError());
         last_vsync_state = -1;
         return;
@@ -369,9 +430,16 @@ static void display_set_swap_interval(bool enabled)
         return;
     }
 
+    if ((requested > 1) && (effective != requested))
+    {
+        display_disable_swap_divider(requested);
+        return;
+    }
+
     if (effective != last_vsync_state)
     {
         Debug("Swap interval: %d", effective);
+        swap_divider_frames = 0;
         if (effective == 1)
             display_reset_vsync_accumulator();
     }
