@@ -415,7 +415,7 @@
       <Filter>desktop</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\ips_patch.h">
-      <Filter>core</Filter>
+      <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\desktop\license.h">
       <Filter>desktop</Filter>
