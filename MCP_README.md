@@ -20,29 +20,29 @@ These MCP Bundles (`.mcpb`) package Gearsystem with its MCP server configuration
     <tr>
       <td rowspan="2"><strong>Windows</strong></td>
       <td>x64</td>
-      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.23/Gearsystem-3.9.23-mcpb-windows-x64.mcpb">Gearsystem-3.9.23-mcpb-windows-x64.mcpb</a></td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.24/Gearsystem-3.9.24-mcpb-windows-x64.mcpb">Gearsystem-3.9.24-mcpb-windows-x64.mcpb</a></td>
     </tr>
     <tr>
       <td>ARM64</td>
-      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.23/Gearsystem-3.9.23-mcpb-windows-arm64.mcpb">Gearsystem-3.9.23-mcpb-windows-arm64.mcpb</a></td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.24/Gearsystem-3.9.24-mcpb-windows-arm64.mcpb">Gearsystem-3.9.24-mcpb-windows-arm64.mcpb</a></td>
     </tr>
     <tr>
       <td rowspan="2"><strong>macOS</strong></td>
       <td>x64</td>
-      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.23/Gearsystem-3.9.23-mcpb-macos-x64.mcpb">Gearsystem-3.9.23-mcpb-macos-x64.mcpb</a></td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.24/Gearsystem-3.9.24-mcpb-macos-x64.mcpb">Gearsystem-3.9.24-mcpb-macos-x64.mcpb</a></td>
     </tr>
     <tr>
       <td>ARM64</td>
-      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.23/Gearsystem-3.9.23-mcpb-macos-arm64.mcpb">Gearsystem-3.9.23-mcpb-macos-arm64.mcpb</a></td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.24/Gearsystem-3.9.24-mcpb-macos-arm64.mcpb">Gearsystem-3.9.24-mcpb-macos-arm64.mcpb</a></td>
     </tr>
     <tr>
       <td rowspan="2"><strong>Linux</strong></td>
       <td>x64</td>
-      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.23/Gearsystem-3.9.23-mcpb-linux-x64.mcpb">Gearsystem-3.9.23-mcpb-linux-x64.mcpb</a></td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.24/Gearsystem-3.9.24-mcpb-linux-x64.mcpb">Gearsystem-3.9.24-mcpb-linux-x64.mcpb</a></td>
     </tr>
     <tr>
       <td>ARM64</td>
-      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.23/Gearsystem-3.9.23-mcpb-linux-arm64.mcpb">Gearsystem-3.9.23-mcpb-linux-arm64.mcpb</a></td>
+      <td><a href="https://github.com/drhelius/Gearsystem/releases/download/3.9.24/Gearsystem-3.9.24-mcpb-linux-arm64.mcpb">Gearsystem-3.9.24-mcpb-linux-arm64.mcpb</a></td>
     </tr>
   </tbody>
 </table>
