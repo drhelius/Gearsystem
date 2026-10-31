@@ -54,6 +54,16 @@ void JumboDahjeeMemoryRule::Reset()
         m_pCartRAM[i] = 0;
 }
 
+size_t JumboDahjeeMemoryRule::GetCartRamSize()
+{
+    return 0x2000;
+}
+
+u8* JumboDahjeeMemoryRule::GetCartRam()
+{
+    return m_pCartRAM;
+}
+
 u8* JumboDahjeeMemoryRule::GetPage(int index)
 {
     if ((index >= 0) && (index < 3))

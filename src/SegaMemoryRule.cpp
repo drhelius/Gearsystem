@@ -225,6 +225,16 @@ u8* SegaMemoryRule::GetRamBanks()
         return m_pRAMBanks;
 }
 
+size_t SegaMemoryRule::GetCartRamSize()
+{
+    return 0x8000;
+}
+
+u8* SegaMemoryRule::GetCartRam()
+{
+    return m_pRAMBanks;
+}
+
 int SegaMemoryRule::GetRamBank()
 {
     return m_RAMBankStartAddress == 0x4000 ? 1 : 0;

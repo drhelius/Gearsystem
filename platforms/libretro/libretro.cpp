@@ -43,6 +43,8 @@ static const char slash = '/';
 #define RETRO_DEVICE_PADDLE         RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE, 0)
 #define RETRO_DEVICE_SPORTS_PAD     RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_ANALOG, 1)
 
+#define MAX_MEMORY_DESCRIPTORS 8
+
 static retro_environment_t environ_cb;
 static retro_video_refresh_t video_cb;
 static retro_audio_sample_batch_t audio_batch_cb;
@@ -105,6 +107,7 @@ static void apply_controller_device(unsigned port, unsigned device, bool log_dev
 static void release_controller_input(unsigned port);
 static void update_input(void);
 static void check_variables(void);
+static void set_memory_maps(void);
 
 static void set_cheat(GearsystemCore* target, const std::string& code)
 {
@@ -338,6 +341,7 @@ void retro_reset(void)
     if (link_cable)
         link_cable->Reset();
     apply_cheats();
+    set_memory_maps();
 }
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
@@ -557,6 +561,8 @@ static bool load_game(const struct retro_game_info* info, const struct retro_gam
         link_cable->PersistentMemory(false, vfs_interface);
     }
 
+    set_memory_maps();
+
     bool achievements = !link_cable;
     environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS, &achievements);
 
@@ -686,6 +692,57 @@ size_t retro_get_memory_size(unsigned id)
             return 0x2000;
     }
     return 0;
+}
+
+static void add_memory_descriptor(struct retro_memory_descriptor* descriptors, unsigned* count, u8* ptr, size_t start,
+    size_t length, uint64_t flags)
+{
+    size_t offset = 0;
+
+    while ((offset < length) && (*count < MAX_MEMORY_DESCRIPTORS))
+    {
+        size_t address = start + offset;
+        size_t size = 1;
+
+        while (((address & ((size << 1) - 1)) == 0) && ((size << 1) <= length - offset))
+            size <<= 1;
+
+        struct retro_memory_descriptor* descriptor = &descriptors[(*count)++];
+        memset(descriptor, 0, sizeof(*descriptor));
+        descriptor->flags = flags;
+        descriptor->ptr = ptr + offset;
+        descriptor->start = address;
+        descriptor->len = size;
+        offset += size;
+    }
+}
+
+static void set_memory_maps(void)
+{
+    struct retro_memory_descriptor descriptors[MAX_MEMORY_DESCRIPTORS];
+    unsigned count = 0;
+    u8* map = core->GetMemory()->GetMemoryMap();
+    MemoryRule* rule = core->GetMemory()->GetCurrentRule();
+    Cartridge* cart = core->GetCartridge();
+    Cartridge::CartridgeTypes type = cart->GetType();
+
+    add_memory_descriptor(descriptors, &count, map + 0xC000, 0xC000, 0x2000, RETRO_MEMDESC_SYSTEM_RAM);
+    add_memory_descriptor(descriptors, &count, rule->GetCartRam(), 0x10000, rule->GetCartRamSize(),
+        RETRO_MEMDESC_SAVE_RAM);
+
+    if (type == Cartridge::CartridgeJumboDahjeeMapper)
+    {
+        add_memory_descriptor(descriptors, &count, rule->GetCartRam(), 0x2000, rule->GetCartRamSize(),
+            RETRO_MEMDESC_SYSTEM_RAM);
+    }
+    else if ((type == Cartridge::CartridgeSG1000Mapper) && cart->HasRAMWithoutBattery())
+    {
+        add_memory_descriptor(descriptors, &count, map + 0x2000, 0x2000, 0x2000, RETRO_MEMDESC_SYSTEM_RAM);
+        add_memory_descriptor(descriptors, &count, map + 0x8000, 0x8000, 0x2000, RETRO_MEMDESC_SYSTEM_RAM);
+    }
+
+    struct retro_memory_map memory_map = { descriptors, count };
+    environ_cb(RETRO_ENVIRONMENT_SET_MEMORY_MAPS, &memory_map);
 }
 
 void retro_cheat_reset(void)

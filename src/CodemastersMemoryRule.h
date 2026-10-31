@@ -31,6 +31,8 @@ public:
     virtual void PerformWrite(u16 address, u8 value);
     virtual void Reset();
     virtual u8* GetRamBanks();
+    virtual size_t GetCartRamSize();
+    virtual u8* GetCartRam();
     virtual u8* GetPage(int index);
     virtual int GetBank(int index);
     virtual void SaveState(std::ostream& stream);

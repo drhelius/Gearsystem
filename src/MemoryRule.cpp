@@ -135,6 +135,16 @@ u8* MemoryRule::GetRamBanks()
     return NULL;
 }
 
+size_t MemoryRule::GetCartRamSize()
+{
+    return GetRamSize();
+}
+
+u8* MemoryRule::GetCartRam()
+{
+    return GetRamBanks();
+}
+
 int MemoryRule::GetRamBank()
 {
     return 0;

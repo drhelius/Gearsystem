@@ -147,6 +147,16 @@ u8* CodemastersMemoryRule::GetRamBanks()
     return m_bRAMBankActive ? m_pCartRAM : NULL;
 }
 
+size_t CodemastersMemoryRule::GetCartRamSize()
+{
+    return m_pCartridge->HasRAMWithoutBattery() ? 0x2000 : 0;
+}
+
+u8* CodemastersMemoryRule::GetCartRam()
+{
+    return m_pCartRAM;
+}
+
 u8* CodemastersMemoryRule::GetPage(int index)
 {
     switch (index)
