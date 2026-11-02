@@ -3,6 +3,7 @@
 
 [Preset]
 Name=CRT Consumer + NTSC + Ghosting
+Group=CRT Consumer
 Passes=3
 
 [Pass0]

@@ -4,6 +4,7 @@
 
 [Preset]
 Name=Zfast CRT + Ghosting
+Group=Zfast CRT
 Passes=2
 
 [Pass0]

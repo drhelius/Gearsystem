@@ -3,6 +3,7 @@
 
 [Preset]
 Name=CRT Lottes + NTSC
+Group=CRT Lottes
 Passes=2
 
 [Pass0]

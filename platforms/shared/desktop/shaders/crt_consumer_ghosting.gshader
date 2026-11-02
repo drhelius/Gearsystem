@@ -4,6 +4,7 @@
 
 [Preset]
 Name=CRT Consumer + Ghosting
+Group=CRT Consumer
 Passes=2
 
 [Pass0]

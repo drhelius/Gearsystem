@@ -4,6 +4,7 @@
 
 [Preset]
 Name=Zfast CRT
+Group=Zfast CRT
 Passes=1
 
 [Pass0]

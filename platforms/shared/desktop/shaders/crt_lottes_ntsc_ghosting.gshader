@@ -4,6 +4,7 @@
 
 [Preset]
 Name=CRT Lottes + NTSC + Ghosting
+Group=CRT Lottes
 Passes=3
 
 [Pass0]

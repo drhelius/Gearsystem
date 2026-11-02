@@ -5,6 +5,7 @@
 
 [Preset]
 Name=Zfast CRT + NTSC + Ghosting
+Group=Zfast CRT
 Passes=3
 
 [Pass0]

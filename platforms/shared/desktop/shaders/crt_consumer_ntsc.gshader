@@ -3,6 +3,7 @@
 
 [Preset]
 Name=CRT Consumer + NTSC
+Group=CRT Consumer
 Passes=2
 
 [Pass0]

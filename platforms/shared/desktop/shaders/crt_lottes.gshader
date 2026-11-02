@@ -3,6 +3,7 @@
 
 [Preset]
 Name=CRT Lottes
+Group=CRT Lottes
 Passes=1
 
 [Pass0]

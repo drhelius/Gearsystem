@@ -4,6 +4,7 @@
 
 [Preset]
 Name=CRT Consumer
+Group=CRT Consumer
 Passes=1
 
 [Pass0]

@@ -3,6 +3,7 @@
 
 [Preset]
 Name=Zfast CRT + NTSC
+Group=Zfast CRT
 Passes=2
 
 [Pass0]
