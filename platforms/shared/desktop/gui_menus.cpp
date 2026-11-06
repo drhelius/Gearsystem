@@ -1321,6 +1321,19 @@ static void menu_input(void)
             ImGui::EndTooltip();
         }
 
+        if (ImGui::MenuItem("Allow Shared Gamepads", "", &config_emulator.allow_shared_gamepads))
+        {
+            if (!config_emulator.allow_shared_gamepads)
+                gamepad_remove_duplicates();
+        }
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            ImGui::Text("Let one gamepad control several players at the same time.");
+            ImGui::Text("Choose it in the Device menu of each player.");
+            ImGui::EndTooltip();
+        }
+
         ImGui::EndMenu();
     }
 }

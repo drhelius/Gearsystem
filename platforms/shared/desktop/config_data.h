@@ -98,6 +98,7 @@ struct config_Emulator
     bool sports_pad;
     int sports_pad_sensitivity;
     bool capture_mouse;
+    bool allow_shared_gamepads;
     int mcp_tcp_port;
     std::string mcp_http_address;
     int link_cable_session;

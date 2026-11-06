@@ -173,6 +173,7 @@ static inline void process(config_Operation operation)
     CONFIG_INT("Emulator", "PaddleSensitivity", config_emulator.paddle_sensitivity, 5);
     CONFIG_BOOL("Emulator", "SportsPad", config_emulator.sports_pad, false);
     CONFIG_INT("Emulator", "SportsPadSensitivity", config_emulator.sports_pad_sensitivity, 8);
+    CONFIG_BOOL("Emulator", "AllowSharedGamepads", config_emulator.allow_shared_gamepads, false);
 
     // Files and paths
     CONFIG_INT("Emulator", "SaveFilesDirOption", config_emulator.savefiles_dir_option, 0);
