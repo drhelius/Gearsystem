@@ -145,7 +145,10 @@ void events_handle_emu_event(const SDL_Event* event)
         }
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
         {
-            if ((config_emulator.light_phaser || config_emulator.paddle_control || config_emulator.sports_pad) && gui_main_window_hovered)
+            bool captured = config_emulator.capture_mouse && !config_emulator.light_phaser;
+
+            if ((config_emulator.light_phaser || config_emulator.paddle_control || config_emulator.sports_pad) &&
+                (captured || gui_main_window_hovered))
             {
                 if (event->button.button == SDL_BUTTON_LEFT)
                     emu_key_pressed(Joypad_1, Key_1);
