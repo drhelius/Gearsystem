@@ -6,6 +6,8 @@ out vec4 FragColor;
 
 uniform sampler2D Source;
 uniform vec4 SourceSize;
+uniform vec4 OriginalSize;
+uniform vec4 ChromaPhase;
 
 vec3 yiq_to_rgb(vec3 yiq)
 {
@@ -34,11 +36,15 @@ void main()
     vec3 signal = vec3(0.0);
     float luma_weight_sum = 0.0;
     float chroma_weight_sum = 0.0;
+    float sample_step = 1.0;
+
+    if (ChromaPhase.y > 0.0)
+        sample_step = max(1.0 / (6.0 * ChromaPhase.y * OriginalSize.x * SourceSize.z), 0.25);
 
     for (int i = -12; i <= 12; i++)
     {
         float offset = float(i);
-        vec2 sample_coord = tex + vec2(offset * SourceSize.z, 0.0);
+        vec2 sample_coord = tex + vec2(offset * sample_step * SourceSize.z, 0.0);
         float luma_weight = gaussian(offset, 3.0);
         float chroma_weight = gaussian(offset, 7.0);
 

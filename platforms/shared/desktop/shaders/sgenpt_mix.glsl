@@ -30,6 +30,7 @@ uniform vec4 SourceSize;
 uniform vec4 OriginalSize;
 uniform vec4 OutputSize;
 uniform int FrameCount;
+uniform float PixelClock;
 uniform float SGPT_BLEND_OPTION;
 uniform float SGPT_BLEND_LEVEL;
 uniform float SGPT_ADJUST_VIEW;
@@ -50,10 +51,13 @@ vec3 max_s(vec3 central, vec3 adj1, vec3 adj2) {return max(central, min(adj1, ad
 in vec2 vTexCoord;
 out vec4 FragColor;
 uniform sampler2D Source;
+uniform sampler2D LineClock;
 
 void main()
 {
-	vec2 dx = vec2(1.0, 0.0)*SourceSize.zw;
+	float line_clock = texture(LineClock, vec2(0.5, vTexCoord.y)).r;
+	float native_width = (line_clock > 0.0 && PixelClock > 0.0) ? max(round(PixelClock / line_clock), 1.0) : 1.0;
+	vec2 dx = vec2(native_width, 0.0)*SourceSize.zw;
 	vec2 dy = vec2(0.0, 1.0)*SourceSize.zw;
 
 	// Reading the texels.

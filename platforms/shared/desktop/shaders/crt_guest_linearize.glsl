@@ -14,6 +14,9 @@ uniform float iscans;
 uniform float gamma_out;
 uniform float vga_mode;
 uniform float hiscan;
+uniform float LineRate;
+uniform int Interlaced;
+uniform int FieldParity;
 
 /*
    Interlacing
@@ -70,11 +73,13 @@ void main()
 	
 	bool hscan = (hiscan > 0.5);
 	
-	if (inter <= OriginalSize.y/yres_div && interm > 0.5 && intres != 1.0  && intres != 0.5 && vga_mode < 0.5 || hscan)
+	bool interlaced_source = (LineRate > 0.0) ? (Interlaced != 0) : (inter <= OriginalSize.y/yres_div);
+
+	if (interlaced_source && interm > 0.5 && intres != 1.0  && intres != 0.5 && vga_mode < 0.5 || hscan)
 	{
 		intera = 0.25;
 		float line_no  = floor(mod(OriginalSize.y*vTexCoord.y, 2.0));
-		float frame_no = floor(mod(float(FrameCount),2.0));
+		float frame_no = (LineRate > 0.0 && Interlaced != 0) ? float(FieldParity) : floor(mod(float(FrameCount),2.0));
 		float ii = abs(line_no-frame_no);
 		
 		if (interm < 3.5 || interm > 4.5)

@@ -9,6 +9,8 @@ out vec4 FragColor;
 uniform sampler2D Source;
 uniform vec4 SourceSize;
 uniform vec4 OutputSize;
+uniform vec4 OriginalSize;
+uniform float SourceLines;
 uniform float ScanlineBaseBrightness;
 uniform float ScanlineHorizontalModulation;
 uniform float ScanlineVerticalModulation;
@@ -30,7 +32,8 @@ vec2 sharp_bilinear_coord()
 void main()
 {
     vec3 color = texture(Source, sharp_bilinear_coord()).rgb;
-    vec2 omega = vec2(PI * OutputSize.x, 2.0 * PI * SourceSize.y);
+    float lines = (SourceLines > 0.0) ? SourceLines * SourceSize.y * OriginalSize.w : SourceSize.y;
+    vec2 omega = vec2(PI * OutputSize.x, 2.0 * PI * lines);
     vec2 modulation = vec2(ScanlineHorizontalModulation, ScanlineVerticalModulation);
     float intensity = ScanlineBaseBrightness + dot(modulation * sin(vTexCoord * omega), vec2(1.0));
 

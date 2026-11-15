@@ -6,6 +6,8 @@ uniform vec4 OriginalSize;
 uniform vec4 SourceSize;
 uniform float ntsc_scale;
 uniform float ntsc_phase;
+uniform vec4 ChromaPhase;
+uniform float PixelClock;
 uniform float ntsc_ring;
 uniform float ntsc_cscale;
 uniform float ntsc_cscale1;
@@ -21,7 +23,8 @@ uniform float nscale;
 
 #pragma parameter ntsc-row4 "------------------------------------------------" 0.0 0.0 0.0 1.0
 
-float auto_rez = mix(1.0, 0.5, clamp(auto_res * round(OriginalSize.x/300.0)-1.0, 0.0, 1.0));
+bool exact_chroma = (ntsc_phase < 1.5) && (ChromaPhase.y > 0.0) && (ChromaPhase.y * PixelClock < 4.0);
+float auto_rez = exact_chroma ? min(1.5 * ChromaPhase.y, 1.0) : mix(1.0, 0.5, clamp(auto_res * round(OriginalSize.x/300.0)-1.0, 0.0, 1.0));
 #define ntsc_scale ntsc_scale * auto_rez
 #define nscale nscale;
 
@@ -190,6 +193,7 @@ float luma_filter_3_phase[33] = float[33](
    vec3 signal = vec3(0.0);
    float phase = (ntsc_phase < 1.5) ? ((OriginalSize_ > 300.0) ? 2.0 : 3.0) : ((ntsc_phase > 2.5) ? 3.0 : 2.0);
    if (ntsc_phase > 3.5) { phase = 3.0; luma_filter_3_phase = luma_filter_2_phase; }
+   if (exact_chroma) phase = 3.0;
 
    float offset = 0.0; int i = 0; float j = 0.0;
    vec3 wsum = vec3(0.0);

@@ -54,6 +54,7 @@ uniform float S_SHARP;
 uniform float rolling_scan;
 uniform vec4 SourceSize;
 uniform vec4 OriginalSize;
+uniform float SourceLines;
 uniform vec4 OutputSize;
 uniform int FrameCount;
 uniform float warpX;
@@ -218,7 +219,8 @@ void main()
 {
 	vec2 prescalex = vec2(textureSize(LinearizePass, 0)) / OriginalSize.xy;
 	
-	vec4 SourceSize_ = vec4(SourceSize.x, OriginalSize.y, SourceSize.z, OriginalSize.w);
+	float SourceLines_ = (SourceLines > 0.0) ? SourceLines : OriginalSize.y;
+	vec4 SourceSize_ = vec4(SourceSize.x, SourceLines_, SourceSize.z, 1.0 / SourceLines_);
 	float gamma_in = 1.0/COMPAT_TEXTURE(LinearizePass, vec2(0.25,0.25)).a;
 	float intera = COMPAT_TEXTURE(LinearizePass, vec2(0.75,0.25)).a;
 	bool hscan = (hiscan > 0.5);

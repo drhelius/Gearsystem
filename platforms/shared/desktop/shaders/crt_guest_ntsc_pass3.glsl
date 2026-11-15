@@ -6,6 +6,8 @@ uniform vec4 OriginalSize;
 uniform vec4 SourceSize;
 uniform int FrameCount;
 uniform float ntsc_phase;
+uniform vec4 ChromaPhase;
+uniform float PixelClock;
 uniform float auto_res;
 uniform float ntsc_sharp;
 uniform float ntsc_fonts;
@@ -22,7 +24,8 @@ uniform float RFNOISE2;
 // NTSC-Adaptive Pass3
 // based on Themaister's NTSC shader
 
-float auto_rez = mix(1.0, 0.5, clamp(auto_res * round(OriginalSize.x/300.0)-1.0, 0.0, 1.0));
+bool exact_chroma = (ntsc_phase < 1.5) && (ChromaPhase.y > 0.0) && (ChromaPhase.y * PixelClock < 4.0);
+float auto_rez = exact_chroma ? min(1.5 * ChromaPhase.y, 1.0) : mix(1.0, 0.5, clamp(auto_res * round(OriginalSize.x/300.0)-1.0, 0.0, 1.0));
 #pragma parameter ntsc-row5 "------------------------------------------------" 0.0 0.0 0.0 1.0
 #pragma parameter ntsc-row6 "------------------------------------------------" 0.0 0.0 0.0 1.0
 
@@ -117,6 +120,7 @@ else
 
    float phase = (ntsc_phase < 1.5) ? ((OriginalSize.x * auto_rez > 300.0) ? 2.0 : 3.0) : ((ntsc_phase > 2.5) ? 3.0 : 2.0);
    if (ntsc_phase > 3.5) phase = 3.0;
+   if (exact_chroma) phase = 3.0;
 
    float th = (phase < 2.5) ? 0.025 : 0.0075;
 

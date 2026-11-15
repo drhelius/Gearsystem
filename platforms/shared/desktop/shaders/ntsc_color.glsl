@@ -6,6 +6,9 @@ out vec4 FragColor;
 
 uniform sampler2D Source;
 uniform vec4 SourceSize;
+uniform vec4 OriginalSize;
+uniform vec4 ChromaPhase;
+uniform int CoreFlags;
 uniform int FrameCount;
 uniform float NtscArtifacts;
 uniform float NtscSaturation;
@@ -41,10 +44,22 @@ void main()
     vec3 yiq_left = rgb_to_yiq(left);
     vec3 yiq_right = rgb_to_yiq(right);
 
-    vec2 pixel = vTexCoord * SourceSize.xy;
-    float frame_phase = mod(float(FrameCount), 2.0);
-    float chroma_phase = 0.6667 * PI * (mod(pixel.y, 3.0) + frame_phase);
-    float mod_phase = chroma_phase + pixel.x * CHROMA_MOD_FREQ;
+    float mod_phase;
+
+    if (ChromaPhase.y > 0.0)
+    {
+        vec2 position = vTexCoord * OriginalSize.xy;
+        float cycles = ChromaPhase.x + fract(position.x * ChromaPhase.y) + fract(floor(position.y) * ChromaPhase.z);
+        mod_phase = 2.0 * PI * fract(cycles);
+    }
+    else
+    {
+        vec2 pixel = vTexCoord * SourceSize.xy;
+        float frame_phase = mod(float(FrameCount), 2.0);
+        float chroma_phase = 0.6667 * PI * (mod(pixel.y, 3.0) + frame_phase);
+        mod_phase = chroma_phase + pixel.x * CHROMA_MOD_FREQ;
+    }
+
     vec2 carrier = vec2(cos(mod_phase), sin(mod_phase));
     vec2 carrier_quadrature = vec2(-carrier.y, carrier.x);
 
@@ -57,7 +72,7 @@ void main()
             (yiq.x + 2.0 * yiq.z * carrier.y) * carrier.y);
     float shimmer_gate = clamp(abs(luma_high) * 6.0 + abs(luma_edge) * 4.0 + length(yiq.yz) * 0.25, 0.0, 1.0);
     vec3 shimmer_yiq = (phase_yiq - yiq) * shimmer_gate;
-    float intensity = clamp(NtscArtifacts, 0.0, 1.0);
+    float intensity = ((CoreFlags & 4) != 0) ? 0.0 : clamp(NtscArtifacts, 0.0, 1.0);
     float shimmer = clamp(NtscShimmer, 0.0, 1.0);
 
     yiq.x = (yiq.x - 0.5) * NtscContrast + 0.5;

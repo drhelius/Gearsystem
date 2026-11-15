@@ -6,6 +6,8 @@ out vec4 FragColor;
 
 uniform sampler2D Source;
 uniform vec4 SourceSize;
+uniform vec4 OriginalSize;
+uniform float SourceLines;
 uniform vec4 OutputSize;
 uniform float FramebufferScale;
 uniform vec4 BackgroundColor;
@@ -55,9 +57,16 @@ vec3 to_srgb(vec3 color)
     return vec3(to_srgb_1(color.r), to_srgb_1(color.g), to_srgb_1(color.b));
 }
 
+vec2 scan_grid()
+{
+    float lines = (SourceLines > 0.0) ? SourceLines * SourceSize.y * OriginalSize.w : SourceSize.y;
+    return vec2(SourceSize.x, lines);
+}
+
 vec3 fetch_source(vec2 pos, vec2 offset)
 {
-    vec2 uv = (floor(pos * SourceSize.xy + offset) + vec2(0.5)) * SourceSize.zw;
+    vec2 grid = scan_grid();
+    vec2 uv = (floor(pos * grid + offset) + vec2(0.5)) / grid;
     if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0)
         return to_linear(BackgroundColor.rgb);
 
@@ -66,7 +75,7 @@ vec3 fetch_source(vec2 pos, vec2 offset)
 
 vec2 dist_to_texel(vec2 pos)
 {
-    pos *= SourceSize.xy;
+    pos *= scan_grid();
     return -((pos - floor(pos)) - vec2(0.5));
 }
 

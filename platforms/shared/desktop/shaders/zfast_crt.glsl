@@ -4,6 +4,8 @@ out vec4 FragColor;
 uniform sampler2D Source;
 uniform vec4 SourceSize;
 uniform vec4 OutputSize;
+uniform vec4 OriginalSize;
+uniform float SourceLines;
 uniform float FramebufferScale;
 uniform float BlurAmountX;
 uniform float ScanlineDarknessLow;
@@ -14,10 +16,12 @@ uniform float MaskFade;
 
 void main()
 {
-    vec2 pixel = vTexCoord * SourceSize.xy;
+    float lines = (SourceLines > 0.0) ? SourceLines * SourceSize.y * OriginalSize.w : SourceSize.y;
+    vec2 grid = vec2(SourceSize.x, lines);
+    vec2 pixel = vTexCoord * grid;
     vec2 center = floor(pixel) + vec2(0.5);
     vec2 phase = pixel - center;
-    vec2 sample_uv = (center + 4.0 * phase * phase * phase) * SourceSize.zw;
+    vec2 sample_uv = (center + 4.0 * phase * phase * phase) / grid;
     sample_uv.x = mix(sample_uv.x, vTexCoord.x, BlurAmountX);
 
     vec3 color = texture(Source, sample_uv).rgb;

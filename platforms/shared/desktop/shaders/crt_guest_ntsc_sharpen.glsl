@@ -25,6 +25,9 @@ uniform vec4 SourceSize;
 uniform vec4 OriginalSize;
 uniform vec4 OutputSize;
 uniform int FrameCount;
+uniform vec4 ChromaPhase;
+uniform float PixelClock;
+uniform float ntsc_phase;
 uniform float CSHARPEN;
 uniform float CCONTR;
 uniform float CDETAILS;
@@ -66,7 +69,8 @@ float get_luma(vec3 c)
 	return dot(c, vec3(0.299, 0.587, 0.114));
 }
 
-float resmult = round(OriginalSize.x / 300.0);
+bool exact_chroma = (ntsc_phase < 1.5) && (ChromaPhase.y > 0.0) && (ChromaPhase.y * PixelClock < 4.0);
+float resmult = exact_chroma ? max(round(2.0 / (3.0 * ChromaPhase.y)), 1.0) : round(OriginalSize.x / 300.0);
 
 void main()
 {

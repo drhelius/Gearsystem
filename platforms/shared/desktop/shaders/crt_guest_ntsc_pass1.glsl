@@ -5,6 +5,9 @@ uniform vec4 OutputSize;
 uniform vec4 OriginalSize;
 uniform vec4 SourceSize;
 uniform int FrameCount;
+uniform vec4 ChromaPhase;
+uniform float PixelClock;
+uniform int CoreFlags;
 uniform float quality;
 uniform float ntsc_sat;
 uniform float cust_fringing;
@@ -30,7 +33,8 @@ uniform float speedup;
 #pragma parameter ntsc-row3 "------------------------------------------------" 0.0 0.0 0.0 1.0
 
 float FrameCount_ = float(FrameCount);
-float auto_rez = mix(1.0, 0.5, clamp(auto_res * round(OriginalSize.x/300.0)-1.0, 0.0, 1.0));
+bool exact_chroma = (ntsc_phase < 1.5) && (ChromaPhase.y > 0.0) && (ChromaPhase.y * PixelClock < 4.0);
+float auto_rez = exact_chroma ? min(1.5 * ChromaPhase.y, 1.0) : mix(1.0, 0.5, clamp(auto_res * round(OriginalSize.x/300.0)-1.0, 0.0, 1.0));
 #define ntsc_scale ntsc_scale * auto_rez
 #define PI 3.14159265
 
@@ -88,13 +92,15 @@ void main()
    pix_no = tex_coord * OriginalSize.xy * vec2(vres, vres / auto_rez) * vec2(4.0, 1.0);
    phase = (ntsc_phase < 1.5) ? ((vsize > 300.0) ? 2.0 : 3.0) : ((ntsc_phase > 2.5) ? 3.0 : 2.0);
    if (ntsc_phase == 4.0) phase = 3.0; else if (ntsc_phase == 5.0) phase = 2.0;
+   if (exact_chroma) phase = 3.0;
    CHROMA_MOD_FREQ = (phase == 2.0 && ntsc_phase != 5.0) ? (4.0 * PI / 15.0) : ((vsize <= 300.0 || phase == 3.0) ? (PI / 3.0) : (PI / 2.0));
-   ARTIFACTING = cust_artifacting;
-   FRINGING = cust_fringing;
+   bool core_composite = (CoreFlags & 4) != 0;
+   ARTIFACTING = core_composite ? 0.0 : cust_artifacting;
+   FRINGING = core_composite ? 0.0 : cust_fringing;
    SATURATION = ntsc_sat;
    BRIGHTNESS = ntsc_bright;
    MERGE = 0.0;
-   if (ntsc_fields == -1.0 && phase == 3.0) MERGE = 1.0;
+   if (ntsc_fields == -1.0 && phase == 3.0) MERGE = exact_chroma ? ((ChromaPhase.w != 0.0) ? 1.0 : 0.0) : 1.0;
    else if (ntsc_fields == 0.0) MERGE = 0.0;
    else if (ntsc_fields == 1.0) MERGE = 1.0;
    mix_mat = mat3(BRIGHTNESS, FRINGING, FRINGING, ARTIFACTING, 2.0 * SATURATION, 0.0, ARTIFACTING, 0.0, 2.0 * SATURATION);
@@ -120,6 +126,7 @@ if (tex_coord.x > 1.0) FragColor = vec4(0.0); else
 if (MERGE > 0.5)
 {
    float chroma_phase2 = (phase < 2.5) ? PI * (mod(pix_no.y, 2.0) + mod(FrameCount_+1.0, 2.0)) : 0.6667 * PI * (mod(pix_no.y, 3.0) + mod(FrameCount_+1.0, 2.0));
+   if (exact_chroma) chroma_phase2 = 2.0 * PI * fract(ChromaPhase.x + ChromaPhase.w + fract(floor(tex_coord.y * OriginalSize.y) * ChromaPhase.z));
    float mod_phase2 = chroma_phase2 + pix_no.x * CHROMA_MOD_FREQ;
    float i_mod2 = cos(mod_phase2);
    float q_mod2 = sin(mod_phase2);
@@ -139,6 +146,7 @@ if (MERGE > 0.5)
 }
    
    float chroma_phase = (phase < 2.5) ? PI * (mod(pix_no.y, 2.0) + mod(FrameCount_, 2.0)) : 0.6667 * PI * (mod(pix_no.y, 3.0) + mod(FrameCount_, 2.0));
+   if (exact_chroma) chroma_phase = 2.0 * PI * fract(ChromaPhase.x + fract(floor(tex_coord.y * OriginalSize.y) * ChromaPhase.z));
    float mod_phase = chroma_phase + pix_no.x * CHROMA_MOD_FREQ;
    float i_mod = cos(mod_phase);
    float q_mod = sin(mod_phase);

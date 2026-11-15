@@ -5,6 +5,8 @@ out vec4 FragColor;
 
 uniform sampler2D Source;
 uniform vec4 SourceSize;
+uniform vec4 OriginalSize;
+uniform float SourceLines;
 uniform float NtscCrtGamma;
 uniform float NtscDisplayGamma;
 uniform float NtscScanlineIntensity;
@@ -17,6 +19,11 @@ bool source_coord_valid(vec2 coord)
     return true;
 }
 
+float scan_lines()
+{
+    return (SourceLines > 0.0) ? SourceLines * SourceSize.y * OriginalSize.w : SourceSize.y;
+}
+
 vec3 sample_gamma_coord(vec2 coord)
 {
     vec3 color = max(texture(Source, coord).rgb, vec3(0.0));
@@ -25,7 +32,7 @@ vec3 sample_gamma_coord(vec2 coord)
 
 void add_scanline_sample(inout vec3 scanline, inout float valid_weight_sum, float offset, float weight)
 {
-    vec2 coord = vTexCoord + vec2(0.0, offset * SourceSize.w);
+    vec2 coord = vTexCoord + vec2(0.0, offset / scan_lines());
 
     if (source_coord_valid(coord))
     {
@@ -41,7 +48,7 @@ float scanline_weight(float distance)
 
 void main()
 {
-    float offset_dist = fract(vTexCoord.y * SourceSize.y) - 0.5;
+    float offset_dist = fract(vTexCoord.y * scan_lines()) - 0.5;
     float dist0 = 2.0 + offset_dist;
     float dist1 = 1.0 + offset_dist;
     float dist2 = offset_dist;

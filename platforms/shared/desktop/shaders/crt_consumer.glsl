@@ -6,6 +6,10 @@ out vec4 FragColor;
 
 uniform sampler2D Source;
 uniform vec4 SourceSize;
+uniform vec4 OriginalSize;
+uniform float SourceLines;
+uniform float LineRate;
+uniform int Interlaced;
 uniform vec4 OutputSize;
 uniform float FramebufferScale;
 uniform vec4 BackgroundColor;
@@ -182,10 +186,12 @@ void main()
         return;
     }
 
-    vec2 tex_size = SourceSize.xy;
+    float lines = (SourceLines > 0.0) ? SourceLines * SourceSize.y * OriginalSize.w : SourceSize.y;
+    vec2 tex_size = vec2(SourceSize.x, lines);
+    bool high_lines = (LineRate > 0.0) ? (Interlaced != 0) : (tex_size.y > 400.0);
     float interlace_downscale = Downscale > 0.0 ? Downscale : 2.0;
     vec2 pixel_phase = fract(pos * tex_size);
-    if (inter < 0.5 && tex_size.y > 400.0)
+    if (inter < 0.5 && high_lines)
         pixel_phase.y = fract(pos.y * tex_size.y / interlace_downscale);
 
     vec2 texel = pos * tex_size;
@@ -193,7 +199,7 @@ void main()
     float region_range = 0.5 - 0.5 / PRE_SCALE;
     vec2 center_dist = pixel_phase - 0.5;
     vec2 filtered_phase = (center_dist - clamp(center_dist, -region_range, region_range)) * PRE_SCALE + 0.5;
-    vec2 coords = (texel_floored + filtered_phase) / SourceSize.xy;
+    vec2 coords = (texel_floored + filtered_phase) / tex_size;
 
     vec3 sample1 = sample_source(vec2(coords.x + blurx * SourceSize.z, coords.y - blury * SourceSize.w));
     vec3 sample2 = sample_source(coords);
@@ -208,7 +214,7 @@ void main()
 
     float luminance = color.r * 0.3 + color.g * 0.6 + color.b * 0.1;
     float scan_pos = fract(pixel_phase.y - 0.5);
-    if (inter <= 0.5 || tex_size.y <= 400.0)
+    if (inter <= 0.5 || !high_lines)
         color = color * scanline_weight(scan_pos, luminance) + color * scanline_weight(1.0 - scan_pos, luminance);
 
     float masked_luminance = color.r * 0.3 + color.g * 0.6 + color.b * 0.1;
@@ -229,7 +235,7 @@ void main()
     vec4 result = vec4(color, 1.0);
     if (contrast != 1.0)
         result = contrast_matrix() * result;
-    if (inter > 0.5 && SourceSize.y > 400.0 && fract(float(FrameCount) / 2.0) < 0.5)
+    if (inter > 0.5 && high_lines && fract(float(FrameCount) / 2.0) < 0.5)
         result *= 0.95;
 
     result.rgb *= vignette_amount();
