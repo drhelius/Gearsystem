@@ -647,7 +647,7 @@ void gui_debug_window_vram_sprites(void)
             real_y = (float)(y + 1.0f - (isGG ? GS_RESOLUTION_GG_Y_OFFSET : 0));
         }
 
-        if (!isGG && (video->GetOverscan() != Video::OverscanDisabled))
+        if (!core->GetCartridge()->IsGameGear() && (video->GetOverscan() != Video::OverscanDisabled))
         {
             int overscan_y_offset = core->GetCartridge()->IsPAL() ? GS_RESOLUTION_SMS_OVERSCAN_V_PAL : GS_RESOLUTION_SMS_OVERSCAN_V;
             overscan_y_offset -= video->IsExtendedMode224() ? 16 : 0;

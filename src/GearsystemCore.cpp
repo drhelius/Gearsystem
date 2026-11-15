@@ -362,12 +362,15 @@ bool GearsystemCore::GetRuntimeInfo(GS_RuntimeInfo& runtime_info)
             runtime_info.screen_width = GS_RESOLUTION_SMS_WIDTH - m_pVideo->GetHideLeftBarOffset();
             runtime_info.screen_height = m_pVideo->IsExtendedMode224() ? GS_RESOLUTION_SMS_HEIGHT_EXTENDED : GS_RESOLUTION_SMS_HEIGHT;
 
-            if (m_pVideo->GetOverscan() == Video::OverscanFull284)
-                runtime_info.screen_width = GS_RESOLUTION_SMS_WIDTH + GS_RESOLUTION_SMS_OVERSCAN_H_284_L + GS_RESOLUTION_SMS_OVERSCAN_H_284_R;
-            if (m_pVideo->GetOverscan() == Video::OverscanFull320)
-                runtime_info.screen_width = GS_RESOLUTION_SMS_WIDTH + GS_RESOLUTION_SMS_OVERSCAN_H_320_L + GS_RESOLUTION_SMS_OVERSCAN_H_320_R;
-            if (m_pVideo->GetOverscan() != Video::OverscanDisabled)
-                runtime_info.screen_height = GS_RESOLUTION_SMS_HEIGHT + (2 * (m_pCartridge->IsPAL() ? GS_RESOLUTION_SMS_OVERSCAN_V_PAL : GS_RESOLUTION_SMS_OVERSCAN_V));
+            if (!m_pCartridge->IsGameGear())
+            {
+                if (m_pVideo->GetOverscan() == Video::OverscanFull284)
+                    runtime_info.screen_width = GS_RESOLUTION_SMS_WIDTH + GS_RESOLUTION_SMS_OVERSCAN_H_284_L + GS_RESOLUTION_SMS_OVERSCAN_H_284_R;
+                if (m_pVideo->GetOverscan() == Video::OverscanFull320)
+                    runtime_info.screen_width = GS_RESOLUTION_SMS_WIDTH + GS_RESOLUTION_SMS_OVERSCAN_H_320_L + GS_RESOLUTION_SMS_OVERSCAN_H_320_R;
+                if (m_pVideo->GetOverscan() != Video::OverscanDisabled)
+                    runtime_info.screen_height = GS_RESOLUTION_SMS_HEIGHT + (2 * (m_pCartridge->IsPAL() ? GS_RESOLUTION_SMS_OVERSCAN_V_PAL : GS_RESOLUTION_SMS_OVERSCAN_V));
+            }
         }
 
         runtime_info.region = m_pCartridge->IsPAL() ? Region_PAL : Region_NTSC;
