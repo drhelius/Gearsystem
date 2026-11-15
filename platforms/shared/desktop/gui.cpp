@@ -62,7 +62,6 @@ static void select_save_slot(int slot);
 static bool finish_loading_rom(void);
 static void load_pending_state(void);
 static void update_window_visibility_padding(void);
-static ImVec2 snap_to_physical_pixel(const ImVec2& pos);
 static Cartridge::CartridgeTypes get_mapper(int index);
 static Cartridge::CartridgeZones get_zone(int index);
 static Cartridge::CartridgeSystem get_system(int index);
@@ -631,7 +630,7 @@ static void main_window(void)
 
     if (config_emulator.light_phaser)
     {
-        ImVec2 p = snap_to_physical_pixel(ImGui::GetCursorScreenPos());
+        ImVec2 p = gui_snap_to_physical_pixel(ImGui::GetCursorScreenPos());
         float mouse_x = (io.MousePos.x - p.x) * (float)runtime.screen_width / image_w;
         float mouse_y = (io.MousePos.y - p.y) * (float)runtime.screen_height / image_h;
         emu_set_phaser((int)mouse_x, (int)mouse_y);
@@ -639,7 +638,7 @@ static void main_window(void)
 
     ImVec2 image_size(image_w, image_h);
     ImVec2 layout_max = ImGui::GetCursorScreenPos() + image_size;
-    ImVec2 image_min = snap_to_physical_pixel(ImGui::GetCursorScreenPos());
+    ImVec2 image_min = gui_snap_to_physical_pixel(ImGui::GetCursorScreenPos());
     ImVec2 image_max = image_min + image_size;
 
     ImGui::Dummy(image_size);
@@ -674,7 +673,7 @@ static void main_window(void)
     ImGui::PopStyleVar();
 }
 
-static ImVec2 snap_to_physical_pixel(const ImVec2& pos)
+ImVec2 gui_snap_to_physical_pixel(const ImVec2& pos)
 {
     ImGuiViewport* viewport = ImGui::GetWindowViewport();
     ImVec2 scale = viewport->FramebufferScale;
