@@ -32,6 +32,7 @@
 #include "emu.h"
 #include "config.h"
 #include "gearsystem.h"
+#include "rewind.h"
 #include "video_recorder.h"
 
 #define OGL_RENDERER_IMPORT
@@ -50,6 +51,7 @@ static int shader_output_width = 0;
 static int shader_output_height = 0;
 static int shader_source_width = 0;
 static int shader_source_height = 0;
+static u64 shader_video_frame_counter = 0;
 
 static uint32_t quad_shader_program = 0;
 static uint32_t quad_vao = 0;
@@ -66,11 +68,10 @@ static bool init_shaders(void);
 static void render_gui(void);
 static bool should_use_internal_shader_chain(void);
 static bool render_shader_output(bool new_frame);
-static bool render_internal_shader_chain(void);
+static bool render_internal_shader_chain(int advanced_frames);
 static bool render_external_shader_chain(void);
-static void render_internal_shader_chain_feedback(void);
+static void fill_shader_frame_info(OglShaderChainFrameInfo* info);
 static void record_video_frame(bool shader_rendered);
-static void render_quad(uint32_t program, uint32_t texture, int viewport_width, int viewport_height, float tex_h, float tex_v, float red, float green, float blue, float alpha);
 static void render_quad_preset(int pass_index, uint32_t program, uint32_t texture, int input_width, int input_height, int viewport_width, int viewport_height);
 static void update_system_texture(void);
 static void update_debug_textures(void);
@@ -370,7 +371,16 @@ static bool render_shader_output(bool new_frame)
     if (!new_frame && shader_output_valid && same_size)
         return true;
 
-    shader_output_valid = render_internal_shader_chain();
+    int advanced_frames = 0;
+
+    if (emu_video_frame_counter != shader_video_frame_counter)
+    {
+        u64 delta = emu_video_frame_counter - shader_video_frame_counter;
+        advanced_frames = (int)MIN(delta, (u64)0x10000);
+        shader_video_frame_counter = emu_video_frame_counter;
+    }
+
+    shader_output_valid = render_internal_shader_chain(advanced_frames);
     shader_output_width = screen_geometry.physical_width;
     shader_output_height = screen_geometry.physical_height;
     shader_source_width = current_runtime.screen_width;
@@ -379,9 +389,13 @@ static bool render_shader_output(bool new_frame)
     return shader_output_valid;
 }
 
-static bool render_internal_shader_chain(void)
+static bool render_internal_shader_chain(int advanced_frames)
 {
     bool filter_linear = ogl_shader_chain_get_preset_filter_linear();
+
+    OglShaderChainFrameInfo frame_info;
+    fill_shader_frame_info(&frame_info);
+    ogl_shader_chain_begin_frame(&frame_info, advanced_frames);
 
     OglShaderChainSourceTexture source_texture;
     source_texture.width = current_runtime.screen_width;
@@ -398,6 +412,34 @@ static bool render_internal_shader_chain(void)
     return render_external_shader_chain();
 }
 
+static void fill_shader_frame_info(OglShaderChainFrameInfo* info)
+{
+    ogl_shader_chain_reset_frame_info(info, current_runtime.screen_width, current_runtime.screen_height);
+
+    info->frame_direction = rewind_is_active() ? -1 : 1;
+    info->original_fps = (float)current_runtime.fps;
+    info->pixel_clock = current_runtime.pixel_clock;
+    info->line_rate = current_runtime.line_rate;
+    info->source_lines = (float)current_runtime.source_lines;
+    info->chroma_origin = current_runtime.chroma_origin;
+    info->chroma_texel_cycles = current_runtime.chroma_texel_cycles;
+    info->chroma_line_cycles = current_runtime.chroma_line_cycles;
+    info->chroma_frame_cycles = current_runtime.chroma_frame_cycles;
+
+    for (int i = 0; i < 4; i++)
+        info->active_region[i] = (float)current_runtime.active_region[i];
+
+    if (current_runtime.border_valid)
+    {
+        info->border_color[0] = (float)current_runtime.border_color[0] / 255.0f;
+        info->border_color[1] = (float)current_runtime.border_color[1] / 255.0f;
+        info->border_color[2] = (float)current_runtime.border_color[2] / 255.0f;
+        info->border_color[3] = 1.0f;
+    }
+
+    info->system_type = current_runtime.system_type;
+}
+
 static bool render_external_shader_chain(void)
 {
     glDisable(GL_BLEND);
@@ -411,7 +453,6 @@ static bool render_external_shader_chain(void)
     int input_width = original_width;
     int input_height = original_height;
     uint32_t input_texture = ogl_shader_chain_get_source_texture();
-    bool input_float_framebuffer = false;
 
     for (int i = 0; i < pass_count; i++)
     {
@@ -455,39 +496,14 @@ static bool render_external_shader_chain(void)
         glBindFramebuffer(GL_FRAMEBUFFER, output_fbo);
         render_quad_preset(i, ogl_shader_chain_get_preset_pass_program(i), input_texture, input_width, input_height, output_width, output_height);
 
-        if (ogl_shader_chain_get_preset_pass_uses_history(i))
-        {
-            ogl_shader_chain_store_pass_history(i, input_texture, input_width, input_height,
-                ogl_shader_chain_get_preset_pass_filter_linear(i), input_float_framebuffer);
-        }
-
         input_texture = output_texture;
         input_width = output_width;
         input_height = output_height;
-        input_float_framebuffer = framebuffer_texture.float_framebuffer;
     }
 
-    ogl_shader_chain_store_pass_feedbacks();
-
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    if (ogl_shader_chain_preset_uses_feedback())
-        render_internal_shader_chain_feedback();
 
     return true;
-}
-
-static void render_internal_shader_chain_feedback(void)
-{
-    glBindFramebuffer(GL_FRAMEBUFFER, ogl_shader_chain_get_feedback_framebuffer());
-    glDisable(GL_BLEND);
-
-    render_quad(quad_shader_program, ogl_shader_chain_get_pass_texture(),
-            ogl_shader_chain_get_pass_width(), ogl_shader_chain_get_pass_height(),
-            1.0f, 1.0f,
-            1.0f, 1.0f, 1.0f, 1.0f);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 static void record_video_frame(bool shader_rendered)
@@ -581,25 +597,6 @@ static void update_savestates_texture(void)
         glBindTexture(GL_TEXTURE_2D, ogl_renderer_emu_savestates);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) emu_savestates_screenshots[i].data);
     }
-}
-
-static void render_quad(uint32_t program, uint32_t texture, int viewport_width, int viewport_height, float tex_h, float tex_v, float red, float green, float blue, float alpha)
-{
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    glUseProgram(program);
-    glUniform2f(quad_uniform_tex_scale, tex_h, tex_v);
-    glUniform4f(quad_uniform_color, red, green, blue, alpha);
-
-    glViewport(0, 0, viewport_width, viewport_height);
-
-    glBindVertexArray(quad_vao);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glBindVertexArray(0);
-    glUseProgram(0);
-
-    glActiveTexture(GL_TEXTURE0);
 }
 
 static void render_quad_preset(int pass_index, uint32_t program, uint32_t texture, int input_width, int input_height, int viewport_width, int viewport_height)
