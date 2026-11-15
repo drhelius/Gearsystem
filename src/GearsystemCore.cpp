@@ -17,6 +17,7 @@
  *
  */
 
+#include <math.h>
 #include <string>
 #include "GearsystemCore.h"
 #include "Memory.h"
@@ -337,6 +338,17 @@ bool GearsystemCore::GetRuntimeInfo(GS_RuntimeInfo& runtime_info)
     int lines_per_frame = pal ? GS_LINES_PER_FRAME_PAL : GS_LINES_PER_FRAME_NTSC;
 
     runtime_info.fps = master_clock / (GS_CYCLES_PER_LINE * lines_per_frame);
+    runtime_info.pixel_clock = 0.0f;
+    runtime_info.line_rate = 0.0f;
+    runtime_info.chroma_origin = 0.0f;
+    runtime_info.chroma_texel_cycles = 0.0f;
+    runtime_info.chroma_line_cycles = 0.0f;
+    runtime_info.chroma_frame_cycles = 0.0f;
+    runtime_info.border_color[0] = 0;
+    runtime_info.border_color[1] = 0;
+    runtime_info.border_color[2] = 0;
+    runtime_info.border_valid = false;
+    runtime_info.system_type = 0;
 
     if (m_pCartridge->IsReady())
     {
@@ -359,12 +371,52 @@ bool GearsystemCore::GetRuntimeInfo(GS_RuntimeInfo& runtime_info)
         }
 
         runtime_info.region = m_pCartridge->IsPAL() ? Region_PAL : Region_NTSC;
+        runtime_info.source_lines = runtime_info.screen_height;
+        runtime_info.active_region[0] = 0;
+        runtime_info.active_region[1] = 0;
+        runtime_info.active_region[2] = runtime_info.screen_width;
+        runtime_info.active_region[3] = runtime_info.screen_height;
+
+        if (m_pCartridge->IsSG1000())
+            runtime_info.system_type = 2;
+        else if (m_pCartridge->IsGameGear())
+            runtime_info.system_type = m_pCartridge->IsGameGearInSMSMode() ? 3 : 1;
+
+        if (!m_pCartridge->IsGameGear())
+        {
+            runtime_info.pixel_clock = (float)(master_clock * GS_VDP_DOTS_PER_LINE / GS_CYCLES_PER_LINE / 1000000.0);
+            runtime_info.line_rate = (float)(master_clock / GS_CYCLES_PER_LINE / 1000.0);
+            m_pVideo->GetActiveRegion(&runtime_info.active_region[0], &runtime_info.active_region[1],
+                &runtime_info.active_region[2], &runtime_info.active_region[3]);
+            m_pVideo->GetBorderColor(runtime_info.border_color);
+            runtime_info.border_valid = true;
+
+            if (!pal || !m_pCartridge->IsSG1000())
+            {
+                int cpu_xtal_clocks = pal ? GS_XTAL_CLOCKS_PER_CPU_CYCLE_PAL : GS_XTAL_CLOCKS_PER_CPU_CYCLE_NTSC;
+                int color_xtal_clocks = pal ? GS_XTAL_CLOCKS_PER_COLOR_CYCLE_PAL : GS_XTAL_CLOCKS_PER_COLOR_CYCLE_NTSC;
+                int line_xtal_clocks = GS_CYCLES_PER_LINE * cpu_xtal_clocks;
+                int frame_xtal_clocks = lines_per_frame * line_xtal_clocks;
+                double origin = (double)(m_pVideo->GetOutputOriginX() * line_xtal_clocks) / (double)(color_xtal_clocks * GS_VDP_DOTS_PER_LINE);
+
+                runtime_info.chroma_origin = (float)(origin - floor(origin));
+                runtime_info.chroma_texel_cycles = (float)line_xtal_clocks / (float)color_xtal_clocks / (float)GS_VDP_DOTS_PER_LINE;
+                runtime_info.chroma_line_cycles = (float)line_xtal_clocks / (float)color_xtal_clocks;
+                runtime_info.chroma_frame_cycles = (float)(frame_xtal_clocks % color_xtal_clocks) / (float)color_xtal_clocks;
+            }
+        }
+
         return true;
     }
 
     runtime_info.screen_width = GS_RESOLUTION_MAX_WIDTH;
     runtime_info.screen_height = GS_RESOLUTION_MAX_HEIGHT;
     runtime_info.region = Region_NTSC;
+    runtime_info.source_lines = runtime_info.screen_height;
+    runtime_info.active_region[0] = 0;
+    runtime_info.active_region[1] = 0;
+    runtime_info.active_region[2] = runtime_info.screen_width;
+    runtime_info.active_region[3] = runtime_info.screen_height;
 
     return false;
 }

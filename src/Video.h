@@ -95,6 +95,9 @@ public:
     void SetHideLeftBar(HideLeftBar hideLeftBar);
     void SetNoSpriteLimit(bool noSpriteLimit);
     int GetHideLeftBarOffset();
+    int GetOutputOriginX();
+    void GetActiveRegion(int* x, int* y, int* width, int* height);
+    void GetBorderColor(u8* rgb);
     void SetPhaserCoordinates(int x, int y);
     bool IsPhaserDetected();
     void DrawPhaserCrosshair(int x, int y);

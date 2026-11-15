@@ -131,6 +131,12 @@ typedef int64_t s64;
 #define GS_MASTER_CLOCK_PAL_SG1000 3580000
 #define GS_LINES_PER_FRAME_PAL 313
 
+#define GS_VDP_DOTS_PER_LINE 342
+#define GS_XTAL_CLOCKS_PER_CPU_CYCLE_NTSC 3
+#define GS_XTAL_CLOCKS_PER_COLOR_CYCLE_NTSC 3
+#define GS_XTAL_CLOCKS_PER_CPU_CYCLE_PAL 15
+#define GS_XTAL_CLOCKS_PER_COLOR_CYCLE_PAL 12
+
 #define GS_AUDIO_SAMPLE_RATE 44100
 #define GS_AUDIO_BUFFER_SIZE 2048
 #define GS_AUDIO_BUFFER_SIZE_V1 4096
@@ -181,6 +187,17 @@ struct GS_RuntimeInfo
     int screen_height;
     GS_Region region;
     double fps;
+    float pixel_clock;
+    float line_rate;
+    int source_lines;
+    int active_region[4];
+    float chroma_origin;
+    float chroma_texel_cycles;
+    float chroma_line_cycles;
+    float chroma_frame_cycles;
+    u8 border_color[3];
+    bool border_valid;
+    int system_type;
 };
 
 enum GS_Disassembler_Syntax

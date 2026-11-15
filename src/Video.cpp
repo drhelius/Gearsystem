@@ -1649,6 +1649,54 @@ int Video::GetHideLeftBarOffset()
     return m_iHideLeftBarOffset;
 }
 
+int Video::GetOutputOriginX()
+{
+    if (m_Overscan == OverscanFull320)
+        return -GS_RESOLUTION_SMS_OVERSCAN_H_320_L;
+    if (m_Overscan == OverscanFull284)
+        return -GS_RESOLUTION_SMS_OVERSCAN_H_284_L;
+
+    return m_iHideLeftBarOffset;
+}
+
+void Video::GetActiveRegion(int* x, int* y, int* width, int* height)
+{
+    int origin_x = GetOutputOriginX();
+    int overscan_left = MAX(-origin_x, 0);
+    int hide_left = MAX(origin_x, 0);
+    int masked_left = ((hide_left == 0) && !m_bTMS9918 && IsSetBit(m_VdpRegister[0], 5)) ? 8 : 0;
+    int overscan_top = 0;
+
+    if (m_Overscan != OverscanDisabled)
+    {
+        overscan_top = m_bPAL ? GS_RESOLUTION_SMS_OVERSCAN_V_PAL : GS_RESOLUTION_SMS_OVERSCAN_V;
+        overscan_top -= m_bExtendedMode224 ? 16 : 0;
+    }
+
+    *x = overscan_left + masked_left;
+    *y = overscan_top;
+    *width = GS_RESOLUTION_SMS_WIDTH - hide_left - masked_left;
+    *height = m_bExtendedMode224 ? GS_RESOLUTION_SMS_HEIGHT_EXTENDED : GS_RESOLUTION_SMS_HEIGHT;
+}
+
+void Video::GetBorderColor(u8* rgb)
+{
+    int index = m_VdpRegister[7] & 0x0F;
+    const u8* color;
+
+    if (m_bTMS9918)
+    {
+        const u8* palette = m_pCartridge->IsSG1000II() ? kSG1000_palette_888_sg1000ii : (m_pCartridge->IsSG1000() ? kSG1000_palette_888_normal : kSG1000_palette_888_sms);
+        color = &palette[index * 3];
+    }
+    else
+        color = (const u8*)&m_SMSOutputPalette32[0][CachedColorFromPalette(index + 16) & 0x3F];
+
+    rgb[0] = color[0];
+    rgb[1] = color[1];
+    rgb[2] = color[2];
+}
+
 void Video::SetPhaserCoordinates(int x, int y)
 {
     m_Phaser.x = x;
