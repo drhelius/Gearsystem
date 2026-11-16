@@ -348,12 +348,12 @@ static void memory_editor_menu(void)
 
     if (ImGui::BeginMenu("Edit"))
     {
-        if (ImGui::MenuItem("Copy", "Ctrl+C"))
+        if (ImGui::MenuItem("Copy", CONFIG_PRIMARY_LABEL "C"))
         {
             gui_debug_memory_copy();
         }
 
-        if (ImGui::MenuItem("Paste", "Ctrl+V"))
+        if (ImGui::MenuItem("Paste", CONFIG_PRIMARY_LABEL "V"))
         {
             gui_debug_memory_paste();
         }
@@ -363,7 +363,7 @@ static void memory_editor_menu(void)
 
     if (ImGui::BeginMenu("Selection"))
     {
-        if (ImGui::MenuItem("Select All", "Ctrl+A"))
+        if (ImGui::MenuItem("Select All", CONFIG_PRIMARY_LABEL "A"))
         {
             mem_edit[current_mem_edit].SelectAll();
         }
