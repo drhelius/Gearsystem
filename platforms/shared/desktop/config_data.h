@@ -94,6 +94,7 @@ struct config_Emulator
     int window_width;
     int window_height;
     bool show_notifications;
+    int notification_duration;
     bool allow_screensaver;
     bool light_phaser;
     bool light_phaser_crosshair;

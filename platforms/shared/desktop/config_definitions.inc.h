@@ -144,6 +144,7 @@ static inline void process(config_Operation operation)
     CONFIG_INT("Emulator", "WindowWidth", config_emulator.window_width, 770);
     CONFIG_INT("Emulator", "WindowHeight", config_emulator.window_height, 600);
     CONFIG_BOOL("Emulator", "ShowNotifications", config_emulator.show_notifications, true);
+    CONFIG_INT_RANGE("Emulator", "NotificationDuration", config_emulator.notification_duration, 4, 3, 10);
     CONFIG_BOOL("Emulator", "AllowScreenSaver", config_emulator.allow_screensaver, false);
 
     // Emulation

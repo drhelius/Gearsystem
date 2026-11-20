@@ -706,7 +706,20 @@ static void menu_emulator(void)
             gui_cheats_show();
 
         ImGui::MenuItem("Show ROM info", "", &config_emulator.show_info);
-        ImGui::MenuItem("Show Notifications", "", &config_emulator.show_notifications);
+
+        if (ImGui::BeginMenu("Notifications"))
+        {
+            ImGui::MenuItem("Enabled", "", &config_emulator.show_notifications);
+
+            if (ImGui::BeginMenu("Duration"))
+            {
+                ImGui::SliderInt("##notification_duration", &config_emulator.notification_duration, 3, 10, "Seconds = %d",
+                    ImGuiSliderFlags_AlwaysClamp);
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMenu();
+        }
 
         ImGui::Separator();
 
@@ -1733,7 +1746,7 @@ static void menu_link_cable(void)
             gui_notify(gui_NotificationError, NULL, "Unable to connect the link cable");
         else if (local_protocol == LinkCableProtocolMarkIII)
             gui_notify(gui_NotificationInfo, ICON_MD_LINK, "Mark III link hardware attached", "Reset the console before use",
-                NULL, 5000);
+                NULL, gui_NotificationDurationLong);
     }
 
     if (ImGui::MenuItem("Disconnect", NULL, false, status.mode != LinkCableModeDisabled))
@@ -1792,7 +1805,7 @@ static void menu_link_cable(void)
 
         if (active && emu_link_cable_get_protocol() == LinkCableProtocolMarkIII && local_protocol != LinkCableProtocolMarkIII)
             gui_notify(gui_NotificationInfo, ICON_MD_LINK, "Mark III link hardware attached", "Reset the console before use",
-                NULL, 5000);
+                NULL, gui_NotificationDurationLong);
     }
 
     ImGui::Separator();
