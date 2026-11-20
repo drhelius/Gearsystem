@@ -185,16 +185,21 @@ static void menu_gearsystem(void)
 
         bool link_cable_active = emu_link_cable_is_active();
 
-        if (ImGui::MenuItem("Fast Forward", config_hotkeys[config_HotkeyIndex_FFWD].str, &config_emulator.ffwd, media_actions_enabled && !link_cable_active))
+        if (ImGui::BeginMenu("Fast Forward", !link_cable_active))
         {
-            gui_action_ffwd();
-        }
+            if (ImGui::MenuItem("Enabled", config_hotkeys[config_HotkeyIndex_FFWD].str, &config_emulator.ffwd, media_actions_enabled))
+            {
+                gui_action_ffwd();
+            }
 
-        if (ImGui::BeginMenu("Fast Forward Speed", !link_cable_active))
-        {
-            ImGui::PushItemWidth(100.0f);
-            ImGui::Combo("##fwd", &config_emulator.ffwd_speed, "X 1.5\0X 2\0X 2.5\0X 3\0Unlimited\0\0");
-            ImGui::PopItemWidth();
+            if (ImGui::BeginMenu("Speed"))
+            {
+                ImGui::PushItemWidth(100.0f);
+                ImGui::Combo("##fwd", &config_emulator.ffwd_speed, "X 1.5\0X 2\0X 2.5\0X 3\0Unlimited\0\0");
+                ImGui::PopItemWidth();
+                ImGui::EndMenu();
+            }
+
             ImGui::EndMenu();
         }
 
@@ -554,78 +559,6 @@ static void menu_emulator(void)
 
         ImGui::Separator();
 
-        if (ImGui::BeginMenu("BIOS"))
-        {
-            if (ImGui::BeginMenu("Master System BIOS"))
-            {
-                if (ImGui::MenuItem("Enable", "", &config_emulator.sms_bootrom))
-                {
-                    emu_enable_bootrom_sms(config_emulator.sms_bootrom);
-                }
-                if (ImGui::IsItemHovered())
-                    ImGui::SetTooltip("When the BIOS is enabled it will execute as in original hardware,\ncausing invalid roms to lock or preventing some others to boot.\n\nSet 'Media Slot' to 'None' in order to boot the games included in BIOS.");
-                if (ImGui::MenuItem("Load BIOS..."))
-                {
-                    open_sms_bootrom = true;
-                }
-                ImGui::PushItemWidth(350);
-                if (ImGui::InputText("##sms_bootrom_path", gui_sms_bootrom_path, IM_ARRAYSIZE(gui_sms_bootrom_path), ImGuiInputTextFlags_AutoSelectAll))
-                {
-                    config_emulator.sms_bootrom_path.assign(gui_sms_bootrom_path);
-                    emu_load_bootrom_sms(gui_sms_bootrom_path);
-                }
-                ImGui::PopItemWidth();
-
-                ImGui::Separator();
-                if (strlen(gui_sms_bootrom_path) > 0)
-                {
-                    ImGui::TextColored(service_mcp_http_color, "SMS Bootrom loaded");
-                }
-                else
-                {
-                    ImGui::TextColored(gray, "No SMS Bootrom loaded");
-                }
-
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::BeginMenu("GG Bootrom"))
-            {
-                if (ImGui::MenuItem("Enable", "", &config_emulator.gg_bootrom))
-                {
-                    emu_enable_bootrom_gg(config_emulator.gg_bootrom);
-                }
-                if (ImGui::IsItemHovered())
-                    ImGui::SetTooltip("When the BIOS is enabled it will execute as in original hardware,\ncausing invalid roms to lock or preventing some others to boot.\n\nSet 'Media Slot' to 'None' in order to boot the games included in BIOS.");
-                if (ImGui::MenuItem("Load BIOS..."))
-                {
-                    open_gg_bootrom = true;
-                }
-                ImGui::PushItemWidth(350);
-                if (ImGui::InputText("##gg_bootrom_path", gui_gg_bootrom_path, IM_ARRAYSIZE(gui_gg_bootrom_path), ImGuiInputTextFlags_AutoSelectAll))
-                {
-                    config_emulator.gg_bootrom_path.assign(gui_gg_bootrom_path);
-                    emu_load_bootrom_gg(gui_gg_bootrom_path);
-                }
-                ImGui::PopItemWidth();
-
-                ImGui::Separator();
-                if (strlen(gui_gg_bootrom_path) > 0)
-                {
-                    ImGui::TextColored(service_mcp_http_color, "GG Bootrom loaded");
-                }
-                else
-                {
-                    ImGui::TextColored(gray, "No GG Bootrom loaded");
-                }
-
-                ImGui::EndMenu();
-            }
-            ImGui::EndMenu();
-        }
-
-        ImGui::Separator();
-
         if (ImGui::BeginMenu("System"))
         {
             ImGui::PushItemWidth(240.0f);
@@ -702,8 +635,94 @@ static void menu_emulator(void)
 
         ImGui::Separator();
 
+        if (ImGui::BeginMenu("BIOS"))
+        {
+            if (ImGui::BeginMenu("Master System BIOS"))
+            {
+                if (ImGui::MenuItem("Enable", "", &config_emulator.sms_bootrom))
+                {
+                    emu_enable_bootrom_sms(config_emulator.sms_bootrom);
+                }
+                if (ImGui::IsItemHovered())
+                    ImGui::SetTooltip("When the BIOS is enabled it will execute as in original hardware,\ncausing invalid roms to lock or preventing some others to boot.\n\nSet 'Media Slot' to 'None' in order to boot the games included in BIOS.");
+                if (ImGui::MenuItem("Load BIOS..."))
+                {
+                    open_sms_bootrom = true;
+                }
+                ImGui::PushItemWidth(350);
+                if (ImGui::InputText("##sms_bootrom_path", gui_sms_bootrom_path, IM_ARRAYSIZE(gui_sms_bootrom_path), ImGuiInputTextFlags_AutoSelectAll))
+                {
+                    config_emulator.sms_bootrom_path.assign(gui_sms_bootrom_path);
+                    emu_load_bootrom_sms(gui_sms_bootrom_path);
+                }
+                ImGui::PopItemWidth();
+
+                ImGui::Separator();
+                if (strlen(gui_sms_bootrom_path) > 0)
+                {
+                    ImGui::TextColored(service_mcp_http_color, "BIOS loaded");
+                }
+                else
+                {
+                    ImGui::TextColored(gray, "No BIOS loaded");
+                }
+
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Game Gear BIOS"))
+            {
+                if (ImGui::MenuItem("Enable", "", &config_emulator.gg_bootrom))
+                {
+                    emu_enable_bootrom_gg(config_emulator.gg_bootrom);
+                }
+                if (ImGui::IsItemHovered())
+                    ImGui::SetTooltip("When the BIOS is enabled it will execute as in original hardware,\ncausing invalid roms to lock or preventing some others to boot.\n\nSet 'Media Slot' to 'None' in order to boot the games included in BIOS.");
+                if (ImGui::MenuItem("Load BIOS..."))
+                {
+                    open_gg_bootrom = true;
+                }
+                ImGui::PushItemWidth(350);
+                if (ImGui::InputText("##gg_bootrom_path", gui_gg_bootrom_path, IM_ARRAYSIZE(gui_gg_bootrom_path), ImGuiInputTextFlags_AutoSelectAll))
+                {
+                    config_emulator.gg_bootrom_path.assign(gui_gg_bootrom_path);
+                    emu_load_bootrom_gg(gui_gg_bootrom_path);
+                }
+                ImGui::PopItemWidth();
+
+                ImGui::Separator();
+                if (strlen(gui_gg_bootrom_path) > 0)
+                {
+                    ImGui::TextColored(service_mcp_http_color, "BIOS loaded");
+                }
+                else
+                {
+                    ImGui::TextColored(gray, "No BIOS loaded");
+                }
+
+                ImGui::EndMenu();
+            }
+            ImGui::EndMenu();
+        }
+
+        ImGui::Separator();
+
         if (ImGui::MenuItem("Cheats...", "", false, !emu_is_empty()))
             gui_cheats_show();
+
+        ImGui::Separator();
+
+        ImGui::MenuItem("Start Paused", "", &config_emulator.start_paused);
+        ImGui::MenuItem("Pause When Inactive", "", &config_emulator.pause_when_inactive);
+        if (ImGui::MenuItem("Allow Screen Saver", "", &config_emulator.allow_screensaver))
+        {
+            if (config_emulator.allow_screensaver)
+                SDL_EnableScreenSaver();
+            else
+                SDL_DisableScreenSaver();
+        }
+
+        ImGui::Separator();
 
         ImGui::MenuItem("Show ROM info", "", &config_emulator.show_info);
 
@@ -719,18 +738,6 @@ static void menu_emulator(void)
             }
 
             ImGui::EndMenu();
-        }
-
-        ImGui::Separator();
-
-        ImGui::MenuItem("Start Paused", "", &config_emulator.start_paused);
-        ImGui::MenuItem("Pause When Inactive", "", &config_emulator.pause_when_inactive);
-        if (ImGui::MenuItem("Allow Screen Saver", "", &config_emulator.allow_screensaver))
-        {
-            if (config_emulator.allow_screensaver)
-                SDL_EnableScreenSaver();
-            else
-                SDL_DisableScreenSaver();
         }
 
         ImGui::Separator();
@@ -1376,6 +1383,8 @@ static void menu_audio(void)
         //     }
         // }
 
+        ImGui::Separator();
+
         if (ImGui::BeginMenu("YM2413 FM Sound"))
         {
             ImGui::PushItemWidth(130.0f);
@@ -1408,24 +1417,18 @@ static void menu_audio(void)
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem("Mute PSG", "", &gui_audio_mute_psg, config_audio.enable))
-        {
-            emu_audio_psg_volume(gui_audio_mute_psg ? 0 : config_audio.psg_volume);
-        }
-
-        if (ImGui::MenuItem("Mute YM2413 FM", "", &gui_audio_mute_fm, config_audio.enable))
-        {
-            emu_audio_fm_volume(gui_audio_mute_fm ? 0 : config_audio.fm_volume);
-        }
-
-        ImGui::Separator();
-
         if (ImGui::BeginMenu("PSG SN76489 Volume", config_audio.enable))
         {
+            if (ImGui::MenuItem("Mute", "", &gui_audio_mute_psg))
+            {
+                emu_audio_psg_volume(gui_audio_mute_psg ? 0 : config_audio.psg_volume);
+            }
+
+            ImGui::Separator();
             ImGui::PushItemWidth(200.0f);
             if (ImGui::SliderFloat("##psg_volume", &config_audio.psg_volume, 0.0f, 2.0f, "Volume = %.2f"))
             {
-                emu_audio_psg_volume(config_audio.psg_volume);
+                emu_audio_psg_volume(gui_audio_mute_psg ? 0 : config_audio.psg_volume);
             }
             ImGui::PopItemWidth();
             if (ImGui::IsItemHovered())
@@ -1439,10 +1442,16 @@ static void menu_audio(void)
 
         if (ImGui::BeginMenu("FM YM2413 Volume", config_audio.enable))
         {
+            if (ImGui::MenuItem("Mute", "", &gui_audio_mute_fm))
+            {
+                emu_audio_fm_volume(gui_audio_mute_fm ? 0 : config_audio.fm_volume);
+            }
+
+            ImGui::Separator();
             ImGui::PushItemWidth(200.0f);
             if (ImGui::SliderFloat("##fm_volume", &config_audio.fm_volume, 0.0f, 2.0f, "Volume = %.2f"))
             {
-                emu_audio_fm_volume(config_audio.fm_volume);
+                emu_audio_fm_volume(gui_audio_mute_fm ? 0 : config_audio.fm_volume);
             }
             ImGui::PopItemWidth();
             if (ImGui::IsItemHovered())
@@ -1620,6 +1629,10 @@ static void menu_debug(void)
         ImGui::Separator();
 
         ImGui::MenuItem("Show Disassembler", "", &config_debug.show_disassembler, config_debug.debug);
+        ImGui::MenuItem("Show Memory Editor", "", &config_debug.show_memory, config_debug.debug);
+        ImGui::MenuItem("Show Trace Logger", "", &config_debug.show_trace_logger, config_debug.debug);
+
+        ImGui::Separator();
 
         if (ImGui::BeginMenu("CPU", config_debug.debug))
         {
@@ -1630,8 +1643,6 @@ static void menu_debug(void)
             ImGui::MenuItem("Show Profiler", "", &config_debug.show_profiler);
             ImGui::EndMenu();
         }
-
-        ImGui::MenuItem("Show Memory Editor", "", &config_debug.show_memory, config_debug.debug);
 
         if (ImGui::BeginMenu("Video", config_debug.debug))
         {
@@ -1650,8 +1661,6 @@ static void menu_debug(void)
             ImGui::MenuItem("Show YM2413 FM", "", &config_debug.show_ym2413, config_debug.debug);
             ImGui::EndMenu();
         }
-
-        ImGui::MenuItem("Show Trace Logger", "", &config_debug.show_trace_logger, config_debug.debug);
 
         ImGui::Separator();
 
