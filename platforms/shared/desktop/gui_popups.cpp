@@ -46,6 +46,7 @@ static Uint64 fps_last_frame = 0;
 static float fps_value = 0.0f;
 
 static void add_build_info(const char* fmt, ...);
+static void draw_about_text(const char* id, const char* text, const ImVec2& size);
 static void check_hotkey_duplicates_popup(config_Hotkey* current_hotkey);
 
 void gui_popup_modal_keyboard()
@@ -168,15 +169,22 @@ void gui_popup_modal_about(void)
 
     if (ImGui::BeginPopupModal("About " GS_TITLE, NULL, ImGuiWindowFlags_AlwaysAutoResize))
     {
+        const ImGuiStyle& style = ImGui::GetStyle();
+
         ImGui::PushFont(gui_default_font);
         ImGui::TextColored(cyan, "%s\n", GS_TITLE_ASCII);
 
+        ImGui::Text("  Version %s", GS_VERSION);
         ImGui::TextColored(violet, "  By Ignacio Sánchez (DrHelius)");
         ImGui::Text(" "); ImGui::SameLine();
         ImGui::TextLinkOpenURL("https://github.com/drhelius/" GS_TITLE);
         ImGui::Text(" "); ImGui::SameLine();
         ImGui::TextLinkOpenURL("https://x.com/drhelius");
         ImGui::NewLine();
+
+        float text_width = fmaxf(ImGui::CalcTextSize(GPL_LICENSE_STR).x, ImGui::CalcTextSize(BACKERS_STR).x);
+        ImVec2 box_size(text_width + (style.FramePadding.x * 2.0f) + style.ScrollbarSize + style.ItemSpacing.x,
+            ImGui::GetTextLineHeight() * 16.0f);
 
         ImGui::PopFont();
 
@@ -282,22 +290,21 @@ void gui_popup_modal_about(void)
                 add_build_info("define: GS_BIG_ENDIAN");
                 #endif
 
-                ImGui::InputTextMultiline("##build_info", build_info, sizeof(build_info), ImVec2(-1.0f, 100.0f), ImGuiInputTextFlags_ReadOnly);
+                draw_about_text("build_info", build_info, ImVec2(box_size.x, box_size.y - ImGui::GetFrameHeightWithSpacing()));
+
+                if (ImGui::Button("Copy", ImVec2(120, 0)))
+                    ImGui::SetClipboardText(build_info);
 
                 ImGui::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Special thanks to"))
+            if (ImGui::BeginTabItem("Special Thanks"))
             {
-                ImGui::BeginChild("backers", ImVec2(0, 100), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
-                ImGui::Text("%s", BACKERS_STR);
-                ImGui::EndChild();
+                draw_about_text("backers", BACKERS_STR, box_size);
                 ImGui::EndTabItem();
             }
-            if (ImGui::BeginTabItem("LICENSE"))
+            if (ImGui::BeginTabItem("License"))
             {
-                ImGui::BeginChild("license", ImVec2(0, 100), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
-                ImGui::TextUnformatted(GPL_LICENSE_STR);
-                ImGui::EndChild();
+                draw_about_text("license", GPL_LICENSE_STR, box_size);
                 ImGui::EndTabItem();
             }
             ImGui::EndTabBar();
@@ -307,12 +314,10 @@ void gui_popup_modal_about(void)
         ImGui::Separator();
 
         if (gamepad_added_mappings || gamepad_updated_mappings)
-        {
-            ImGui::Text("%d game controller mappings added from gamecontrollerdb.txt", gamepad_added_mappings);
-            ImGui::Text("%d game controller mappings updated from gamecontrollerdb.txt", gamepad_updated_mappings);
-        }
+            ImGui::TextColored(green, "Game controller database: %d mappings added, %d updated", gamepad_added_mappings,
+                gamepad_updated_mappings);
         else
-            ImGui::Text("ERROR: Game controller database not found (gamecontrollerdb.txt)!!");
+            ImGui::TextColored(red, "Game controller database not found (gamecontrollerdb.txt)");
 
         ImGui::Separator();
         ImGui::NewLine();
@@ -480,6 +485,15 @@ static void add_build_info(const char* fmt, ...)
         build_info[info_pos] = '\0';
     }
     va_end(args);
+}
+
+static void draw_about_text(const char* id, const char* text, const ImVec2& size)
+{
+    ImGui::PushFont(gui_default_font);
+    ImGui::BeginChild(id, size, ImGuiChildFlags_FrameStyle, ImGuiWindowFlags_HorizontalScrollbar);
+    ImGui::TextUnformatted(text);
+    ImGui::EndChild();
+    ImGui::PopFont();
 }
 
 static void check_hotkey_duplicates_popup(config_Hotkey* current_hotkey)
