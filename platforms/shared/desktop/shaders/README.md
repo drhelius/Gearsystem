@@ -33,7 +33,7 @@ Step=0.01
 - `Name`: display name shown in the menu. If omitted, the filename without its extension is used.
 - `Group`: optional submenu name. Presets with the same group are listed together in that submenu.
 - `Passes`: number of passes, from 1 to 32.
-- `Variants`: optional number of `[VariantN]` sections, up to 16.
+- `Variants`: optional number of `[VariantN]` sections, up to 32.
 - `DefaultVariant`: variant applied when the preset is loaded for the first time. Defaults to `0`.
 
 `[PassN]`
