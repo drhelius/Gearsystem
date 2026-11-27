@@ -153,6 +153,7 @@ private:
     bool LoadState(std::istream& stream);
     bool LoadStateV1(std::istream& stream, size_t size);
     std::string GetSaveStatePath(const char* path, int index);
+    int GetRenderFrameSize();
 
 private:
     Memory* m_pMemory;

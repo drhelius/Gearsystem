@@ -1650,9 +1650,7 @@ void GearsystemCore::RenderFrameBuffer(u8* finalFrameBuffer)
             return;
     }
 
-    GS_RuntimeInfo runtime_info;
-    GetRuntimeInfo(runtime_info);
-    int size = runtime_info.screen_width * runtime_info.screen_height;
+    int size = GetRenderFrameSize();
 
     switch (m_pixelFormat)
     {
@@ -1671,4 +1669,31 @@ void GearsystemCore::RenderFrameBuffer(u8* finalFrameBuffer)
             break;
         }
     }
+}
+
+int GearsystemCore::GetRenderFrameSize()
+{
+    if (!m_pCartridge->IsReady())
+        return GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN * GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN;
+
+    if (m_pCartridge->IsGameGear() && !m_pCartridge->IsGameGearInSMSMode())
+        return GS_RESOLUTION_GG_WIDTH * GS_RESOLUTION_GG_HEIGHT;
+
+    int width = GS_RESOLUTION_SMS_WIDTH;
+    int height = GS_RESOLUTION_SMS_HEIGHT_EXTENDED;
+
+    if (!m_pCartridge->IsGameGear())
+    {
+        Video::Overscan overscan = m_pVideo->GetOverscan();
+
+        if (overscan == Video::OverscanFull284)
+            width = GS_RESOLUTION_SMS_WIDTH + GS_RESOLUTION_SMS_OVERSCAN_H_284_L + GS_RESOLUTION_SMS_OVERSCAN_H_284_R;
+        else if (overscan == Video::OverscanFull320)
+            width = GS_RESOLUTION_SMS_WIDTH + GS_RESOLUTION_SMS_OVERSCAN_H_320_L + GS_RESOLUTION_SMS_OVERSCAN_H_320_R;
+
+        if (overscan != Video::OverscanDisabled)
+            height = GS_RESOLUTION_SMS_HEIGHT + (2 * (m_pCartridge->IsPAL() ? GS_RESOLUTION_SMS_OVERSCAN_V_PAL : GS_RESOLUTION_SMS_OVERSCAN_V));
+    }
+
+    return width * height;
 }
