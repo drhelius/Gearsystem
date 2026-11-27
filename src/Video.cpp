@@ -937,7 +937,7 @@ void Video::RenderBackgroundSMSGG(int line)
     bool lock_right = IsSetBit(m_VdpRegister[0], 7);
     bool render_line = !game_gear || ((line >= y_offset) && (line < (y_offset + GS_RESOLUTION_GG_HEIGHT)));
 
-    if (line >= max_height)
+    if ((line >= max_height) || !render_line)
     {
         for (int scx = scx_begin; scx < scx_end; scx++)
             m_pInfoBuffer[line_width_info + scx - scx_begin] = 0;
