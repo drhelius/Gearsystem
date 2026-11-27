@@ -113,6 +113,7 @@ void Video::Init()
         m_SG1000_palette_565_bgr_sms,
         m_SG1000_palette_555_bgr_sms);
     InitOutputPalettes();
+    InitBitplaneLUT();
     Reset(false, false);
 }
 
@@ -944,6 +945,14 @@ void Video::RenderBackgroundSMSGG(int line)
         return;
     }
 
+    u16* frame_buffer = m_pFrameBuffer;
+    u8* info_buffer = m_pInfoBuffer;
+    u8* vram = m_pVdpVRAM;
+    u16 palette[32];
+
+    for (int i = 0; i < 32; i++)
+        palette[i] = CachedColorFromPalette(i);
+
     int scx = scx_begin;
     while (scx < scx_end)
     {
@@ -958,9 +967,8 @@ void Video::RenderBackgroundSMSGG(int line)
 
             for (int pixel = 0; pixel < span; pixel++)
             {
-                if (render_line)
-                    m_pFrameBuffer[pixel_screen] = CachedColorFromPalette(palette_color);
-                m_pInfoBuffer[pixel_info] = 0;
+                frame_buffer[pixel_screen] = palette[palette_color];
+                info_buffer[pixel_info] = 0;
                 pixel_screen++;
                 pixel_info++;
             }
@@ -989,8 +997,8 @@ void Video::RenderBackgroundSMSGG(int line)
             span = scx_end - scx;
 
         int tile_addr = map_address + (((current_tile_y << 5) + tile_x) << 1);
-        int tile_index = m_pVdpVRAM[tile_addr];
-        int tile_info = m_pVdpVRAM[tile_addr + 1];
+        int tile_index = vram[tile_addr];
+        int tile_info = vram[tile_addr + 1];
         if (IsSetBit(tile_info, 0))
             tile_index = (tile_index | 0x0100) & 0x1FF;
 
@@ -1002,26 +1010,22 @@ void Video::RenderBackgroundSMSGG(int line)
         int tile_data_addr = tile_index << 5;
         tile_data_addr += ((vflip ? 7 - current_tile_y_offset : current_tile_y_offset) << 2);
 
-        u8 pattern_0 = m_pVdpVRAM[tile_data_addr];
-        u8 pattern_1 = m_pVdpVRAM[tile_data_addr + 1];
-        u8 pattern_2 = m_pVdpVRAM[tile_data_addr + 2];
-        u8 pattern_3 = m_pVdpVRAM[tile_data_addr + 3];
+        u64 pixels = m_BitplaneLUT[vram[tile_data_addr]] |
+                (m_BitplaneLUT[vram[tile_data_addr + 1]] << 1) |
+                (m_BitplaneLUT[vram[tile_data_addr + 2]] << 2) |
+                (m_BitplaneLUT[vram[tile_data_addr + 3]] << 3);
         int tile_pixel_x = hflip ? tile_x_offset : 7 - tile_x_offset;
         int tile_pixel_step = hflip ? 1 : -1;
 
         for (int pixel = 0; pixel < span; pixel++)
         {
-            int palette_color = ((pattern_0 >> tile_pixel_x) & 0x01) +
-                    (((pattern_1 >> tile_pixel_x) & 0x01) << 1) +
-                    (((pattern_2 >> tile_pixel_x) & 0x01) << 2) +
-                    (((pattern_3 >> tile_pixel_x) & 0x01) << 3) +
-                    palette_offset;
+            int palette_color = (int)((pixels >> (tile_pixel_x << 3)) & 0x0F) + palette_offset;
             bool final_priority = priority && ((palette_color - palette_offset) != 0);
 
-            if ((((m_pInfoBuffer[pixel_info] & 0x01) == 0) || final_priority) && render_line)
-                m_pFrameBuffer[pixel_screen] = CachedColorFromPalette(palette_color);
+            if (((info_buffer[pixel_info] & 0x01) == 0) || final_priority)
+                frame_buffer[pixel_screen] = palette[palette_color];
 
-            m_pInfoBuffer[pixel_info] = 0;
+            info_buffer[pixel_info] = 0;
 
             pixel_screen++;
             pixel_info++;
@@ -1883,6 +1887,17 @@ void Video::InitOutputPalettes()
         m_GGOutputPalette16[1][color] = (k4bitTo5bit[red] << 10) | (k4bitTo5bit[green] << 5) | k4bitTo5bit[blue];
         m_GGOutputPalette16[2][color] = (k4bitTo5bit[blue] << 11) | (k4bitTo6bit[green] << 5) | k4bitTo5bit[red];
         m_GGOutputPalette16[3][color] = (k4bitTo5bit[blue] << 10) | (k4bitTo5bit[green] << 5) | k4bitTo5bit[red];
+    }
+}
+
+void Video::InitBitplaneLUT()
+{
+    for (int value = 0; value < 256; value++)
+    {
+        u64 pixels = 0;
+        for (int bit = 0; bit < 8; bit++)
+            pixels |= (u64)((value >> bit) & 0x01) << (bit << 3);
+        m_BitplaneLUT[value] = pixels;
     }
 }
 

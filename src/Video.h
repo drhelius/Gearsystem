@@ -114,6 +114,7 @@ private:
     void RebuildGGPalette();
     void InitPalettes(const u8* src, u16* dest_565_rgb, u16* dest_555_rgb, u16* dest_565_bgr, u16* dest_555_bgr);
     void InitOutputPalettes();
+    void InitBitplaneLUT();
     int CalculateVideoMode();
     void CheckPhaser();
     INLINE void UpdateGGPalette(int palette_color);
@@ -228,6 +229,7 @@ private:
     u32 m_GGOutputPalette32[2][4096];
     u16 m_SMSOutputPalette16[4][64];
     u16 m_GGOutputPalette16[4][4096];
+    u64 m_BitplaneLUT[256];
 };
 
 INLINE void Video::TraceVDPEvent(u8 event, u8 raw, u8 effective, u16 auxiliary, u8 reg, u8 status_before, u8 status_after, u16 address)
