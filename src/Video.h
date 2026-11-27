@@ -69,7 +69,7 @@ public:
     ~Video();
     void Init();
     void Reset(bool bGameGear, bool bPAL, int iGGASIC = 0, bool bGameGearSMSMode = false);
-    bool Tick(unsigned int clockCycles);
+    INLINE bool Tick(unsigned int clockCycles);
     u8 GetVCounter();
     u8 GetHCounter();
     u8 GetDataPort();
@@ -105,6 +105,8 @@ public:
     void SetTraceLogger(TraceLogger* pTraceLogger);
 
 private:
+    bool TickEvents();
+    void UpdateNextEventCycle();
     void ScanLine(int line);
     void RenderBackgroundSMSGG(int line);
     void RenderBackgroundTMS9918(int line);
@@ -145,6 +147,7 @@ private:
     int m_iVCounter;
     int m_iHCounter;
     int m_iCycleCounter;
+    int m_iNextEventCycle;
     u8 m_VdpStatus;
     int m_iVdpRegister10Counter;
     u8 m_ScrollX;
@@ -248,6 +251,16 @@ INLINE void Video::TraceMissedVBlank()
 {
     if (m_pTraceLogger->IsEventEnabled(TRACE_VDP, TRACE_VDP_MISSED_VBLANK))
         LogMissedVBlank();
+}
+
+INLINE bool Video::Tick(unsigned int clockCycles)
+{
+    m_iCycleCounter += clockCycles;
+
+    if (m_iCycleCounter < m_iNextEventCycle)
+        return false;
+
+    return TickEvents();
 }
 
 inline u8* Video::GetVRAM()

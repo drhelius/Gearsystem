@@ -46,6 +46,7 @@ Video::Video(Memory* pMemory, Processor* pProcessor, Cartridge* pCartridge)
     m_iVCounter = 0;
     m_iHCounter = 0;
     m_iCycleCounter = 0;
+    m_iNextEventCycle = 0;
     m_VdpStatus = 0;
     m_iVdpRegister10Counter = 0;
     m_ScrollX = 0;
@@ -352,6 +353,7 @@ void Video::Reset(bool bGameGear, bool bPAL, int iGGASIC, bool bGameGearSMSMode)
     m_LineEvents.spriteovr = false;
 
     m_iCycleCounter = 0;
+    m_iNextEventCycle = 0;
     m_iVdpRegister10Counter = m_VdpRegister[10];
     m_iRenderLine = 0;
 
@@ -409,12 +411,47 @@ void Video::RebuildGGPalette()
         UpdateGGPalette(i);
 }
 
-bool Video::Tick(unsigned int clockCycles)
+void Video::UpdateNextEventCycle()
+{
+    if (m_Phaser.enabled && !m_bGameGear)
+    {
+        m_iNextEventCycle = 0;
+        return;
+    }
+
+    int next = GS_CYCLES_PER_LINE;
+
+    if (!m_LineEvents.vint && (m_Timing[TIMING_VINT] < next))
+        next = m_Timing[TIMING_VINT];
+    if (!m_LineEvents.display && (m_Timing[TIMING_DISPLAY] < next))
+        next = m_Timing[TIMING_DISPLAY];
+    if (!m_LineEvents.scrollx && (m_Timing[TIMING_XSCROLL] < next))
+        next = m_Timing[TIMING_XSCROLL];
+    if (!m_LineEvents.hint && (m_Timing[TIMING_HINT] < next))
+        next = m_Timing[TIMING_HINT];
+    if (!m_LineEvents.vcounter && (m_Timing[TIMING_VCOUNT] < next))
+        next = m_Timing[TIMING_VCOUNT];
+    if (!m_LineEvents.vintFlag && (m_Timing[TIMING_FLAG_VINT] < next))
+        next = m_Timing[TIMING_FLAG_VINT];
+    if (!m_LineEvents.spriteovr && !m_bTMS9918 && (m_Timing[TIMING_SPRITEOVR] < next))
+        next = m_Timing[TIMING_SPRITEOVR];
+    if (!m_LineEvents.render && (m_Timing[TIMING_RENDER] < next))
+        next = m_Timing[TIMING_RENDER];
+
+    if (m_bSpriteCollisionRequest && !m_LineEvents.render)
+    {
+        int col_cycle = (m_bGameGear ? 22 : 20) + ((m_iSpriteCollisionX * 228) / 256);
+        if (col_cycle < next)
+            next = col_cycle;
+    }
+
+    m_iNextEventCycle = next;
+}
+
+bool Video::TickEvents()
 {
     int max_height = m_bExtendedMode224 ? 224 : 192;
     bool return_vblank = false;
-
-    m_iCycleCounter += clockCycles;
 
     ///// PHASER /////
     if (m_Phaser.enabled && !m_Phaser.detected && !m_bGameGear)
@@ -594,6 +631,8 @@ bool Video::Tick(unsigned int clockCycles)
         m_LineEvents.spriteovr = false;
         m_Phaser.detected = false;
     }
+
+    UpdateNextEventCycle();
 
     return return_vblank;
 }
@@ -821,6 +860,7 @@ void Video::WriteControl(u8 data)
                     m_bExtendedMode224 = ((m_VdpRegister[0] & 0x06) == 0x06) && ((m_VdpRegister[1] & 0x18) == 0x10);
                     m_iTMS9918Mode = CalculateVideoMode();
                     m_bTMS9918 = !m_bGameGear && (m_iTMS9918Mode != 4);
+                    m_iNextEventCycle = 0;
 #if !defined(GS_DISABLE_DISASSEMBLER)
                     if (previous_mode != m_iTMS9918Mode)
                         TraceVDPEvent(TRACE_VDP_MODE_CHANGE, (u8)previous_mode, (u8)m_iTMS9918Mode);
@@ -1706,6 +1746,7 @@ void Video::SetPhaserCoordinates(int x, int y)
     m_Phaser.x = x;
     m_Phaser.y = y;
     m_Phaser.enabled = true;
+    m_iNextEventCycle = 0;
 }
 
 bool Video::IsPhaserDetected()
@@ -1994,6 +2035,7 @@ void Video::LoadState(std::istream& stream, int version)
     stream.read(reinterpret_cast<char*> (&m_iVCounter), sizeof(m_iVCounter));
     stream.read(reinterpret_cast<char*> (&m_iHCounter), sizeof(m_iHCounter));
     stream.read(reinterpret_cast<char*> (&m_iCycleCounter), sizeof(m_iCycleCounter));
+    m_iNextEventCycle = 0;
     stream.read(reinterpret_cast<char*> (&m_VdpStatus), sizeof(m_VdpStatus));
     stream.read(reinterpret_cast<char*> (&m_iVdpRegister10Counter), sizeof(m_iVdpRegister10Counter));
     stream.read(reinterpret_cast<char*> (&m_ScrollX), sizeof(m_ScrollX));
