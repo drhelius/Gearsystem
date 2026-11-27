@@ -1650,7 +1650,9 @@ void GearsystemCore::RenderFrameBuffer(u8* finalFrameBuffer)
             return;
     }
 
-    int size = GS_RESOLUTION_MAX_WIDTH_WITH_OVERSCAN * GS_RESOLUTION_MAX_HEIGHT_WITH_OVERSCAN;
+    GS_RuntimeInfo runtime_info;
+    GetRuntimeInfo(runtime_info);
+    int size = runtime_info.screen_width * runtime_info.screen_height;
 
     switch (m_pixelFormat)
     {
