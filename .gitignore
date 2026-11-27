@@ -88,6 +88,8 @@ platforms/raspberry*/**/gearsystem
 #Switch
 *.a
 *.d
+*.elf
+*.nro
 
 #Android
 platforms/libretro/libs/
