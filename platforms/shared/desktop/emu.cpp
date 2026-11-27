@@ -950,6 +950,9 @@ void emu_set_overscan(int overscan)
         default:
             gearsystem->GetVideo()->SetOverscan(Video::OverscanDisabled);
     }
+
+    if (!emu_is_empty() && gearsystem->IsPaused())
+        gearsystem->RenderFrameBuffer(emu_frame_buffer);
 }
 
 void emu_set_hide_left_bar(int hide_left_bar)
