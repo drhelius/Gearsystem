@@ -86,7 +86,7 @@ void gui_action_reset(void)
     emu_resume();
     emu_reset(gui_get_force_configuration());
 
-    if (config_emulator.start_paused)
+    if (config_emulator.start_paused && !config_debug.debug)
     {
         emu_pause();
 

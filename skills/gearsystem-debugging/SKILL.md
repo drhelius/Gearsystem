@@ -81,7 +81,7 @@ SMS/GG/SG-1000 hardware documentation is available in the [references/](referenc
 load_media → get_media_info → get_z80_status → get_screenshot
 ```
 
-Start every session by loading the ROM, confirming it loaded correctly (file path, type, size, mapper, zone, system), then checking Z80 CPU state and taking a screenshot to understand the current game state. If a `.sym` file exists alongside the ROM, symbols are loaded automatically. Gearsystem supports sjasmplus/Pasmo (EQU), SDCC/NoICE (.noi), wla-dx, and vasm/generic symbol formats.
+Start every session by loading the ROM, confirming it loaded correctly (file path, type, size, mapper, zone, system), then checking Z80 CPU state and taking a screenshot to understand the current game state. If a `.sym` file exists alongside the ROM, symbols are loaded automatically. Gearsystem supports sjasmplus/Pasmo (EQU), SDCC/NoICE (.noi), wla-dx, and vasm/generic symbol formats. The game runs after a load or reset unless the emulator's Start Paused setting is on; pass `stop_at_start: true` to `load_media` or `debug_reset` to stop before the first instruction, and read `paused` in the answer.
 
 Load additional symbols with `load_symbols` or add individual labels with `add_symbol`.
 
