@@ -232,7 +232,7 @@ private:
     u32 m_GGOutputPalette32[2][4096];
     u16 m_SMSOutputPalette16[4][64];
     u16 m_GGOutputPalette16[4][4096];
-    u64 m_BitplaneLUT[256];
+    u32 m_BitplaneLUT[256];
 };
 
 INLINE void Video::TraceVDPEvent(u8 event, u8 raw, u8 effective, u16 auxiliary, u8 reg, u8 status_before, u8 status_after, u16 address)

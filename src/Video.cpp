@@ -1050,7 +1050,7 @@ void Video::RenderBackgroundSMSGG(int line)
         int tile_data_addr = tile_index << 5;
         tile_data_addr += ((vflip ? 7 - current_tile_y_offset : current_tile_y_offset) << 2);
 
-        u64 pixels = m_BitplaneLUT[vram[tile_data_addr]] |
+        u32 pixels = m_BitplaneLUT[vram[tile_data_addr]] |
                 (m_BitplaneLUT[vram[tile_data_addr + 1]] << 1) |
                 (m_BitplaneLUT[vram[tile_data_addr + 2]] << 2) |
                 (m_BitplaneLUT[vram[tile_data_addr + 3]] << 3);
@@ -1059,7 +1059,7 @@ void Video::RenderBackgroundSMSGG(int line)
 
         for (int pixel = 0; pixel < span; pixel++)
         {
-            int palette_color = (int)((pixels >> (tile_pixel_x << 3)) & 0x0F) + palette_offset;
+            int palette_color = (int)((pixels >> (tile_pixel_x << 2)) & 0x0F) + palette_offset;
             bool final_priority = priority && ((palette_color - palette_offset) != 0);
 
             if (((info_buffer[pixel_info] & 0x01) == 0) || final_priority)
@@ -1935,9 +1935,9 @@ void Video::InitBitplaneLUT()
 {
     for (int value = 0; value < 256; value++)
     {
-        u64 pixels = 0;
+        u32 pixels = 0;
         for (int bit = 0; bit < 8; bit++)
-            pixels |= (u64)((value >> bit) & 0x01) << (bit << 3);
+            pixels |= (u32)((value >> bit) & 0x01) << (bit << 2);
         m_BitplaneLUT[value] = pixels;
     }
 }
